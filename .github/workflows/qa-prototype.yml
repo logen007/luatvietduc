@@ -1,7 +1,7 @@
 name: UX prototype browser checks
 on:
   push:
-    branches: [main, editorial-monochrome-v0.4]
+    branches: [main]
     paths: ['index.html','assets/**','scripts/**','.github/workflows/qa-prototype.yml']
   workflow_dispatch:
 permissions:
@@ -12,7 +12,7 @@ concurrency:
 jobs:
   browser-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
         with:
@@ -20,21 +20,12 @@ jobs:
           persist-credentials: false
       - name: Check JavaScript syntax
         run: |
-          node --check assets/content.js
           node --check assets/app.js
-          node --check assets/news-content.js
+          node --check assets/chat-first.js
           node --check assets/newsroom.js
-      - name: Install browser test dependencies
+      - name: Install test browser
         run: |
-          python3 -m pip install 'playwright==1.55.0' 'Pillow>=11,<13'
+          python3 -m pip install 'playwright==1.55.0'
           python3 -m playwright install --with-deps chromium
-      - name: Test editorial and original user journeys
-        run: python3 scripts/test-editorial.py
-      - name: Export review artifact
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: luatvietduc-editorial-review
-          path: build/
-          if-no-files-found: warn
-          retention-days: 14
+      - name: Check chat specialist knowledge and news interfaces
+        run: python3 scripts/test-chat.py
