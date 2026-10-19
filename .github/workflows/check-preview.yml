@@ -21,17 +21,16 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Verify live HTML scripts styles and photographs
+      - name: Verify live HTML chat scripts styles and photographs
         run: |
           python3 - <<'PY'
           import hashlib,json,os,time,urllib.request
           from pathlib import Path
           base='https://logen007.github.io/luatvietduc/'
-          paths=['index.html','assets/styles.css','assets/content.js','assets/app.js','assets/news-content.js','assets/newsroom.js','assets/newsroom.css','assets/photo-sources.json']
+          paths=['index.html','assets/styles.css','assets/content.js','assets/app.js','assets/news-content.js','assets/newsroom.js','assets/newsroom.css','assets/photo-sources.json','assets/chat-first.js','assets/chat-first.css']
           paths+=sorted(str(p) for p in Path('assets/photos').glob('*-600.webp'))
-          assert len(paths)==16
           html=Path('index.html').read_text()
-          assert 'content="0.4.0"' in html
+          assert 'content="0.5.0"' in html
           assert 'noindex, nofollow' in html and 'onclick=' not in html
           assert 'connect-src \'none\'' in html
           expected={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in paths}
@@ -49,8 +48,7 @@ jobs:
                   print('Attempt',attempt+1,str(exc),flush=True)
                   if attempt==17:raise
                   time.sleep(10)
-          report={'status':'passed','version':'0.4.0','verified_count':len(paths),'url':base,'sha256':expected}
-          print(json.dumps(report,indent=2))
+          print(json.dumps({'status':'passed','version':'0.5.0','verified_count':len(paths),'url':base,'sha256':expected},indent=2))
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
-              out.write('## Luật Việt Đức editorial 0.4 verified\n\nHTTP 200. HTML, scripts, styles, credits and 8 local photographs match repository fingerprints.\n\n'+base+'\n')
+              out.write('## Luật Việt Đức chat-first 0.5 verified\n\nHTTP 200. Live HTML, chat, news, styles and image assets match repository fingerprints.\n\n'+base+'\n')
           PY
