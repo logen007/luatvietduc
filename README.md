@@ -1,50 +1,41 @@
-# Luật Việt Đức — HTML prototype 0.3
+# Luật Việt Đức — bản duyệt HTML 0.4
 
-Bản duyệt UX cho chuyên trang pháp luật dành cho người Việt tại Đức. Mục tiêu: hiện đại, gọn, dễ tra cứu; chuyển 13 mẫu wireframe thành giao diện HTML có thể bấm thử.
+Tin tức, đời sống và pháp luật dành cho người Việt tại Đức. Giao diện trắng, xám, đen; ảnh cũng được chuyển đen trắng.
 
-## Xem bản duyệt
+## Xem trực tiếp
 
 - Trang chủ: https://logen007.github.io/luatvietduc/#/
-- Sơ đồ, đối chiếu 13 mẫu và ghi chú: https://logen007.github.io/luatvietduc/#/so-do
-- Tra cứu: https://logen007.github.io/luatvietduc/#/tra-cuu
-- Bài mẫu: https://logen007.github.io/luatvietduc/#/hoi-dap/uy-quyen-quan-ly-nha
-- Gửi câu hỏi mẫu: https://logen007.github.io/luatvietduc/#/gui-cau-hoi
+- Tin tức: https://logen007.github.io/luatvietduc/#/tin-tuc
+- Sống ở Đức: https://logen007.github.io/luatvietduc/#/song-o-duc
+- Cộng đồng: https://logen007.github.io/luatvietduc/#/cong-dong
+- Tra cứu pháp luật: https://logen007.github.io/luatvietduc/#/tra-cuu
+- Nguồn ảnh: https://logen007.github.io/luatvietduc/#/nguon-anh
+- Sơ đồ và ghi chú: https://logen007.github.io/luatvietduc/#/so-do
 
-## Những thay đổi cần duyệt
+## Nội dung và ảnh
 
-Menu chính còn Tra cứu / Cẩm nang & Tin / Về chuyên trang. Trang chủ ưu tiên tìm kiếm và 6 tình huống. Giữ nguyên 10 lĩnh vực chuyên môn phía sau; tình huống, lĩnh vực, hỏi đáp dùng chung dữ liệu và URL bài viết.
+Trang chủ ưu tiên tin có ảnh, đời sống, cộng đồng và các đường tra cứu ngắn. Giữ lại 10 lĩnh vực và các luồng hỏi đáp, lưu bài, gửi câu hỏi, tài khoản mô phỏng.
 
-Bộ lọc, phân trang, tìm không dấu, đọc bài, lưu bài, biểu mẫu, xác thực và trao đổi riêng đều có tương tác mẫu. Mobile là bố cục thích ứng, không phải ảnh desktop được thu nhỏ. Tài khoản hiển thị bằng tên chức năng thay cho nhãn Plus.
+10 bài chọn lọc tóm tắt bằng tiếng Việt, dẫn nguồn gốc trong bài. Ngày nguồn tách biệt ngày đối chiếu 19/10/2026. Không phải hệ thống tin tức cập nhật tự động; bài cũ không giả lập thành tin mới. Chưa có người kiểm duyệt pháp lý được xác nhận.
 
-## Giới hạn quan trọng
-
-Đây KHÔNG phải website tiếp nhận hồ sơ hoặc tư vấn pháp luật thật. Các bài là dữ liệu minh họa, chưa có kết luận pháp lý hay chuyên gia kiểm duyệt được xác nhận.
-
-Không có backend, API dữ liệu, đăng nhập thật, gửi email, bản tin thật hoặc lưu hồ sơ. Mã 123456 chỉ phục vụ thao tác mô phỏng, tuyệt đối không dùng cho hệ thống xác thực thật. Mọi dữ liệu biểu mẫu, câu hỏi, tùy chọn và bài lưu chỉ nằm trong bộ nhớ trang; tải lại sẽ xóa dữ liệu. Không nhập thông tin thật. Chính sách trên trang là vị trí trình bày bản dự thảo, chưa được duyệt pháp lý.
-
-CSP chặn kết nối dữ liệu từ JavaScript và gửi form ra ngoài. Không tích hợp analytics. Nhà cung cấp hosting vẫn có thể có nhật ký truy cập thông thường. Repository và bản duyệt công khai; noindex không phải kiểm soát truy cập.
+8 ảnh có nguồn, 24 biến thể WebP đen trắng (600/1200/1800). 7 ảnh theo Unsplash License; ảnh Dong Xuan Center năm 2012 theo CC BY-SA 3.0, giữ ghi công và giấy phép cho bản chuyển đổi. Ảnh minh họa không phải bằng chứng về sự kiện hoặc hoàn cảnh của người trong ảnh. Xem assets/photo-sources.json và trang Nguồn ảnh.
 
 ## Mã nguồn
 
-- `index.html`: khung giao diện, menu và hộp thoại.
-- `assets/styles.css`: hệ thiết kế và responsive.
-- `assets/content.js`: 10 lĩnh vực, 6 tình huống, dữ liệu bài mẫu dùng chung.
-- `assets/app.js`: điều hướng hash, render, tương tác và dữ liệu mô phỏng trong RAM.
-- `scripts/test-prototype.py`: kiểm tra Chromium, 6 chiều rộng và các luồng chính; xuất ảnh và báo cáo trong `build/qa`.
-- `.nojekyll`: phục vụ mã tĩnh trên GitHub Pages.
+- index.html: khung, menu, hộp thoại.
+- assets/styles.css: hệ giao diện và luồng tra cứu, đã chuyển màu trung tính.
+- assets/newsroom.css: bố cục tin tức responsive.
+- assets/content.js: dữ liệu hỏi đáp mẫu.
+- assets/news-content.js: bài có nguồn và metadata ảnh.
+- assets/newsroom.js: trang chủ, danh sách tin, chi tiết và nguồn ảnh.
+- assets/app.js: điều hướng dùng chung và tương tác mô phỏng.
+- assets/photos/: ảnh nội bộ, không hotlink.
+- scripts/test-editorial.py: kiểm tra Chromium, 6 chiều rộng, màu, ảnh và các luồng cũ.
 
-Không cần công cụ build để chạy web. Dùng một static server, ví dụ `python3 -m http.server 8000`, rồi mở `http://localhost:8000`. Bộ đóng gói QA còn xuất một file HTML tự chứa, mở trực tiếp được mà không cần server.
+Chạy bằng static server, ví dụ python3 -m http.server 8000. Không cần build framework. GitHub Pages xuất bản main, thư mục root. Các tệp .migration là dữ liệu đối chiếu cho lần chuyển từ 0.3 sang 0.4, không chạy trong trình duyệt.
 
-## Thử các luồng chính
+## Giới hạn
 
-1. Tìm `uy quyen`, mở bài, xem mục nguồn, gửi câu hỏi từ bài.
-2. Nhấn Lưu bài khi chưa đăng nhập; chọn tài khoản mẫu hoặc dùng email giả và mã 123456; trở về bài đang đọc.
-3. Mở form, nhấn Điền thông tin mẫu, đánh dấu đồng ý minh họa, gửi thử, theo dõi rồi gửi bổ sung.
+Form, email, OTP và câu hỏi riêng chỉ là bản bấm thử. Không có backend, không gửi email, không tiếp nhận hồ sơ. Chỉ nhập dữ liệu giả. Mã 123456 không phải cơ chế xác thực thật. Dữ liệu trong RAM, mất khi tải lại; không dùng localStorage/sessionStorage. CSP chặn kết nối dữ liệu ra ngoài. Hosting vẫn có thể có nhật ký truy cập thông thường.
 
-Bản cũ được giữ trong lịch sử Git tại commit `43a7d7a6dcd14cf58591932f08092e94c736882e`. Các hash cũ WF01–WF13 được ánh xạ sang giao diện mới.
-
-## Phạm vi triển khai
-
-Nguồn GitHub Pages: main, thư mục root. Chưa cấu hình tên miền riêng hoặc VPS; không thay đổi repo G2G Exam. Trước vận hành cần nội dung đã kiểm duyệt, pháp nhân, chính sách dữ liệu, backend, email, phân quyền, lưu trữ và tiêu chí nghiệm thu riêng.
-
-Nguồn yêu cầu: `Yeu_cau_Sitemap_User_Flow_Wireframe_Viet_kieu_Duc.docx` và các quyết định UX trong cuộc trao đổi về dự án Luật Việt Đức. Bản này là đề xuất duyệt giao diện, không tự thay đổi các cam kết pháp lý/vận hành đang chờ xác nhận.
+Chưa cấu hình tên miền riêng hoặc VPS. Không thay đổi G2G Exam. Bản 0.3 giữ trong lịch sử Git tại f2cf16de10d68b0ee39af8e241f3849ba92344b3; bản wireframe đầu vẫn ở wireframe-v0.1.html.
