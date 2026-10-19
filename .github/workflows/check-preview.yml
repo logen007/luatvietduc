@@ -27,7 +27,7 @@ jobs:
           import hashlib,json,os,time,urllib.request
           from pathlib import Path
           base='https://logen007.github.io/luatvietduc/'
-          paths=['index.html','assets/styles.css','assets/content.js','assets/app.js','assets/news-content.js','assets/newsroom.js','assets/newsroom.css','assets/photo-sources.json','assets/chat-first.js','assets/chat-first.css']
+          paths=['index.html','assets/styles.css','assets/content.js','assets/app.js','assets/news-content.js','assets/newsroom.js','assets/newsroom.css','assets/photo-sources.json','assets/chat-first.js','assets/chat-first.css','assets/chat-router.js']
           paths+=sorted(str(p) for p in Path('assets/photos').glob('*-600.webp'))
           html=Path('index.html').read_text()
           assert 'content="0.5.0"' in html
