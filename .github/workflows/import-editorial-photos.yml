@@ -1,0 +1,68 @@
+name: Import licensed editorial photographs
+on:
+  push:
+    branches: [editorial-monochrome-v0.4]
+    paths: ['assets/photo-sources.json', '.github/workflows/import-editorial-photos.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  photos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: editorial-monochrome-v0.4
+      - run: python3 -m pip install 'Pillow>=11,<13'
+      - name: Download permitted sources and create grayscale WebP variants
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, time, io, hashlib
+          from pathlib import Path
+          from urllib.parse import urlparse
+          from PIL import Image, ImageOps
+          sources=json.loads(Path('assets/photo-sources.json').read_text())
+          out=Path('assets/photos');out.mkdir(exist_ok=True)
+          reports=[]
+          for s in sources:
+              assert urlparse(s['download']).hostname in ['images.unsplash.com','upload.wikimedia.org']
+              for attempt in range(4):
+                  try:
+                      req=urllib.request.Request(s['download'],headers={'User-Agent':'LuatVietDucPrototype/0.4 (licensed photo attribution included)'})
+                      with urllib.request.urlopen(req,timeout=45) as response:
+                          assert response.status==200
+                          data=response.read(25000000)
+                      im=ImageOps.exif_transpose(Image.open(io.BytesIO(data)))
+                      im=ImageOps.grayscale(im)
+                      assert min(im.size)>300
+                      for width in [600,1200,1800]:
+                          copy=im.copy();copy.thumbnail((width,width*2),Image.Resampling.LANCZOS)
+                          copy.save(out/f"{s['id']}-{width}.webp",quality=82,method=6)
+                      reports.append({'id':s['id'],'source_dimensions':im.size,'source_sha256':hashlib.sha256(data).hexdigest(),'files':[str(out/f"{s['id']}-{w}.webp") for w in [600,1200,1800]]})
+                      print('OK',s['id'],im.size)
+                      break
+                  except Exception as exc:
+                      print(s['id'],attempt,str(exc))
+                      if attempt==3:raise
+                      time.sleep(5*(attempt+1))
+          Path('assets/photos/import-report.json').write_text(json.dumps(reports,indent=2))
+          PY
+      - name: Save only photo assets on the review branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/photos/
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: add eight credited monochrome photographs in three responsive sizes'
+            git pull --rebase origin editorial-monochrome-v0.4
+            git push origin HEAD:editorial-monochrome-v0.4
+          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: editorial-photo-assets
+          path: |
+            assets/photos/
+            assets/photo-sources.json
+          retention-days: 14
