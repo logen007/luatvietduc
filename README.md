@@ -1,33 +1,50 @@
-# Luật Việt Đức
+# Luật Việt Đức — HTML prototype 0.3
 
-Bản wireframe v0.1 để trao đổi và trình duyệt bố cục chuyên trang pháp luật dành cho người Việt tại Đức.
+Bản duyệt UX cho chuyên trang pháp luật dành cho người Việt tại Đức. Mục tiêu: hiện đại, gọn, dễ tra cứu; chuyển 13 mẫu wireframe thành giao diện HTML có thể bấm thử.
 
 ## Xem bản duyệt
 
-- Toàn bộ bản vẽ: https://logen007.github.io/luatvietduc/
-- Trang chủ WF01: https://logen007.github.io/luatvietduc/#WF01
-- Trang nội dung WF05: https://logen007.github.io/luatvietduc/#WF05
-- Gửi câu hỏi WF09: https://logen007.github.io/luatvietduc/#WF09
+- Trang chủ: https://logen007.github.io/luatvietduc/#/
+- Sơ đồ, đối chiếu 13 mẫu và ghi chú: https://logen007.github.io/luatvietduc/#/so-do
+- Tra cứu: https://logen007.github.io/luatvietduc/#/tra-cuu
+- Bài mẫu: https://logen007.github.io/luatvietduc/#/hoi-dap/uy-quyen-quan-ly-nha
+- Gửi câu hỏi mẫu: https://logen007.github.io/luatvietduc/#/gui-cau-hoi
 
-Dùng danh sách chọn bản vẽ, nút Trước/Sau hoặc phím mũi tên trái/phải. Nút Xem 100% phóng về kích thước thật; nút In / PDF mở hộp thoại in của trình duyệt.
+## Những thay đổi cần duyệt
 
-## Phạm vi
+Menu chính còn Tra cứu / Cẩm nang & Tin / Về chuyên trang. Trang chủ ưu tiên tìm kiếm và 6 tình huống. Giữ nguyên 10 lĩnh vực chuyên môn phía sau; tình huống, lĩnh vực, hỏi đáp dùng chung dữ liệu và URL bài viết.
 
-18 bản vẽ: sơ đồ tổng quan, luồng người dùng, 13 mẫu WF01–WF13, hai trang bố cục điện thoại và phiếu chốt ý kiến.
+Bộ lọc, phân trang, tìm không dấu, đọc bài, lưu bài, biểu mẫu, xác thực và trao đổi riêng đều có tương tác mẫu. Mobile là bố cục thích ứng, không phải ảnh desktop được thu nhỏ. Tài khoản hiển thị bằng tên chức năng thay cho nhãn Plus.
 
-Đây là bản nháp bố cục, không phải website pháp luật đã vận hành. Tìm kiếm, biểu mẫu, email và đăng nhập chỉ mô phỏng điều hướng; không tiếp nhận dữ liệu thật. Nội dung pháp lý và thông tin chưa được xác nhận vẫn là chỗ giữ.
+## Giới hạn quan trọng
 
-Giữ nguyên bố cục đã bàn giao; cập nhật tên hiển thị thành **Luật Việt Đức** theo quyết định của chủ dự án. Đã thêm chỉ thị `noindex, nofollow` cho bản duyệt; chỉ thị này không thay thế mật khẩu hay kiểm soát truy cập. Repository và bản xem là công khai.
+Đây KHÔNG phải website tiếp nhận hồ sơ hoặc tư vấn pháp luật thật. Các bài là dữ liệu minh họa, chưa có kết luận pháp lý hay chuyên gia kiểm duyệt được xác nhận.
 
-## Mã nguồn và triển khai
+Không có backend, API dữ liệu, đăng nhập thật, gửi email, bản tin thật hoặc lưu hồ sơ. Mã 123456 chỉ phục vụ thao tác mô phỏng, tuyệt đối không dùng cho hệ thống xác thực thật. Mọi dữ liệu biểu mẫu, câu hỏi, tùy chọn và bài lưu chỉ nằm trong bộ nhớ trang; tải lại sẽ xóa dữ liệu. Không nhập thông tin thật. Chính sách trên trang là vị trí trình bày bản dự thảo, chưa được duyệt pháp lý.
 
-- `index.html`: toàn bộ HTML, CSS và JavaScript dạng văn bản có thể chỉnh sửa; không cần cài thư viện hoặc chạy build.
-- `.nojekyll`: phục vụ trực tiếp website tĩnh trên GitHub Pages.
-- Nguồn xuất bản: nhánh `main`, thư mục `/(root)`.
-- Chưa cấu hình tên miền riêng hoặc VPS. Không thay đổi repository G2G Exam.
+CSP chặn kết nối dữ liệu từ JavaScript và gửi form ra ngoài. Không tích hợp analytics. Nhà cung cấp hosting vẫn có thể có nhật ký truy cập thông thường. Repository và bản duyệt công khai; noindex không phải kiểm soát truy cập.
 
-Mở `index.html` trực tiếp trên trình duyệt để xem bản cục bộ. Khi sửa, giữ các mã bản vẽ và liên kết neo để đường dẫn duyệt không bị hỏng.
+## Mã nguồn
 
-## Nguồn bố cục
+- `index.html`: khung giao diện, menu và hộp thoại.
+- `assets/styles.css`: hệ thiết kế và responsive.
+- `assets/content.js`: 10 lĩnh vực, 6 tình huống, dữ liệu bài mẫu dùng chung.
+- `assets/app.js`: điều hướng hash, render, tương tác và dữ liệu mô phỏng trong RAM.
+- `scripts/test-prototype.py`: kiểm tra Chromium, 6 chiều rộng và các luồng chính; xuất ảnh và báo cáo trong `build/qa`.
+- `.nojekyll`: phục vụ mã tĩnh trên GitHub Pages.
 
-Bản HTML `Wireframe_Viet_kieu_Duc_v0.1.html` đã bàn giao ngày 19/10/2026, dựa trên tài liệu `Yeu_cau_Sitemap_User_Flow_Wireframe_Viet_kieu_Duc.docx`. Đây chưa phải bản đặc tả của website thật.
+Không cần công cụ build để chạy web. Dùng một static server, ví dụ `python3 -m http.server 8000`, rồi mở `http://localhost:8000`. Bộ đóng gói QA còn xuất một file HTML tự chứa, mở trực tiếp được mà không cần server.
+
+## Thử các luồng chính
+
+1. Tìm `uy quyen`, mở bài, xem mục nguồn, gửi câu hỏi từ bài.
+2. Nhấn Lưu bài khi chưa đăng nhập; chọn tài khoản mẫu hoặc dùng email giả và mã 123456; trở về bài đang đọc.
+3. Mở form, nhấn Điền thông tin mẫu, đánh dấu đồng ý minh họa, gửi thử, theo dõi rồi gửi bổ sung.
+
+Bản cũ được giữ trong lịch sử Git tại commit `43a7d7a6dcd14cf58591932f08092e94c736882e`. Các hash cũ WF01–WF13 được ánh xạ sang giao diện mới.
+
+## Phạm vi triển khai
+
+Nguồn GitHub Pages: main, thư mục root. Chưa cấu hình tên miền riêng hoặc VPS; không thay đổi repo G2G Exam. Trước vận hành cần nội dung đã kiểm duyệt, pháp nhân, chính sách dữ liệu, backend, email, phân quyền, lưu trữ và tiêu chí nghiệm thu riêng.
+
+Nguồn yêu cầu: `Yeu_cau_Sitemap_User_Flow_Wireframe_Viet_kieu_Duc.docx` và các quyết định UX trong cuộc trao đổi về dự án Luật Việt Đức. Bản này là đề xuất duyệt giao diện, không tự thay đổi các cam kết pháp lý/vận hành đang chờ xác nhận.
