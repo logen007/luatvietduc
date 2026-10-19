@@ -1,0 +1,76 @@
+name: Prepare monochrome editorial preview
+on:
+  push:
+    branches: [editorial-monochrome-v0.4]
+    paths: ['.migration/**', 'scripts/test-editorial.py', '.github/workflows/migrate-editorial.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: editorial-migration
+  cancel-in-progress: true
+jobs:
+  build-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: editorial-monochrome-v0.4
+          fetch-depth: 0
+      - name: Apply only the reviewed source bundle
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,gzip,json,hashlib
+          parts=sorted(Path('.migration').glob('editorial-04-part-*.b64'))
+          assert len(parts)==9, len(parts)
+          encoded=''.join(p.read_text().strip() for p in parts)
+          for p in parts:
+              print(p.name,len(p.read_text().strip()),hashlib.sha256(p.read_bytes()).hexdigest())
+          assert hashlib.sha256(encoded.encode()).hexdigest()=='84fef2b903074b8bb0617ac62f2d6e99ef5b3fc2966e3f428facfae008c9a48d','Bundle integrity mismatch'
+          bundle=json.loads(gzip.decompress(base64.b64decode(encoded,validate=True)))
+          assert set(bundle['files'])=={'assets/news-content.js','assets/newsroom.js','assets/newsroom.css'}
+          assert set(bundle['patches'])=={'index.html','assets/app.js','assets/styles.css'}
+          for name,text in bundle['files'].items():
+              Path(name).write_text(text,encoding='utf-8')
+          for name,patch in bundle['patches'].items():
+              p=Path(name);text=p.read_text(encoding='utf-8');digest=hashlib.sha256(text.encode()).hexdigest()
+              if digest==patch['after']:continue
+              assert digest==patch['before'], ('Unexpected source',name,digest)
+              for r in reversed(patch['replacements']):
+                  assert text[r['start']:r['end']]==r['old'],name
+                  text=text[:r['start']]+r['new']+text[r['end']:]
+              assert hashlib.sha256(text.encode()).hexdigest()==patch['after'],name
+              p.write_text(text,encoding='utf-8')
+          print('Six source files verified and prepared.')
+          PY
+      - name: Check JavaScript syntax
+        run: |
+          node --check assets/app.js
+          node --check assets/news-content.js
+          node --check assets/newsroom.js
+      - name: Install test dependencies
+        run: |
+          python3 -m pip install 'playwright==1.55.0' 'Pillow>=11,<13'
+          python3 -m playwright install --with-deps chromium
+      - name: Test layouts photographs and user journeys
+        run: python3 scripts/test-editorial.py
+      - name: Commit exactly the tested source on the review branch
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/app.js assets/styles.css assets/news-content.js assets/newsroom.js assets/newsroom.css
+          if ! git diff --cached --quiet; then
+            git commit -m 'feat: publish browser-tested monochrome news and community prototype'
+            git pull --rebase origin editorial-monochrome-v0.4
+            git push origin HEAD:editorial-monochrome-v0.4
+          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: luatvietduc-editorial-review
+          path: build/
+          if-no-files-found: warn
+          retention-days: 14
