@@ -1,10 +1,11 @@
-name: Check wireframe preview
+name: Check published HTML
 
 on:
   push:
     branches: [main]
     paths:
       - 'index.html'
+      - 'assets/**'
       - '.github/workflows/check-preview.yml'
   workflow_run:
     workflows: ['pages build and deployment']
@@ -16,73 +17,55 @@ permissions:
   contents: read
 
 concurrency:
-  group: check-wireframe-preview
+  group: check-luatvietduc-preview
   cancel-in-progress: true
 
 jobs:
-  check:
+  verify-publication:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - name: Check the HTML and published page
-        shell: bash
+        with:
+          persist-credentials: false
+      - name: Verify live source fingerprints
         run: |
           python3 - <<'PY'
-          import hashlib
-          import json
-          import os
-          import time
-          import urllib.request
-          from html.parser import HTMLParser
+          import hashlib, json, os, time, urllib.request
           from pathlib import Path
-
-          class Inspector(HTMLParser):
-              def __init__(self):
-                  super().__init__()
-                  self.ids = set()
-                  self.links = []
-                  self.sheets = []
-              def handle_starttag(self, tag, attrs):
-                  attrs = dict(attrs)
-                  if 'id' in attrs:
-                      self.ids.add(attrs['id'])
-                  if tag == 'a' and attrs.get('href', '').startswith('#'):
-                      self.links.append(attrs['href'][1:])
-                  if 'sheet' in attrs.get('class', '').split():
-                      self.sheets.append(attrs.get('id'))
-
-          data = Path('index.html').read_bytes()
-          parser = Inspector()
-          parser.feed(data.decode('utf-8'))
-          assert len(parser.sheets) == 18, 'Expected 18 wireframe sheets'
-          assert not [link for link in parser.links if link not in parser.ids], 'Broken internal links'
-          assert all('WF%02d' % i in parser.ids for i in range(1, 14)), 'Missing wireframe'
-          expected = hashlib.sha256(data).hexdigest()
-          url = 'https://logen007.github.io/luatvietduc/'
-          last_error = None
-          for attempt in range(12):
+          from html.parser import HTMLParser
+          base = 'https://logen007.github.io/luatvietduc/'
+          paths = ['index.html', 'assets/styles.css', 'assets/content.js', 'assets/app.js']
+          html = Path('index.html').read_text(encoding='utf-8')
+          assert 'content="0.3.0"' in html
+          assert 'noindex, nofollow' in html
+          assert 'connect-src \'none\'' in html
+          assert 'onclick=' not in html
+          for path in paths:
+              assert Path(path).is_file(), path
+          expected = {path:hashlib.sha256(Path(path).read_bytes()).hexdigest() for path in paths}
+          final_urls = {}
+          for attempt in range(18):
               try:
-                  req = urllib.request.Request(url + '?verify=' + expected[:12], headers={'User-Agent': 'LuatVietDuc-Preview-Check'})
-                  with urllib.request.urlopen(req, timeout=20) as response:
-                      body = response.read()
-                      status = response.status
-                      final_url = response.geturl()
-                  actual = hashlib.sha256(body).hexdigest()
-                  if status != 200 or actual != expected:
-                      raise RuntimeError('Published page has not reached the expected version yet')
-                  report = {'status': 'passed', 'http_status': status, 'url': final_url, 'sheets': len(parser.sheets), 'broken_links': 0, 'sha256': actual}
-                  print(json.dumps(report, ensure_ascii=False, indent=2))
-                  with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as out:
-                      out.write('## Luật Việt Đức preview verified\n\n')
-                      out.write('HTTP 200; 18 sheets; internal links valid; live HTML matches repository.\n\n')
-                      out.write(url + '\n')
+                  for path in paths:
+                      address = base + ('' if path == 'index.html' else path) + '?verify=' + expected[path][:14]
+                      request = urllib.request.Request(address, headers={'User-Agent':'LuatVietDuc-Release-Check','Cache-Control':'no-cache'})
+                      with urllib.request.urlopen(request, timeout=20) as response:
+                          assert response.status == 200, (path,response.status)
+                          actual = hashlib.sha256(response.read()).hexdigest()
+                          final_urls[path] = response.geturl()
+                      if actual != expected[path]:
+                          raise RuntimeError('Waiting for published asset: ' + path)
                   break
               except Exception as exc:
-                  last_error = exc
-                  print('Attempt', attempt + 1, ':', str(exc))
-                  if attempt < 11:
-                      time.sleep(10)
-          else:
-              raise SystemExit('Live check failed: ' + str(last_error))
+                  print('Attempt', attempt+1, str(exc))
+                  if attempt == 17:
+                      raise
+                  time.sleep(10)
+          report = {'status':'passed','version':'0.3.0','url':base,'verified_assets':expected,'resolved_urls':final_urls}
+          print(json.dumps(report,ensure_ascii=False,indent=2))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
+              out.write('## Luật Việt Đức HTML 0.3 verified\n\n')
+              out.write('HTTP 200. Live HTML, CSS, content fixtures and JavaScript match repository fingerprints.\n\n')
+              out.write(base+'\n')
           PY
