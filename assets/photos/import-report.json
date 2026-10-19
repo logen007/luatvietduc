@@ -1,0 +1,106 @@
+[
+  {
+    "id": "train",
+    "source_dimensions": [
+      1800,
+      2700
+    ],
+    "source_sha256": "b1ddc8b4f8da1f82fa9a90774a89096c01aa945d79e8f4125dfc49a2bedd75aa",
+    "files": [
+      "assets/photos/train-600.webp",
+      "assets/photos/train-1200.webp",
+      "assets/photos/train-1800.webp"
+    ]
+  },
+  {
+    "id": "berlin",
+    "source_dimensions": [
+      1800,
+      1200
+    ],
+    "source_sha256": "8a3b5b7bef95090f794ab6ebfb066085e98a5dbc633b4d261d1df9dace99895e",
+    "files": [
+      "assets/photos/berlin-600.webp",
+      "assets/photos/berlin-1200.webp",
+      "assets/photos/berlin-1800.webp"
+    ]
+  },
+  {
+    "id": "family",
+    "source_dimensions": [
+      1800,
+      2400
+    ],
+    "source_sha256": "d2f253b55ae331b1d80187d0b3c277f787c46e4e5f3dfeadcc8494001a2e4c7a",
+    "files": [
+      "assets/photos/family-600.webp",
+      "assets/photos/family-1200.webp",
+      "assets/photos/family-1800.webp"
+    ]
+  },
+  {
+    "id": "tram",
+    "source_dimensions": [
+      1800,
+      2700
+    ],
+    "source_sha256": "d5c1ad7b0241a361bc94bb24d4615288c3232bd3bf331626ba9e37730cf0353c",
+    "files": [
+      "assets/photos/tram-600.webp",
+      "assets/photos/tram-1200.webp",
+      "assets/photos/tram-1800.webp"
+    ]
+  },
+  {
+    "id": "work",
+    "source_dimensions": [
+      1800,
+      2700
+    ],
+    "source_sha256": "19e167012524edcec590ab6e9498f9bc7542600ac9c25fedb7e5d4992a5faac5",
+    "files": [
+      "assets/photos/work-600.webp",
+      "assets/photos/work-1200.webp",
+      "assets/photos/work-1800.webp"
+    ]
+  },
+  {
+    "id": "housing",
+    "source_dimensions": [
+      1800,
+      2593
+    ],
+    "source_sha256": "7c884a587ae5446a37c12a255e7845bba35c773e91a8d02b0b24136475b73447",
+    "files": [
+      "assets/photos/housing-600.webp",
+      "assets/photos/housing-1200.webp",
+      "assets/photos/housing-1800.webp"
+    ]
+  },
+  {
+    "id": "library",
+    "source_dimensions": [
+      1800,
+      2700
+    ],
+    "source_sha256": "20c9dd33bdaa942b0435cb149bbd87693b5069e63da713659000068cdcfafc18",
+    "files": [
+      "assets/photos/library-600.webp",
+      "assets/photos/library-1200.webp",
+      "assets/photos/library-1800.webp"
+    ]
+  },
+  {
+    "id": "dong-xuan",
+    "source_dimensions": [
+      3648,
+      2736
+    ],
+    "source_sha256": "32dbde9b403d57e7d757ef4e95155232053bb078efa3ae0a8816e3a34ebd3e89",
+    "files": [
+      "assets/photos/dong-xuan-600.webp",
+      "assets/photos/dong-xuan-1200.webp",
+      "assets/photos/dong-xuan-1800.webp"
+    ]
+  }
+]
