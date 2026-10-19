@@ -1,22 +1,14 @@
 name: UX prototype browser checks
-
 on:
   push:
-    branches: [main, ux-html-v0.3]
-    paths:
-      - 'index.html'
-      - 'assets/**'
-      - 'scripts/**'
-      - '.github/workflows/qa-prototype.yml'
+    branches: [main, editorial-monochrome-v0.4]
+    paths: ['index.html','assets/**','scripts/**','.github/workflows/qa-prototype.yml']
   workflow_dispatch:
-
 permissions:
   contents: read
-
 concurrency:
   group: ux-prototype-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   browser-tests:
     runs-on: ubuntu-latest
@@ -30,17 +22,19 @@ jobs:
         run: |
           node --check assets/content.js
           node --check assets/app.js
+          node --check assets/news-content.js
+          node --check assets/newsroom.js
       - name: Install browser test dependencies
         run: |
-          python3 -m pip install 'playwright==1.55.0'
+          python3 -m pip install 'playwright==1.55.0' 'Pillow>=11,<13'
           python3 -m playwright install --with-deps chromium
-      - name: Test responsive layouts and prototype journeys
-        run: python3 scripts/test-prototype.py
+      - name: Test editorial and original user journeys
+        run: python3 scripts/test-editorial.py
       - name: Export review artifact
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: luatvietduc-html-review
+          name: luatvietduc-editorial-review
           path: build/
           if-no-files-found: warn
           retention-days: 14
