@@ -1,0 +1,63 @@
+name: UX prototype browser checks
+
+on:
+  push:
+    branches: [main, ux-html-v0.3]
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - 'scripts/**'
+      - '.github/workflows/qa-prototype.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ux-prototype-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Prepare reviewed UX refinements on the work branch only
+        if: github.ref_name == 'ux-html-v0.3'
+        run: |
+          python3 scripts/refine-prototype.py
+          if [ ! -f wireframe-v0.1.html ]; then
+            git show 43a7d7a6dcd14cf58591932f08092e94c736882e:index.html > wireframe-v0.1.html
+          fi
+      - name: Check JavaScript syntax
+        run: |
+          node --check assets/content.js
+          node --check assets/app.js
+      - name: Install browser test dependencies
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Test responsive layouts and prototype journeys
+        run: python3 scripts/test-prototype.py
+      - name: Commit only reviewed source refinements after passing tests
+        if: success() && github.ref_name == 'ux-html-v0.3'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/app.js assets/styles.css wireframe-v0.1.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: apply browser-verified UX refinements and retain original wireframes'
+            git push origin HEAD:refs/heads/ux-html-v0.3
+          fi
+      - name: Export review artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: luatvietduc-html-review
+          path: build/
+          if-no-files-found: warn
+          retention-days: 14
