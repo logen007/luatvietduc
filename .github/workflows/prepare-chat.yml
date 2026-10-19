@@ -2,7 +2,7 @@ name: Prepare chat-first interface
 on:
   push:
     branches: [chat-first-v0.5]
-    paths: ['assets/chat-first.*','scripts/apply-chat-ui.py','scripts/test-chat.py','.github/workflows/prepare-chat.yml']
+    paths: ['assets/chat-first.*','scripts/apply-chat-ui.py','scripts/test-chat.py','.github/workflows/prepare-chat.yml','.github/workflows/check-preview.yml','.github/workflows/qa-prototype.yml']
   workflow_dispatch:
 permissions:
   contents: write
