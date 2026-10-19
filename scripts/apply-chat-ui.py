@@ -1,4 +1,4 @@
-"""Apply the reviewed conversation-first shell. Touch only the public app and shell."""
+"""Apply reviewed integration and small source refinements within this repository only."""
 from pathlib import Path
 p=Path('assets/app.js')
 s=p.read_text(encoding='utf-8')
@@ -28,5 +28,16 @@ s=s.replace('Tin tức, đời sống và pháp luật.<br>Một góc nhìn Vi�
 s=s.replace('Tin chọn lọc có nguồn · Không thay thế tư vấn riêng.','Bản mô phỏng · Không tiếp nhận hồ sơ thật.')
 s=s.replace('<a href="#/">Trang chủ</a><a href="#/tra-cuu">Tra cứu theo tình huống</a>','<a href="#/">Trang chủ</a><a href="#/hoi-dap-ai">Hỏi đáp với AI & chuyên viên</a><a href="#/tra-cuu">Thư viện kiến thức</a>')
 s=s.replace('Luật Việt Đức — tin tức, đời sống và pháp luật dành cho người Việt tại Đức. Bản duyệt giao diện đen trắng; không tiếp nhận hồ sơ thật.','Luật Việt Đức — hỏi đáp pháp luật từ thư viện kiến thức, kết nối chuyên viên khi cần. Bản duyệt giao diện, chưa kết nối AI thật.')
+p.write_text(s,encoding='utf-8')
+p=Path('assets/chat-first.js');s=p.read_text(encoding='utf-8')
+old="if(b.hasAttribute('data-new-chat')){create();if(route().path==='/hoi-dap-ai')redraw(false,true);else go('/hoi-dap-ai');}"
+new="if(b.hasAttribute('data-new-chat')){create();if(location.hash==='#/hoi-dap-ai')redraw(false,true);else go('/hoi-dap-ai');}"
+if new not in s:
+    assert s.count(old)==1,'New-chat handler changed.'
+    s=s.replace(old,new,1)
+p.write_text(s,encoding='utf-8')
+p=Path('assets/chat-first.css');s=p.read_text(encoding='utf-8')
+if '/* Exact shell height */' not in s:
+    s+='\n/* Exact shell height */\n@media(min-width:681px){.chat-shell{height:calc(100dvh - 112px)}}\n@media(max-width:680px){.chat-shell{height:calc(100dvh - 100px);min-height:0}}\n'
 p.write_text(s,encoding='utf-8')
 print('Conversation-first shell integrated.')
