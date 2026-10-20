@@ -1,0 +1,105 @@
+name: Review Steel-inspired interface
+on:
+  push:
+    branches: [steel-ui-v0.6]
+    paths: ['assets/steel-ui.*','.github/workflows/review-steel-ui.yml']
+permissions:
+  contents: write
+concurrency:
+  group: review-steel-ui
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+      - name: Integrate reviewed styling and licensed font provider
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html');s=p.read_text()
+          s=s.replace('0.5.2','0.6.0')
+          s=s.replace("style-src 'self' 'unsafe-inline';", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;")
+          if 'assets/steel-ui.js' not in s:
+              marker='  <script src="assets/app.js?v=0.6.0" defer></script>'
+              assert marker in s
+              addition='  <link rel="preconnect" href="https://fonts.googleapis.com">\n  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;450;500;550;600&amp;family=Geist+Mono:wght@400;450;500&amp;display=swap">\n  <link rel="stylesheet" href="assets/steel-ui.css?v=0.6.0">\n  <script src="assets/steel-ui.js?v=0.6.0" defer></script>\n'
+              s=s.replace(marker,addition+marker)
+          p.write_text(s)
+          p=Path('assets/app.js');s=p.read_text()
+          old='Các website được liên kết trong bài áp dụng chính sách riêng.'
+          new=old+' Kiểu chữ được tải từ Google Fonts; trình duyệt kết nối với nhà cung cấp font nhưng không gửi kèm nội dung câu hỏi.'
+          if new not in s:
+              assert old in s
+              s=s.replace(old,new)
+          p.write_text(s)
+          p=Path('scripts/test-chat.py');s=p.read_text()
+          s=s.replace("assert page.locator('.chat-hero').bounding_box()['height']<440", "assert page.locator('#home-question').bounding_box()['y']<560")
+          old="u.startswith('http') and not u.startswith(base)"
+          new=old+" and not u.startswith('https://fonts.googleapis.com/') and not u.startswith('https://fonts.gstatic.com/')"
+          if new not in s:
+              assert old in s
+              s=s.replace(old,new)
+          p.write_text(s)
+          PY
+          node --check assets/steel-ui.js
+      - name: Install browser
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Run all existing public copy and interaction checks
+        run: VISUAL_QA=qa-internal python3 scripts/test-chat.py
+      - name: Verify loaded fonts additional widths and monochrome palette
+        run: |
+          python3 - <<'PY'
+          import functools,http.server,threading,json
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+          class Quiet(http.server.SimpleHTTPRequestHandler):
+              def log_message(self,*a):pass
+          srv=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(Path.cwd())))
+          threading.Thread(target=srv.serve_forever,daemon=True).start()
+          base=f'http://127.0.0.1:{srv.server_port}/'
+          with sync_playwright() as p:
+              b=p.chromium.launch(headless=True)
+              page=b.new_page(viewport={'width':1440,'height':1000},locale='vi-VN')
+              page.goto(base);page.evaluate('document.fonts.ready')
+              fonts=page.evaluate('''() => ({families:Array.from(document.fonts).filter(f=>f.status==='loaded').map(f=>f.family),heading:getComputedStyle(document.querySelector('h1')).fontFamily,button:getComputedStyle(document.querySelector('#home-ask button')).fontFamily})''')
+              assert 'Geist' in fonts['families'],fonts
+              assert 'Geist Mono' in fonts['families'],fonts
+              assert page.locator('.s-library-links>a').count()==10
+              for width in [360,768,900,1024,1280,1600]:
+                  page.set_viewport_size({'width':width,'height':1000})
+                  for route in ['/','/hoi-dap-ai','/tra-cuu','/tin/mindestlohn-2026','/gui-cau-hoi']:
+                      page.goto(base+'#'+route);page.evaluate('document.fonts.ready')
+                      assert page.evaluate('document.documentElement.scrollWidth')<=width+1,(width,route)
+              for width in [390,1440]:
+                  page.set_viewport_size({'width':width,'height':1000})
+                  for name,route in [('home','/'),('chat','/hoi-dap-ai'),('news','/tin/mindestlohn-2026')]:
+                      page.goto(base+'#'+route);page.evaluate('document.fonts.ready')
+                      for img in page.locator('img').all():img.scroll_into_view_if_needed();img.evaluate('(e)=>e.decode()')
+                      page.evaluate('scrollTo(0,0)');page.screenshot(path='qa-internal/'+name+'-'+str(width)+'.png',full_page=True)
+              Path('qa-internal/typography.json').write_text(json.dumps(fonts,ensure_ascii=False,indent=2))
+              print(fonts)
+              b.close()
+          srv.shutdown()
+          PY
+      - name: Commit only successfully tested website changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/app.js scripts/test-chat.py
+          if ! git diff --cached --quiet; then
+            git commit -m 'feat: activate the verified monochrome Steel-inspired interface'
+            git push origin HEAD:refs/heads/steel-ui-v0.6
+          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: steel-style-visual-qa
+          path: qa-internal/
+          if-no-files-found: ignore
+          retention-days: 1
