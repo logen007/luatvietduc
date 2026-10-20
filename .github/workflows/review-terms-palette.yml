@@ -1,0 +1,90 @@
+name: Review Terms palette
+on:
+  push:
+    branches: [terms-palette-v0.6.2]
+    paths: ['index.html','assets/color-theme.css','.github/workflows/review-terms-palette.yml']
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify scope is color only
+        run: |
+          git diff --exit-code 49f8a5e21c6fd7621eef9c6f5674fc78e898d3a7 -- assets/app.js assets/chat-first.js assets/chat-router.js assets/steel-ui.js assets/content.js assets/news-content.js assets/newsroom.js assets/steel-ui.css
+          python3 - <<'PY'
+          from pathlib import Path
+          text=Path('assets/color-theme.css').read_text()
+          assert 'font-family' not in text and 'font-size' not in text
+          assert '#0B5FCC' not in text and '#DDF2FF' not in text
+          assert '#3A0303' in text and '#FEFCFB' in text
+          PY
+      - name: Install test browser
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Check existing copy and interaction journeys
+        env:
+          VISUAL_QA: qa-internal
+        run: python3 scripts/test-chat.py
+      - name: Check actual colors and additional responsive widths
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import functools,http.server,threading,json,re
+          from playwright.sync_api import sync_playwright
+          out=Path('qa-internal');out.mkdir(exist_ok=True)
+          class Quiet(http.server.SimpleHTTPRequestHandler):
+              def log_message(self,*a):pass
+          srv=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(Path.cwd())))
+          threading.Thread(target=srv.serve_forever,daemon=True).start()
+          base=f'http://127.0.0.1:{srv.server_port}/'
+          def luminance(hex):
+              c=[int(hex[i:i+2],16)/255 for i in [1,3,5]]
+              c=[v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4 for v in c]
+              return .2126*c[0]+.7152*c[1]+.0722*c[2]
+          def contrast(a,b):
+              x,y=sorted([luminance(a),luminance(b)])
+              return (y+.05)/(x+.05)
+          pairs=[('#FEFCFB','#3A0303'),('#ECD5CE','#3A0303'),('#161512','#FFFFFF'),('#66605C','#FEFCFB'),('#9C3019','#FEFCFB'),('#62534A','#FFFFFF'),('#FAEBE5','#3A0303'),('#E7B8A7','#3A0303'),('#412A20','#F3E5DB'),('#A32929','#FFFFFF')]
+          ratios=[{'foreground':a,'background':b,'ratio':round(contrast(a,b),2)} for a,b in pairs]
+          assert all(p['ratio']>=4.5 for p in ratios),ratios
+          with sync_playwright() as p:
+              b=p.chromium.launch()
+              page=b.new_page(viewport={'width':1440,'height':1000},reduced_motion='reduce')
+              for w in [320,390,768,1024,1440]:
+                  page.set_viewport_size({'width':w,'height':1000})
+                  for route in ['/','/hoi-dap-ai','/tra-cuu','/tin-tuc','/tin/mindestlohn-2026','/gui-cau-hoi']:
+                      page.goto(base+'#'+route,wait_until='load')
+                      page.evaluate('document.fonts.ready')
+                      assert page.evaluate('document.documentElement.scrollWidth')<=w+1,(w,route)
+                      body=page.locator('body').evaluate('(e)=>getComputedStyle(e).backgroundColor')
+                      assert body=='rgb(254, 252, 251)',body
+                      if route=='/':
+                          hero=page.locator('.s-hero').evaluate('(e)=>getComputedStyle(e).backgroundImage')
+                          assert 'rgb(58, 3, 3)' in hero and 'rgb(214, 56, 0)' in hero
+                          assert page.locator('.site-header').evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgb(58, 3, 3)'
+                          assert page.locator('.s-hero h1').evaluate('(e)=>getComputedStyle(e).color')=='rgb(254, 252, 251)'
+                          assert page.locator('.s-library').evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgb(58, 3, 3)'
+                          if w==1440:page.screenshot(path=str(out/'home-top.png'))
+                      else:
+                          assert page.locator('.site-header').evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgb(254, 252, 251)'
+                      if route=='/tin/mindestlohn-2026' and w==1440:page.screenshot(path=str(out/'news-1440.png'),full_page=True)
+                  print('PASS Terms palette',w)
+              b.close()
+          srv.shutdown()
+          (out/'palette-check.json').write_text(json.dumps({'status':'passed','reference':'https://terms.so/','version':'0.6.2','contrast_pairs':ratios,'widths':[320,390,768,1024,1440]},indent=2))
+          PY
+      - name: Internal visual review
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: terms-palette-qa
+          path: qa-internal/
+          retention-days: 1
+          if-no-files-found: ignore
