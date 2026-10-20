@@ -25,11 +25,37 @@ jobs:
           s=s.replace("'chưa có đủ'", "'chưa có'").replace("'Đang chờ'", "'Chờ chuyên viên'")
           s=s.replace("page.locator('.chat-status a[href^=\"#/chuyen-vien\"]').click()", "page.evaluate(\"location.hash='/chuyen-vien'\");page.wait_for_timeout(150)")
           s=s.replace("expect(page.locator('.chat-context')).to_contain_text('không tự động')", "expect(page.locator('.chat-context')).to_contain_text('Về bài viết')")
+          old="   assert page.evaluate('document.documentElement.scrollWidth')<=w+1,(w,route)"
+          new="   if page.evaluate('document.documentElement.scrollWidth')>w+1:\n    Path('qa-internal').mkdir(exist_ok=True)\n    page.screenshot(path='qa-internal/route-overflow.png',full_page=True)\n    print(page.evaluate(\"()=>Array.from(document.querySelectorAll('body *')).filter(e=>e.getBoundingClientRect().right>innerWidth+1).map(e=>({tag:e.tagName,cls:e.className,text:e.textContent.slice(0,70),right:e.getBoundingClientRect().right})).slice(0,30)\"),flush=True)\n"+old
+          assert old in s
+          s=s.replace(old,new)
           p.write_text(s)
-          p=Path('assets/chat-first.css');p.write_text(p.read_text()+'\n.chat-news .press-copy h2{overflow-wrap:anywhere}.chat-news .press-section-head>h2{min-width:0}.ask-library{min-width:0}.ask-bottom .button{flex-shrink:0}\n@media(max-width:359px){.chat-news .press-copy h2,.chat-news .four .press-copy h2{font-size:16px}}\n')
+          p=Path('assets/news-content.js');s=p.read_text()
+          for old,new in {
+            'Lương tối thiểu 2026: mức 13,90 euro/giờ cần được hiểu đúng.':'Lương tối thiểu tại Đức: 13,90 euro/giờ từ năm 2026',
+            'Kindergeld tăng lên 259 euro mỗi tháng cho mỗi trẻ đủ điều kiện.':'Kindergeld 2026: 259 euro/tháng cho mỗi trẻ đủ điều kiện',
+            'Deutschlandticket sẽ tăng lên 66,80 euro từ đầu năm 2027.':'Vé Deutschlandticket tăng lên 66,80 euro từ năm 2027',
+            'Mới chuyển nhà ở Berlin: bắt đầu từ Anmeldung.':'Đăng ký địa chỉ cư trú (Anmeldung) tại Berlin',
+            'Làm thẻ cư trú: đừng nhầm ảnh số với ảnh scan.':'Ảnh số khi làm thẻ cư trú: những điều cần biết',
+            'Tìm Ausbildung: những cổng thông tin nên bắt đầu.':'Các trang tìm chỗ học nghề (Ausbildung) tại Đức',
+            'Dong Xuan Center: một điểm hẹn quen ở Berlin.':'Dong Xuan Center: điểm hẹn tại Berlin',
+            'Minijob 2026: mốc thu nhập tăng lên 603 euro.':'Minijob 2026: mức thu nhập 603 euro',
+            'Học tiếng Đức trong đời sống: tìm lớp và nơi hỗ trợ.':'Tìm lớp học tiếng Đức và chương trình hỗ trợ',
+            'Mang hộ chiếu Đức về Việt Nam: đọc đúng quy định miễn thị thực.':'Miễn thị thực Việt Nam cho người mang hộ chiếu Đức'
+          }.items():
+            assert old in s,old
+            s=s.replace(old,new)
+          p.write_text(s)
+          p=Path('assets/chat-first.css');p.write_text(p.read_text()+'''
+          .chat-news .press-copy h2{overflow-wrap:anywhere}.chat-news .press-section-head>h2{min-width:0}.ask-library{min-width:0}.ask-bottom .button{flex-shrink:0}
+          .news-detail h1,.news-detail h2,.news-detail p,.news-detail figcaption,.news-detail a{overflow-wrap:anywhere}.news-reading,.news-aside{min-width:0}.news-byline{flex-wrap:wrap}.news-byline>div{min-width:0}.news-bottom-nav{flex-wrap:wrap}
+          @media(max-width:680px){.chat-news .press-grid:not(.four){display:block}.chat-news .press-grid:not(.four)>.press-card+article{display:grid;grid-template-columns:108px minmax(0,1fr);gap:16px;border-top:1px solid #ddd;margin-top:23px;padding-top:20px}.chat-news .press-grid:not(.four)>.press-card+article .press-photo{aspect-ratio:1.15}.chat-news .press-grid:not(.four)>.press-card+article .press-meta{margin-top:0}.chat-news .press-grid:not(.four)>.press-card+article h2{font-size:17px;line-height:1.4}.chat-news .press-grid.four h2{font-size:17px;line-height:1.4}}
+          @media(max-width:359px){.chat-news .press-grid:not(.four)>.press-card+article{grid-template-columns:90px minmax(0,1fr);gap:13px}.chat-news .four .press-copy h2{font-size:16px}}
+          ''')
           PY
           node --check assets/chat-first.js
           node --check assets/newsroom.js
+          node --check assets/news-content.js
           node --check assets/app.js
       - name: Install browser
         run: |
@@ -39,8 +65,8 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import functools,http.server,threading,json
-          from playwright.sync_api import sync_playwright,expect
+          import functools,http.server,threading
+          from playwright.sync_api import sync_playwright
           out=Path('qa-internal');out.mkdir(exist_ok=True)
           class Quiet(http.server.SimpleHTTPRequestHandler):
               def log_message(self,*a):pass
@@ -59,11 +85,7 @@ jobs:
                   assert page.locator('.preview-bar').count()==0
                   assert page.locator('#home-demo').is_visible()
                   assert page.locator('a[href="#/chuyen-vien"]').count()==0
-                  overflow=page.evaluate('document.documentElement.scrollWidth')
-                  if overflow>w+1:
-                      page.screenshot(path=str(out/f'overflow-{w}.png'),full_page=True)
-                      print(page.evaluate('''()=>Array.from(document.querySelectorAll('body *')).filter(e=>e.getBoundingClientRect().right>innerWidth+1).map(e=>({tag:e.tagName,cls:e.className,text:e.textContent.slice(0,80),right:e.getBoundingClientRect().right})).slice(0,30)'''),flush=True)
-                  assert overflow<=w+1,(w,overflow)
+                  assert page.evaluate('document.documentElement.scrollWidth')<=w+1
                   if w==1440:
                       assert page.locator('.chat-hero').bounding_box()['height']<475
                       assert page.locator('.chat-news').first.bounding_box()['y']<560
@@ -85,7 +107,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html assets/chat-first.js assets/chat-first.css assets/app.js assets/newsroom.js scripts/test-chat.py .github/workflows/check-preview.yml
+          git add index.html assets/chat-first.js assets/chat-first.css assets/app.js assets/newsroom.js assets/news-content.js scripts/test-chat.py .github/workflows/check-preview.yml
           git rm scripts/refine-public-copy.py .github/workflows/refine-copy.yml
           git commit -m 'fix: simplify public copy, remove review scaffolding and shorten the homepage'
           git push origin HEAD:refs/heads/copy-cleanup-v0.5.1
