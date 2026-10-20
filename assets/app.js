@@ -38,7 +38,10 @@
   const savedSet = () => {if(!state.user) return new Set(); if(!state.saved.has(state.user.email)) state.saved.set(state.user.email,new Set()); return state.saved.get(state.user.email);};
   const mine = () => state.user ? state.requests.filter(r => r.owner === state.user.email) : [];
   const crumb = (title,parent) => `<div class="breadcrumb"><a href="#/">Trang chủ</a><span>/</span>${parent ? `<a href="${parent[1]}">${esc(parent[0])}</a><span>/</span>` : ''}<span>${esc(title)}</span></div>`;
-  const heading = (title,description='',eyebrow='') => `<div class="page-heading">${eyebrow?`<div class="eyebrow">${esc(eyebrow)}</div>`:''}<h1>${esc(title)}</h1>${description?`<p>${esc(description)}</p>`:''}</div>`;
+  const heading = (title,description='',eyebrow='') => {
+    const name = /quyền riêng tư|điều khoản/i.test(title)?'shield':/giới thiệu|về luật/i.test(title)?'scales':/góp ý|liên hệ|yêu cầu/i.test(title)?'mail':/đăng nhập|tài khoản/i.test(title)?'file':/tìm kiếm|tra cứu/i.test(title)?'book':'info';
+    return `<div class="page-heading"><span class="lvd-support-emblem">${window.LVD_ICON?.(name)||''}</span>${eyebrow?`<div class="eyebrow">${esc(eyebrow)}</div>`:''}<h1>${esc(title)}</h1>${description?`<p>${esc(description)}</p>`:''}</div>`;
+  };
   const meta = a => a.editorial ? window.LVD_EDITORIAL.tag(a) : `<div class="meta"><span>${labelType(a.type)}</span><span>${esc(a.country)}</span></div>`;
   const searchForm = (q='', id='search-page') => `<form class="search-form" data-search role="search"><label class="sr-only" for="${id}">Nhập từ khóa cần tìm…</label>${icon('search')}<input id="${id}" name="q" type="search" maxlength="180" placeholder="Nhập từ khóa cần tìm…" value="${esc(q)}" autocomplete="off"><button type="submit" class="button" aria-label="Tìm kiếm"><span class="search-label">Tìm kiếm</span>${icon('arrow')}</button></form>`;
   const suggestions = () => `<div class="suggestions"><span class="try-label">Thử tìm:</span>${['Ủy quyền','Thừa kế','Quốc tịch','Chuyển tiền'].map(q=>`<a class="pill" href="${url('/tim-kiem',{q})}">${q}</a>`).join('')}</div>`;
