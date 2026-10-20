@@ -10,7 +10,7 @@
   const route=()=>{const u=new URL((location.hash.slice(1)||'/'),'https://local.invalid');return {path:u.pathname,q:u.searchParams};};
   const go=path=>{if(location.hash==='#'+path)redraw();else location.hash=path;};
   const C=window.LVD_CATALOG;
-  const buttons=()=>`<div class="chat-prompts">${C.promptTopics.slice(0,4).map(([label,id])=>`<button type="button" data-ask-example="${esc(C.getTopic(id).title)}">${esc(label)}</button>`).join('')}</div>`;
+  const buttons=()=>`<div class="chat-prompts">${C.promptTopics.slice(0,4).map(([label,id])=>`<button type="button" data-ask-example="${esc(C.getTopic(id).title)}">${window.LVD_ICON?.(C.getGroup(C.getTopic(id).groupId)?.icon||'book','chat-prompt-icon')||''}<span>${esc(label)}</span></button>`).join('')}</div>`;
   const openContext=id=>C.getTopic(id)||N.stories.find(s=>s.id===id)||K.articles.find(s=>s.id===id);
   const contextURL=c=>c.catalog?C.topicURL(c):`#/${c.type==='news'?'tin':c.type==='qa'?'hoi-dap':'bai-viet'}/${c.id}`;
   function create(context=null){const t={id:'CHAT-'+String(++state.sequence).padStart(3,'0'),title:'Cuộc trò chuyện mới',context,messages:[],mode:'ai',loading:false,input:'',email:'',handoffOpen:false};state.threads.unshift(t);state.current=t.id;return t;}
