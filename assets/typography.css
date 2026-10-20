@@ -1,28 +1,35 @@
-/* Luat Viet Duc · Typography 0.6.3
-   The client supplied and confirmed licensing for both ABC webfonts.
-   Embedded resources were SHA-256 matched to the supplied files.
-   Font binaries are not redistributed in this public source repository.
-   Both supplied Latin subsets lack several Vietnamese characters.
-   Geist / Geist Mono remain fallbacks for only the missing glyphs. */
+/* Luat Viet Duc · Typography 0.6.4
+   The supplied ABC Latin subsets omit Vietnamese letters and combining marks.
+   Never mix ABC base letters with unrelated fallback glyphs within Vietnamese text.
+   Use complete Geist families for Vietnamese until a Vietnamese-complete licensed
+   ABC webfont is supplied. ABC remains configured for supported language scopes.
+   No font binaries are stored or redistributed in this repository. */
 @font-face {
   font-family: 'ABC Schengen A';
   src: url('https://steel.dev/_next/static/immutable/media/ABCSchengenA_Variable-s.p.3nb4eiitxra8w.woff2') format('woff2');
   font-weight: 200 1000;
-  font-style: oblique 0deg 12deg;
+  font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'ABC Schengen A Mono';
   src: url('https://steel.dev/_next/static/immutable/media/ABCSchengenAMono_Variable.p.1vh0uvnfona6i.woff2') format('woff2');
   font-weight: 200 1000;
-  font-style: oblique 0deg 12deg;
+  font-style: normal;
   font-display: swap;
 }
 :root {
+  --font-sans: 'Geist', Arial, sans-serif;
+  --font-mono: 'Geist Mono', 'Courier New', monospace;
+}
+/* Apply the whole family to the language scope, not just missing code points. */
+:lang(vi) {
+  --font-sans: 'Geist', Arial, sans-serif;
+  --font-mono: 'Geist Mono', 'Courier New', monospace;
+}
+:lang(en), :lang(de) {
   --font-sans: 'ABC Schengen A', 'Geist', Arial, sans-serif;
   --font-mono: 'ABC Schengen A Mono', 'Geist Mono', 'Courier New', monospace;
 }
-body {
-  font-kerning: normal;
-}
-/* The visual hierarchy, colors, content and component layout are unchanged. */
+body { font-kerning: normal; }
+/* Preserve all text, accents, component sizes, layout and the current color palette. */
