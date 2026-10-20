@@ -1,0 +1,112 @@
+name: Review visual icons and chat container
+on:
+  push:
+    branches: [visual-icons-footer-chat-v075]
+    paths:
+      - '.github/workflows/review-icons-v075.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Check source and JS
+        run: |
+          node --check assets/ui-icons.js
+          node --check assets/catalog.js
+          node --check assets/newsroom.js
+          node --check assets/chat-first.js
+          node --check assets/steel-ui.js
+          node --check assets/app.js
+          python3 - <<'PY'
+          from pathlib import Path
+          html=Path('index.html').read_text()
+          assert 'content="0.7.5"' in html
+          assert 'assets/ui-details.css?v=0.7.5' in html
+          assert 'assets/ui-icons.js?v=0.7.5' in html
+          assert "expectedTotal:303" in Path('assets/catalog-source.js').read_text()
+          assert "mark.textContent='luật việt đức'" not in Path('assets/steel-ui.js').read_text()
+          print('Syntax and prerequisites passed')
+          PY
+      - name: Install Chromium test browser
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Test icons, container alignment and all key views
+        run: |
+          mkdir -p internal-qa
+          python3 - <<'PY'
+          import functools,http.server,threading,json
+          from playwright.sync_api import sync_playwright
+          class Quiet(http.server.SimpleHTTPRequestHandler):
+            def log_message(self,*args): pass
+          server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Quiet)
+          threading.Thread(target=server.serve_forever,daemon=True).start()
+          base=f'http://127.0.0.1:{server.server_port}/'
+          routes=[
+            ('home','/'),('catalog','/tra-cuu'),
+            ('group','/chu-de/hon-nhan-gia-dinh'),
+            ('topics','/tra-cuu?xem=tat-ca'),
+            ('chat','/hoi-dap-ai'),('news','/tin-tuc'),
+            ('guide','/song-o-duc'),('article','/tin/mindestlohn-2026'),
+            ('about','/ve-chuyen-trang'),('contact','/gui-cau-hoi'),
+            ('privacy','/chinh-sach-thong-tin'),('login','/dang-nhap'),
+            ('credits','/nguon-anh')
+          ]
+          with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True)
+            for width in (320,390,768,1024,1440):
+              context=browser.new_context(viewport={'width':width,'height':900},locale='vi-VN',reduced_motion='reduce')
+              page=context.new_page()
+              errors=[]
+              page.on('pageerror',lambda e:errors.append(str(e)))
+              for label,route in routes:
+                page.goto(base+'#'+route,wait_until='load')
+                page.wait_for_timeout(70)
+                page.evaluate('document.fonts.ready')
+                dimensions=page.evaluate("""() => ({
+                  viewport: innerWidth,
+                  width: document.documentElement.scrollWidth,
+                  heading: document.querySelector('#main h1')?.textContent,
+                  broken:[...document.querySelectorAll('#main img')].filter(i=>i.complete&&i.naturalWidth===0).length,
+                  legacy:document.querySelectorAll('.s-footer-wordmark').length,
+                  header:document.querySelector('.site-header .container').getBoundingClientRect().width,
+                  chat:document.querySelector('.chat-shell')?.getBoundingClientRect().width||0
+                })""")
+                assert dimensions['width'] <= width+2,(label,width,dimensions)
+                assert dimensions['heading'] and dimensions['broken']==0,(label,width,dimensions)
+                assert dimensions['legacy']==0,(label,width,dimensions)
+                if label=='catalog':
+                  assert page.locator('.catalog-group').count()==16
+                  assert page.locator('.catalog-group .catalog-group-icon svg').count()==16
+                if label=='topics': assert page.locator('.catalog-topic-glyph svg').count()>0
+                if label=='news': assert page.locator('.press-meta-icon').count()>=1
+                if label=='article': assert page.locator('.news-summary-icon').count()>=1
+                if label=='chat':
+                  assert abs(dimensions['chat']-dimensions['header'])<2.1,(width,dimensions)
+                  assert page.locator('.chat-prompt-icon').count()>=4
+                if label in ('about','contact','privacy'):
+                  assert page.locator('.lvd-support-emblem svg').count()>=1
+                assert page.locator('.site-footer .footer-main .brand').count()==1
+                if width in (390,1440) and label in ('catalog','chat','news','about'):
+                  page.screenshot(path=f'internal-qa/{label}-{width}.png',full_page=(label!='chat'))
+                print('PASS',width,label,flush=True)
+              assert not errors,errors
+              context.close()
+            browser.close()
+          server.shutdown()
+          print('65 responsive icon/layout routes passed')
+          PY
+      - name: Keep visual review internal
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: internal-icon-layout-review
+          path: internal-qa/
+          if-no-files-found: ignore
+          retention-days: 1
