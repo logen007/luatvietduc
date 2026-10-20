@@ -1,0 +1,67 @@
+name: Inspect sourced German vectors
+on:
+  push:
+    branches: [sourced-germany-svg-v0.6.6]
+    paths: ['.github/workflows/inspect-sourced-svg.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: python3 -m pip install CairoSVG Pillow
+      - name: Read published SVG sources and render candidate sheet
+        run: |
+          python3 - <<'PY'
+          import urllib.request,concurrent.futures,json,hashlib,io,shutil
+          from pathlib import Path
+          import cairosvg
+          from PIL import Image,ImageDraw
+          out=Path('svg-review');out.mkdir(exist_ok=True)
+          sources={
+            'gate-wikimedia':'https://upload.wikimedia.org/wikipedia/commons/3/32/BrandenburgerTorSilhouette.svg',
+            'gate-338978':'https://www.svgrepo.com/show/338978/berlin-brandenburg-gate.svg',
+            'gate-194406':'https://www.svgrepo.com/show/194406/brandenburg-gate-berlin.svg',
+            'gate-1007':'https://www.svgrepo.com/show/1007/brandenburg-gate.svg',
+            'gate-258486':'https://www.svgrepo.com/show/258486/brandenburg-gate-germany.svg',
+            'gate-65867':'https://www.svgrepo.com/show/65867/brandenburg-gate.svg',
+          }
+          def get(item):
+            name,url=item
+            try:
+              req=urllib.request.Request(url,headers={'User-Agent':'LuatVietDuc/1.0 (licensed website illustration review)'})
+              with urllib.request.urlopen(req,timeout=30) as r:data=r.read(500000)
+              assert b'<svg' in data
+              (out/(name+'.svg')).write_bytes(data)
+              png=cairosvg.svg2png(bytestring=data,output_width=360,output_height=290)
+              (out/(name+'.png')).write_bytes(png)
+              return {'name':name,'url':url,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+            except Exception as e:return {'name':name,'error':str(e)}
+          results=list(concurrent.futures.ThreadPoolExecutor(6).map(get,sources.items()))
+          sheet=Image.new('RGB',(1200,720),'#faf8f5');draw=ImageDraw.Draw(sheet)
+          for i,r in enumerate(results):
+            x=(i%3)*400;y=(i//3)*360
+            p=out/(r['name']+'.png')
+            if p.exists():
+              im=Image.open(p).convert('RGBA');sheet.paste(im,(x+20,y+35),im)
+            draw.text((x+20,y+10),r['name']+' '+str(r.get('bytes','error'))+' bytes',fill='#111111')
+          sheet.save(out/'candidate-sheet.jpg',quality=90)
+          (out/'sources.json').write_text(json.dumps(results,indent=2))
+          # Capture text source for exact local diff/inspection; no font files.
+          code=out/'site';code.mkdir(exist_ok=True)
+          shutil.copy('index.html',code/'index.html')
+          for base in ['assets','scripts']:
+            for p in Path(base).rglob('*'):
+              if p.is_file() and p.suffix in ['.css','.js','.json','.py','.svg']:
+                dest=code/p;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy(p,dest)
+          print(json.dumps(results,indent=2))
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: internal-sourced-svg-review
+          path: svg-review/
+          retention-days: 1
