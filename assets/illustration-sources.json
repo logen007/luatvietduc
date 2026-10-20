@@ -1,0 +1,15 @@
+[
+  {
+    "id": "brandenburg-gate",
+    "title": "Brandenburg Gate silhouette",
+    "author": "Jahobr",
+    "source": "https://commons.wikimedia.org/wiki/File:BrandenburgerTorSilhouette.svg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/32/BrandenburgerTorSilhouette.svg",
+    "license": "CC0-1.0",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "source_sha256": "c2bad66b31c24ae0a8717189819c7b5d6fcec429955dbab61f646ba1e0592fe5",
+    "asset_sha256": "73ba940e43c386c608f6e5d4c42d7070f1c6efd11eb87d0bf7933472a0c015e6",
+    "bytes": 16284,
+    "modifications": "Removed editor metadata and off-canvas scale text; added a responsive viewBox. Geometry is unchanged and the render is pixel-identical at the test size. Display color, size and opacity are set only through CSS."
+  }
+]
