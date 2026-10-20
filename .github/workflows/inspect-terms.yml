@@ -1,0 +1,58 @@
+name: Inspect Terms palette
+on:
+  push:
+    branches: [terms-palette-v0.6.2]
+    paths: ['.github/workflows/inspect-terms.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install inspection browser
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Read reference colors and capture internal screenshots
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, shutil
+          from playwright.sync_api import sync_playwright
+          out=Path('internal-palette');out.mkdir(exist_ok=True)
+          with sync_playwright() as p:
+              b=p.chromium.launch()
+              page=b.new_page(viewport={'width':1440,'height':1000},reduced_motion='reduce')
+              response=page.goto('https://terms.so/?ref=saaspo.com',wait_until='domcontentloaded',timeout=60000)
+              print('Reference status:',response.status)
+              page.wait_for_timeout(5500)
+              page.screenshot(path=str(out/'terms-top.png'))
+              page.screenshot(path=str(out/'terms-full.png'),full_page=True)
+              palette=page.evaluate('''() => {
+                const root=getComputedStyle(document.documentElement);
+                const variables=Object.fromEntries(Array.from(root).filter(k=>k.startsWith('--')).map(k=>[k,root.getPropertyValue(k).trim()]));
+                const elements=Array.from(document.querySelectorAll('body,main,header,footer,section,h1,h2,h3,p,button,a,input,textarea,div')).filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0}).map(e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect();return {tag:e.tagName,cls:e.className,text:e.innerText?.slice(0,100),bg:s.backgroundColor,color:s.color,border:s.borderTopColor,fill:s.fill,image:s.backgroundImage,font:s.fontFamily,width:r.width,height:r.height,top:r.top}});
+                return {url:location.href,title:document.title,variables,elements};
+              }''')
+              (out/'terms-palette.json').write_text(json.dumps(palette,ensure_ascii=False,indent=2))
+              for i,href in enumerate(page.locator('link[rel=stylesheet]').evaluate_all('(els)=>els.map(e=>e.href)')):
+                  res=page.request.get(href)
+                  if res.ok:(out/f'terms-style-{i}.css').write_text(res.text())
+              b.close()
+          src=out/'source';src.mkdir(exist_ok=True)
+          for name in ['index.html','assets','scripts']:
+              path=Path(name)
+              if path.is_dir():shutil.copytree(path,src/name,ignore=shutil.ignore_patterns('*.woff','*.woff2','*.ttf','*.otf'))
+              else:shutil.copy2(path,src/name)
+          (src/'.github/workflows').mkdir(parents=True,exist_ok=True)
+          shutil.copy2('.github/workflows/check-preview.yml',src/'.github/workflows/check-preview.yml')
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: terms-palette-inspection
+          path: internal-palette/
+          retention-days: 1
