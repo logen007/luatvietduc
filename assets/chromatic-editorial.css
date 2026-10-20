@@ -135,6 +135,8 @@
 .catalog-page .catalog-group:nth-child(5n+5){
   --group-bg:#fae9e2;--group-ink:#934c3c;--group-line:#eecfc1;
 }
+.catalog-page .catalog-groups .catalog-group { background:var(--group-bg); }
+.catalog-page .catalog-groups .catalog-group:hover { background:var(--group-bg); }
 .catalog-page .catalog-group::before {
   background:var(--group-ink);
   opacity:.75;
