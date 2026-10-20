@@ -40,7 +40,8 @@ with sync_playwright() as p:
         for node in nodes:
             fonts += [f for f in cdp.send('CSS.getPlatformFontsForNode', {'nodeId': node})['fonts'] if f['glyphCount'] > 0]
         assert fonts, ('no rendered glyphs', selector)
-        assert all(f['isCustomFont'] and f['familyName'] == expected for f in fonts), (selector, expected, fonts)
+        # Fontations is a rendering-backend annotation, not a separate typeface.
+        assert all(f['isCustomFont'] and f['familyName'].removesuffix(' (Fontations)') == expected for f in fonts), (selector, expected, fonts)
         report['rendered_fonts'][selector] = fonts
     for form in ('NFC', 'NFD'):
         text = unicodedata.normalize(form, probe)
