@@ -26,6 +26,7 @@ jobs:
           s=s.replace("page.locator('.chat-status a[href^=\"#/chuyen-vien\"]').click()", "page.evaluate(\"location.hash='/chuyen-vien'\");page.wait_for_timeout(150)")
           s=s.replace("expect(page.locator('.chat-context')).to_contain_text('không tự động')", "expect(page.locator('.chat-context')).to_contain_text('Về bài viết')")
           p.write_text(s)
+          p=Path('assets/chat-first.css');p.write_text(p.read_text()+'\n.chat-news .press-copy h2{overflow-wrap:anywhere}.chat-news .press-section-head>h2{min-width:0}.ask-library{min-width:0}.ask-bottom .button{flex-shrink:0}\n@media(max-width:359px){.chat-news .press-copy h2,.chat-news .four .press-copy h2{font-size:16px}}\n')
           PY
           node --check assets/chat-first.js
           node --check assets/newsroom.js
@@ -34,13 +35,11 @@ jobs:
         run: |
           python3 -m pip install 'playwright==1.55.0'
           python3 -m playwright install --with-deps chromium
-      - name: Test chat handoff knowledge review and original routes
-        run: python3 scripts/test-chat.py
       - name: Check copy density and capture internal visual QA
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import functools,http.server,threading
+          import functools,http.server,threading,json
           from playwright.sync_api import sync_playwright,expect
           out=Path('qa-internal');out.mkdir(exist_ok=True)
           class Quiet(http.server.SimpleHTTPRequestHandler):
@@ -60,7 +59,11 @@ jobs:
                   assert page.locator('.preview-bar').count()==0
                   assert page.locator('#home-demo').is_visible()
                   assert page.locator('a[href="#/chuyen-vien"]').count()==0
-                  assert page.evaluate('document.documentElement.scrollWidth')<=w+1
+                  overflow=page.evaluate('document.documentElement.scrollWidth')
+                  if overflow>w+1:
+                      page.screenshot(path=str(out/f'overflow-{w}.png'),full_page=True)
+                      print(page.evaluate('''()=>Array.from(document.querySelectorAll('body *')).filter(e=>e.getBoundingClientRect().right>innerWidth+1).map(e=>({tag:e.tagName,cls:e.className,text:e.textContent.slice(0,80),right:e.getBoundingClientRect().right})).slice(0,30)'''),flush=True)
+                  assert overflow<=w+1,(w,overflow)
                   if w==1440:
                       assert page.locator('.chat-hero').bounding_box()['height']<475
                       assert page.locator('.chat-news').first.bounding_box()['y']<560
@@ -72,10 +75,12 @@ jobs:
                   assert page.locator('.chat-compose-help').is_visible()
                   assert page.evaluate('document.documentElement.scrollWidth')<=w+1
                   if w in [390,1440]:page.screenshot(path=str(out/f'chat-{w}.png'))
-                  print('PASS public copy and layout',w)
+                  print('PASS public copy and layout',w,flush=True)
               b.close()
           srv.shutdown()
           PY
+      - name: Test chat handoff knowledge review and original routes
+        run: python3 scripts/test-chat.py
       - name: Commit only verified source changes
         run: |
           git config user.name 'github-actions[bot]'
