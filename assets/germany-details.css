@@ -1,0 +1,46 @@
+/* Restrained German architectural details. One original 2 KB SVG, shared by
+   two CSS masks; no animation, raster illustration, scripts or remote assets. */
+.s-hero.chat-hero::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  right: calc(max(0px, (100vw - 1280px) / 2) - 80px);
+  width: min(1060px, 80vw);
+  aspect-ratio: 1040 / 360;
+  background-color: #ffd7c6;
+  -webkit-mask: url('berlin-line.svg') center / contain no-repeat;
+  mask: url('berlin-line.svg') center / contain no-repeat;
+  opacity: .16;
+  pointer-events: none;
+  user-select: none;
+  z-index: -1;
+}
+.site-footer {
+  position: relative;
+  isolation: isolate;
+}
+.site-footer::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  right: max(36px, (100vw - 1280px) / 2);
+  width: min(520px, 46vw);
+  aspect-ratio: 1040 / 360;
+  background-color: var(--wine);
+  -webkit-mask: url('berlin-line.svg') center / contain no-repeat;
+  mask: url('berlin-line.svg') center / contain no-repeat;
+  opacity: .1;
+  pointer-events: none;
+  user-select: none;
+  z-index: -1;
+}
+@media (max-width: 1100px) and (min-width: 681px) {
+  .s-hero.chat-hero::after { width: 880px; right: -70px; top: 5px; opacity: .12; }
+}
+@media (max-width: 680px) {
+  .s-hero.chat-hero::after { width: 780px; right: 0; top: 20px; opacity: .1; }
+  .site-footer::before { display: none; }
+}
+@media (forced-colors: active), (prefers-contrast: more), print {
+  .s-hero.chat-hero::after, .site-footer::before { display: none; }
+}

@@ -1,0 +1,125 @@
+name: Review subtle Germany details
+on:
+  push:
+    branches: [germany-details-v0.6.5]
+    paths: ['assets/berlin-line.svg','assets/germany-details.css','.github/workflows/review-germany-details.yml']
+permissions:
+  contents: write
+concurrency:
+  group: germany-details-review
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+      - name: Connect the small vector layer and remove previous abstract decoration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html');s=p.read_text();s=s.replace('0.6.4','0.6.5')
+          if 'assets/germany-details.css' not in s:
+              anchor='<link rel="stylesheet" href="assets/topic-navigation.css?v=0.6.5">'
+              assert s.count(anchor)==1
+              s=s.replace(anchor,anchor+'\n  <link rel="stylesheet" href="assets/germany-details.css?v=0.6.5">')
+          p.write_text(s)
+          p=Path('assets/steel-ui.js');s=p.read_text()
+          if '  function architecture() {' in s:
+              start=s.index('  function architecture() {');end=s.index('  function card(',start)
+              s=s[:start]+s[end:]
+              assert s.count('    ${architecture()}\n')==1
+              s=s.replace('    ${architecture()}\n','')
+          p.write_text(s)
+          p=Path('.github/workflows/check-preview.yml');s=p.read_text().replace('0.6.4','0.6.5')
+          if 'assets/germany-details.css' not in s:
+              s=s.replace("'assets/topic-navigation.css']","'assets/topic-navigation.css','assets/germany-details.css','assets/berlin-line.svg']")
+          p.write_text(s)
+          assert Path('assets/berlin-line.svg').stat().st_size<4000
+          assert Path('assets/germany-details.css').stat().st_size<4000
+          PY
+      - name: Install browser and existing image checks
+        run: |
+          python3 -m pip install 'playwright==1.55.0' 'Pillow>=11,<13'
+          python3 -m playwright install --with-deps chromium
+      - name: Preserve every existing reader flow, Vietnamese glyph and color photograph
+        run: |
+          node --check assets/steel-ui.js
+          python3 scripts/test-chat.py
+          python3 scripts/test-fonts.py
+      - name: Inspect decorative vector masks without changing content or layout
+        run: |
+          python3 - <<'PY'
+          import functools,http.server,threading,json,xml.etree.ElementTree as ET
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright,expect
+          out=Path('qa-germany');out.mkdir(exist_ok=True)
+          raw=Path('assets/berlin-line.svg').read_text()
+          root=ET.fromstring(raw)
+          assert root.tag.endswith('svg') and root.attrib['viewBox']=='0 0 1040 360'
+          assert not any(x.tag.split('}')[-1] in ['script','image','foreignObject','animate','text'] for x in root.iter())
+          assert 'href=' not in raw and '<filter' not in raw
+          class Quiet(http.server.SimpleHTTPRequestHandler):
+              def log_message(self,*args):pass
+          srv=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(Path.cwd())))
+          threading.Thread(target=srv.serve_forever,daemon=True).start()
+          base=f'http://127.0.0.1:{srv.server_port}/'
+          checks=[];errors=[]
+          with sync_playwright() as p:
+              browser=p.chromium.launch()
+              page=browser.new_page(viewport={'width':1440,'height':960},reduced_motion='reduce',locale='vi-VN')
+              page.on('pageerror',lambda e:errors.append(str(e)))
+              for w in [320,390,768,1024,1440,2048]:
+                  page.set_viewport_size({'width':w,'height':960})
+                  page.goto(base+'#/',wait_until='networkidle');page.evaluate('document.fonts.ready')
+                  assert page.locator('h1').count()==1
+                  assert page.locator('.s-architecture').count()==0
+                  assert page.locator('.s-rail-label').count()==0
+                  assert page.locator('.s-topic-links button').count()==6
+                  assert page.evaluate('document.documentElement.scrollWidth')<=w+1
+                  d=page.locator('.s-hero').evaluate("e=>{let s=getComputedStyle(e,'::after');return {mask:s.maskImage,opacity:s.opacity,pointer:s.pointerEvents,width:parseFloat(s.width)}}")
+                  assert 'berlin-line.svg' in d['mask'] and d['pointer']=='none' and 0<float(d['opacity'])<=.18 and d['width']>0,d
+                  assert page.locator('#home-question').is_visible()
+                  page.locator('#home-question').click();page.locator('#home-question').fill('Tôi cần tìm hiểu ủy quyền tại Đức')
+                  assert page.locator('#home-question').input_value().startswith('Tôi cần')
+                  page.locator('#home-question').fill('');page.locator('#home-question').blur();page.mouse.move(0,0)
+                  if w in [390,1440]:
+                      page.screenshot(path=str(out/f'home-top-{w}.png'))
+                      page.locator('.s-hero').screenshot(path=str(out/f'hero-{w}.png'))
+                      page.locator('.site-footer').scroll_into_view_if_needed()
+                      page.locator('.site-footer').screenshot(path=str(out/f'footer-{w}.png'))
+                  checks.append({'width':w,'hero':d})
+                  for route in ['/hoi-dap-ai','/tin-tuc','/tra-cuu','/gui-cau-hoi']:
+                      page.goto(base+'#'+route,wait_until='load');page.evaluate('document.fonts.ready')
+                      assert page.evaluate('document.documentElement.scrollWidth')<=w+1,(w,route)
+                      assert page.locator('.s-hero').count()==0
+              page.set_viewport_size({'width':1440,'height':960});page.goto(base+'#/',wait_until='networkidle')
+              page.emulate_media(forced_colors='active')
+              assert page.locator('.s-hero').evaluate("e=>getComputedStyle(e,'::after').display")=='none'
+              assert not errors,errors
+              browser.close()
+          srv.shutdown()
+          report={'status':'passed','checks':checks,'svg_bytes':Path('assets/berlin-line.svg').stat().st_size,'css_bytes':Path('assets/germany-details.css').stat().st_size,'notes':'CSS pseudo-elements are decorative, noninteractive and hidden in high-contrast and print modes.'}
+          (out/'report.json').write_text(json.dumps(report,indent=2))
+          print(json.dumps(report,indent=2))
+          PY
+      - name: Save only tested source connections on this work branch
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/steel-ui.js .github/workflows/check-preview.yml
+          if ! git diff --cached --quiet; then
+            git commit -m 'style: connect restrained Berlin linework without changing content typography or photos'
+            git push origin HEAD:refs/heads/germany-details-v0.6.5
+          fi
+      - name: Internal visual check
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: germany-details-visual-check
+          path: qa-germany/
+          if-no-files-found: ignore
+          retention-days: 1
