@@ -61,6 +61,7 @@
 /* A small map fragment at the side of the dark library, not an icon card. */
 .s-library {
   isolation: isolate;
+  overflow: hidden; /* clip the decorative map rather than widening the viewport */
 }
 .s-library::after {
   content: '';
