@@ -82,10 +82,12 @@ jobs:
                 }""")
                 assert info['scroll']<=width+2,(width,label,'overflow',info)
                 assert info['branded']==1 and info['footnav']==9 and not info['legacy'],(width,label,info)
-                assert abs(info['headerW']-info['footerContainerW'])<1.2,(width,label,info)
-                assert info['inviteX']>=-1 and info['inviteR']<=width+1,(width,label,'invite',info)
-                assert info['actionX']>=-1 and info['actionR']<=width+1,(width,label,'action',info)
-                assert info['titleX']>=-1 and info['titleR']<=width+1,(width,label,'title',info)
+                # Full-screen conversation intentionally hides the footer while chatting.
+                if label!='chat':
+                  assert abs(info['headerW']-info['footerContainerW'])<1.2,(width,label,info)
+                  assert info['inviteX']>=-1 and info['inviteR']<=width+1,(width,label,'invite',info)
+                  assert info['actionX']>=-1 and info['actionR']<=width+1,(width,label,'action',info)
+                  assert info['titleX']>=-1 and info['titleR']<=width+1,(width,label,'title',info)
                 assert info['mainH1'] and 'Bắt đầu từ đây' in info['text'],(width,label,info)
                 if width in [390,1440] and label in ['home','catalog']:
                   page.locator('.lvd-footer').screenshot(path=f'internal-footer-review/{label}-footer-{width}.png')
