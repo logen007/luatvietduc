@@ -1,0 +1,87 @@
+/* Homepage quick questions: continuous hero background, no floating white strip. */
+.s-hero .s-topic-rail {
+  display: block;
+  padding: 12px 0 20px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.s-hero .s-topic-rail > .s-topic-links {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  width: 100%;
+  gap: 0;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid rgb(58 3 3 / 14%);
+  background: transparent;
+}
+.s-hero .s-topic-rail button {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 12px 22px;
+  margin: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #44291f;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  text-align: left;
+}
+.s-hero .s-topic-rail button + button::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1px;
+  height: 18px;
+  background: rgb(58 3 3 / 14%);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.s-hero .s-topic-rail button:hover {
+  color: var(--wine);
+  background: rgb(58 3 3 / 4%);
+}
+.s-hero .s-topic-rail button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -3px;
+}
+.s-hero .s-topic-rail button svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  margin: 0;
+  color: var(--accent);
+}
+@media (max-width: 1100px) {
+  .s-hero .s-topic-rail button { padding-inline: 16px; font-size: 11px; }
+}
+@media (max-width: 900px) {
+  .s-hero .s-topic-rail > .s-topic-links {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 4px;
+  }
+  .s-hero .s-topic-rail button:nth-child(4)::before { display: none; }
+}
+@media (max-width: 680px) {
+  .s-hero .s-topic-rail { padding-top: 4px; padding-bottom: 12px; }
+  .s-hero .s-topic-rail button { padding: 12px 10px; gap: 8px; font-size: 11px; }
+}
+@media (max-width: 359px) {
+  .s-hero .s-topic-rail button { padding-inline: 8px; gap: 6px; font-size: 10px; }
+}
+@media print { .s-hero .s-topic-rail { display: none; } }

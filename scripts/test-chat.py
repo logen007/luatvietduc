@@ -8,6 +8,10 @@ srv=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,dire
 threading.Thread(target=srv.serve_forever,daemon=True).start()
 base=f'http://127.0.0.1:{srv.server_port}/'
 forbidden=re.compile(r'bản xem thử|bản duyệt|mô phỏng|bấm thử|dùng thử|câu trả lời mẫu|phản hồi mẫu|nội dung mẫu|bài mẫu|kiến thức mẫu|điền thông tin mẫu|chưa kết nối AI|duyệt giao diện|chờ xác nhận|thiết kế dành|sẽ trình bày|xem luồng vận hành',re.I)
+licensed_fonts={
+ 'https://steel.dev/_next/static/immutable/media/ABCSchengenA_Variable-s.p.3nb4eiitxra8w.woff2',
+ 'https://steel.dev/_next/static/immutable/media/ABCSchengenAMono_Variable.p.1vh0uvnfona6i.woff2'
+}
 count=0
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True)
@@ -16,7 +20,7 @@ with sync_playwright() as p:
  page.on('pageerror',lambda e:errors.append(str(e)))
  page.on('console',lambda m:errors.append(m.text) if m.type=='error' else None)
  page.on('request',lambda r:requests.append(r.url))
- def go(route):page.goto(base+'#'+route,wait_until='load');page.wait_for_timeout(40)
+ def go(route):page.goto(base+'#'+route,wait_until='load');page.evaluate('document.fonts.ready');page.wait_for_timeout(40)
  def checkcopy():
   text=page.locator('body').inner_text()+' '+page.title()
   m=forbidden.search(text);assert not m,(page.url,m.group() if m else '')
@@ -93,6 +97,6 @@ with sync_playwright() as p:
     for image in page.locator('img').all():image.scroll_into_view_if_needed();image.evaluate('(el)=>el.decode()')
     page.evaluate('scrollTo(0,0)');page.screenshot(path=str(out/f'{name}-{w}.png'),full_page=True)
  assert not errors,errors
- assert not [u for u in requests if u.startswith('http') and not u.startswith(base) and not u.startswith('https://fonts.googleapis.com/') and not u.startswith('https://fonts.gstatic.com/')],'Unexpected data request'
+ assert not [u for u in requests if u.startswith('http') and not u.startswith(base) and not u.startswith('https://fonts.googleapis.com/') and not u.startswith('https://fonts.gstatic.com/') and u not in licensed_fonts],'Unexpected data request'
  passed('No browser errors or outgoing data');browser.close()
 srv.shutdown();print(count,'checks passed')
