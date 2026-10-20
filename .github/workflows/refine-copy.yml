@@ -25,10 +25,6 @@ jobs:
           s=s.replace("'chưa có đủ'", "'chưa có'").replace("'Đang chờ'", "'Chờ chuyên viên'")
           s=s.replace("page.locator('.chat-status a[href^=\"#/chuyen-vien\"]').click()", "page.evaluate(\"location.hash='/chuyen-vien'\");page.wait_for_timeout(150)")
           s=s.replace("expect(page.locator('.chat-context')).to_contain_text('không tự động')", "expect(page.locator('.chat-context')).to_contain_text('Về bài viết')")
-          old="   assert page.evaluate('document.documentElement.scrollWidth')<=w+1,(w,route)"
-          new="   if page.evaluate('document.documentElement.scrollWidth')>w+1:\n    Path('qa-internal').mkdir(exist_ok=True)\n    page.screenshot(path='qa-internal/route-overflow.png',full_page=True)\n    print(page.evaluate(\"()=>Array.from(document.querySelectorAll('body *')).filter(e=>e.getBoundingClientRect().right>innerWidth+1).map(e=>({tag:e.tagName,cls:e.className,text:e.textContent.slice(0,70),right:e.getBoundingClientRect().right})).slice(0,30)\"),flush=True)\n"+old
-          assert old in s
-          s=s.replace(old,new)
           p.write_text(s)
           p=Path('assets/news-content.js');s=p.read_text()
           for old,new in {
@@ -103,12 +99,11 @@ jobs:
           PY
       - name: Test chat handoff knowledge review and original routes
         run: python3 scripts/test-chat.py
-      - name: Commit only verified source changes
+      - name: Commit verified website source only
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html assets/chat-first.js assets/chat-first.css assets/app.js assets/newsroom.js assets/news-content.js scripts/test-chat.py .github/workflows/check-preview.yml
-          git rm scripts/refine-public-copy.py .github/workflows/refine-copy.yml
+          git add index.html assets/chat-first.js assets/chat-first.css assets/app.js assets/newsroom.js assets/news-content.js scripts/test-chat.py
           git commit -m 'fix: simplify public copy, remove review scaffolding and shorten the homepage'
           git push origin HEAD:refs/heads/copy-cleanup-v0.5.1
       - name: Internal visual QA
