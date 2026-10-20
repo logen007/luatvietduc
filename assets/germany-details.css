@@ -49,3 +49,51 @@
 @media (forced-colors: active), (prefers-contrast: more), print {
   .s-hero.chat-hero::after, .site-footer::before { display: none; }
 }
+
+/* Two source-backed silhouettes, lightly revealed at the page edges.
+   The original art is served as small local SVG masks, not distorted by CSS. */
+.s-hero.chat-hero::before {
+  content: '';
+  position: absolute;
+  top: -104px;
+  right: -60px;
+  width: 200px;
+  aspect-ratio: 311 / 1048;
+  background: #ffe5d8;
+  -webkit-mask: url('berlin-tv-tower.svg') center / contain no-repeat;
+  mask: url('berlin-tv-tower.svg') center / contain no-repeat;
+  opacity: .12;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+.s-library::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 26px;
+  width: min(210px, 18vw);
+  aspect-ratio: 540 / 710;
+  background: #f5ba9d;
+  -webkit-mask: url('germany-shape.svg') right center / contain no-repeat;
+  mask: url('germany-shape.svg') right center / contain no-repeat;
+  opacity: .07;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+.s-library-inner { position: relative; z-index: 1; }
+@media (max-width: 900px) {
+  .s-library::after { display: none; }
+}
+@media (max-width: 680px) {
+  .s-hero.chat-hero::before {
+    width: 82px;
+    right: -31px;
+    top: -14px;
+    opacity: .09;
+  }
+}
+@media (forced-colors: active), (prefers-contrast: more), print {
+  .s-hero.chat-hero::before, .s-library::after { display: none; }
+}
