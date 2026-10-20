@@ -113,7 +113,7 @@ window.LVD_NEWS = {
   "stories": [
     {
       "id": "deutschlandticket-2027",
-      "title": "Deutschlandticket sẽ tăng lên 66,80 euro từ đầu năm 2027.",
+      "title": "Vé Deutschlandticket tăng lên 66,80 euro từ năm 2027",
       "summary": "Thông tin cần biết cho người đi làm, đi học bằng phương tiện công cộng tại Đức.",
       "category": "doi-song",
       "type": "news",
@@ -135,7 +135,7 @@ window.LVD_NEWS = {
       "situations": [],
       "checks": [],
       "editorial": true,
-      "keywords": "Deutschlandticket sẽ tăng lên 66,80 euro từ đầu năm 2027. Thông tin cần biết cho người đi làm, đi học bằng phương tiện công cộng tại Đức. doi-song",
+      "keywords": "Vé Deutschlandticket tăng lên 66,80 euro từ năm 2027 Thông tin cần biết cho người đi làm, đi học bằng phương tiện công cộng tại Đức. doi-song",
       "checked": "2026-10-19",
       "secondary": [
         {
@@ -147,7 +147,7 @@ window.LVD_NEWS = {
     },
     {
       "id": "mindestlohn-2026",
-      "title": "Lương tối thiểu 2026: mức 13,90 euro/giờ cần được hiểu đúng.",
+      "title": "Lương tối thiểu tại Đức: 13,90 euro/giờ từ năm 2026",
       "summary": "Đây là mức lương gộp trước khấu trừ, không phải số tiền thực nhận.",
       "category": "viec-lam",
       "type": "news",
@@ -169,13 +169,13 @@ window.LVD_NEWS = {
       "situations": [],
       "checks": [],
       "editorial": true,
-      "keywords": "Lương tối thiểu 2026: mức 13,90 euro/giờ cần được hiểu đúng. Đây là mức lương gộp trước khấu trừ, không phải số tiền thực nhận. viec-lam",
+      "keywords": "Lương tối thiểu tại Đức: 13,90 euro/giờ từ năm 2026 Đây là mức lương gộp trước khấu trừ, không phải số tiền thực nhận. viec-lam",
       "checked": "2026-10-19",
       "caption": "Ảnh minh họa công việc pha chế; không phải nhân vật trong bản tin, không xác định địa điểm chụp là Đức."
     },
     {
       "id": "kindergeld-2026",
-      "title": "Kindergeld tăng lên 259 euro mỗi tháng cho mỗi trẻ đủ điều kiện.",
+      "title": "Kindergeld 2026: 259 euro/tháng cho mỗi trẻ đủ điều kiện",
       "summary": "Familienkasse tự điều chỉnh mức chi trả cho các trường hợp đang nhận trợ cấp.",
       "category": "gia-dinh",
       "type": "news",
@@ -197,13 +197,13 @@ window.LVD_NEWS = {
       "situations": [],
       "checks": [],
       "editorial": true,
-      "keywords": "Kindergeld tăng lên 259 euro mỗi tháng cho mỗi trẻ đủ điều kiện. Familienkasse tự điều chỉnh mức chi trả cho các trường hợp đang nhận trợ cấp. gia-dinh",
+      "keywords": "Kindergeld 2026: 259 euro/tháng cho mỗi trẻ đủ điều kiện Familienkasse tự điều chỉnh mức chi trả cho các trường hợp đang nhận trợ cấp. gia-dinh",
       "checked": "2026-10-19",
       "caption": "Ảnh minh họa gia đình. Không khẳng định những người trong ảnh sống tại Đức hoặc nhận Kindergeld."
     },
     {
       "id": "anmeldung-berlin",
-      "title": "Mới chuyển nhà ở Berlin: bắt đầu từ Anmeldung.",
+      "title": "Đăng ký địa chỉ cư trú (Anmeldung) tại Berlin",
       "summary": "Thời hạn đăng ký, giấy xác nhận của chủ nhà và điều kiện làm trực tuyến.",
       "category": "cu-tru",
       "type": "guide",
@@ -225,13 +225,13 @@ window.LVD_NEWS = {
       "situations": [],
       "checks": [],
       "editorial": true,
-      "keywords": "Mới chuyển nhà ở Berlin: bắt đầu từ Anmeldung. Thời hạn đăng ký, giấy xác nhận của chủ nhà và điều kiện làm trực tuyến. cu-tru",
+      "keywords": "Đăng ký địa chỉ cư trú (Anmeldung) tại Berlin Thời hạn đăng ký, giấy xác nhận của chủ nhà và điều kiện làm trực tuyến. cu-tru",
       "checked": "2026-10-19",
       "caption": "Nhà ở tại Berlin. Ảnh minh họa, không phải tin đăng cho thuê."
     },
     {
       "id": "anh-so-the-cu-tru",
-      "title": "Làm thẻ cư trú: đừng nhầm ảnh số với ảnh scan.",
+      "title": "Ảnh số khi làm thẻ cư trú: những điều cần biết",
       "summary": "Ảnh sinh trắc học phải đi qua quy trình tiếp nhận được chấp nhận, không chỉ là một tệp ảnh.",
       "category": "cu-tru",
       "type": "guide",
@@ -253,13 +253,13 @@ window.LVD_NEWS = {
       "situations": [],
       "checks": [],
       "editorial": true,
-      "keywords": "Làm thẻ cư trú: đừng nhầm ảnh số với ảnh scan. Ảnh sinh trắc học phải đi qua quy trình tiếp nhận được chấp nhận, không chỉ là một tệp ảnh. cu-tru",
+      "keywords": "Ảnh số khi làm thẻ cư trú: những điều cần biết Ảnh sinh trắc học phải đi qua quy trình tiếp nhận được chấp nhận, không chỉ là một tệp ảnh. cu-tru",
       "checked": "2026-10-19",
       "caption": "Friedrichstraße, Berlin. Ảnh đô thị minh họa cho chuyên mục giấy tờ; không phải ảnh cơ quan tiếp nhận."
     },
     {
       "id": "tim-ausbildung",
-      "title": "Tìm Ausbildung: những cổng thông tin nên bắt đầu.",
+      "title": "Các trang tìm chỗ học nghề (Ausbildung) tại Đức",
       "summary": "Tìm theo ngành, khu vực và thời điểm bắt đầu, thay vì chỉ dựa vào một lời giới thiệu.",
       "category": "hoc-tap",
       "type": "guide",
@@ -281,13 +281,13 @@ window.LVD_NEWS = {
       "situations": [],
       "checks": [],
       "editorial": true,
-      "keywords": "Tìm Ausbildung: những cổng thông tin nên bắt đầu. Tìm theo ngành, khu vực và thời điểm bắt đầu, thay vì chỉ dựa vào một lời giới thiệu. hoc-tap",
+      "keywords": "Các trang tìm chỗ học nghề (Ausbildung) tại Đức Tìm theo ngành, khu vực và thời điểm bắt đầu, thay vì chỉ dựa vào một lời giới thiệu. hoc-tap",
       "checked": "2026-10-19",
       "caption": "Thư viện tại Stuttgart. Ảnh minh họa học tập, không phải cơ sở đào tạo hay khóa học đang được giới thiệu."
     },
     {
       "id": "dong-xuan-berlin",
-      "title": "Dong Xuan Center: một điểm hẹn quen ở Berlin.",
+      "title": "Dong Xuan Center: điểm hẹn tại Berlin",
       "summary": "Góc mua sắm, ẩm thực và gặp gỡ cho những ngày muốn tìm lại hương vị gần gũi.",
       "category": "cong-dong",
       "type": "guide",
@@ -309,13 +309,13 @@ window.LVD_NEWS = {
       "situations": [],
       "checks": [],
       "editorial": true,
-      "keywords": "Dong Xuan Center: một điểm hẹn quen ở Berlin. Góc mua sắm, ẩm thực và gặp gỡ cho những ngày muốn tìm lại hương vị gần gũi. cong-dong",
+      "keywords": "Dong Xuan Center: điểm hẹn tại Berlin Góc mua sắm, ẩm thực và gặp gỡ cho những ngày muốn tìm lại hương vị gần gũi. cong-dong",
       "checked": "2026-10-19",
       "caption": "Cổng Dong Xuan Center, ảnh tư liệu ngày 12/04/2012. Chuyển đen trắng, thu nhỏ và cắt cúp khi hiển thị; bản chuyển đổi theo CC BY-SA 3.0."
     },
     {
       "id": "minijob-603",
-      "title": "Minijob 2026: mốc thu nhập tăng lên 603 euro.",
+      "title": "Minijob 2026: mức thu nhập 603 euro",
       "summary": "Giới hạn được điều chỉnh cùng lương tối thiểu; không nên chỉ nhìn một tháng riêng lẻ.",
       "category": "viec-lam",
       "type": "news",
@@ -337,13 +337,13 @@ window.LVD_NEWS = {
       "situations": [],
       "checks": [],
       "editorial": true,
-      "keywords": "Minijob 2026: mốc thu nhập tăng lên 603 euro. Giới hạn được điều chỉnh cùng lương tối thiểu; không nên chỉ nhìn một tháng riêng lẻ. viec-lam",
+      "keywords": "Minijob 2026: mức thu nhập 603 euro Giới hạn được điều chỉnh cùng lương tối thiểu; không nên chỉ nhìn một tháng riêng lẻ. viec-lam",
       "checked": "2026-10-19",
       "caption": "Ảnh minh họa công việc, không khẳng định người trong ảnh làm Minijob hoặc làm việc tại Đức."
     },
     {
       "id": "hoc-tieng-duc",
-      "title": "Học tiếng Đức trong đời sống: tìm lớp và nơi hỗ trợ.",
+      "title": "Tìm lớp học tiếng Đức và chương trình hỗ trợ",
       "summary": "Từ khóa hòa nhập đến các lựa chọn học trực tuyến và hoạt động tình nguyện tại địa phương.",
       "category": "hoc-tap",
       "type": "guide",
@@ -365,13 +365,13 @@ window.LVD_NEWS = {
       "situations": [],
       "checks": [],
       "editorial": true,
-      "keywords": "Học tiếng Đức trong đời sống: tìm lớp và nơi hỗ trợ. Từ khóa hòa nhập đến các lựa chọn học trực tuyến và hoạt động tình nguyện tại địa phương. hoc-tap",
+      "keywords": "Tìm lớp học tiếng Đức và chương trình hỗ trợ Từ khóa hòa nhập đến các lựa chọn học trực tuyến và hoạt động tình nguyện tại địa phương. hoc-tap",
       "checked": "2026-10-19",
       "caption": "Thư viện Stuttgart. Ảnh minh họa, không phải ảnh một lớp tiếng Đức cụ thể."
     },
     {
       "id": "ho-chieu-duc-ve-viet-nam",
-      "title": "Mang hộ chiếu Đức về Việt Nam: đọc đúng quy định miễn thị thực.",
+      "title": "Miễn thị thực Việt Nam cho người mang hộ chiếu Đức",
       "summary": "Quốc tịch, giấy tờ sử dụng và điều kiện nhập cảnh quyết định cách áp dụng.",
       "category": "cu-tru",
       "type": "guide",
@@ -393,7 +393,7 @@ window.LVD_NEWS = {
       "situations": [],
       "checks": [],
       "editorial": true,
-      "keywords": "Mang hộ chiếu Đức về Việt Nam: đọc đúng quy định miễn thị thực. Quốc tịch, giấy tờ sử dụng và điều kiện nhập cảnh quyết định cách áp dụng. cu-tru",
+      "keywords": "Miễn thị thực Việt Nam cho người mang hộ chiếu Đức Quốc tịch, giấy tờ sử dụng và điều kiện nhập cảnh quyết định cách áp dụng. cu-tru",
       "checked": "2026-10-19",
       "caption": "Phương tiện công cộng tại Berlin. Ảnh minh họa hành trình, không phải ảnh cửa khẩu Việt Nam."
     }
