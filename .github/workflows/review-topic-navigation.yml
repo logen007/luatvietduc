@@ -1,0 +1,111 @@
+name: Review homepage navigation
+on:
+  push:
+    branches: [schengen-fonts-v0.6.3]
+    paths: ['assets/topic-navigation.css','assets/steel-ui.js','.github/workflows/review-topic-navigation.yml']
+permissions:
+  contents: write
+concurrency:
+  group: homepage-navigation-review
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+      - name: Connect the scoped navigation stylesheet
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html');s=p.read_text()
+          if 'assets/topic-navigation.css' not in s:
+            old='<link rel="stylesheet" href="assets/typography.css?v=0.6.3">'
+            assert old in s
+            s=s.replace(old, old+'\n  <link rel="stylesheet" href="assets/topic-navigation.css?v=0.6.3">',1)
+          p.write_text(s)
+          PY
+          node --check assets/steel-ui.js
+      - name: Install the test browser
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Check existing pages and interactions
+        run: python3 scripts/test-chat.py
+      - name: Confirm font rendering
+        run: python3 scripts/test-fonts.py
+      - name: Inspect navigation layout and all six destinations
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import functools,http.server,threading,json
+          from playwright.sync_api import sync_playwright,expect
+          out=Path('qa-navigation');out.mkdir(exist_ok=True)
+          class Quiet(http.server.SimpleHTTPRequestHandler):
+            def log_message(self,*a): pass
+          srv=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(Path.cwd())))
+          threading.Thread(target=srv.serve_forever,daemon=True).start()
+          base=f'http://127.0.0.1:{srv.server_port}/'
+          results=[]
+          with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True)
+            page=browser.new_page(viewport={'width':1440,'height':1000},reduced_motion='reduce')
+            errors=[]
+            page.on('pageerror',lambda e:errors.append(str(e)))
+            for w in [320,360,390,768,1024,1440,2048]:
+              page.set_viewport_size({'width':w,'height':1000})
+              page.goto(base+'#/');page.evaluate('document.fonts.ready')
+              nav=page.locator('nav.s-topic-rail')
+              expect(nav).to_be_visible()
+              assert page.locator('.s-rail-label').count()==0
+              assert 'chủ đề' not in nav.inner_text().lower()
+              assert nav.evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgba(0, 0, 0, 0)'
+              assert nav.locator('.s-topic-links').evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgba(0, 0, 0, 0)'
+              boxes=nav.locator('button').evaluate_all('(items)=>items.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,scroll:e.scrollWidth,client:e.clientWidth}})')
+              assert len(boxes)==6
+              assert max(b['w'] for b in boxes)-min(b['w'] for b in boxes)<1
+              assert all(b['h']>=44 and b['scroll']<=b['client']+1 for b in boxes),(w,boxes)
+              rows=len({round(b['y']) for b in boxes})
+              assert rows==(2 if w<=900 else 1),(w,rows)
+              rect=nav.bounding_box()
+              assert boxes[0]['x']>=rect['x']-1
+              assert all(b['x']+b['w']<=rect['x']+rect['width']+1 for b in boxes)
+              assert page.evaluate('document.documentElement.scrollWidth')<=w+1
+              for i in range(6):
+                if i:
+                  page.goto(base+'#/');page.evaluate('document.fonts.ready')
+                button=page.locator('.s-topic-rail button').nth(i)
+                expected=button.get_attribute('data-ask-example')
+                button.click()
+                expect(page.locator('.chat-message.user').last).to_contain_text(expected)
+              page.goto(base+'#/');page.evaluate('document.fonts.ready')
+              if w in [390,1440,2048]:
+                page.locator('.s-hero').screenshot(path=str(out/f'hero-{w}.png'))
+                page.locator('.s-topic-rail').screenshot(path=str(out/f'rail-{w}.png'))
+              results.append({'width':w,'columns':6//rows,'buttons':6,'transparent_background':True,'label_removed':True})
+              print('PASS navigation',w,flush=True)
+            assert not errors,errors
+            browser.close()
+          srv.shutdown()
+          (out/'report.json').write_text(json.dumps({'status':'passed','layouts':results},indent=2))
+          PY
+      - name: Commit only the tested stylesheet connection
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: activate the verified transparent homepage navigation'
+            git push origin HEAD:refs/heads/schengen-fonts-v0.6.3
+          fi
+      - name: Internal visual check
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: homepage-navigation-qa
+          path: qa-navigation/
+          if-no-files-found: ignore
+          retention-days: 1
