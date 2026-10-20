@@ -11,5 +11,25 @@
     "asset_sha256": "73ba940e43c386c608f6e5d4c42d7070f1c6efd11eb87d0bf7933472a0c015e6",
     "bytes": 16284,
     "modifications": "Removed editor metadata and off-canvas scale text; added a responsive viewBox. Geometry is unchanged and the render is pixel-identical at the test size. Display color, size and opacity are set only through CSS."
+  },
+  {
+    "id": "berlin-tv-tower",
+    "title": "Kontur-BerlinerFernsehturm.svg — Berlin TV Tower silhouette",
+    "author": "Chrkl (chris)",
+    "source": "https://commons.wikimedia.org/wiki/File:Kontur-BerlinerFernsehturm.svg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Kontur-BerlinerFernsehturm.svg",
+    "license": "Public domain (author release)",
+    "license_url": "https://commons.wikimedia.org/wiki/File:Kontur-BerlinerFernsehturm.svg",
+    "modifications": "Kept existing SVG shape unchanged; tint, opacity and cropping controlled through CSS."
+  },
+  {
+    "id": "germany-shape",
+    "title": "Germany shape.svg — silhouette of Germany",
+    "author": "Sarang, based on Sanyi4",
+    "source": "https://commons.wikimedia.org/wiki/File:Germany_shape.svg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Germany_shape.svg",
+    "license": "Public domain (author release)",
+    "license_url": "https://commons.wikimedia.org/wiki/File:Germany_shape.svg",
+    "modifications": "Kept existing SVG shape unchanged; tint, opacity and positioning controlled through CSS."
   }
 ]
