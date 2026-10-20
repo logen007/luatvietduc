@@ -2,52 +2,45 @@ name: Review original color photographs
 on:
   push:
     branches: [color-photos-v0.6.4]
-    paths: ['.github/workflows/review-color-photos.yml']
+    paths: ['.github/workflows/review-color-photos.yml','scripts/refresh-color-photos.py','scripts/test-fonts.py','assets/typography.css']
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: color-photos-v064
+  cancel-in-progress: true
 jobs:
-  prepare:
+  review:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Read credited originals and retain source for internal review
+      - name: Install image and browser checks
         run: |
-          python3 - <<'PY'
-          import concurrent.futures, json, pathlib, shutil, time, urllib.request
-          from urllib.parse import urlparse
-          root=pathlib.Path('photo-review');root.mkdir()
-          for name in ['index.html','assets','scripts','.github']:
-              p=pathlib.Path(name)
-              if p.is_dir():shutil.copytree(p,root/name)
-              else:shutil.copy2(p,root/name)
-          originals=root/'originals';originals.mkdir()
-          def get(s):
-              assert urlparse(s['download']).hostname in ['images.unsplash.com','upload.wikimedia.org']
-              for attempt in range(3):
-                  try:
-                      req=urllib.request.Request(s['download'],headers={'User-Agent':'LuatVietDuc/0.6.4 (credited editorial image restoration)'})
-                      with urllib.request.urlopen(req,timeout=45) as response:
-                          assert response.status==200
-                          assert urlparse(response.geturl()).hostname in ['images.unsplash.com','upload.wikimedia.org']
-                          data=response.read(25000001)
-                      assert 1000<len(data)<=25000000
-                      (originals/(s['id']+'.image')).write_bytes(data)
-                      return s['id']
-                  except Exception:
-                      if attempt==2:raise
-                      time.sleep(3*(attempt+1))
-          sources=json.loads(pathlib.Path('assets/photo-sources.json').read_text())
-          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-              for name in pool.map(get,sources):print('Original received:',name)
-          # No font files are copied or exported.
-          assert not list(root.rglob('*.woff2'))
-          PY
-      - uses: actions/upload-artifact@v7
+          python3 -m pip install 'Pillow>=11,<13' 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Restore original-color photographs and update attribution
+        run: python3 scripts/refresh-color-photos.py
+      - name: Check all existing pages and interactions
+        run: python3 scripts/test-chat.py
+      - name: Verify actual Vietnamese glyph families and full-color images
+        run: python3 scripts/test-fonts.py
+      - name: Save only verified website changes to the review branch
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/photos assets/photo-sources.json assets/newsroom.js assets/news-content.js assets/newsroom.css assets/steel-ui.css
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: restore original-color photos and activate uniform Vietnamese type'
+            git push origin HEAD:refs/heads/color-photos-v0.6.4
+          fi
+      - name: Internal visual verification
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
-          name: color-photo-source-review
-          path: photo-review/
+          name: color-vietnamese-qa
+          path: qa-fonts/
+          if-no-files-found: ignore
           retention-days: 1
