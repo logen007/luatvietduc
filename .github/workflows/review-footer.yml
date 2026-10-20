@@ -97,7 +97,9 @@ jobs:
               if width==390:
                 page.goto(base+'/',wait_until='load')
                 page.locator('.lvd-footer-invite-link').click()
-                assert '#/hoi-dap-ai' in page.url and page.locator('.chat-shell').count()==1
+                page.wait_for_url('**/#/hoi-dap-ai')
+                page.wait_for_selector('.chat-shell',state='attached',timeout=5000)
+                assert '#/hoi-dap-ai' in page.url
                 print('PASS CTA -> Q&A',flush=True)
               ctx.close()
             browser.close()
