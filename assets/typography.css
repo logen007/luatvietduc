@@ -1,9 +1,24 @@
 /* Luat Viet Duc · Typography 0.6.4
    The supplied ABC Latin subsets omit Vietnamese letters and combining marks.
-   Never mix ABC base letters with unrelated fallback glyphs within Vietnamese text.
-   Use complete Geist families for Vietnamese until a Vietnamese-complete licensed
-   ABC webfont is supplied. ABC remains configured for supported language scopes.
+   Vietnamese uses one complete family per text role, never per-glyph mixing.
+   Pin complete upstream Geist webfonts under distinct CSS aliases so older
+   Google Fonts subsets cannot participate in font matching.
+   ABC is retained for compatible language scopes pending complete client files.
    No font binaries are stored or redistributed in this repository. */
+@font-face {
+  font-family: 'LVD Geist';
+  src: url('https://raw.githubusercontent.com/vercel/geist-font/e1f671c727f6de7e97c1e1d26dbb44f349c19459/fonts/Geist/webfonts/Geist%5Bwght%5D.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LVD Geist Mono';
+  src: url('https://raw.githubusercontent.com/vercel/geist-font/e1f671c727f6de7e97c1e1d26dbb44f349c19459/fonts/GeistMono/webfonts/GeistMono%5Bwght%5D.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 @font-face {
   font-family: 'ABC Schengen A';
   src: url('https://steel.dev/_next/static/immutable/media/ABCSchengenA_Variable-s.p.3nb4eiitxra8w.woff2') format('woff2');
@@ -18,18 +33,12 @@
   font-style: normal;
   font-display: swap;
 }
-:root {
-  --font-sans: 'Geist', Arial, sans-serif;
-  --font-mono: 'Geist Mono', 'Courier New', monospace;
-}
-/* Apply the whole family to the language scope, not just missing code points. */
-:lang(vi) {
-  --font-sans: 'Geist', Arial, sans-serif;
-  --font-mono: 'Geist Mono', 'Courier New', monospace;
+:root, :lang(vi) {
+  --font-sans: 'LVD Geist', Arial, sans-serif;
+  --font-mono: 'LVD Geist Mono', 'Courier New', monospace;
 }
 :lang(en), :lang(de) {
-  --font-sans: 'ABC Schengen A', 'Geist', Arial, sans-serif;
-  --font-mono: 'ABC Schengen A Mono', 'Geist Mono', 'Courier New', monospace;
+  --font-sans: 'ABC Schengen A', 'LVD Geist', Arial, sans-serif;
+  --font-mono: 'ABC Schengen A Mono', 'LVD Geist Mono', 'Courier New', monospace;
 }
 body { font-kerning: normal; }
-/* Preserve all text, accents, component sizes, layout and the current color palette. */
