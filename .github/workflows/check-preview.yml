@@ -30,7 +30,7 @@ jobs:
           paths=['index.html','assets/styles.css','assets/content.js','assets/app.js','assets/news-content.js','assets/newsroom.js','assets/newsroom.css','assets/photo-sources.json','assets/chat-first.js','assets/chat-first.css','assets/chat-router.js']
           paths+=sorted(str(p) for p in Path('assets/photos').glob('*-600.webp'))
           html=Path('index.html').read_text()
-          assert 'content="0.5.0"' in html
+          assert 'content="0.5.1"' in html
           assert 'noindex, nofollow' in html and 'onclick=' not in html
           assert 'connect-src \'none\'' in html
           expected={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in paths}
@@ -48,7 +48,7 @@ jobs:
                   print('Attempt',attempt+1,str(exc),flush=True)
                   if attempt==17:raise
                   time.sleep(10)
-          print(json.dumps({'status':'passed','version':'0.5.0','verified_count':len(paths),'url':base,'sha256':expected},indent=2))
+          print(json.dumps({'status':'passed','version':'0.5.1','verified_count':len(paths),'url':base,'sha256':expected},indent=2))
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
-              out.write('## Luật Việt Đức chat-first 0.5 verified\n\nHTTP 200. Live HTML, chat, news, styles and image assets match repository fingerprints.\n\n'+base+'\n')
+              out.write('## Luật Việt Đức 0.5.1 verified\n\nHTTP 200. Live HTML, chat, news, styles and image assets match repository fingerprints.\n\n'+base+'\n')
           PY
