@@ -37,7 +37,7 @@ window.LVD_NEWS = {
       "download": "https://images.unsplash.com/photo-1709494795426-2740f2439248?auto=format&fit=max&w=1800&q=85",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "note": "Ảnh minh họa giao thông, không phải ảnh sự kiện tăng giá vé."
+      "note": "Ảnh minh họa."
     },
     {
       "id": "berlin",
@@ -47,7 +47,7 @@ window.LVD_NEWS = {
       "download": "https://images.unsplash.com/photo-1693647303182-be9405c8fa60?auto=format&fit=max&w=1800&q=85",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "note": "Ảnh minh họa đời sống đô thị."
+      "note": "Ảnh minh họa."
     },
     {
       "id": "family",
@@ -57,7 +57,7 @@ window.LVD_NEWS = {
       "download": "https://images.unsplash.com/photo-1763631045896-04d2e60048ae?auto=format&fit=max&w=1800&q=85",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "note": "Ảnh minh họa gia đình; không khẳng định người trong ảnh là người Việt, sống tại Đức hoặc hưởng trợ cấp."
+      "note": "Ảnh minh họa."
     },
     {
       "id": "tram",
@@ -67,7 +67,7 @@ window.LVD_NEWS = {
       "download": "https://images.unsplash.com/photo-1670671903965-042b5659ff73?auto=format&fit=max&w=1800&q=85",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "note": "Ảnh minh họa phương tiện công cộng."
+      "note": "Ảnh minh họa."
     },
     {
       "id": "work",
@@ -77,7 +77,7 @@ window.LVD_NEWS = {
       "download": "https://images.unsplash.com/photo-1767528402222-0d0cab161a39?auto=format&fit=max&w=1800&q=85",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "note": "Ảnh minh họa công việc; không phải ảnh chụp nhân vật trong bản tin và không xác định địa điểm là Đức."
+      "note": "Ảnh minh họa."
     },
     {
       "id": "housing",
@@ -87,7 +87,7 @@ window.LVD_NEWS = {
       "download": "https://images.unsplash.com/photo-1670912438521-f68a25f9fe0d?auto=format&fit=max&w=1800&q=85",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "note": "Ảnh minh họa nhà ở, không phải nhà đang cho thuê."
+      "note": "Ảnh minh họa."
     },
     {
       "id": "library",
@@ -97,7 +97,7 @@ window.LVD_NEWS = {
       "download": "https://images.unsplash.com/photo-1641927420848-a6bf44f607d6?auto=format&fit=max&w=1800&q=85",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "note": "Ảnh minh họa học tập; không phải ảnh một khóa Ausbildung hoặc lớp tiếng Đức cụ thể."
+      "note": "Ảnh minh họa."
     },
     {
       "id": "dong-xuan",
@@ -107,7 +107,7 @@ window.LVD_NEWS = {
       "download": "https://upload.wikimedia.org/wikipedia/commons/2/23/Lichtenberg_Herzbergstra%C3%9Fe_Dong_Xuan_Center-011.jpg",
       "license": "CC BY-SA 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "note": "Ảnh tư liệu chụp ngày 12/04/2012. Bản chuyển đen trắng, thu nhỏ và đổi WebP được phân phối theo CC BY-SA 3.0; khung hiển thị có thể cắt cúp."
+      "note": "Ảnh tư liệu ngày 12/04/2012. Bản đen trắng, điều chỉnh kích thước theo giấy phép CC BY-SA 3.0."
     }
   ],
   "stories": [
@@ -143,7 +143,7 @@ window.LVD_NEWS = {
           "url": "https://www.bahn.de/faq/deutschlandticket-aenderungen"
         }
       ],
-      "caption": "Tàu điện tại Berlin. Ảnh minh họa, không phải ảnh của thông báo tăng giá vé."
+      "caption": "Tàu điện tại Berlin. Ảnh minh họa."
     },
     {
       "id": "mindestlohn-2026",
@@ -171,7 +171,7 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Lương tối thiểu tại Đức: 13,90 euro/giờ từ năm 2026 Đây là mức lương gộp trước khấu trừ, không phải số tiền thực nhận. viec-lam",
       "checked": "2026-10-19",
-      "caption": "Ảnh minh họa công việc pha chế; không phải nhân vật trong bản tin, không xác định địa điểm chụp là Đức."
+      "caption": "Công việc pha chế. Ảnh minh họa."
     },
     {
       "id": "kindergeld-2026",
@@ -199,7 +199,7 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Kindergeld 2026: 259 euro/tháng cho mỗi trẻ đủ điều kiện Familienkasse tự điều chỉnh mức chi trả cho các trường hợp đang nhận trợ cấp. gia-dinh",
       "checked": "2026-10-19",
-      "caption": "Ảnh minh họa gia đình. Không khẳng định những người trong ảnh sống tại Đức hoặc nhận Kindergeld."
+      "caption": "Ảnh minh họa gia đình."
     },
     {
       "id": "anmeldung-berlin",
@@ -227,7 +227,7 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Đăng ký địa chỉ cư trú (Anmeldung) tại Berlin Thời hạn đăng ký, giấy xác nhận của chủ nhà và điều kiện làm trực tuyến. cu-tru",
       "checked": "2026-10-19",
-      "caption": "Nhà ở tại Berlin. Ảnh minh họa, không phải tin đăng cho thuê."
+      "caption": "Nhà ở tại Berlin. Ảnh minh họa."
     },
     {
       "id": "anh-so-the-cu-tru",
@@ -255,7 +255,7 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Ảnh số khi làm thẻ cư trú: những điều cần biết Ảnh sinh trắc học phải đi qua quy trình tiếp nhận được chấp nhận, không chỉ là một tệp ảnh. cu-tru",
       "checked": "2026-10-19",
-      "caption": "Friedrichstraße, Berlin. Ảnh đô thị minh họa cho chuyên mục giấy tờ; không phải ảnh cơ quan tiếp nhận."
+      "caption": "Friedrichstraße, Berlin. Ảnh minh họa."
     },
     {
       "id": "tim-ausbildung",
@@ -283,7 +283,7 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Các trang tìm chỗ học nghề (Ausbildung) tại Đức Tìm theo ngành, khu vực và thời điểm bắt đầu, thay vì chỉ dựa vào một lời giới thiệu. hoc-tap",
       "checked": "2026-10-19",
-      "caption": "Thư viện tại Stuttgart. Ảnh minh họa học tập, không phải cơ sở đào tạo hay khóa học đang được giới thiệu."
+      "caption": "Thư viện Stuttgart. Ảnh minh họa."
     },
     {
       "id": "dong-xuan-berlin",
@@ -311,7 +311,7 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Dong Xuan Center: điểm hẹn tại Berlin Góc mua sắm, ẩm thực và gặp gỡ cho những ngày muốn tìm lại hương vị gần gũi. cong-dong",
       "checked": "2026-10-19",
-      "caption": "Cổng Dong Xuan Center, ảnh tư liệu ngày 12/04/2012. Chuyển đen trắng, thu nhỏ và cắt cúp khi hiển thị; bản chuyển đổi theo CC BY-SA 3.0."
+      "caption": "Cổng Dong Xuan Center, Berlin. Ảnh tư liệu ngày 12/04/2012; bản đen trắng theo CC BY-SA 3.0."
     },
     {
       "id": "minijob-603",
@@ -339,7 +339,7 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Minijob 2026: mức thu nhập 603 euro Giới hạn được điều chỉnh cùng lương tối thiểu; không nên chỉ nhìn một tháng riêng lẻ. viec-lam",
       "checked": "2026-10-19",
-      "caption": "Ảnh minh họa công việc, không khẳng định người trong ảnh làm Minijob hoặc làm việc tại Đức."
+      "caption": "Ảnh minh họa công việc."
     },
     {
       "id": "hoc-tieng-duc",
@@ -367,7 +367,7 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Tìm lớp học tiếng Đức và chương trình hỗ trợ Từ khóa hòa nhập đến các lựa chọn học trực tuyến và hoạt động tình nguyện tại địa phương. hoc-tap",
       "checked": "2026-10-19",
-      "caption": "Thư viện Stuttgart. Ảnh minh họa, không phải ảnh một lớp tiếng Đức cụ thể."
+      "caption": "Thư viện Stuttgart. Ảnh minh họa."
     },
     {
       "id": "ho-chieu-duc-ve-viet-nam",
@@ -395,9 +395,8 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Miễn thị thực Việt Nam cho người mang hộ chiếu Đức Quốc tịch, giấy tờ sử dụng và điều kiện nhập cảnh quyết định cách áp dụng. cu-tru",
       "checked": "2026-10-19",
-      "caption": "Phương tiện công cộng tại Berlin. Ảnh minh họa hành trình, không phải ảnh cửa khẩu Việt Nam."
+      "caption": "Phương tiện công cộng tại Berlin. Ảnh minh họa."
     }
   ]
 };
-// Use one public index for search, saved articles and all editorial routes.
 window.LVD_CONTENT.articles.push(...window.LVD_NEWS.stories);
