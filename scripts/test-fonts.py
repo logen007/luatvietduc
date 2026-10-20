@@ -46,7 +46,7 @@ with sync_playwright() as p:
     for form in ('NFC', 'NFD'):
         text = unicodedata.normalize(form, probe)
         page.evaluate('''text => {
-          for (const [id, font] of [['probe-sans', 'Geist'], ['probe-mono', 'Geist Mono']]) {
+          for (const [id, font] of [['probe-sans', 'LVD Geist'], ['probe-mono', 'LVD Geist Mono']]) {
             document.getElementById(id)?.remove();
             const e = document.createElement('span'); e.id = id; e.textContent = text; e.lang = 'vi';
             e.style.cssText = 'position:absolute;top:0;left:0;opacity:0;pointer-events:none;max-width:900px;font-size:32px;font-family:"' + font + '"';
@@ -54,14 +54,14 @@ with sync_playwright() as p:
           }
         }''', text)
         page.evaluate('''async text => {
-          await Promise.all([document.fonts.load('400 32px "Geist"', text), document.fonts.load('400 32px "Geist Mono"', text)]);
+          await Promise.all([document.fonts.load('400 32px "LVD Geist"', text), document.fonts.load('400 32px "LVD Geist Mono"', text)]);
           await document.fonts.ready;
         }''', text)
         fonts_for('#probe-sans', 'Geist'); fonts_for('#probe-mono', 'Geist Mono')
         report['rendered_fonts'][form] = {'sans': report['rendered_fonts']['#probe-sans'], 'mono': report['rendered_fonts']['#probe-mono']}
     page.evaluate("document.querySelectorAll('[id^=probe-]').forEach(e => e.remove())")
     fonts_for('.s-hero h1', 'Geist'); fonts_for('.desktop-nav a', 'Geist Mono'); fonts_for('.s-topic-rail button', 'Geist Mono')
-    assert page.locator('#home-question').evaluate('(el)=>getComputedStyle(el).fontFamily').startswith('Geist')
+    assert page.locator('#home-question').evaluate('(el)=>getComputedStyle(el).fontFamily').split(',')[0].strip(chr(34)) == 'LVD Geist'
     routes = [('/', 'home'), ('/hoi-dap-ai', 'chat'), ('/tra-cuu', 'library'), ('/tin-tuc', 'news'), ('/tin/mindestlohn-2026', 'article'), ('/gui-cau-hoi', 'contact'), ('/nguon-anh', 'credits')]
     for width in (320, 360, 390, 768, 1024, 1440):
         page.set_viewport_size({'width': width, 'height': 1000})

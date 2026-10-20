@@ -107,7 +107,7 @@ window.LVD_NEWS = {
       "download": "https://upload.wikimedia.org/wikipedia/commons/2/23/Lichtenberg_Herzbergstra%C3%9Fe_Dong_Xuan_Center-011.jpg",
       "license": "CC BY-SA 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "note": "Ảnh tư liệu ngày 12/04/2012. Bản đen trắng, điều chỉnh kích thước theo giấy phép CC BY-SA 3.0."
+      "note": "Ảnh tư liệu ngày 12/04/2012. Giữ màu ảnh gốc, điều chỉnh kích thước theo giấy phép CC BY-SA 3.0."
     }
   ],
   "stories": [
@@ -311,7 +311,7 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Dong Xuan Center: điểm hẹn tại Berlin Góc mua sắm, ẩm thực và gặp gỡ cho những ngày muốn tìm lại hương vị gần gũi. cong-dong",
       "checked": "2026-10-19",
-      "caption": "Cổng Dong Xuan Center, Berlin. Ảnh tư liệu ngày 12/04/2012; bản đen trắng theo CC BY-SA 3.0."
+      "caption": "Cổng Dong Xuan Center, Berlin. Ảnh tư liệu ngày 12/04/2012; bản màu gốc theo CC BY-SA 3.0."
     },
     {
       "id": "minijob-603",

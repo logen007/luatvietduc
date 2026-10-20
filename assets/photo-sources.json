@@ -1,10 +1,82 @@
 [
- {"id":"train","title":"Tàu điện tại ga Rotes Rathaus, Berlin","author":"Nikita Pishchugin","page":"https://unsplash.com/photos/a-yellow-train-traveling-through-a-train-station-Xcft2vXpGQQ","download":"https://images.unsplash.com/photo-1709494795426-2740f2439248?auto=format&fit=max&w=1800&q=85","license":"Unsplash License","licenseUrl":"https://unsplash.com/license","note":"Ảnh minh họa giao thông, không phải ảnh sự kiện tăng giá vé."},
- {"id":"berlin","title":"Friedrichstraße, Berlin","author":"Dimitri Frixou","page":"https://unsplash.com/photos/a-city-street-filled-with-lots-of-tall-buildings-H3II9RkqZ6g","download":"https://images.unsplash.com/photo-1693647303182-be9405c8fa60?auto=format&fit=max&w=1800&q=85","license":"Unsplash License","licenseUrl":"https://unsplash.com/license","note":"Ảnh minh họa đời sống đô thị."},
- {"id":"family","title":"Gia đình đi dạo trong công viên","author":"Mobio Marketing","page":"https://unsplash.com/photos/a-multi-generational-family-walking-in-a-park-gezQ1Rz1iDw","download":"https://images.unsplash.com/photo-1763631045896-04d2e60048ae?auto=format&fit=max&w=1800&q=85","license":"Unsplash License","licenseUrl":"https://unsplash.com/license","note":"Ảnh minh họa gia đình; không khẳng định người trong ảnh là người Việt, sống tại Đức hoặc hưởng trợ cấp."},
- {"id":"tram","title":"Tàu điện Berlin sau cơn mưa","author":"Christian Lue","page":"https://unsplash.com/photos/a-yellow-train-traveling-down-train-tracks-next-to-a-puddle-z-LNcZuizyc","download":"https://images.unsplash.com/photo-1670671903965-042b5659ff73?auto=format&fit=max&w=1800&q=85","license":"Unsplash License","licenseUrl":"https://unsplash.com/license","note":"Ảnh minh họa phương tiện công cộng."},
- {"id":"work","title":"Nhân viên pha chế tại quầy cà phê","author":"Linh Quach","page":"https://unsplash.com/photos/barista-preparing-coffee-behind-a-counter-ENmA1oRNNx8","download":"https://images.unsplash.com/photo-1767528402222-0d0cab161a39?auto=format&fit=max&w=1800&q=85","license":"Unsplash License","licenseUrl":"https://unsplash.com/license","note":"Ảnh minh họa công việc; không phải ảnh chụp nhân vật trong bản tin và không xác định địa điểm là Đức."},
- {"id":"housing","title":"Các tòa nhà dân cư tại Berlin","author":"Georgi Kalaydzhiev","page":"https://unsplash.com/photos/a-row-of-apartment-buildings-with-balconies-and-balconies-r7GayYDPscw","download":"https://images.unsplash.com/photo-1670912438521-f68a25f9fe0d?auto=format&fit=max&w=1800&q=85","license":"Unsplash License","licenseUrl":"https://unsplash.com/license","note":"Ảnh minh họa nhà ở, không phải nhà đang cho thuê."},
- {"id":"library","title":"Không gian thư viện Stuttgart","author":"Tobias Reich","page":"https://unsplash.com/photos/a-large-library-filled-with-lots-of-books-Xz26Uv8uxLQ","download":"https://images.unsplash.com/photo-1641927420848-a6bf44f607d6?auto=format&fit=max&w=1800&q=85","license":"Unsplash License","licenseUrl":"https://unsplash.com/license","note":"Ảnh minh họa học tập; không phải ảnh một khóa Ausbildung hoặc lớp tiếng Đức cụ thể."},
- {"id":"dong-xuan","title":"Cổng Dong Xuan Center, Berlin-Lichtenberg","author":"Fridolin freudenfett (Peter Kuley)","page":"https://commons.wikimedia.org/wiki/File:Lichtenberg_Herzbergstra%C3%9Fe_Dong_Xuan_Center-011.jpg","download":"https://upload.wikimedia.org/wikipedia/commons/2/23/Lichtenberg_Herzbergstra%C3%9Fe_Dong_Xuan_Center-011.jpg","license":"CC BY-SA 3.0","licenseUrl":"https://creativecommons.org/licenses/by-sa/3.0/","note":"Ảnh tư liệu chụp ngày 12/04/2012. Bản chuyển đen trắng, thu nhỏ và đổi WebP được phân phối theo CC BY-SA 3.0; khung hiển thị có thể cắt cúp."}
+  {
+    "id": "train",
+    "title": "Tàu điện tại ga Rotes Rathaus, Berlin",
+    "author": "Nikita Pishchugin",
+    "page": "https://unsplash.com/photos/a-yellow-train-traveling-through-a-train-station-Xcft2vXpGQQ",
+    "download": "https://images.unsplash.com/photo-1709494795426-2740f2439248?auto=format&fit=max&w=1800&q=85",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "note": "Ảnh minh họa giao thông, không phải ảnh sự kiện tăng giá vé."
+  },
+  {
+    "id": "berlin",
+    "title": "Friedrichstraße, Berlin",
+    "author": "Dimitri Frixou",
+    "page": "https://unsplash.com/photos/a-city-street-filled-with-lots-of-tall-buildings-H3II9RkqZ6g",
+    "download": "https://images.unsplash.com/photo-1693647303182-be9405c8fa60?auto=format&fit=max&w=1800&q=85",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "note": "Ảnh minh họa đời sống đô thị."
+  },
+  {
+    "id": "family",
+    "title": "Gia đình đi dạo trong công viên",
+    "author": "Mobio Marketing",
+    "page": "https://unsplash.com/photos/a-multi-generational-family-walking-in-a-park-gezQ1Rz1iDw",
+    "download": "https://images.unsplash.com/photo-1763631045896-04d2e60048ae?auto=format&fit=max&w=1800&q=85",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "note": "Ảnh minh họa gia đình; không khẳng định người trong ảnh là người Việt, sống tại Đức hoặc hưởng trợ cấp."
+  },
+  {
+    "id": "tram",
+    "title": "Tàu điện Berlin sau cơn mưa",
+    "author": "Christian Lue",
+    "page": "https://unsplash.com/photos/a-yellow-train-traveling-down-train-tracks-next-to-a-puddle-z-LNcZuizyc",
+    "download": "https://images.unsplash.com/photo-1670671903965-042b5659ff73?auto=format&fit=max&w=1800&q=85",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "note": "Ảnh minh họa phương tiện công cộng."
+  },
+  {
+    "id": "work",
+    "title": "Nhân viên pha chế tại quầy cà phê",
+    "author": "Linh Quach",
+    "page": "https://unsplash.com/photos/barista-preparing-coffee-behind-a-counter-ENmA1oRNNx8",
+    "download": "https://images.unsplash.com/photo-1767528402222-0d0cab161a39?auto=format&fit=max&w=1800&q=85",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "note": "Ảnh minh họa công việc; không phải ảnh chụp nhân vật trong bản tin và không xác định địa điểm là Đức."
+  },
+  {
+    "id": "housing",
+    "title": "Các tòa nhà dân cư tại Berlin",
+    "author": "Georgi Kalaydzhiev",
+    "page": "https://unsplash.com/photos/a-row-of-apartment-buildings-with-balconies-and-balconies-r7GayYDPscw",
+    "download": "https://images.unsplash.com/photo-1670912438521-f68a25f9fe0d?auto=format&fit=max&w=1800&q=85",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "note": "Ảnh minh họa nhà ở, không phải nhà đang cho thuê."
+  },
+  {
+    "id": "library",
+    "title": "Không gian thư viện Stuttgart",
+    "author": "Tobias Reich",
+    "page": "https://unsplash.com/photos/a-large-library-filled-with-lots-of-books-Xz26Uv8uxLQ",
+    "download": "https://images.unsplash.com/photo-1641927420848-a6bf44f607d6?auto=format&fit=max&w=1800&q=85",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "note": "Ảnh minh họa học tập; không phải ảnh một khóa Ausbildung hoặc lớp tiếng Đức cụ thể."
+  },
+  {
+    "id": "dong-xuan",
+    "title": "Cổng Dong Xuan Center, Berlin-Lichtenberg",
+    "author": "Fridolin freudenfett (Peter Kuley)",
+    "page": "https://commons.wikimedia.org/wiki/File:Lichtenberg_Herzbergstra%C3%9Fe_Dong_Xuan_Center-011.jpg",
+    "download": "https://upload.wikimedia.org/wikipedia/commons/2/23/Lichtenberg_Herzbergstra%C3%9Fe_Dong_Xuan_Center-011.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "note": "Ảnh tư liệu chụp ngày 12/04/2012. Bản giữ màu gốc, thu nhỏ và đổi WebP được phân phối theo CC BY-SA 3.0; khung hiển thị có thể cắt cúp."
+  }
 ]
