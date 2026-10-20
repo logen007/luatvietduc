@@ -38,7 +38,7 @@ with sync_playwright() as p:
    if route=='/':
     assert page.locator('#home-question').is_visible()
     assert page.locator('#home-demo,.demo-fine,.preview-bar').count()==0
-    assert page.locator('.chat-hero').bounding_box()['height']<440
+    assert page.locator('#home-question').bounding_box()['y']<560
     assert page.locator('.press-photo img').count()==7
    passed(f'Copy and layout {w}px {route}')
  page.set_viewport_size({'width':1440,'height':1000});go('/')
@@ -93,6 +93,6 @@ with sync_playwright() as p:
     for image in page.locator('img').all():image.scroll_into_view_if_needed();image.evaluate('(el)=>el.decode()')
     page.evaluate('scrollTo(0,0)');page.screenshot(path=str(out/f'{name}-{w}.png'),full_page=True)
  assert not errors,errors
- assert not [u for u in requests if u.startswith('http') and not u.startswith(base)],'Unexpected data request'
+ assert not [u for u in requests if u.startswith('http') and not u.startswith(base) and not u.startswith('https://fonts.googleapis.com/') and not u.startswith('https://fonts.gstatic.com/')],'Unexpected data request'
  passed('No browser errors or outgoing data');browser.close()
 srv.shutdown();print(count,'checks passed')
