@@ -1,0 +1,31 @@
+name: Check licensed Schengen fonts
+on:
+  push:
+    branches: [schengen-fonts-v0.6.3]
+    paths: ['.github/workflows/check-schengen.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify the reference's identical webfont resources
+        run: |
+          python3 - <<'PY'
+          import urllib.request,hashlib,json
+          files={
+            'ABCSchengenA_Variable-s.p.3nb4eiitxra8w.woff2':'6af07154ec78570d71ca72969bde3a8c5f59b91818558035a154f6bab7f9aa1e',
+            'ABCSchengenAMono_Variable.p.1vh0uvnfona6i.woff2':'86b6d7f8008d198b5a4e14b4a76b57085b997bae536e4af8c520fce61fdf0253'
+          }
+          for name,expected in files.items():
+            address='https://steel.dev/_next/static/immutable/media/'+name
+            request=urllib.request.Request(address,headers={'Origin':'https://logen007.github.io','User-Agent':'Mozilla/5.0'})
+            with urllib.request.urlopen(request,timeout=25) as response:
+              payload=response.read()
+              digest=hashlib.sha256(payload).hexdigest()
+              report={'name':name,'status':response.status,'bytes':len(payload),'match_user_upload':digest==expected,'allow_origin':response.headers.get('Access-Control-Allow-Origin'),'content_type':response.headers.get('Content-Type')}
+              print(json.dumps(report),flush=True)
+              assert digest==expected,'The upstream file differs from the user-supplied webfont'
+              assert response.headers.get('Access-Control-Allow-Origin') in ['*','https://logen007.github.io'],'Webfont cannot be embedded cross-origin'
+          PY
