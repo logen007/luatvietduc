@@ -40,7 +40,7 @@
         <form id="home-ask" class="ask-box"><label for="home-question" class="sr-only">Câu hỏi pháp luật</label><textarea id="home-question" name="question" maxlength="2000" required placeholder="Bạn cần tìm hiểu vấn đề gì?"></textarea><div class="ask-bottom"><a class="ask-library" href="#/tra-cuu">Tra cứu thư viện ${arrow}</a><button class="button" type="submit">Gửi câu hỏi ${up}</button></div></form>
       </div>
     </div>
-    <div class="container s-topic-rail"><span class="s-rail-label">CHỦ ĐỀ</span><div>${topics.map(([label,q])=>`<button type="button" data-ask-example="${escape(q)}">${label} ${arrow}</button>`).join('')}</div></div>
+    <nav class="container s-topic-rail" aria-label="Lĩnh vực hỏi đáp"><div class="s-topic-links">${topics.map(([label,q])=>`<button type="button" data-ask-example="${escape(q)}"><span>${label}</span>${arrow}</button>`).join('')}</div></nav>
   </section>
   <div class="container s-main">
     <section class="s-news-section chat-news"><div class="s-section-head"><div><span class="s-eyebrow">01 / TIN PHÁP LUẬT</span><h2>Chính sách & quy định</h2></div><a class="s-all" href="#/tin-tuc">Tất cả bài viết ${arrow}</a></div><div class="s-news-grid">${card('mindestlohn-2026','s-lead')}<div class="s-side-stories">${card('kindergeld-2026','s-side')}${card('deutschlandticket-2027','s-side')}</div></div></section>
