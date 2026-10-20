@@ -1,0 +1,113 @@
+name: Review editorial footer
+on:
+  push:
+    branches: [footer-editorial-v077]
+    paths: ['.github/workflows/review-footer.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Check footer HTML, anchors and sources
+        run: |
+          node --check assets/app.js
+          node --check assets/steel-ui.js
+          python3 - <<'PY'
+          from pathlib import Path
+          html=Path('index.html').read_text()
+          css=Path('assets/footer-editorial.css').read_text()
+          assert 'content="0.7.7"' in html
+          assert 'assets/footer-editorial.css?v=0.7.7' in html
+          assert html.count('class="site-footer lvd-footer"')==1
+          for target in ['#/hoi-dap-ai','#/tra-cuu','#/tin-tuc','#/song-o-duc','#/ve-chuyen-trang','#/chinh-sach-thong-tin','#/dieu-khoan','#/nguon-anh']:
+            assert target in html,target
+          assert 'display:none!important' in css
+          print('Footer source and navigation checks passed')
+          PY
+      - name: Install Chromium
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Test footer on viewport variants and linked routes
+        run: |
+          mkdir -p internal-footer-review
+          python3 - <<'PY'
+          import http.server,threading,json
+          from playwright.sync_api import sync_playwright
+          class Quiet(http.server.SimpleHTTPRequestHandler):
+            def log_message(self,*args): pass
+          server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Quiet)
+          threading.Thread(target=server.serve_forever,daemon=True).start()
+          base=f'http://127.0.0.1:{server.server_port}/#'
+          paths=[('/','home'),('/tra-cuu','catalog'),('/tin-tuc','news'),('/hoi-dap-ai','chat'),('/tin/mindestlohn-2026','article'),('/ve-chuyen-trang','about')]
+          report=[]
+          with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True)
+            for width in [320,375,390,768,1024,1440]:
+              ctx=browser.new_context(viewport={'width':width,'height':900},locale='vi-VN',reduced_motion='reduce')
+              page=ctx.new_page()
+              errors=[]
+              page.on('pageerror',lambda err:errors.append(str(err)))
+              for route,label in paths:
+                page.goto(base+route,wait_until='load')
+                page.wait_for_timeout(110)
+                info=page.evaluate("""() => {
+                  const root=document.querySelector('.lvd-footer');
+                  const r=root.getBoundingClientRect();
+                  const c=document.querySelector('.site-header .container').getBoundingClientRect();
+                  const invite=root.querySelector('.lvd-footer-invite').getBoundingClientRect();
+                  const action=root.querySelector('.lvd-footer-invite-link').getBoundingClientRect();
+                  const title=root.querySelector('.lvd-footer-invite h2').getBoundingClientRect();
+                  return {
+                    viewport:innerWidth,scroll:document.documentElement.scrollWidth,
+                    footer:Math.round(r.width),rootLeft:Math.round(r.left),
+                    inviteX:Math.round(invite.x),inviteR:Math.round(invite.right),
+                    actionX:Math.round(action.x),actionR:Math.round(action.right),
+                    titleX:Math.round(title.x),titleR:Math.round(title.right),
+                    topBackground:getComputedStyle(root).backgroundColor,
+                    branded:root.querySelectorAll('.brand').length,
+                    footnav:root.querySelectorAll('.lvd-footer-nav a').length,
+                    legacy:root.querySelectorAll('.s-footer-wordmark').length,
+                    headerW:c.width,
+                    footerContainerW:root.querySelector('.container').getBoundingClientRect().width,
+                    text:root.querySelector('.lvd-footer-invite h2')?.innerText,
+                    mainH1:document.querySelector('#main h1')?.textContent
+                  };
+                }""")
+                assert info['scroll']<=width+2,(width,label,'overflow',info)
+                assert info['branded']==1 and info['footnav']==9 and not info['legacy'],(width,label,info)
+                assert abs(info['headerW']-info['footerContainerW'])<1.2,(width,label,info)
+                assert info['inviteX']>=-1 and info['inviteR']<=width+1,(width,label,'invite',info)
+                assert info['actionX']>=-1 and info['actionR']<=width+1,(width,label,'action',info)
+                assert info['titleX']>=-1 and info['titleR']<=width+1,(width,label,'title',info)
+                assert info['mainH1'] and 'Bắt đầu từ đây' in info['text'],(width,label,info)
+                if width in [390,1440] and label in ['home','catalog']:
+                  page.locator('.lvd-footer').screenshot(path=f'internal-footer-review/{label}-footer-{width}.png')
+                report.append(dict(width=width,label=label,scroll=info['scroll']))
+                print('PASS',width,label,flush=True)
+              assert not errors,errors
+              if width==390:
+                page.goto(base+'/',wait_until='load')
+                page.locator('.lvd-footer-invite-link').click()
+                assert '#/hoi-dap-ai' in page.url and page.locator('.chat-shell').count()==1
+                print('PASS CTA -> Q&A',flush=True)
+              ctx.close()
+            browser.close()
+          server.shutdown()
+          open('internal-footer-review/results.json','w').write(json.dumps(report,indent=2))
+          print('All 36 footer routes passed')
+          PY
+      - name: Internal screenshot reference
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: editorial-footer-review
+          path: internal-footer-review/
+          if-no-files-found: ignore
+          retention-days: 1
