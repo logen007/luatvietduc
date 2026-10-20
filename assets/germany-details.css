@@ -1,99 +1,118 @@
-/* Sourced Brandenburg Gate by Jahobr (Wikimedia Commons, CC0-1.0).
-   Original silhouette geometry and proportions are preserved.
-   A single local SVG is reused; see illustration-sources.json for provenance. */
+/* Luật Việt Đức · architectural atmosphere, v0.7.2
+   Source geometry: Wikimedia Commons / public domain (see illustration-sources.json).
+   These are clipped, near-transparent background details — never primary imagery.
+   No distortion, animation, JS, or new assets. */
+
+.s-hero.chat-hero {
+  isolation: isolate;
+}
+.s-hero.chat-hero .s-hero-grid,
+.s-hero.chat-hero .s-topic-rail {
+  position: relative;
+  z-index: 1;
+}
+
+/* The Brandenburg Gate rises gently from outside the bottom-right corner.
+   Deliberately crop its lower portion, rather than centering it like a logo. */
 .s-hero.chat-hero::after {
   content: '';
   position: absolute;
-  top: 148px;
-  right: calc(50% - 64px);
-  width: clamp(200px, 18vw, 260px);
-  height: auto;
+  width: clamp(330px, 32vw, 460px);
   aspect-ratio: 1240.1575 / 1052.3622;
-  background-color: #ffd7c6;
+  height: auto;
+  right: clamp(-164px, -10vw, -100px);
+  bottom: -127px;
+  background: linear-gradient(128deg,
+    rgba(255, 229, 216, 0) 2%,
+    rgba(255, 229, 216, .92) 42%,
+    rgba(255, 229, 216, .34) 76%,
+    rgba(255, 229, 216, 0) 100%);
   -webkit-mask: url('brandenburg-gate.svg') center / contain no-repeat;
   mask: url('brandenburg-gate.svg') center / contain no-repeat;
-  opacity: .085;
-  pointer-events: none;
-  user-select: none;
-  z-index: -1;
-}
-.site-footer {
-  position: relative;
-  isolation: isolate;
-}
-.site-footer::before {
-  content: '';
-  position: absolute;
-  top: auto;
-  bottom: 22px;
-  right: max(36px, (100vw - 1280px) / 2);
-  width: 150px;
-  height: auto;
-  aspect-ratio: 1240.1575 / 1052.3622;
-  background-color: var(--wine);
-  -webkit-mask: url('brandenburg-gate.svg') center / contain no-repeat;
-  mask: url('brandenburg-gate.svg') center / contain no-repeat;
-  opacity: .055;
-  pointer-events: none;
-  user-select: none;
-  z-index: -1;
-}
-/* The illustration is optional decoration, never squeezed into narrow gaps. */
-@media (max-width: 1100px) {
-  .s-hero.chat-hero::after { display: none; }
-  .site-footer::before { width: 110px; }
-}
-@media (max-width: 900px) {
-  .site-footer::before { display: none; }
-}
-@media (forced-colors: active), (prefers-contrast: more), print {
-  .s-hero.chat-hero::after, .site-footer::before { display: none; }
-}
-
-/* Two source-backed silhouettes, lightly revealed at the page edges.
-   The original art is served as small local SVG masks, not distorted by CSS. */
-.s-hero.chat-hero::before {
-  content: '';
-  position: absolute;
-  top: -104px;
-  right: -60px;
-  width: 200px;
-  aspect-ratio: 311 / 1048;
-  background: #ffe5d8;
-  -webkit-mask: url('berlin-tv-tower.svg') center / contain no-repeat;
-  mask: url('berlin-tv-tower.svg') center / contain no-repeat;
-  opacity: .12;
+  opacity: .075;
   pointer-events: none;
   user-select: none;
   z-index: 0;
+}
+
+/* A slender vertical rhythm at the opposite edge, only on wide canvases.
+   Most of the tower remains outside the viewport. */
+.s-hero.chat-hero::before {
+  content: '';
+  position: absolute;
+  top: 42px;
+  left: -53px;
+  width: 101px;
+  aspect-ratio: 311 / 1048;
+  height: auto;
+  background: linear-gradient(180deg,
+    rgba(255, 235, 220, 0),
+    rgba(255, 235, 220, .92) 32%,
+    rgba(255, 235, 220, .55) 67%,
+    rgba(255, 235, 220, 0));
+  -webkit-mask: url('berlin-tv-tower.svg') center / contain no-repeat;
+  mask: url('berlin-tv-tower.svg') center / contain no-repeat;
+  opacity: .065;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+/* A small map fragment at the side of the dark library, not an icon card. */
+.s-library {
+  isolation: isolate;
 }
 .s-library::after {
   content: '';
   position: absolute;
-  right: 0;
-  bottom: 26px;
-  width: min(210px, 18vw);
+  width: 240px;
+  height: auto;
   aspect-ratio: 540 / 710;
-  background: #f5ba9d;
-  -webkit-mask: url('germany-shape.svg') right center / contain no-repeat;
-  mask: url('germany-shape.svg') right center / contain no-repeat;
-  opacity: .07;
+  right: -94px;
+  top: 28%;
+  background: linear-gradient(155deg,
+    rgba(250, 195, 171, 0) 1%,
+    rgba(250, 195, 171, .85) 48%,
+    rgba(250, 195, 171, 0) 97%);
+  -webkit-mask: url('germany-shape.svg') center / contain no-repeat;
+  mask: url('germany-shape.svg') center / contain no-repeat;
+  opacity: .075;
   pointer-events: none;
   user-select: none;
   z-index: 0;
 }
-.s-library-inner { position: relative; z-index: 1; }
-@media (max-width: 900px) {
-  .s-library::after { display: none; }
+.s-library-inner {
+  position: relative;
+  z-index: 1;
 }
-@media (max-width: 680px) {
-  .s-hero.chat-hero::before {
-    width: 82px;
-    right: -31px;
-    top: -14px;
-    opacity: .09;
+
+/* The same monument should not be repeated in the footer. */
+.site-footer::before {
+  content: none;
+  display: none;
+}
+
+/* Give the layout room to breathe at ordinary laptop widths. */
+@media (max-width: 1399px) {
+  .s-hero.chat-hero::before,
+  .s-library::after {
+    display: none;
   }
 }
+@media (max-width: 1100px) {
+  .s-hero.chat-hero::after {
+    right: -140px;
+    bottom: -98px;
+    width: 300px;
+    opacity: .045;
+  }
+}
+@media (max-width: 900px) {
+  .s-hero.chat-hero::after { display: none; }
+}
 @media (forced-colors: active), (prefers-contrast: more), print {
-  .s-hero.chat-hero::before, .s-library::after { display: none; }
+  .s-hero.chat-hero::before,
+  .s-hero.chat-hero::after,
+  .s-library::after,
+  .site-footer::before { display: none; }
 }
