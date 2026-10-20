@@ -23,6 +23,8 @@ jobs:
           node --check assets/app.js
           node --check assets/chat-first.js
           node --check assets/newsroom.js
+          node --check assets/catalog-source.js
+          node --check assets/catalog.js
       - name: Install test browser and image checks
         run: |
           python3 -m pip install 'playwright==1.55.0' 'Pillow>=11,<13'
@@ -31,3 +33,5 @@ jobs:
         run: python3 scripts/test-chat.py
       - name: Verify Vietnamese glyphs and original-color photographs
         run: python3 scripts/test-fonts.py
+      - name: Reconcile all 303 source titles and verify catalogue navigation
+        run: python3 scripts/test-catalog.py
