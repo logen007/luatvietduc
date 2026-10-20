@@ -17,23 +17,12 @@
     ['Nhà đất','Tôi cần hỏi về nhà đất tại Việt Nam'],
     ['Thừa kế','Tôi có tài sản thừa kế tại Việt Nam']
   ];
-  function architecture() {
-    // New vector geometry: deliberately not a copied Steel image or brand asset.
-    const points = [[380,30,180,15],[720,70,100,210],[890,265,165,-25],[420,380,240,110]];
-    const frames = points.map(([x,y,w,h]) => Array.from({length:11},(_,i) => {
-      const t=i/10, sx=x+(605-x)*t*.68, sy=y+(225-y)*t*.68;
-      const width=w*(1-t*.66), height=(h||120)*(1-t*.5);
-      return `<path d="M${sx} ${sy}l${width} ${height*.25}l${width*.22} ${110*(1-t*.55)}l${-width} ${-height*.25}z"/>`;
-    }).join('')).join('');
-    return `<svg class="s-architecture" viewBox="0 0 1100 600" fill="none" aria-hidden="true"><g>${frames}</g></svg>`;
-  }
   function card(id, variant='') {
     const story=E.find(id);
     if(!story) return '';
     return `<article class="s-story ${variant} press-card"><a class="s-story-image press-image-link" href="${destination(story)}" aria-label="${escape(story.title)}">${E.image(story.photo)}</a><div class="s-story-copy">${E.tag(story)}<h3><a href="${destination(story)}">${escape(story.title)}</a></h3>${variant==='s-lead'?`<p>${escape(story.summary)}</p>`:''}<span class="s-story-source">${escape(story.sourceName)}</span></div></article>`;
   }
   E.home = () => `<section class="s-hero chat-hero">
-    ${architecture()}
     <div class="container s-hero-grid">
       <div class="s-hero-copy"><span class="s-eyebrow">VIỆT NAM ↔ ĐỨC</span><h1>Hỏi đáp pháp luật<br>cho người Việt<br>tại Đức.</h1><p>Tra cứu quy định, thủ tục tại Việt Nam và Đức.</p></div>
       <div class="s-ask-panel"><div class="s-panel-top"><span class="s-panel-dot" aria-hidden="true"></span><span>HỎI ĐÁP PHÁP LUẬT</span><span class="s-panel-index" aria-hidden="true">01</span></div>

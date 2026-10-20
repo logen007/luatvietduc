@@ -27,10 +27,10 @@ jobs:
           import hashlib,json,time,urllib.request
           from pathlib import Path
           base='https://logen007.github.io/luatvietduc/'
-          paths=['index.html','assets/styles.css','assets/content.js','assets/app.js','assets/news-content.js','assets/newsroom.js','assets/newsroom.css','assets/photo-sources.json','assets/chat-first.js','assets/chat-first.css','assets/chat-router.js','assets/steel-ui.js','assets/steel-ui.css','assets/color-theme.css','assets/typography.css','assets/topic-navigation.css']
+          paths=['index.html','assets/styles.css','assets/content.js','assets/app.js','assets/news-content.js','assets/newsroom.js','assets/newsroom.css','assets/photo-sources.json','assets/chat-first.js','assets/chat-first.css','assets/chat-router.js','assets/steel-ui.js','assets/steel-ui.css','assets/color-theme.css','assets/typography.css','assets/topic-navigation.css','assets/germany-details.css','assets/berlin-line.svg']
           paths+=sorted(str(p) for p in Path('assets/photos').glob('*.webp'))
           html=Path('index.html').read_text()
-          assert 'content="0.6.4"' in html
+          assert 'content="0.6.5"' in html
           assert 'noindex, nofollow' in html and 'onclick=' not in html
           assert 'connect-src \'none\'' in html
           assert 'class="s-rail-label"' not in Path('assets/steel-ui.js').read_text()
@@ -50,5 +50,5 @@ jobs:
                   print('Attempt',attempt+1,str(exc),flush=True)
                   if attempt==17:raise
                   time.sleep(10)
-          print(json.dumps({'status':'passed','version':'0.6.4','verified_count':len(paths),'url':base,'sha256':expected},indent=2))
+          print(json.dumps({'status':'passed','version':'0.6.5','verified_count':len(paths),'url':base,'sha256':expected},indent=2))
           PY
