@@ -23,9 +23,11 @@ jobs:
           node --check assets/app.js
           node --check assets/chat-first.js
           node --check assets/newsroom.js
-      - name: Install test browser
+      - name: Install test browser and image checks
         run: |
-          python3 -m pip install 'playwright==1.55.0'
+          python3 -m pip install 'playwright==1.55.0' 'Pillow>=11,<13'
           python3 -m playwright install --with-deps chromium
       - name: Check chat specialist knowledge and news interfaces
         run: python3 scripts/test-chat.py
+      - name: Verify Vietnamese glyphs and original-color photographs
+        run: python3 scripts/test-fonts.py

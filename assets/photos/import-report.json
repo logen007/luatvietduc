@@ -1,106 +1,338 @@
 [
   {
     "id": "train",
+    "source": "https://images.unsplash.com/photo-1709494795426-2740f2439248?auto=format&fit=max&w=1800&q=85",
     "source_dimensions": [
       1800,
       2700
     ],
     "source_sha256": "b1ddc8b4f8da1f82fa9a90774a89096c01aa945d79e8f4125dfc49a2bedd75aa",
+    "treatment": "Original color, EXIF orientation, sRGB conversion when profiled, resized WebP. No recoloring.",
     "files": [
-      "assets/photos/train-600.webp",
-      "assets/photos/train-1200.webp",
-      "assets/photos/train-1800.webp"
+      {
+        "path": "assets/photos/train-600.webp",
+        "dimensions": [
+          600,
+          900
+        ],
+        "bytes": 31922,
+        "mean_channel_difference": 45.0053,
+        "sha256": "7988fd129bcdd2c8637c1dbe33fadb91a37cb47399937fba53b64fa7d9e01ab0"
+      },
+      {
+        "path": "assets/photos/train-1200.webp",
+        "dimensions": [
+          1200,
+          1800
+        ],
+        "bytes": 79888,
+        "mean_channel_difference": 45.0164,
+        "sha256": "a8a0fd1dcf010986cffeaa9a970caf6226b9dd163759a8d2e7c13b7e0e9de749"
+      },
+      {
+        "path": "assets/photos/train-1800.webp",
+        "dimensions": [
+          1800,
+          2700
+        ],
+        "bytes": 173540,
+        "mean_channel_difference": 45.0157,
+        "sha256": "0f27e4e4cf6fc2e5613b77cd472fcf066b08c8ec57e9493b11c31f70c717b69a"
+      }
     ]
   },
   {
     "id": "berlin",
+    "source": "https://images.unsplash.com/photo-1693647303182-be9405c8fa60?auto=format&fit=max&w=1800&q=85",
     "source_dimensions": [
       1800,
       1200
     ],
     "source_sha256": "8a3b5b7bef95090f794ab6ebfb066085e98a5dbc633b4d261d1df9dace99895e",
+    "treatment": "Original color, EXIF orientation, sRGB conversion when profiled, resized WebP. No recoloring.",
     "files": [
-      "assets/photos/berlin-600.webp",
-      "assets/photos/berlin-1200.webp",
-      "assets/photos/berlin-1800.webp"
+      {
+        "path": "assets/photos/berlin-600.webp",
+        "dimensions": [
+          600,
+          400
+        ],
+        "bytes": 45016,
+        "mean_channel_difference": 8.1724,
+        "sha256": "caaadd1f153814f51df422a11fed53148cb6741a9706d03e28e5cd7c268d25ab"
+      },
+      {
+        "path": "assets/photos/berlin-1200.webp",
+        "dimensions": [
+          1200,
+          800
+        ],
+        "bytes": 163430,
+        "mean_channel_difference": 8.1771,
+        "sha256": "74749f8b54ce2299b734f9c71a332f7bf0f3cd10a7610ace5b8d700eee6fca3f"
+      },
+      {
+        "path": "assets/photos/berlin-1800.webp",
+        "dimensions": [
+          1800,
+          1200
+        ],
+        "bytes": 402974,
+        "mean_channel_difference": 8.2589,
+        "sha256": "c7ad499a51ea952da3afbe15032c81db004c358134b0c473de2704ac63702791"
+      }
     ]
   },
   {
     "id": "family",
+    "source": "https://images.unsplash.com/photo-1763631045896-04d2e60048ae?auto=format&fit=max&w=1800&q=85",
     "source_dimensions": [
       1800,
       2400
     ],
     "source_sha256": "d2f253b55ae331b1d80187d0b3c277f787c46e4e5f3dfeadcc8494001a2e4c7a",
+    "treatment": "Original color, EXIF orientation, sRGB conversion when profiled, resized WebP. No recoloring.",
     "files": [
-      "assets/photos/family-600.webp",
-      "assets/photos/family-1200.webp",
-      "assets/photos/family-1800.webp"
+      {
+        "path": "assets/photos/family-600.webp",
+        "dimensions": [
+          600,
+          800
+        ],
+        "bytes": 185480,
+        "mean_channel_difference": 31.8321,
+        "sha256": "38ca0d8a16e51e31077bbe7b0d0508129dd06bbc55140c43c803b0e59415b875"
+      },
+      {
+        "path": "assets/photos/family-1200.webp",
+        "dimensions": [
+          1200,
+          1600
+        ],
+        "bytes": 605600,
+        "mean_channel_difference": 31.8465,
+        "sha256": "57012a7f84bcc383fdd40025466308798911d9796eada55b291d6c7ae6c4d149"
+      },
+      {
+        "path": "assets/photos/family-1800.webp",
+        "dimensions": [
+          1800,
+          2400
+        ],
+        "bytes": 1158676,
+        "mean_channel_difference": 31.8896,
+        "sha256": "e22c87994f0aa11f2cd38ff7f924323cdeb5401c6a86ef0c3d8b45221e0da757"
+      }
     ]
   },
   {
     "id": "tram",
+    "source": "https://images.unsplash.com/photo-1670671903965-042b5659ff73?auto=format&fit=max&w=1800&q=85",
     "source_dimensions": [
       1800,
       2700
     ],
     "source_sha256": "d5c1ad7b0241a361bc94bb24d4615288c3232bd3bf331626ba9e37730cf0353c",
+    "treatment": "Original color, EXIF orientation, sRGB conversion when profiled, resized WebP. No recoloring.",
     "files": [
-      "assets/photos/tram-600.webp",
-      "assets/photos/tram-1200.webp",
-      "assets/photos/tram-1800.webp"
+      {
+        "path": "assets/photos/tram-600.webp",
+        "dimensions": [
+          600,
+          900
+        ],
+        "bytes": 79342,
+        "mean_channel_difference": 67.3231,
+        "sha256": "93339067d46753a6a3570fd5890e15d46e11859145ef28a8187494ec3ef9783a"
+      },
+      {
+        "path": "assets/photos/tram-1200.webp",
+        "dimensions": [
+          1200,
+          1800
+        ],
+        "bytes": 379998,
+        "mean_channel_difference": 67.2227,
+        "sha256": "56a8f37afd12cf62c013475527ff6894817e3dd9b765e5939ff4e7ee0c2413ba"
+      },
+      {
+        "path": "assets/photos/tram-1800.webp",
+        "dimensions": [
+          1800,
+          2700
+        ],
+        "bytes": 960448,
+        "mean_channel_difference": 67.134,
+        "sha256": "96272602f25ddab5239d915f645a7d6be740115ce999bbf8ef6fcd0e282abe91"
+      }
     ]
   },
   {
     "id": "work",
+    "source": "https://images.unsplash.com/photo-1767528402222-0d0cab161a39?auto=format&fit=max&w=1800&q=85",
     "source_dimensions": [
       1800,
       2700
     ],
     "source_sha256": "19e167012524edcec590ab6e9498f9bc7542600ac9c25fedb7e5d4992a5faac5",
+    "treatment": "Original color, EXIF orientation, sRGB conversion when profiled, resized WebP. No recoloring.",
     "files": [
-      "assets/photos/work-600.webp",
-      "assets/photos/work-1200.webp",
-      "assets/photos/work-1800.webp"
+      {
+        "path": "assets/photos/work-600.webp",
+        "dimensions": [
+          600,
+          900
+        ],
+        "bytes": 30130,
+        "mean_channel_difference": 31.5753,
+        "sha256": "b1385a439bf8bf81d853f4c6706c09b37dc76864d06341fca173118a7869eb49"
+      },
+      {
+        "path": "assets/photos/work-1200.webp",
+        "dimensions": [
+          1200,
+          1800
+        ],
+        "bytes": 75188,
+        "mean_channel_difference": 31.609,
+        "sha256": "6ba4003923e8ba37e6584215407d2e0c854d63f9a7b7567c56af154dd9c56df3"
+      },
+      {
+        "path": "assets/photos/work-1800.webp",
+        "dimensions": [
+          1800,
+          2700
+        ],
+        "bytes": 133432,
+        "mean_channel_difference": 31.5555,
+        "sha256": "75e4226dd68372b40062c32694eb6d2e37f52e34ad6976285745392029cd80dc"
+      }
     ]
   },
   {
     "id": "housing",
+    "source": "https://images.unsplash.com/photo-1670912438521-f68a25f9fe0d?auto=format&fit=max&w=1800&q=85",
     "source_dimensions": [
       1800,
       2593
     ],
     "source_sha256": "7c884a587ae5446a37c12a255e7845bba35c773e91a8d02b0b24136475b73447",
+    "treatment": "Original color, EXIF orientation, sRGB conversion when profiled, resized WebP. No recoloring.",
     "files": [
-      "assets/photos/housing-600.webp",
-      "assets/photos/housing-1200.webp",
-      "assets/photos/housing-1800.webp"
+      {
+        "path": "assets/photos/housing-600.webp",
+        "dimensions": [
+          600,
+          864
+        ],
+        "bytes": 59712,
+        "mean_channel_difference": 10.1156,
+        "sha256": "8e9fb60516a065dce0aa26f76857d8e18c0f5fd3b28aa1618bdd1aa61b660e00"
+      },
+      {
+        "path": "assets/photos/housing-1200.webp",
+        "dimensions": [
+          1200,
+          1729
+        ],
+        "bytes": 172000,
+        "mean_channel_difference": 10.1289,
+        "sha256": "684353a6387d54538a2d0a5729e53f9d6f4642832858315f6c242b77b9b1f957"
+      },
+      {
+        "path": "assets/photos/housing-1800.webp",
+        "dimensions": [
+          1800,
+          2593
+        ],
+        "bytes": 326594,
+        "mean_channel_difference": 10.1635,
+        "sha256": "ec8b3da8d7fad6ff4579d6ff69046825ac0551939856e03232e46915f1fb3f73"
+      }
     ]
   },
   {
     "id": "library",
+    "source": "https://images.unsplash.com/photo-1641927420848-a6bf44f607d6?auto=format&fit=max&w=1800&q=85",
     "source_dimensions": [
       1800,
       2700
     ],
     "source_sha256": "20c9dd33bdaa942b0435cb149bbd87693b5069e63da713659000068cdcfafc18",
+    "treatment": "Original color, EXIF orientation, sRGB conversion when profiled, resized WebP. No recoloring.",
     "files": [
-      "assets/photos/library-600.webp",
-      "assets/photos/library-1200.webp",
-      "assets/photos/library-1800.webp"
+      {
+        "path": "assets/photos/library-600.webp",
+        "dimensions": [
+          600,
+          900
+        ],
+        "bytes": 87930,
+        "mean_channel_difference": 17.346,
+        "sha256": "62b5f8460efbe93a23658d693d66292cf5c890f0b2742820a2ff63ac271e8a73"
+      },
+      {
+        "path": "assets/photos/library-1200.webp",
+        "dimensions": [
+          1200,
+          1800
+        ],
+        "bytes": 410206,
+        "mean_channel_difference": 17.4094,
+        "sha256": "c6b63b6924c47bc7217ad5239f68d6664ba858b6cb5d9cdcdc21c6fbe08b9e4c"
+      },
+      {
+        "path": "assets/photos/library-1800.webp",
+        "dimensions": [
+          1800,
+          2700
+        ],
+        "bytes": 1029922,
+        "mean_channel_difference": 17.4262,
+        "sha256": "d7cecd95a87c5cc9fbc4f596de58612887d13e88e3c55604afbeda833bfb6bb4"
+      }
     ]
   },
   {
     "id": "dong-xuan",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/2/23/Lichtenberg_Herzbergstra%C3%9Fe_Dong_Xuan_Center-011.jpg",
     "source_dimensions": [
       3648,
       2736
     ],
     "source_sha256": "32dbde9b403d57e7d757ef4e95155232053bb078efa3ae0a8816e3a34ebd3e89",
+    "treatment": "Original color, EXIF orientation, sRGB conversion when profiled, resized WebP. No recoloring.",
     "files": [
-      "assets/photos/dong-xuan-600.webp",
-      "assets/photos/dong-xuan-1200.webp",
-      "assets/photos/dong-xuan-1800.webp"
+      {
+        "path": "assets/photos/dong-xuan-600.webp",
+        "dimensions": [
+          600,
+          450
+        ],
+        "bytes": 46142,
+        "mean_channel_difference": 10.0619,
+        "sha256": "8b35f6eeba51233a681ceee2b74e2cf9f5e81b17f2b3fe0f920b6b72415c2e8e"
+      },
+      {
+        "path": "assets/photos/dong-xuan-1200.webp",
+        "dimensions": [
+          1200,
+          900
+        ],
+        "bytes": 172236,
+        "mean_channel_difference": 10.1167,
+        "sha256": "bae62dbb3682ef5e7c9e20505139f8dfb2d9d9bfffad38ca616040fae873fc3a"
+      },
+      {
+        "path": "assets/photos/dong-xuan-1800.webp",
+        "dimensions": [
+          1800,
+          1350
+        ],
+        "bytes": 346916,
+        "mean_channel_difference": 10.2393,
+        "sha256": "050d2360e2bfd7a043239051a1871582a91ed7bbdfb449aae3692eed4187043e"
+      }
     ]
   }
 ]

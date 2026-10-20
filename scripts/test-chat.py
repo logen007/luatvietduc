@@ -12,6 +12,7 @@ licensed_fonts={
  'https://steel.dev/_next/static/immutable/media/ABCSchengenA_Variable-s.p.3nb4eiitxra8w.woff2',
  'https://steel.dev/_next/static/immutable/media/ABCSchengenAMono_Variable.p.1vh0uvnfona6i.woff2'
 }
+licensed_fonts.update({'https://raw.githubusercontent.com/vercel/geist-font/e1f671c727f6de7e97c1e1d26dbb44f349c19459/fonts/GeistMono/webfonts/GeistMono%5Bwght%5D.woff2', 'https://raw.githubusercontent.com/vercel/geist-font/e1f671c727f6de7e97c1e1d26dbb44f349c19459/fonts/Geist/webfonts/Geist%5Bwght%5D.woff2'})
 count=0
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True)
