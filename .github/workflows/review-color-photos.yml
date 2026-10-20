@@ -1,0 +1,53 @@
+name: Review original color photographs
+on:
+  push:
+    branches: [color-photos-v0.6.4]
+    paths: ['.github/workflows/review-color-photos.yml']
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read credited originals and retain source for internal review
+        run: |
+          python3 - <<'PY'
+          import concurrent.futures, json, pathlib, shutil, time, urllib.request
+          from urllib.parse import urlparse
+          root=pathlib.Path('photo-review');root.mkdir()
+          for name in ['index.html','assets','scripts','.github']:
+              p=pathlib.Path(name)
+              if p.is_dir():shutil.copytree(p,root/name)
+              else:shutil.copy2(p,root/name)
+          originals=root/'originals';originals.mkdir()
+          def get(s):
+              assert urlparse(s['download']).hostname in ['images.unsplash.com','upload.wikimedia.org']
+              for attempt in range(3):
+                  try:
+                      req=urllib.request.Request(s['download'],headers={'User-Agent':'LuatVietDuc/0.6.4 (credited editorial image restoration)'})
+                      with urllib.request.urlopen(req,timeout=45) as response:
+                          assert response.status==200
+                          assert urlparse(response.geturl()).hostname in ['images.unsplash.com','upload.wikimedia.org']
+                          data=response.read(25000001)
+                      assert 1000<len(data)<=25000000
+                      (originals/(s['id']+'.image')).write_bytes(data)
+                      return s['id']
+                  except Exception:
+                      if attempt==2:raise
+                      time.sleep(3*(attempt+1))
+          sources=json.loads(pathlib.Path('assets/photo-sources.json').read_text())
+          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+              for name in pool.map(get,sources):print('Original received:',name)
+          # No font files are copied or exported.
+          assert not list(root.rglob('*.woff2'))
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: color-photo-source-review
+          path: photo-review/
+          retention-days: 1
