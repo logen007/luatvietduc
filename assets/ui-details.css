@@ -1,0 +1,203 @@
+/* Luật Việt Đức · v0.7.5 · small, purposeful visual accents.
+   Shared monochrome/burgundy SVGs; editorial photography remains full-color. */
+
+/* Icon language. Every icon inherits the element's text color. */
+.lvd-icon{display:inline-block;width:20px;height:20px;flex:none;vertical-align:middle}
+.catalog-page .catalog-group{isolation:isolate}
+.catalog-page .catalog-group-body{position:relative;display:block;min-width:0}
+.catalog-page .catalog-group-icon{
+  position:absolute;
+  right:-18px;
+  bottom:-2px;
+  display:grid;
+  place-items:center;
+  width:48px;height:48px;
+  border:1px solid #e9d3c4;
+  border-radius:14px;
+  color:#95503b;
+  background:#faeee6;
+  opacity:.88;
+  pointer-events:none;
+}
+.catalog-page .catalog-group-icon .lvd-icon{width:25px;height:25px;stroke-width:1.4}
+.catalog-page .catalog-group-body strong{position:relative;z-index:1;padding-right:12px}
+.catalog-page .catalog-group-body small{position:relative;z-index:1;max-width:calc(100% - 62px)}
+.catalog-page .catalog-topic-glyph{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:6px;background:#f7eae0;color:#8c4632}
+.catalog-page .catalog-topic-glyph .lvd-icon{width:14px;height:14px}
+.catalog-page .catalog-topic .meta{display:flex;align-items:center;gap:9px}
+.catalog-page .catalog-topic .meta a{overflow-wrap:anywhere}
+.catalog-page .catalog-topic-emblem{
+  display:grid;place-items:center;
+  width:56px;height:56px;
+  flex:0 0 56px;
+  color:#823b27;
+  background:#f6e3d8;
+  border-radius:16px;
+  border:1px solid #e4c5b4;
+}
+.catalog-page .catalog-topic-emblem .lvd-icon{width:29px;height:29px}
+.catalog-page .catalog-topic-intro{gap:21px}
+.catalog-page .catalog-topic-intro p{flex:1;min-width:0}
+
+/* Topic-related micro-icons are accents, not a second navigation row. */
+.press-meta{gap:9px;align-items:center}
+.press-meta .press-meta-icon{width:15px;height:15px;color:var(--accent);stroke-width:1.5}
+.newsroom-list .listing-grid > .press-card:first-child .press-meta-icon{color:#f2b7a3}
+.newsroom-kicker-mark{display:inline-flex;align-items:center;justify-content:center;margin-right:9px}
+.newsroom-kicker-mark .lvd-icon{width:17px;height:17px;color:#efba9e}
+.news-summary-icon{width:16px;height:16px;margin-right:8px;color:#9a513e}
+.news-detail .news-summary .press-kicker{display:flex;align-items:center}
+
+/* One consistent content width: chat is no longer wider than the site. */
+#main .chat-shell {
+  width:min(var(--max),calc(100% - 112px));
+  max-width:var(--max);
+  height:min(790px,calc(100dvh - 148px));
+  min-height:520px;
+  margin:23px auto 48px;
+  border:1px solid #e3d2c6;
+  border-radius:12px;
+  overflow:hidden;
+}
+#main .chat-shell .chat-welcome .chat-prompts button{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  justify-content:flex-start;
+}
+#main .chat-shell .chat-prompt-icon{
+  display:block;
+  flex:0 0 29px;
+  width:29px;height:29px;
+  padding:6px;
+  border-radius:8px;
+  background:#f8e8df;
+  color:#8b3e28;
+  stroke-width:1.7;
+}
+#main .chat-shell .chat-prompts button span{display:block;text-align:left;min-width:0}
+#main .chat-shell .chat-sidebar .chat-side-bottom a{min-height:44px}
+#main .chat-shell .chat-top h1{letter-spacing:-.025em}
+
+/* Supporting forms and reference pages gain one emblem per heading,
+   not icons on every form input. */
+.lvd-support-emblem{
+  display:inline-grid;
+  place-items:center;
+  width:42px;height:42px;
+  border-radius:11px;
+  background:#f3e1d6;
+  border:1px solid #dfc6b9;
+  color:#873f2c;
+  margin-bottom:17px;
+}
+.lvd-support-emblem .lvd-icon{width:23px;height:23px}
+#main > .container.page:has(.contact-layout) > .page-heading .lvd-support-emblem,
+#main > .container.page:has(> .prose) > .page-heading .lvd-support-emblem{
+  background:#fff9f4;
+}
+
+/* Remove the old oversized footer signature, including cached DOM remnants.
+   A single restrained brand lockup is sufficient. */
+.site-footer .s-footer-wordmark{display:none!important}
+.site-footer{
+  padding-top:45px;
+  padding-bottom:24px;
+  border-top:1px solid #dbc3b4;
+  background:linear-gradient(125deg,#faf3ee 0%,#f5ebe4 100%);
+}
+.site-footer .footer-main{gap:40px;align-items:flex-start}
+.site-footer .footer-main .brand{gap:13px}
+.site-footer .footer-main .brand-mark{
+  width:41px;height:41px;
+  border-radius:12px 3px 12px 3px;
+  background:#4b1813;
+  color:#fff5ee;
+  font-size:30px;
+}
+.site-footer .footer-main .brand-name{
+  font-family:var(--font-sans);
+  font-size:25px;
+  font-weight:520;
+  letter-spacing:-.055em;
+  line-height:1.2;
+  text-transform:none;
+}
+.site-footer .footer-main .brand-tagline{
+  margin-top:6px;
+  font-family:var(--font-mono);
+  letter-spacing:.06em;
+  font-size:9px;
+  color:#896657;
+}
+.site-footer .footer-main p{
+  max-width:270px;
+  margin-top:17px;
+  color:#765e52;
+  font-size:13px;
+  line-height:1.7;
+}
+.site-footer .footer-links{
+  max-width:440px;
+  justify-content:flex-end;
+  column-gap:28px;
+  row-gap:0;
+}
+.site-footer .footer-links a{
+  min-height:44px;
+  font-size:13px;
+  color:#5e4236;
+}
+.site-footer .footer-links a:hover{color:#a04730}
+.site-footer .footer-bottom{
+  border-top:1px solid #ddc7b9;
+  margin-top:36px;
+  padding-top:20px;
+  font-family:var(--font-mono);
+  font-size:10px;
+  color:#84685c;
+  letter-spacing:.015em;
+}
+
+/* Mobile and tablet follow the same breakpoints as the global site container. */
+@media (max-width:1100px){
+  #main .chat-shell{width:calc(100% - 72px);max-width:none}
+}
+@media (max-width:900px){
+  #main .chat-shell{height:calc(100dvh - 140px);min-height:440px;margin-top:20px}
+}
+@media (max-width:680px){
+  #main .chat-shell{
+    width:calc(100% - 36px);
+    height:calc(100dvh - 115px);
+    min-height:390px;
+    margin:12px auto 32px;
+    border:1px solid #e3d2c6;
+    border-radius:9px;
+  }
+  #main .chat-shell .chat-welcome .chat-prompts button{gap:10px}
+  #main .chat-shell .chat-prompt-icon{width:28px;height:28px;flex-basis:28px}
+  .catalog-page .catalog-group-icon{right:-4px;bottom:-2px;width:36px;height:36px;border-radius:11px}
+  .catalog-page .catalog-group-icon .lvd-icon{width:21px;height:21px}
+  .catalog-page .catalog-group-body strong{padding-right:42px}
+  .catalog-page .catalog-group-body small{max-width:calc(100% - 54px)}
+  .catalog-page .catalog-topic-emblem{width:44px;height:44px;display:inline-grid;margin-bottom:13px}
+  .site-footer{padding-top:34px}
+  .site-footer .footer-main .brand-name{font-size:22px}
+  .site-footer .footer-main .brand-mark{width:36px;height:36px;font-size:26px}
+  .site-footer .footer-links{max-width:none;justify-content:flex-start;gap:0 20px}
+  .site-footer .footer-bottom{margin-top:25px;padding-top:17px}
+  #main > .container.page .lvd-support-emblem{width:36px;height:36px;margin-bottom:13px}
+}
+@media (max-width:359px){
+  #main .chat-shell{width:calc(100% - 30px)}
+  .catalog-page .catalog-group-icon{right:-1px;width:30px;height:30px}
+}
+@media (prefers-contrast:more){
+  .catalog-page .catalog-group-icon,.catalog-page .catalog-topic-emblem{background:#fff;border-color:#632719}
+}
+@media print{
+  #main .chat-shell{width:100%;height:auto;min-height:0;overflow:visible;margin:0;box-shadow:none}
+  .catalog-page .catalog-group-icon{border-color:#999;background:#fff}
+  .site-footer{background:#fff}
+}
