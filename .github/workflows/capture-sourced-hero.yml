@@ -1,0 +1,46 @@
+name: Inspect final landmark placement
+on:
+  push:
+    branches: [sourced-germany-svg-v0.6.6]
+    paths: ['.github/workflows/capture-sourced-hero.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Capture hero from a known scroll position
+        run: |
+          python3 - <<'PY'
+          import http.server,threading,functools
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+          class Quiet(http.server.SimpleHTTPRequestHandler):
+            def log_message(self,*a):pass
+          server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(Path.cwd())))
+          threading.Thread(target=server.serve_forever,daemon=True).start()
+          out=Path('qa-placement');out.mkdir()
+          with sync_playwright() as p:
+            browser=p.chromium.launch()
+            for width in (1280,1440,1920):
+              page=browser.new_page(viewport={'width':width,'height':960},reduced_motion='reduce',locale='vi-VN')
+              page.goto(f'http://127.0.0.1:{server.server_port}/?placement={width}#/',wait_until='networkidle')
+              page.evaluate('document.fonts.ready');page.evaluate('scrollTo(0,0)');page.wait_for_timeout(100)
+              assert page.evaluate('scrollY')==0
+              page.screenshot(path=str(out/f'hero-{width}.png'))
+              page.close()
+            browser.close()
+          server.shutdown()
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sourced-landmark-final-placement
+          path: qa-placement/
+          retention-days: 1
