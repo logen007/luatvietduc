@@ -1,0 +1,56 @@
+name: Review PLVN source catalogue
+on:
+  push:
+    branches: [plvn-catalog-v0.7.0]
+    paths: ['assets/**','scripts/**','.github/workflows/review-plvn-catalog.yml']
+permissions:
+  contents: write
+concurrency:
+  group: plvn-catalog-review
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+      - name: Connect the catalogue to the current website
+        run: |
+          if ! grep -q 'assets/catalog-source.js' index.html; then
+            python3 scripts/connect-catalog.py
+          fi
+          node --check assets/catalog-source.js
+          node --check assets/catalog.js
+          node --check assets/app.js
+          node --check assets/chat-first.js
+          node --check assets/steel-ui.js
+      - name: Install browser verification
+        run: |
+          python3 -m pip install 'playwright==1.55.0' 'Pillow>=11,<13'
+          python3 -m playwright install --with-deps chromium
+      - name: Reconcile all 303 source titles and inspect the 16-group directory
+        run: python3 scripts/test-catalog.py
+      - name: Preserve existing copy and reader interactions
+        run: python3 scripts/test-chat.py
+      - name: Preserve Vietnamese typography and all original-color images
+        run: python3 scripts/test-fonts.py
+      - name: Save only verified source connections on the review branch
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/app.js assets/chat-first.js assets/steel-ui.js scripts/test-chat.py
+          if ! git diff --cached --quiet; then
+            git commit -m 'feat: activate the verified 16-group 303-topic PLVN catalogue'
+            git push origin HEAD:refs/heads/plvn-catalog-v0.7.0
+          fi
+      - name: Internal visual verification
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: plvn-catalog-visual-qa
+          path: qa-catalog/
+          if-no-files-found: ignore
+          retention-days: 1
