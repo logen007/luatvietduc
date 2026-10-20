@@ -2,21 +2,44 @@ name: Website copy audit
 on:
   push:
     branches: [website-copy-v0.5.2]
-    paths: ['.github/workflows/copy-audit.yml']
+    paths: ['.github/workflows/copy-audit.yml','scripts/rewrite-website-copy.py','scripts/test-public-copy.py']
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: website-copy-review
+  cancel-in-progress: true
 jobs:
-  source:
+  review:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v6
         with:
-          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Apply reviewed source changes
+        run: |
+          python3 scripts/rewrite-website-copy.py
+          for file in assets/*.js; do node --check "$file"; done
+      - name: Install browser tests
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Review every page and interactive state
+        env:
+          VISUAL_QA: qa-internal
+        run: python3 scripts/test-public-copy.py
+      - name: Commit the tested website files only
+        run: |
+          cp scripts/test-public-copy.py scripts/test-chat.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/app.js assets/chat-first.js assets/chat-router.js assets/content.js assets/newsroom.js assets/news-content.js scripts/test-chat.py
+          git commit -m 'copy: publish reader-facing language across home chat library forms and articles'
+          git push origin HEAD:refs/heads/website-copy-v0.5.2
       - uses: actions/upload-artifact@v7
+        if: always()
         with:
-          name: copy-audit-source
-          path: |
-            index.html
-            assets/
-            scripts/
+          name: copy-visual-review
+          path: qa-internal/
+          if-no-files-found: ignore
           retention-days: 1
