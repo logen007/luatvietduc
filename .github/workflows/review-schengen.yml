@@ -1,0 +1,66 @@
+name: Review Schengen typography
+on:
+  push:
+    branches: [schengen-fonts-v0.6.3]
+    paths: ['assets/typography.css','scripts/test-fonts.py','.github/workflows/review-schengen.yml']
+permissions:
+  contents: write
+concurrency:
+  group: schengen-typography-review
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+      - name: Wire in the verified licensed fonts without changing content or colors
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html');s=p.read_text()
+          s=s.replace('0.6.2','0.6.3')
+          if 'https://steel.dev/_next/static/immutable/media/;' not in s:
+            s=s.replace("font-src 'self' https://fonts.gstatic.com;", "font-src 'self' https://fonts.gstatic.com https://steel.dev/_next/static/immutable/media/;")
+          if 'assets/typography.css' not in s:
+            s=s.replace('<link rel="stylesheet" href="assets/color-theme.css?v=0.6.3">','<link rel="stylesheet" href="assets/color-theme.css?v=0.6.3">\n  <link rel="stylesheet" href="assets/typography.css?v=0.6.3">')
+            s=s.replace('  <title>', '  <link rel="preload" href="https://steel.dev/_next/static/immutable/media/ABCSchengenA_Variable-s.p.3nb4eiitxra8w.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="https://steel.dev/_next/static/immutable/media/ABCSchengenAMono_Variable.p.1vh0uvnfona6i.woff2" as="font" type="font/woff2" crossorigin>\n  <title>',1)
+          p.write_text(s)
+          p=Path('scripts/test-chat.py');s=p.read_text()
+          if 'licensed_fonts=' not in s:
+            s=s.replace('count=0',"licensed_fonts={\n 'https://steel.dev/_next/static/immutable/media/ABCSchengenA_Variable-s.p.3nb4eiitxra8w.woff2',\n 'https://steel.dev/_next/static/immutable/media/ABCSchengenAMono_Variable.p.1vh0uvnfona6i.woff2'\n}\ncount=0",1)
+            s=s.replace("and not u.startswith('https://fonts.gstatic.com/')", "and not u.startswith('https://fonts.gstatic.com/') and u not in licensed_fonts")
+            s=s.replace("page.wait_for_timeout(40)","page.evaluate('document.fonts.ready');page.wait_for_timeout(40)")
+          p.write_text(s)
+          p=Path('assets/steel-ui.css');s=p.read_text()
+          s=s.replace("   ABC Schengen A / A Mono require the client's own license; not redistributed.\n   Public deployment uses open-source Geist / Geist Mono via Google Fonts.","   Font tokens are overridden by typography.css for the client's licensed ABC pair.\n   Geist / Geist Mono remain missing-glyph fallbacks for the supplied Latin subsets.")
+          p.write_text(s)
+          PY
+      - name: Install browser
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Check every public page and existing interaction
+        run: python3 scripts/test-chat.py
+      - name: Confirm the fonts actually render and inspect responsive layouts
+        run: python3 scripts/test-fonts.py
+      - name: Commit tested source changes without any font binaries
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html scripts/test-chat.py assets/steel-ui.css
+          if ! git diff --cached --quiet; then
+            git commit -m 'style: activate verified ABC Schengen typography with Vietnamese fallback'
+            git push origin HEAD:refs/heads/schengen-fonts-v0.6.3
+          fi
+      - name: Internal visual check only
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: schengen-visual-qa
+          path: qa-fonts/
+          if-no-files-found: ignore
+          retention-days: 1
