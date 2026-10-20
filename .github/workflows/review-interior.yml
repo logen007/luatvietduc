@@ -85,8 +85,15 @@ jobs:
                 assert info['images']==0,(label,width,info)
                 if label=='catalog':
                   assert info['hero']>=130 and page.locator('.catalog-group').count()==16,(label,width,info)
+                  if width==1440:
+                    assert page.locator('.catalog-group').first.bounding_box()['height'] <= 165
                 if label=='news':
                   assert info['cards']>0 and info['lead']==1,(label,width,info)
+                  if width==1440 and info['cards']>1:
+                    secondary=page.locator('.listing-grid > .press-card').nth(1)
+                    photo_height=secondary.locator('.press-photo').bounding_box()['height']
+                    card_height=secondary.bounding_box()['height']
+                    assert photo_height/card_height > .55,(photo_height,card_height)
                 if label=='article':
                   assert page.locator('.news-figure img').count()>=1 and page.locator('.news-summary').count()==1
                 if label=='chat':
