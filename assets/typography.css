@@ -1,0 +1,28 @@
+/* Luat Viet Duc · Typography 0.6.3
+   The client supplied and confirmed licensing for both ABC webfonts.
+   Embedded resources were SHA-256 matched to the supplied files.
+   Font binaries are not redistributed in this public source repository.
+   Both supplied Latin subsets lack several Vietnamese characters.
+   Geist / Geist Mono remain fallbacks for only the missing glyphs. */
+@font-face {
+  font-family: 'ABC Schengen A';
+  src: url('https://steel.dev/_next/static/immutable/media/ABCSchengenA_Variable-s.p.3nb4eiitxra8w.woff2') format('woff2');
+  font-weight: 200 1000;
+  font-style: oblique 0deg 12deg;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'ABC Schengen A Mono';
+  src: url('https://steel.dev/_next/static/immutable/media/ABCSchengenAMono_Variable.p.1vh0uvnfona6i.woff2') format('woff2');
+  font-weight: 200 1000;
+  font-style: oblique 0deg 12deg;
+  font-display: swap;
+}
+:root {
+  --font-sans: 'ABC Schengen A', 'Geist', Arial, sans-serif;
+  --font-mono: 'ABC Schengen A Mono', 'Geist Mono', 'Courier New', monospace;
+}
+body {
+  font-kerning: normal;
+}
+/* The visual hierarchy, colors, content and component layout are unchanged. */
