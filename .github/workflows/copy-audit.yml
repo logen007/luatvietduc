@@ -1,0 +1,22 @@
+name: Website copy audit
+on:
+  push:
+    branches: [website-copy-v0.5.2]
+    paths: ['.github/workflows/copy-audit.yml']
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/upload-artifact@v7
+        with:
+          name: copy-audit-source
+          path: |
+            index.html
+            assets/
+            scripts/
+          retention-days: 1
