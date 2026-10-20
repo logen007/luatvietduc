@@ -1,0 +1,34 @@
+name: Review color palette
+on:
+  push:
+    branches: [color-ui-v0.6.1]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: review-lvd-color-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install browser
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Verify all existing copy and interaction journeys
+        run: python3 scripts/test-chat.py
+      - name: Verify colors responsive screens and contrast
+        run: python3 scripts/test-color-theme.py
+      - name: Internal visual review
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: color-visual-qa
+          path: qa-color-internal/
+          if-no-files-found: ignore
+          retention-days: 1
