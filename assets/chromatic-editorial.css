@@ -21,16 +21,14 @@
 /* News stays image-led. A single warmer headline marker is sufficient. */
 .s-news-section.chat-news .s-section-head .s-eyebrow { color:#963e2c; }
 .s-news-section.chat-news .s-section-head h2 { color:var(--lvd-ink); }
-.s-news-section.chat-news .s-section-head::before {
+.s-news-section.chat-news .s-section-head h2::before {
   content:'';
-  display:block;
-  width:38px;
-  height:5px;
-  flex:none;
-  align-self:center;
+  display:inline-block;
+  width:28px;height:5px;
+  vertical-align:middle;
+  margin-right:12px;
   border-radius:100px;
   background:linear-gradient(90deg,#d68f64,#e8d0a0);
-  margin-right:5px;
 }
 
 /* Homepage library becomes an editorial set of pastel colour planes. */
@@ -81,7 +79,7 @@
 .s-guides-section.chat-news:before {
   content:'';
   position:absolute;
-  inset:0 calc(-1 * max(18px,(100vw - var(--max))/2));
+  inset:0;
   z-index:-1;
   background:linear-gradient(123deg,#f7f0e8 0%,#eef4ec 54%,#f1ecf9 100%);
   pointer-events:none;
@@ -269,7 +267,7 @@
 @media(max-width:680px) {
   .s-library-links > a {min-height:69px;padding:11px 13px;}
   .s-guides-grid .s-story .s-story-copy {padding:11px 14px 16px;}
-  .s-guides-section.chat-news::before {left:-18px;right:-18px;}
+  .s-guides-section.chat-news::before {left:0;right:0;}
   .catalog-page .catalog-group-icon {background:#ffffffbb;}
   #main .chat-shell .chat-welcome .chat-prompts button {font-size:12px;}
 }
