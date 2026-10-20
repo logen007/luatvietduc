@@ -33,11 +33,8 @@
   function decorate(){
     const isHome=['','#/','#'].includes(location.hash);
     document.body.classList.toggle('s-home',isHome);
-    const footer=document.querySelector('.site-footer .container');
-    if(footer&&!footer.querySelector('.s-footer-wordmark')){
-      const mark=document.createElement('a');mark.href='#/';mark.className='s-footer-wordmark';
-      mark.textContent='luật việt đức';mark.setAttribute('aria-label','Luật Việt Đức — Trang chủ');footer.append(mark);
-    }
+    // The footer uses the existing small brand lockup instead of duplicating
+    // an oversized wordmark across the bottom of every page.
   }
   document.addEventListener('DOMContentLoaded',decorate);
   window.addEventListener('hashchange',decorate);
