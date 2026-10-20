@@ -59,7 +59,7 @@
   pointer-events: none;
 }
 .catalog-page > .page-heading::before {
-  content: 'LVD / LAW LIBRARY';
+  content: '';
   position: absolute;
   right: 27px;
   bottom: 23px;
@@ -122,8 +122,8 @@
   position: relative;
   display: grid;
   grid-template-columns: 25px minmax(0, 1fr) 21px;
-  min-height: 172px;
-  padding: 27px 25px 22px;
+  min-height: 145px;
+  padding: 23px 23px 20px;
   border: 1px solid var(--interior-edge);
   border-radius: 9px;
   overflow: hidden;
@@ -163,7 +163,7 @@
   max-width: 290px;
 }
 .catalog-page .catalog-group-body small {
-  margin-top: 21px;
+  margin-top: 14px;
   font-size: 10px;
   color: #7d5d50;
 }
@@ -368,6 +368,26 @@
 .newsroom-list .listing-grid > .press-card:first-child .press-copy > p { color: #eacbc0; font-size: 14px; margin-top: 11px; }
 .newsroom-list .listing-grid > .press-card .press-image-link img { filter: none; }
 
+/* The secondary feature uses its image to fill the editorial column,
+   eliminating the empty lower half of a stretched card. */
+@media (min-width: 1101px) {
+  .newsroom-list .listing-grid > .press-card:nth-child(2) {
+    display: flex;
+    flex-direction: column;
+  }
+  .newsroom-list .listing-grid > .press-card:nth-child(2) .press-image-link {
+    flex: 1 1 auto;
+    min-height: 245px;
+  }
+  .newsroom-list .listing-grid > .press-card:nth-child(2) .press-photo {
+    height: 100%;
+    min-height: 245px;
+    aspect-ratio: auto;
+  }
+  .newsroom-list .listing-grid > .press-card:nth-child(2) .press-copy {
+    flex: none;
+  }
+}
 /* ── Long-form news: strong photo, generous text rhythm, readable sources ── */
 .news-detail .news-title {
   max-width: 1120px;
