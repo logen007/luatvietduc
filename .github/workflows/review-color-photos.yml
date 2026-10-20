@@ -16,10 +16,44 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
-      - name: Install image and browser checks
+      - name: Install image font and browser checks
         run: |
-          python3 -m pip install 'Pillow>=11,<13' 'playwright==1.55.0'
+          python3 -m pip install 'Pillow>=11,<13' 'playwright==1.55.0' 'fonttools[woff]'
           python3 -m playwright install --with-deps chromium
+      - name: Validate complete font character maps and wire their CSS aliases
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import io,re,urllib.request
+          from fontTools.ttLib import TTFont
+          css=Path('assets/typography.css').read_text()
+          urls=[u for u in re.findall(r"url\('([^']+)'\)",css) if u.startswith('https://raw.githubusercontent.com/vercel/geist-font/')]
+          assert len(urls)==2
+          letters='aàáảãạăằắẳẵặâầấẩẫậeèéẻẽẹêềếểễệiìíỉĩịoòóỏõọôồốổỗộơờớởỡợuùúủũụưừứửữựyỳýỷỹỵđ'
+          for url in urls:
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Origin':'https://logen007.github.io'})
+              with urllib.request.urlopen(req,timeout=30) as response:
+                  assert response.status==200
+                  assert response.headers.get('Access-Control-Allow-Origin') in ['*','https://logen007.github.io']
+                  font=TTFont(io.BytesIO(response.read()))
+              missing=sorted(set(letters+letters.upper())-{chr(c) for c in font.getBestCmap()})
+              assert not missing,missing
+              print('Complete Vietnamese cmap:',font['name'].getDebugName(1),len(font.getBestCmap()))
+          p=Path('index.html');s=p.read_text()
+          s=re.sub(r'^.*<link[^>]+https://fonts\.(?:googleapis|gstatic)\.com[^>]*>\s*$', '',s,flags=re.M)
+          s=re.sub(r"font-src [^;]+;", "font-src 'self' https://raw.githubusercontent.com/vercel/geist-font/e1f671c727f6de7e97c1e1d26dbb44f349c19459/fonts/ https://steel.dev/_next/static/immutable/media/;",s)
+          if 'rel="preload" href="'+urls[0] not in s:
+              s=s.replace('  <title>', ''.join('  <link rel="preload" href="'+u+'" as="font" type="font/woff2" crossorigin>\n' for u in urls)+'  <title>',1)
+          p.write_text(s)
+          p=Path('scripts/test-chat.py');s=p.read_text()
+          if urls[0] not in s:s=s.replace('count=0','licensed_fonts.update('+repr(set(urls))+')\ncount=0',1)
+          p.write_text(s)
+          p=Path('scripts/test-fonts.py');s=p.read_text()
+          s=s.replace("['probe-sans', 'Geist']", "['probe-sans', 'LVD Geist']").replace("['probe-mono', 'Geist Mono']", "['probe-mono', 'LVD Geist Mono']")
+          s=s.replace('400 32px "Geist"','400 32px "LVD Geist"').replace('400 32px "Geist Mono"','400 32px "LVD Geist Mono"')
+          s=s.replace(".startswith('Geist')", ".split(',')[0].strip(chr(34)) == 'LVD Geist'")
+          p.write_text(s)
+          PY
       - name: Restore original-color photographs and update attribution
         run: python3 scripts/refresh-color-photos.py
       - name: Check all existing pages and interactions
@@ -31,9 +65,9 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html assets/photos assets/photo-sources.json assets/newsroom.js assets/news-content.js assets/newsroom.css assets/steel-ui.css
+          git add index.html assets/photos assets/photo-sources.json assets/newsroom.js assets/news-content.js assets/newsroom.css assets/steel-ui.css scripts/test-chat.py scripts/test-fonts.py
           if ! git diff --cached --quiet; then
-            git commit -m 'fix: restore original-color photos and activate uniform Vietnamese type'
+            git commit -m 'fix: restore original-color photos and activate complete Vietnamese type'
             git push origin HEAD:refs/heads/color-photos-v0.6.4
           fi
       - name: Internal visual verification
