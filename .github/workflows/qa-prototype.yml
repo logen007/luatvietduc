@@ -12,7 +12,7 @@ concurrency:
 jobs:
   browser-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v6
         with:
@@ -20,18 +20,16 @@ jobs:
           persist-credentials: false
       - name: Check JavaScript syntax
         run: |
-          node --check assets/app.js
-          node --check assets/chat-first.js
-          node --check assets/newsroom.js
-          node --check assets/catalog-source.js
-          node --check assets/catalog.js
+          for script in assets/*.js; do node --check "$script"; done
       - name: Install test browser and image checks
         run: |
           python3 -m pip install 'playwright==1.55.0' 'Pillow>=11,<13'
           python3 -m playwright install --with-deps chromium
-      - name: Check chat specialist knowledge and news interfaces
+      - name: Check chat, contact and news journeys
         run: python3 scripts/test-chat.py
       - name: Verify Vietnamese glyphs and original-color photographs
         run: python3 scripts/test-fonts.py
-      - name: Reconcile all 303 source titles and verify catalogue navigation
+      - name: Reconcile all 303 source titles and navigation
         run: python3 scripts/test-catalog.py
+      - name: Check reference-aligned layout and icon separation
+        run: python3 scripts/test-terms-layout.py
