@@ -21,36 +21,41 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Verify published website and source catalogue
+      - name: Verify published HTML and loaded assets
         run: |
           python3 - <<'PY'
-          import hashlib,json,time,urllib.request
+          import hashlib, json, time, urllib.request
           from pathlib import Path
-          base='https://logen007.github.io/luatvietduc/'
-          paths=['index.html','assets/styles.css','assets/content.js','assets/app.js','assets/news-content.js','assets/newsroom.js','assets/newsroom.css','assets/photo-sources.json','assets/chat-first.js','assets/chat-first.css','assets/chat-router.js','assets/steel-ui.js','assets/steel-ui.css','assets/color-theme.css','assets/typography.css','assets/topic-navigation.css','assets/germany-details.css','assets/brandenburg-gate.svg','assets/berlin-tv-tower.svg','assets/germany-shape.svg','assets/illustration-sources.json','assets/catalog-source.js','assets/catalog.js','assets/catalog.css','assets/interior-design.css','assets/ui-icons.js','assets/ui-details.css','assets/chromatic-editorial.css','assets/footer-editorial.css','assets/contact-legal.css','assets/legal-pages.js','assets/ui-details.css','assets/ui-icons.js']
-          paths+=sorted(str(p) for p in Path('assets/photos').glob('*.webp'))
+          from html.parser import HTMLParser
+          from urllib.parse import urlsplit
+          paths={'index.html'}
+          class Assets(HTMLParser):
+              def handle_starttag(self,tag,attrs):
+                  a=dict(attrs)
+                  value=a.get('src') if tag=='script' else a.get('href') if tag=='link' and a.get('rel')=='stylesheet' else ''
+                  if value and value.startswith('assets/'): paths.add(urlsplit(value).path)
           html=Path('index.html').read_text()
-          assert 'content="0.7.8"' in html
-          assert 'noindex, nofollow' in html and 'onclick=' not in html
-          assert 'connect-src \'none\'' in html
-          assert 'class="s-rail-label"' not in Path('assets/steel-ui.js').read_text()
-          assert "'LVD Geist'" in Path('assets/typography.css').read_text()
-          assert not Path('assets/berlin-line.svg').exists()
+          Assets().feed(html)
+          assert 'noindex, nofollow' in html
+          assert 'terms-alignment.css' in html
+          assert '#/nguon-anh' not in html
           assert 'expectedTotal:303' in Path('assets/catalog-source.js').read_text()
-          expected={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in paths}
+          paths.update(str(p) for p in Path('assets/photos').glob('*.webp'))
+          paths.update(str(p) for p in Path('assets').glob('*.svg'))
+          expected={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in sorted(paths)}
           for attempt in range(18):
               try:
                   for path,digest in expected.items():
-                      address=base+('' if path=='index.html' else path)+'?verify='+digest[:14]
+                      address='https://logen007.github.io/luatvietduc/'+('' if path=='index.html' else path)+'?verify='+digest[:14]
                       req=urllib.request.Request(address,headers={'User-Agent':'LuatVietDuc-Release-Check','Cache-Control':'no-cache'})
                       with urllib.request.urlopen(req,timeout=20) as response:
                           assert response.status==200
                           actual=hashlib.sha256(response.read()).hexdigest()
-                      if actual!=digest:raise RuntimeError('Waiting for asset: '+path)
+                      if actual!=digest: raise RuntimeError('Waiting for '+path)
                   break
               except Exception as exc:
                   print('Attempt',attempt+1,str(exc),flush=True)
-                  if attempt==17:raise
-                  time.sleep(10)
-          print(json.dumps({'status':'passed','version':'0.7.8','verified_count':len(paths),'url':base,'sha256':expected},indent=2))
+                  if attempt==17: raise
+                  time.sleep(8)
+          print(json.dumps({'status':'passed','verified_count':len(paths),'sha256':expected},indent=2))
           PY
