@@ -62,7 +62,7 @@ with sync_playwright() as p:
     page.evaluate("document.querySelectorAll('[id^=probe-]').forEach(e => e.remove())")
     fonts_for('.s-hero h1', 'Geist'); fonts_for('.desktop-nav a', 'Geist Mono'); fonts_for('.s-topic-rail button', 'Geist Mono')
     assert page.locator('#home-question').evaluate('(el)=>getComputedStyle(el).fontFamily').split(',')[0].strip(chr(34)) == 'LVD Geist'
-    routes = [('/', 'home'), ('/hoi-dap-ai', 'chat'), ('/tra-cuu', 'library'), ('/tin-tuc', 'news'), ('/tin/mindestlohn-2026', 'article'), ('/gui-cau-hoi', 'contact'), ('/nguon-anh', 'credits')]
+    routes = [('/', 'home'), ('/hoi-dap-ai', 'chat'), ('/tra-cuu', 'library'), ('/tin-tuc', 'news'), ('/tin/mindestlohn-2026', 'article'), ('/gui-cau-hoi', 'contact'), ('/lien-he', 'contact-new'), ('/chinh-sach-thong-tin', 'privacy'), ('/dieu-khoan', 'terms')]
     for width in (320, 360, 390, 768, 1024, 1440):
         page.set_viewport_size({'width': width, 'height': 1000})
         for route, label in routes:
