@@ -1,0 +1,42 @@
+/* v0.8.2 — spacing and footer colour refinements. */
+.s-library-links{gap:12px 14px}
+.s-library-links>a{
+  display:grid;
+  grid-template-columns:26px minmax(0,1fr) 20px;
+  align-items:center;
+  column-gap:15px;
+  min-height:108px;
+  padding:22px 25px;
+  border:1px solid #ffffff8f;
+  border-radius:13px;
+  line-height:1.4;
+}
+.s-library-links>a .s-topic-number{align-self:start;margin-top:3px;font-size:11px}
+.s-library-links>a>span:nth-child(2){min-width:0;overflow-wrap:break-word}
+.s-library-links>a>span:nth-child(2) .catalog-home-count{margin-top:13px}
+.s-library-links>a>svg{justify-self:end;margin:0;width:17px;height:17px}
+.s-library-inner{gap:clamp(36px,5vw,72px)}
+@media(max-width:1100px){.s-library-links>a{padding:18px;grid-template-columns:22px minmax(0,1fr) 17px;gap:11px}}
+@media(max-width:680px){.s-library-links{gap:10px}.s-library-links>a{padding:17px 15px;min-height:93px;grid-template-columns:20px minmax(0,1fr) 16px;gap:9px}.s-library-links>a .s-topic-number{font-size:9px}.s-library-links>a>svg{width:14px;height:14px}}
+
+/* Light editorial footer; no heavy dark block. */
+.site-footer.lvd-footer{
+  background:linear-gradient(125deg,#faf6f0 0%,#f0f4ed 58%,#f5f0f9 100%);
+  color:#342c33;
+  border-top:1px solid #e2d9d5;
+}
+.lvd-footer .lvd-footer-invite{background:linear-gradient(110deg,#f5e6b8,#d5e6d8);border-color:#dcd9bf}
+.lvd-footer .lvd-footer-invite h2{color:#302927}
+.lvd-footer .lvd-footer-invite h2 span{color:#37654d}
+.lvd-footer .brand-mark{background:#4f3a55;color:#fff}
+.lvd-footer .brand-name{color:#302a34}
+.lvd-footer .brand-tagline{color:#746475}
+.lvd-footer .lvd-footer-identity>p{color:#665c65}
+.lvd-footer .lvd-footer-connection{background:#ede5ef;color:#594a61;border-color:#d9cbdc}
+.lvd-footer .lvd-footer-connection svg{stroke:#6a5a71}
+.lvd-footer .lvd-footer-nav h3{color:#74537a}
+.lvd-footer .lvd-footer-nav a{color:#4b424e}
+.lvd-footer .lvd-footer-nav a:hover{color:#a14c35}
+.lvd-footer .lvd-footer-bottom{color:#746b74;border-top-color:#dcd4d8}
+.lvd-footer .lvd-footer-bottom a{color:#665b67}
+.lvd-footer .lvd-footer-bottom a:hover{color:#9b4935}
