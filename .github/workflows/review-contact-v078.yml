@@ -1,0 +1,121 @@
+name: Review contact policies and category icons
+on:
+  push:
+    branches: [contact-policy-icon-v078]
+    paths: ['.github/workflows/review-contact-v078.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Syntax and source assertions
+        run: |
+          node --check assets/app.js
+          node --check assets/legal-pages.js
+          node --check assets/catalog.js
+          node --check assets/newsroom.js
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('index.html').read_text()
+          assert 'content="0.7.8"' in root
+          assert 'assets/contact-legal.css?v=0.7.8' in root
+          assert 'assets/legal-pages.js?v=0.7.8' in root
+          assert '#/nguon-anh' not in root
+          assert 'Góp ý nội dung</a>' not in root
+          assert 'window.LVD_LEGAL.privacy()' in Path('assets/app.js').read_text()
+          assert "expectedTotal:303" in Path('assets/catalog-source.js').read_text()
+          print('Page source and catalogue counts consistent')
+          PY
+      - name: Install Chromium
+        run: |
+          python3 -m pip install 'playwright==1.55.0'
+          python3 -m playwright install --with-deps chromium
+      - name: Check icon geometry, contact, legal navigation and responsiveness
+        run: |
+          mkdir -p internal-review
+          python3 - <<'PY'
+          import http.server,threading,json
+          from playwright.sync_api import sync_playwright,expect
+          class Quiet(http.server.SimpleHTTPRequestHandler):
+            def log_message(self,*a):pass
+          server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Quiet)
+          threading.Thread(target=server.serve_forever,daemon=True).start()
+          base=f'http://127.0.0.1:{server.server_port}/'
+          paths=[
+            ('home','/'),('catalog','/tra-cuu'),('group','/chu-de/hon-nhan-gia-dinh'),
+            ('chat','/hoi-dap-ai'),('news','/tin-tuc'),('article','/tin/mindestlohn-2026'),
+            ('contact','/lien-he'),('contact-old','/gui-cau-hoi'),
+            ('privacy','/chinh-sach-thong-tin'),('terms','/dieu-khoan'),
+            ('removed-credits','/nguon-anh')]
+          report=[]
+          with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True)
+            for width in [320,360,390,768,1024,1440]:
+              context=browser.new_context(viewport={'width':width,'height':900},locale='vi-VN',reduced_motion='reduce')
+              page=context.new_page()
+              errors=[]
+              page.on('pageerror',lambda e:errors.append(str(e)))
+              for label,route in paths:
+                page.goto(base+'#'+route,wait_until='load')
+                page.wait_for_timeout(90)
+                body=page.evaluate('document.documentElement.scrollWidth')
+                assert body<=width+1,(width,label,'horizontal overflow',body)
+                assert page.locator('#main h1').count()==1,(width,label,'h1')
+                assert page.locator('.lvd-footer-nav a').count()==8,(width,label,'nav')
+                assert page.locator('a[href="#/nguon-anh"]').count()==0,(width,label,'removed credits link')
+                if label in ['catalog','group']:
+                  assert page.locator('.catalog-group').count()==(16 if label=='catalog' else 0),(width,label,'group count')
+                if label=='catalog':
+                  rows=page.locator('.catalog-group')
+                  assert rows.locator('> svg').count()==0,(width,'old arrows')
+                  for i in range(rows.count()):
+                    card=rows.nth(i)
+                    text=card.locator('.catalog-group-body').bounding_box()
+                    badge=card.locator('.catalog-group-icon').bounding_box()
+                    assert text['x']+text['width']<=badge['x']-2,(width,i,text,badge)
+                    assert badge['x']+badge['width']<=width+1,(width,i,badge)
+                if label in ['contact','contact-old']:
+                  expect(page.locator('#contact-form')).to_be_visible()
+                  assert page.locator('.lvd-contact-hero h1').count()==1
+                  assert page.locator('.lvd-contact-option').count()==2
+                if label in ['privacy','terms']:
+                  assert page.locator('.lvd-legal-section').count()>=10
+                  assert page.locator('.lvd-policy-toc a[data-policy-anchor]').count()>=10
+                if label=='removed-credits': assert 'Không tìm thấy' in page.locator('#main').inner_text()
+                if width in (390,1440) and label in ('catalog','contact','privacy','terms'):
+                  page.screenshot(path=f'internal-review/{label}-{width}.png',full_page=True)
+                report.append([width,label])
+                print('PASS',width,label,flush=True)
+              assert not errors,errors
+              page.goto(base+'#/chinh-sach-thong-tin',wait_until='load')
+              page.locator('[data-policy-anchor="data"]').click()
+              assert page.url.endswith('#/chinh-sach-thong-tin')
+              assert page.evaluate('document.activeElement.id')=='data'
+              page.goto(base+'#/lien-he',wait_until='load')
+              page.locator('#contact-form [type=submit]').click()
+              expect(page.locator('#question')).to_have_attribute('aria-invalid','true')
+              page.locator('#question').fill('Nội dung giả để kiểm tra biểu mẫu và điều hướng.')
+              page.locator('#name').fill('Người thử')
+              page.locator('#email').fill('visitor@example.invalid')
+              page.locator('#consent').check()
+              page.locator('#contact-form [type=submit]').click()
+              expect(page.locator('#form-error')).to_contain_text('Chưa gửi được')
+              context.close()
+            browser.close()
+          server.shutdown()
+          print('Responsive checks:',len(report))
+          PY
+      - name: Internal screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: v078-layout-review
+          path: internal-review/
+          if-no-files-found: ignore
+          retention-days: 1
