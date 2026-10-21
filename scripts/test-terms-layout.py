@@ -1,4 +1,4 @@
-"""Regression checks for the reference-aligned 0.8 interface.
+"""Regression checks for the restored pre-0.8 layout with Terms-inspired styling.
 Preserves the legal catalogue, truthful form status and source image credits.
 The visual reference is not bundled in the public website.
 """
@@ -48,17 +48,19 @@ with sync_playwright() as p:
             assert page.locator('.s-footer-wordmark').count()==0
             header=page.locator('.site-header .container').bounding_box()
             if name=='home':
-                panel=page.locator('.t-composer-feature').bounding_box()
-                assert abs(panel['width']-header['width'])<1.5,(width,'panel width')
-                assert page.locator('.t-sections > .t-feature').count()==4
+                assert page.locator('.s-hero-grid .s-ask-panel').count()==1
+                assert page.locator('.s-news-grid').count()==1
+                assert page.locator('.s-guides-grid .s-story').count()==4
                 assert page.locator('.s-library-links > a').count()==8
                 assert page.locator('.press-photo img').count()==7
-                assert page.locator('.s-hero h1 > span').count()==2
-                assert page.locator('.s-hero h1 > strong').count()==1
+                if width==1440:
+                    left=page.locator('.s-hero-copy').bounding_box()
+                    right=page.locator('.s-ask-panel').bounding_box()
+                    assert left['x']+left['width']<=right['x']+10
                 assert page.locator('#home-question').bounding_box()['y']<1000
                 assert float(page.locator('#home-question').evaluate('(e)=>getComputedStyle(e).fontSize').replace('px',''))>=16
                 assert page.locator('.s-topic-rail').evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgba(0, 0, 0, 0)'
-                if width==1440:assert abs(header['width']-960)<1
+                if width==1440:assert header['width']>=1100
             if name=='catalog':
                 assert page.locator('.catalog-group').count()==16
                 no_overlap()
@@ -78,7 +80,7 @@ with sync_playwright() as p:
             report.append({'width':width,'route':route,'status':'passed'})
         print('PASS: 12 routes at',width,flush=True)
     page.set_viewport_size({'width':1440,'height':1000});go('/')
-    page.locator('[data-home-compose]').click()
+    page.locator('#home-question').focus()
     expect(page.locator('#home-question')).to_be_focused()
     page.locator('#home-question').fill('Tôi muốn tìm hiểu việc ủy quyền quản lý nhà.')
     page.locator('#home-ask [type=submit]').click()
