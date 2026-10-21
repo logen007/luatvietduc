@@ -33,7 +33,11 @@ jobs:
           assert set(files)==expected
           for path,text in files.items():
             assert isinstance(text,str) and '..' not in Path(path).parts
-            p=Path(path);p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text,encoding='utf-8')
+            p=Path(path)
+            if path.startswith('.github/'):
+              assert p.read_text()==text, 'Workflow configuration must be committed separately: '+path
+              continue
+            p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text,encoding='utf-8')
           index=Path('index.html');html=index.read_text()
           if 'content="0.8.0"' not in html:
             assert 'content="0.7.8"' in html
@@ -76,12 +80,12 @@ jobs:
           python3 scripts/test-chat.py
           python3 scripts/test-fonts.py
           python3 scripts/test-catalog.py
-      - name: Commit reviewed changes only to the work branch
+      - name: Commit reviewed design files only to the work branch
         if: success()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html assets/steel-ui.js assets/terms-alignment.css assets/chat-router.js scripts/test-chat.py scripts/test-fonts.py scripts/test-terms-layout.py .github/workflows/check-preview.yml .github/workflows/qa-prototype.yml
+          git add index.html assets/steel-ui.js assets/terms-alignment.css assets/chat-router.js scripts/test-chat.py scripts/test-fonts.py scripts/test-terms-layout.py
           if ! git diff --cached --quiet; then
             git commit -m 'feat: align website composition to inspected Terms reference (0.8.0)'
             git push origin HEAD:refs/heads/terms-layout-v080
