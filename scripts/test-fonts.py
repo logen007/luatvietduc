@@ -60,7 +60,7 @@ with sync_playwright() as p:
         fonts_for('#probe-sans', 'Geist'); fonts_for('#probe-mono', 'Geist Mono')
         report['rendered_fonts'][form] = {'sans': report['rendered_fonts']['#probe-sans'], 'mono': report['rendered_fonts']['#probe-mono']}
     page.evaluate("document.querySelectorAll('[id^=probe-]').forEach(e => e.remove())")
-    fonts_for('.s-hero h1', 'Geist'); fonts_for('.desktop-nav a', 'Geist'); fonts_for('.s-topic-rail button', 'Geist')
+    fonts_for('.s-hero h1', 'Geist'); fonts_for('.desktop-nav a', 'Geist Mono'); fonts_for('.s-topic-rail button', 'Geist Mono')
     assert page.locator('#home-question').evaluate('(el)=>getComputedStyle(el).fontFamily').split(',')[0].strip(chr(34)) == 'LVD Geist'
     routes = [('/', 'home'), ('/hoi-dap-ai', 'chat'), ('/tra-cuu', 'library'), ('/tin-tuc', 'news'), ('/tin/mindestlohn-2026', 'article'), ('/gui-cau-hoi', 'contact'), ('/lien-he', 'contact-new'), ('/chinh-sach-thong-tin', 'privacy'), ('/dieu-khoan', 'terms')]
     for width in (320, 360, 390, 768, 1024, 1440):
