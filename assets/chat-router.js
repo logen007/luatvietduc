@@ -3,7 +3,7 @@
 (() => {
   const root=()=>document.getElementById('main');
   function route(){try{const u=new URL(location.hash.slice(1)||'/','https://local.invalid');return{path:u.pathname,q:u.searchParams};}catch{return{path:'/',q:new URLSearchParams()};}}
-  function fit(){const el=document.querySelector('.chat-shell');if(!el)return;const top=Math.max(0,root().getBoundingClientRect().top);el.style.minHeight='0';el.style.height=Math.max(240,(window.visualViewport?.height||innerHeight)-top)+'px';}
+  function fit(){const el=document.querySelector('.chat-shell');if(!el)return;const top=Math.max(0,root().getBoundingClientRect().top);const s=getComputedStyle(el);const margins=(parseFloat(s.marginTop)||0)+(parseFloat(s.marginBottom)||0);el.style.minHeight='0';el.style.height=Math.max(260,Math.min(840,(window.visualViewport?.height||innerHeight)-top-margins))+'px';}
   function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());document.querySelectorAll('[data-dialog]').forEach(b=>b.setAttribute('aria-expanded','false'));}
   function mounted(){window.LVD_CHAT.afterRender(route(),render);fit();}
   function render(){const r=route();if(!window.LVD_CHAT.accepts(r))return;closeDialogs();root().innerHTML=window.LVD_CHAT.view(r);const heading=root().querySelector('h1');document.title=(heading?.textContent||'Hỏi đáp pháp luật')+' | Luật Việt Đức';window.scrollTo(0,0);root().focus({preventScroll:true});document.getElementById('page-announcement').textContent=heading?.textContent||'Nội dung đã mở';mounted();}

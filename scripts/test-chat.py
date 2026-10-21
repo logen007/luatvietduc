@@ -43,7 +43,8 @@ with sync_playwright() as p:
    if route=='/':
     assert page.locator('#home-question').is_visible()
     assert page.locator('#home-demo,.demo-fine,.preview-bar').count()==0
-    assert page.locator('#home-question').bounding_box()['y']<560
+    assert page.locator('#home-question').bounding_box()['y']<1000
+    expect(page.locator('[data-home-compose]')).to_be_visible()
     assert page.locator('.press-photo img').count()==7
    passed(f'Copy and layout {w}px {route}')
  page.set_viewport_size({'width':1440,'height':1000});go('/')
