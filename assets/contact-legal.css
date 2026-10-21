@@ -1,0 +1,126 @@
+/* Luật Việt Đức · contact, legal pages & reliable icon layout v0.7.8 */
+
+/* Independent columns for number, title and icon. Never float icons over text. */
+.catalog-page .catalog-groups .catalog-group{display:grid;grid-template-columns:23px minmax(0,1fr) 54px;gap:17px;align-items:center;min-height:140px;padding:22px 20px;overflow:hidden}
+.catalog-page .catalog-group .catalog-group-number{align-self:start;white-space:nowrap}
+.catalog-page .catalog-group .catalog-group-body{position:static;min-width:0;align-self:center}
+.catalog-page .catalog-group .catalog-group-body strong{display:block;max-width:100%;padding:0;overflow-wrap:break-word;hyphens:auto;line-height:1.35}
+.catalog-page .catalog-group .catalog-group-body small{display:block;max-width:100%;margin-top:13px}
+.catalog-page .catalog-group > .catalog-group-icon{position:static;inset:auto;display:grid;place-items:center;justify-self:end;align-self:center;width:54px;height:54px;flex:none;border-radius:14px;pointer-events:none}
+.catalog-page .catalog-group > .catalog-group-icon .lvd-icon{width:27px;height:27px}
+.catalog-page .catalog-group > svg{display:none}
+
+/* Contact landing, with two genuinely useful routes and a clear contact form */
+.lvd-contact-page .breadcrumb,.lvd-policy-page .breadcrumb{padding-top:26px;padding-bottom:24px}
+.lvd-contact-page .lvd-contact-hero,.lvd-policy-page .lvd-policy-hero{position:relative;isolation:isolate;overflow:hidden;border-radius:13px;padding:clamp(32px,5vw,64px) clamp(23px,5vw,68px)}
+.lvd-contact-page .lvd-contact-hero{display:grid;grid-template-columns:minmax(0,1fr) 174px;align-items:center;gap:22px;background:linear-gradient(115deg,#253449,#49647c 64%,#8698ae);color:#fff;min-height:293px}
+.lvd-contact-hero:after,.lvd-policy-hero:after{content:'';position:absolute;z-index:-1;right:-65px;top:-145px;width:360px;height:360px;border:1px solid #ffffff65;border-radius:50%;box-shadow:0 0 0 48px #ffffff0c,0 0 0 104px #ffffff0c}
+.lvd-contact-eyebrow,.lvd-policy-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:.09em}
+.lvd-contact-hero .lvd-contact-eyebrow{color:#c6e4f6}
+.lvd-contact-hero h1,.lvd-policy-hero h1{font-weight:470;letter-spacing:-.05em;line-height:1.1;color:#fff;max-width:790px;margin:20px 0 17px;font-size:clamp(35px,4.4vw,62px);text-wrap:balance}
+.lvd-contact-hero p,.lvd-policy-hero p{font-size:15px;max-width:580px;line-height:1.7;color:#e6eff6}
+.lvd-contact-hero-graphic{display:grid;grid-template-columns:repeat(2,74px);grid-template-rows:repeat(2,74px);gap:10px;justify-self:end;transform:rotate(-8deg)}
+.lvd-contact-hero-graphic span{display:grid;place-items:center;border-radius:14px;background:#e4ddf0;color:#604b77;box-shadow:0 12px 36px #132d3a23}
+.lvd-contact-hero-graphic span:nth-child(2){background:#e6edc0;color:#475f35;transform:rotate(12deg)}
+.lvd-contact-hero-graphic span:nth-child(3){background:#f5d5c7;color:#87503b;transform:translateX(35px) rotate(7deg)}
+.lvd-contact-hero-graphic svg{width:37px;height:37px}
+.lvd-contact-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:20px 0 clamp(39px,5vw,68px)}
+.lvd-contact-option{display:grid;grid-template-columns:51px minmax(0,1fr) 21px;gap:17px;align-items:center;min-width:0;border:1px solid #d0e1d6;background:#e9f2e9;border-radius:11px;padding:19px 23px;min-height:108px;transition:transform .18s,box-shadow .18s}
+.lvd-contact-option:nth-child(2){background:#eee8f8;border-color:#ddd1ef}
+.lvd-contact-option:hover{transform:translateY(-3px);box-shadow:0 14px 32px #29212b15}
+.lvd-contact-option-icon{display:grid;place-items:center;width:51px;height:51px;border-radius:12px;background:#ffffffae;color:#3d6550}
+.lvd-contact-option:nth-child(2) .lvd-contact-option-icon{color:#625077}
+.lvd-contact-option-icon svg{width:25px;height:25px}
+.lvd-contact-option strong{display:block;font-size:19px;line-height:1.3;letter-spacing:-.02em;font-weight:530;color:#324b3e}
+.lvd-contact-option:nth-child(2) strong{color:#544365}
+.lvd-contact-option small{display:block;font-size:12px;color:#69716a;margin-top:7px}
+.lvd-contact-option-arrow{font-size:24px;color:#51725d}
+.lvd-contact-content{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:clamp(25px,5vw,62px);align-items:start}
+.lvd-contact-section-head{margin-bottom:23px}
+.lvd-contact-section-head .lvd-contact-eyebrow{color:#a85137}
+.lvd-contact-section-head h2{font-size:clamp(28px,3vw,38px);font-weight:485;margin:12px 0 10px}
+.lvd-contact-section-head p{font-size:14px;line-height:1.75;color:var(--muted)}
+.lvd-contact-form{background:#fffefa!important;border:1px solid #e5d9d0!important;border-radius:12px!important;padding:clamp(21px,3vw,36px)!important;box-shadow:0 15px 37px #41270d0e}
+.lvd-contact-form .field{margin-bottom:23px}
+.lvd-contact-form input,.lvd-contact-form select,.lvd-contact-form textarea{background:#fff!important;border:1px solid #dacec7!important;border-radius:8px!important;padding:12px 14px!important}
+.lvd-contact-form textarea{min-height:165px}
+.lvd-contact-form .checkbox-row input{padding:0!important;min-height:18px}
+.lvd-contact-form a{color:#825035;text-decoration:underline;text-underline-offset:3px}
+.lvd-contact-submit{display:flex;flex-wrap:wrap;align-items:center;gap:16px;border-top:1px solid #e9ddd4;padding-top:22px}
+.lvd-contact-submit .button{flex:none;min-height:50px;background:#432f45;border-color:#432f45}
+.lvd-contact-submit span{flex:1 1 200px;font-size:11px;line-height:1.75;color:#7d726b}
+.lvd-contact-aside-card{padding:27px 25px;border:1px solid #e0e0d1;background:linear-gradient(130deg,#f5eee5,#e8f0e5);border-radius:12px}
+.lvd-contact-aside-icon{display:grid;place-items:center;width:49px;height:49px;background:#e3dcee;color:#6b5277;border-radius:12px;margin-bottom:25px}
+.lvd-contact-aside-icon svg{width:24px;height:24px}
+.lvd-contact-aside h3{font-size:20px;font-weight:530}
+.lvd-contact-aside p{font-size:13px;line-height:1.85;margin-top:12px;color:#687065}
+.lvd-contact-aside a{color:#426851;text-decoration:underline;text-underline-offset:3px}
+.lvd-contact-aside-rule{height:1px;background:#d7d9cd;margin:27px 0}
+.lvd-contact-aside-note{display:flex;gap:12px;border:1px solid #e6e1dc;border-radius:10px;margin-top:16px;padding:18px;font-size:12px;line-height:1.7;color:#6b625d}
+.lvd-contact-aside-note svg{flex:none;width:20px;height:20px;color:#548066}
+
+/* Long-form legal policies: fixed left TOC and comfortable reading column */
+.lvd-policy-hero{background:linear-gradient(115deg,#302439,#5e4f72 65%,#8b7d99);color:#fff}
+.lvd-policy-eyebrow{color:#e5d4ef}
+.lvd-policy-hero p{max-width:740px;color:#f0e7f5}
+.lvd-policy-layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:clamp(25px,5vw,70px);align-items:start;margin:44px 0}
+.lvd-policy-toc-inner{position:sticky;top:108px;max-height:calc(100dvh - 127px);overflow-y:auto;background:#f4eff7;border:1px solid #e4d8ed;border-radius:11px;padding:22px 18px}
+.lvd-policy-toc h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#654f71;font-family:var(--font-mono);margin-bottom:14px}
+.lvd-policy-toc nav{display:flex;flex-direction:column;gap:2px}
+.lvd-policy-toc nav a{display:block;min-height:36px;padding:8px 10px;border-radius:6px;color:#64576d;font-size:12px;line-height:1.55}
+.lvd-policy-toc nav a:hover{background:#e4d7ed;color:#483251}
+.lvd-policy-contact{display:flex;align-items:center;gap:9px;border-top:1px solid #dbd0e6;padding:14px 9px 0;margin-top:16px;color:#563f65;font-size:13px}
+.lvd-policy-contact svg{width:17px;height:17px}
+.lvd-policy-text{min-width:0;max-width:850px}
+.lvd-policy-lead{font-size:clamp(17px,1.6vw,20px);line-height:1.75;color:#4b4549;padding-bottom:27px;border-bottom:1px solid #e5dce8}
+.lvd-legal-section{scroll-margin-top:111px;padding:31px 0 35px;border-bottom:1px solid #ebe5ea}
+.lvd-legal-section:focus{outline:none}
+.lvd-legal-section h2{font-size:clamp(22px,2.25vw,29px);font-weight:500;line-height:1.34;color:#352b39;margin-bottom:17px}
+.lvd-legal-section p{font-size:15px;line-height:1.9;color:#5b555a}
+.lvd-legal-section a,.lvd-policy-ending a{color:#674b76;text-decoration:underline;text-underline-offset:3px}
+.lvd-legal-table-wrap{overflow-x:auto}
+.lvd-policy-text table{border-collapse:collapse;table-layout:fixed;width:100%}
+.lvd-policy-text th,.lvd-policy-text td{padding:14px 11px;border-bottom:1px solid #e5dfe9;vertical-align:top;text-align:left;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+.lvd-policy-text th{width:33%;background:#f8f5fb;color:#594367;font-weight:550}
+.lvd-policy-text td{color:#5a555b}
+.lvd-policy-ending{display:flex;align-items:flex-start;gap:20px;background:linear-gradient(110deg,#e9f2e5,#f0ecf8);border-radius:11px;padding:29px;margin-top:36px}
+.lvd-policy-ending svg{width:31px;height:31px;flex:none;color:#568069}
+.lvd-policy-ending strong{font-size:19px;color:#3e4e43}
+.lvd-policy-ending p{font-size:13px;line-height:1.7;color:#627061;margin:8px 0 12px}
+@media(max-width:960px){.lvd-contact-content{grid-template-columns:minmax(0,1fr) 238px;gap:26px}.lvd-policy-layout{grid-template-columns:210px minmax(0,1fr);gap:25px}}
+@media(max-width:800px){.lvd-contact-hero{grid-template-columns:minmax(0,1fr) 110px}.lvd-contact-hero-graphic{grid-template-columns:repeat(2,55px);grid-template-rows:repeat(2,55px)}.lvd-contact-hero-graphic svg{width:27px;height:27px}.lvd-contact-content,.lvd-policy-layout{grid-template-columns:1fr}.lvd-contact-aside{display:grid;grid-template-columns:1fr 1fr;gap:15px}.lvd-contact-aside-note{margin-top:0}.lvd-policy-toc-inner{position:static;max-height:none}.lvd-policy-toc nav{display:grid;grid-template-columns:1fr 1fr;gap:0 7px}}
+@media(max-width:680px){
+ .catalog-page .catalog-groups .catalog-group{grid-template-columns:19px minmax(0,1fr) 42px;gap:12px;min-height:105px;padding:16px 14px}
+ .catalog-page .catalog-group .catalog-group-body strong{font-size:16px}
+ .catalog-page .catalog-group .catalog-group-body small{margin-top:8px}
+ .catalog-page .catalog-group > .catalog-group-icon{width:42px;height:42px;border-radius:11px}
+ .catalog-page .catalog-group > .catalog-group-icon .lvd-icon{width:22px;height:22px}
+ .lvd-contact-hero{grid-template-columns:1fr;padding:30px 23px;min-height:0}
+ .lvd-contact-hero h1,.lvd-policy-hero h1{font-size:clamp(32px,8.2vw,43px);margin:16px 0}
+ .lvd-contact-hero p,.lvd-policy-hero p{font-size:14px}
+ .lvd-contact-hero-graphic{display:none}
+ .lvd-contact-options{grid-template-columns:1fr;margin:14px 0 37px;gap:10px}
+ .lvd-contact-option{grid-template-columns:42px minmax(0,1fr) 17px;gap:12px;padding:15px;min-height:86px}
+ .lvd-contact-option-icon{width:42px;height:42px}
+ .lvd-contact-option-icon svg{width:21px;height:21px}
+ .lvd-contact-option strong{font-size:17px}
+ .lvd-contact-option small{font-size:11px}
+ .lvd-contact-section-head h2{font-size:28px}
+ .lvd-contact-form{padding:20px 17px!important}
+ .lvd-contact-submit{display:block}
+ .lvd-contact-submit .button{width:100%}
+ .lvd-contact-submit span{display:block;margin-top:13px}
+ .lvd-contact-aside{display:block}
+ .lvd-contact-aside-note{margin-top:15px}
+ .lvd-policy-hero{padding:30px 23px}
+ .lvd-policy-layout{gap:24px;margin-top:26px}
+ .lvd-policy-toc-inner{padding:17px}
+ .lvd-policy-toc nav{grid-template-columns:1fr}
+ .lvd-legal-section{padding:25px 0 28px}
+ .lvd-legal-section h2{font-size:23px}
+ .lvd-legal-section p{font-size:14px}
+ .lvd-policy-ending{padding:20px;gap:14px}
+ .lvd-policy-ending svg{width:25px;height:25px}
+}
+@media(max-width:359px){.catalog-page .catalog-groups .catalog-group{grid-template-columns:18px minmax(0,1fr) 35px;gap:9px;padding:15px 10px}.catalog-page .catalog-group .catalog-group-body strong{font-size:15px}.catalog-page .catalog-group > .catalog-group-icon{width:35px;height:35px}.catalog-page .catalog-group > .catalog-group-icon .lvd-icon{width:19px;height:19px}}
+@media(prefers-reduced-motion:reduce){.lvd-contact-option{transition:none}}
