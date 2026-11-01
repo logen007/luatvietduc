@@ -38,7 +38,7 @@
   --font-mono: 'LVD Geist Mono', 'Courier New', monospace;
 }
 :lang(en), :lang(de) {
-  --font-sans: 'ABC Schengen A', 'LVD Geist', Arial, sans-serif;
-  --font-mono: 'ABC Schengen A Mono', 'LVD Geist Mono', 'Courier New', monospace;
+  --font-sans: 'LVD Geist', Arial, sans-serif;
+  --font-mono: 'LVD Geist Mono', 'Courier New', monospace;
 }
 body { font-kerning: normal; }

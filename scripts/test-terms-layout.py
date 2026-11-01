@@ -1,4 +1,4 @@
-"""Regression checks for the restored pre-0.8 layout with Terms-inspired styling.
+"""Regression checks for the library-led layout with Terms-inspired styling.
 Preserves the legal catalogue, truthful form status and source image credits.
 The visual reference is not bundled in the public website.
 """
@@ -48,18 +48,17 @@ with sync_playwright() as p:
             assert page.locator('.s-footer-wordmark').count()==0
             header=page.locator('.site-header .container').bounding_box()
             if name=='home':
-                assert page.locator('.s-hero-grid .s-ask-panel').count()==1
+                assert page.locator('.s-hero-grid #home-search').count()==1
                 assert page.locator('.s-news-grid').count()==1
-                assert page.locator('.s-guides-grid .s-story').count()==4
+                assert page.locator('.s-guides-section,a[href="#/song-o-duc"]').count()==0
                 assert page.locator('.s-library-links > a').count()==8
-                assert page.locator('.press-photo img').count()==7
-                if width==1440:
-                    left=page.locator('.s-hero-copy').bounding_box()
-                    right=page.locator('.s-ask-panel').bounding_box()
-                    assert left['x']+left['width']<=right['x']+10
-                assert page.locator('#home-question').bounding_box()['y']<1000
-                assert float(page.locator('#home-question').evaluate('(e)=>getComputedStyle(e).fontSize').replace('px',''))>=16
-                assert page.locator('.s-topic-rail').evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgba(0, 0, 0, 0)'
+                assert page.locator('.press-photo img').count()==3
+                assert page.locator('.lvd-home-countries a').count()==2
+                library=page.locator('.s-library').bounding_box()
+                news=page.locator('.s-news-section').bounding_box()
+                assert library['y']+library['height']<=news['y']+1,(width,'library should precede news')
+                assert page.locator('#home-search-query').bounding_box()['y']<1000
+                assert float(page.locator('#home-search-query').evaluate('(e)=>getComputedStyle(e).fontSize').replace('px',''))>=16
                 if width==1440:assert header['width']>=1100
             if name=='catalog':
                 assert page.locator('.catalog-group').count()==16
@@ -80,10 +79,15 @@ with sync_playwright() as p:
             report.append({'width':width,'route':route,'status':'passed'})
         print('PASS: 12 routes at',width,flush=True)
     page.set_viewport_size({'width':1440,'height':1000});go('/')
-    page.locator('#home-question').focus()
-    expect(page.locator('#home-question')).to_be_focused()
-    page.locator('#home-question').fill('Tôi muốn tìm hiểu việc ủy quyền quản lý nhà.')
-    page.locator('#home-ask [type=submit]').click()
+    page.locator('#home-search-query').focus()
+    expect(page.locator('#home-search-query')).to_be_focused()
+    page.locator('#home-search-query').fill('ủy quyền')
+    page.locator('#home-search-query').press('Enter')
+    expect(page.locator('#main h1')).to_contain_text('Kết quả tìm kiếm')
+    assert page.locator('.result-item').count()>0
+    go('/hoi-dap-ai')
+    page.locator('#chat-question').fill('Tôi muốn tìm hiểu việc ủy quyền quản lý nhà.')
+    page.locator('#chat-compose [type=submit]').click()
     expect(page.locator('.chat-message.user')).to_have_count(1)
     expect(page.locator('#chat-log')).to_contain_text('Chưa thể trả lời')
     page.locator('.chat-top [data-handoff]').click()

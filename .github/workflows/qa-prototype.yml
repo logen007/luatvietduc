@@ -35,3 +35,5 @@ jobs:
         run: python3 scripts/test-terms-layout.py
       - name: Check multilingual switching, jurisdictions and expert directory
         run: python3 scripts/test-bilingual-v090.py
+      - name: Check logo carousel motion, pause and manual navigation
+        run: python3 scripts/test-slider.py

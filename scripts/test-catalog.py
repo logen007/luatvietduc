@@ -62,11 +62,12 @@ with sync_playwright() as p:
   for pg in range(1,(g['count']+9)//10+1):
    go('/chu-de/'+g['id']+'?trang='+str(pg))
    expect(page.locator('#main h1')).to_have_text(g['title'])
-   observed+=page.locator('[data-catalog-topic]').evaluate_all('(els)=>els.map(e=>({id:e.dataset.catalogTopic,title:e.querySelector("h2").textContent,href:e.querySelector(".catalog-ask").getAttribute("href")}))')
+   observed+=page.locator('[data-catalog-topic]').evaluate_all('(els)=>els.map(e=>({id:e.dataset.catalogTopic,title:e.querySelector("h2").textContent,href:e.querySelector(".catalog-ask").getAttribute("href"),detail:e.querySelector("h2 a").getAttribute("href")}))')
   expected=[t for t in data['topics'] if t['groupId']==g['id']]
   assert [x['id'] for x in observed]==[x['id'] for x in expected],g['id']
   assert [x['title'] for x in observed]==[x['title'] for x in expected],g['id']
   assert all('chu-de='+x['id'] in x['href'] for x in observed)
+  assert [x['detail'] for x in observed]==['#/chu-de/'+t['groupId']+'/'+str(t['index']).zfill(2) for t in expected]
   report['checked_topic_ids']+=[x['id'] for x in observed]
  assert len(report['checked_topic_ids'])==303
  # Search accents, exact source terms, acronym expansion and result ordering.
@@ -74,6 +75,13 @@ with sync_playwright() as p:
   result=page.evaluate('(q)=>window.LVD_CATALOG.search(q).map(t=>t.id)',query)
   assert result,(query,'no results')
  assert page.evaluate("JSON.stringify(window.LVD_CATALOG.search('ủy quyền'))===JSON.stringify(window.LVD_CATALOG.search('uy quyen'))")
+ # Common German search words locate the same Vietnamese source titles.
+ for german,vietnamese in [('Vollmacht','ủy quyền'),('Erbrecht','thừa kế'),('Staatsangehörigkeit','quốc tịch'),('Heirat','kết hôn'),('Scheidung','ly hôn'),('Steuer','thuế'),('Reisepass','hộ chiếu')]:
+  found=page.evaluate('([g,v])=>({de:window.LVD_CATALOG.search(g).map(t=>t.id),vi:window.LVD_CATALOG.search(v).map(t=>t.id)})',[german,vietnamese])
+  assert found['de'] and found['de']==found['vi'],(german,vietnamese,found)
+ go('/tim-kiem?q=Vollmacht')
+ assert page.locator('.result-item').count()>0
+ expect(page.locator('.catalog-results-caption')).to_contain_text('Chọn chủ đề để tìm hiểu')
  assert not page.evaluate("window.LVD_CATALOG.search('zzzzkhongcoketqua')")
  go('/tra-cuu?xem=tat-ca');expect(page.locator('.result-item')).to_have_count(10)
  page.locator('.catalog-pagination a[rel=next]').click();expect(page.locator('.catalog-results-caption')).to_contain_text('11–20')
@@ -82,10 +90,15 @@ with sync_playwright() as p:
  page.locator('#sort-results').select_option('a-z');expect(page.locator('#sort-results')).to_have_value('a-z')
  expect(page.locator('#catalog-group-filter')).to_have_value('thue')
  assert 'trang=2' not in page.url
- # Catalogue title is conversation context, not an automatically fabricated answer.
+ # A title opens its detail page; the separate question action keeps its context.
  go('/chu-de/giay-to-tuy-than')
  target=data['topics'][next(i for i,t in enumerate(data['topics']) if t['id']=='giay-to-tuy-than-05')]
  page.locator('[data-catalog-topic="giay-to-tuy-than-05"] h2 a').click()
+ expect(page.locator('#main h1')).to_have_text(target['title'])
+ assert page.url.endswith('#/chu-de/giay-to-tuy-than/05')
+ expect(page.locator('.catalog-topic-intro')).to_contain_text('Nội dung giải đáp được kiểm duyệt chưa được công bố')
+ assert page.locator('.chat-shell').count()==0
+ page.locator('.catalog-topic-intro .button').click()
  expect(page.locator('.catalog-context strong')).to_have_text(target['title'])
  expect(page.locator('.chat-message.user')).to_have_count(0)
  page.locator('#chat-question').fill('Tôi cần hỏi thêm về hộ chiếu khi đang ở Đức.')

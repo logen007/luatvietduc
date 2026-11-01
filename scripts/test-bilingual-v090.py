@@ -1,4 +1,4 @@
-"""Luật Việt Đức 0.9.0 — multilingual, jurisdictions, team and voluntary forms."""
+"""Luật Việt Đức — multilingual library, jurisdictions, team and source logos."""
 import http.server,threading,functools
 from pathlib import Path
 from playwright.sync_api import sync_playwright,expect
@@ -23,14 +23,22 @@ with sync_playwright() as pw:
         for path in ['/','/tra-cuu','/phap-luat/viet-nam','/phap-luat/duc','/phap-luat/duc/thue','/doi-ngu-chuyen-gia','/lien-he','/chinh-sach-thong-tin','/dieu-khoan','/hoi-dap-ai','/tin-tuc']:
             go(path)
             assert page.locator('.lvd-footer-language button[data-language]').count()==2
+            assert page.locator('.site-header button[data-language]').count()==2
             if path=='/':
-                assert page.locator('#home-ask').count()==1
+                assert page.locator('#home-search [data-catalog-search],#home-search[data-catalog-search]').count()==1
+                assert page.locator('#home-search-query').is_visible()
                 assert page.locator('.s-hero-grid').count()==1
                 assert page.locator('.lvd-partner-tile').count()==13
                 assert page.locator('.lvd-partner-tile img').count()==13
+                assert page.locator('.lvd-partner-tile figcaption').count()==0
+                logos=page.locator('.lvd-partner-tile img').evaluate_all('(images)=>images.map(image=>image.src)')
+                assert len(set(logos))==13
+                assert all(url.startswith(('https://g2gcareer.com/','https://bizlawyer.vn/')) for url in logos)
                 assert 'không xác nhận quan hệ đối tác' in page.locator('.lvd-partner-section').inner_text()
                 assert page.locator('.lvd-team-teaser').count()==1
                 assert page.locator('.lvd-home-countries a').count()==2
+                expect(page.locator('.lvd-home-countries a[href="#/phap-luat/viet-nam"]')).to_contain_text('303')
+                expect(page.locator('.lvd-home-countries a[href="#/phap-luat/duc"]')).to_contain_text('16')
             if path=='/tra-cuu':
                 assert page.locator('.catalog-group').count()==16
                 assert page.locator('.lvd-country-tabs a').count()==2
@@ -61,10 +69,13 @@ with sync_playwright() as pw:
         go('/')
         assert page.get_by_role('link',name='Cẩm nang tại Đức',exact=True).count()==0
         assert page.get_by_role('link',name='Để lại thông tin',exact=False).count()==0
-        page.locator('[data-language=de]').click()
+        assert page.locator('a[href="#/song-o-duc"]').count()==0
+        page.locator('.site-header [data-language=de]').click()
         page.wait_for_timeout(160)
         assert page.locator('html').get_attribute('lang')=='de'
-        assert page.locator('[data-language=de]').get_attribute('aria-pressed')=='true'
+        for control in page.locator('[data-language=de]').all():
+            assert control.get_attribute('aria-pressed')=='true'
+        expect(page.locator('#home-search [type=submit]')).to_contain_text('Thema suchen')
         go('/lien-he')
         assert 'Wobei können wir' in page.locator('h1').inner_text()
         go('/chinh-sach-thong-tin')
@@ -73,7 +84,7 @@ with sync_playwright() as pw:
         assert 'Nutzungsbedingungen' in page.locator('h1').inner_text()
         go('/phap-luat/duc')
         assert 'Deutsches Recht' in page.locator('h1').inner_text()
-        page.locator('[data-language=vi]').click()
+        page.locator('.lvd-footer-language [data-language=vi]').click()
         page.wait_for_timeout(100)
         assert page.locator('html').get_attribute('lang')=='vi'
         assert not errors,errors

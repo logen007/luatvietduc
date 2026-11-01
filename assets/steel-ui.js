@@ -1,44 +1,29 @@
 'use strict';
-/* Original Luat Viet Duc presentation, informed by the user's Steel reference.
-   Existing chat, content, account and form behavior is intentionally unchanged. */
+/* Library-first presentation. Legal source titles and the catalogue stay intact. */
 (() => {
-  const E = window.LVD_EDITORIAL;
-  const K = window.LVD_CONTENT;
-  if (!E || !K) return;
-  const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const arrow = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>';
-  const up = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
-  const destination = story => `#/${story.type === 'news' ? 'tin' : story.type === 'qa' ? 'hoi-dap' : 'bai-viet'}/${story.id}`;
-  const topics = window.LVD_CATALOG.promptTopics.map(([label,id])=>[label,window.LVD_CATALOG.getTopic(id).title]);
-  function card(id, variant='') {
-    const story=E.find(id);
-    if(!story) return '';
-    return `<article class="s-story ${variant} press-card"><a class="s-story-image press-image-link" href="${destination(story)}" aria-label="${escape(story.title)}">${E.image(story.photo)}</a><div class="s-story-copy">${E.tag(story)}<h3><a href="${destination(story)}">${escape(story.title)}</a></h3>${variant==='s-lead'?`<p>${escape(story.summary)}</p>`:''}<span class="s-story-source">${escape(story.sourceName)}</span></div></article>`;
+  const E=window.LVD_EDITORIAL, C=window.LVD_CATALOG;
+  if(!E||!C)return;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const l=(vi,de)=>window.LVD_I18N.get()==='de'?de:vi;
+  const arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>';
+  const search='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>';
+  function card(id){
+    const s=E.find(id);if(!s)return '';
+    return `<article class="s-story press-card"><a class="s-story-image press-image-link" href="#/tin/${s.id}" aria-label="${esc(s.title)}">${E.image(s.photo)}</a><div class="s-story-copy">${E.tag(s)}<h3><a href="#/tin/${s.id}">${esc(s.title)}</a></h3><span class="s-story-source">${esc(s.sourceName)}</span></div></article>`;
   }
-  E.home = () => `<section class="s-hero chat-hero">
+  E.home=()=>`<section class="s-hero chat-hero">
     <div class="container s-hero-grid">
-      <div class="s-hero-copy"><span class="s-eyebrow">VIỆT NAM ↔ ĐỨC</span><h1>Hỏi đáp pháp luật<br>cho người Việt<br>tại Đức.</h1><p>Tìm hiểu các vấn đề pháp luật Việt Nam và Đức.</p></div>
-      <div class="s-ask-panel"><div class="s-panel-top"><span class="s-panel-dot" aria-hidden="true"></span><span>HỎI ĐÁP PHÁP LUẬT</span><span class="s-panel-index" aria-hidden="true">01</span></div>
-        <form id="home-ask" class="ask-box"><label for="home-question" class="sr-only">Câu hỏi pháp luật</label><textarea id="home-question" name="question" maxlength="2000" required placeholder="Bạn cần tìm hiểu vấn đề gì?"></textarea><div class="ask-bottom"><a class="ask-library" href="#/tra-cuu">Tra cứu thư viện ${arrow}</a><button class="button" type="submit">Gửi câu hỏi ${up}</button></div></form>
+      <div class="s-hero-copy"><span class="s-eyebrow">${l('DÀNH CHO CỘNG ĐỒNG NGƯỜI VIỆT TẠI ĐỨC','FÜR DIE VIETNAMESISCHE COMMUNITY IN DEUTSCHLAND')}</span><h1>${l('Hiểu luật.<br>Rõ hướng đi.','Recht verstehen.<br>Orientierung finden.')}</h1><p>${l('Pháp luật Việt Nam và Đức, bắt đầu từ vấn đề bạn cần tìm hiểu.','Vietnamesisches und deutsches Recht. Beginnen Sie mit Ihrem Anliegen.')}</p><a class="lvd-hero-link" href="#/ve-chuyen-trang">${l('Về Luật Việt Đức','Über Luật Việt Đức')} ${arrow}</a></div>
+      <div class="lvd-search-panel"><div class="lvd-search-heading"><span class="lvd-panel-symbol" aria-hidden="true">${window.LVD_ICON('book')}</span><span class="s-eyebrow">${l('THƯ VIỆN PHÁP LUẬT VIỆT NAM','BIBLIOTHEK · VIETNAMESISCHES RECHT')}</span></div><h2>${l('Bạn muốn tìm hiểu<br>điều gì?','Welches Thema<br>suchen Sie?')}</h2>
+        <form id="home-search" data-catalog-search role="search"><label class="sr-only" for="home-search-query">${l('Tìm chủ đề pháp luật Việt Nam','Vietnamesische Rechtsthemen suchen')}</label><div class="lvd-home-search-input">${search}<input id="home-search-query" name="q" type="search" maxlength="180" placeholder="${l('Ví dụ: ủy quyền, thừa kế…','Zum Beispiel: Vollmacht, Erbrecht …')}" autocomplete="off"></div><button class="button" type="submit">${l('Tìm chủ đề','Thema suchen')} ${arrow}</button></form>
+        <div class="lvd-home-popular"><span>${l('Gợi ý tìm kiếm','Suchvorschläge')}</span>${[['Ủy quyền','Vollmacht'],['Thừa kế','Erbrecht'],['Quốc tịch','Staatsangehörigkeit']].map(([vi,de])=>`<a href="#/tim-kiem?q=${encodeURIComponent(vi)}">${l(vi,de)}</a>`).join('')}</div><p class="lvd-search-footnote">${l('16 lĩnh vực · 303 chủ đề để định hướng tra cứu.','16 Rechtsgebiete · 303 Themen zur Orientierung.')}</p>
       </div>
     </div>
-    <nav class="container s-topic-rail" aria-label="Lĩnh vực hỏi đáp"><div class="s-topic-links">${topics.map(([label,q])=>`<button type="button" data-ask-example="${escape(q)}"><span>${label}</span>${arrow}</button>`).join('')}</div></nav>
   </section>
-  <div class="container s-main">
-    <section class="s-news-section chat-news"><div class="s-section-head"><div><span class="s-eyebrow">01 / TIN PHÁP LUẬT</span><h2>Chính sách & quy định</h2></div><a class="s-all" href="#/tin-tuc">Tất cả bài viết ${arrow}</a></div><div class="s-news-grid">${card('mindestlohn-2026','s-lead')}<div class="s-side-stories">${card('kindergeld-2026','s-side')}${card('deutschlandticket-2027','s-side')}</div></div></section>
-  </div>
-  <section class="s-library"><div class="container s-library-inner"><div class="s-library-intro"><span class="s-eyebrow">02 / THƯ VIỆN</span><h2>Thư viện<br>pháp luật Việt Nam.</h2><p class="catalog-library-total">16 lĩnh vực · 303 chủ đề</p><div class="lvd-home-countries"><a href="#/phap-luat/viet-nam" class="active">Pháp luật Việt Nam</a><a href="#/phap-luat/duc">Pháp luật Đức</a></div><a class="s-all" href="#/tra-cuu">Xem tất cả lĩnh vực ${arrow}</a></div><div class="s-library-links">${window.LVD_CATALOG.featuredGroups.map(({id,title:label,count},i)=>`<a href="#/chu-de/${id}"><span class="s-topic-number">${String(i+1).padStart(2,'0')}</span><span>${escape(label)}<small class="catalog-home-count">${count} chủ đề</small></span>${arrow}</a>`).join('')}</div></div></section>
-  <div class="container s-main"><section class="s-guides-section chat-news"><div class="s-section-head"><div><span class="s-eyebrow">03 / CẨM NANG</span><h2>Cuộc sống tại Đức</h2></div><a class="s-all" href="#/song-o-duc">Tất cả cẩm nang ${arrow}</a></div><div class="s-guides-grid">${['anmeldung-berlin','anh-so-the-cu-tru','tim-ausbildung','dong-xuan-berlin'].map(id=>card(id)).join('')}</div></section></div>`;
-
-  const renderBaseHome=E.home;
-  E.home=()=>renderBaseHome()+window.LVD_FEATURES.teamTeaser()+window.LVD_FEATURES.partnerSlider();
-
-  function decorate(){
-    const isHome=['','#/','#'].includes(location.hash);
-    document.body.classList.toggle('s-home',isHome);
-    // The footer uses the existing small brand lockup instead of duplicating
-    // an oversized wordmark across the bottom of every page.
-  }
-  document.addEventListener('DOMContentLoaded',decorate);
-  window.addEventListener('hashchange',decorate);
+  <section class="container lvd-jurisdictions" aria-labelledby="jurisdiction-title"><div class="lvd-section-heading"><span class="s-eyebrow">${l('01 / CHỌN HỆ THỐNG PHÁP LUẬT','01 / RECHTSSYSTEM WÄHLEN')}</span><h2 id="jurisdiction-title">${l('Vấn đề của bạn ở đâu?','Welches Recht ist relevant?')}</h2></div><div class="lvd-home-countries"><a href="#/phap-luat/viet-nam"><span class="lvd-country-code">VN</span><div><h3>${l('Pháp luật Việt Nam','Vietnamesisches Recht')}</h3><p>${l('16 lĩnh vực · 303 chủ đề','16 Rechtsgebiete · 303 Themen')}</p><span>${l('Khám phá danh mục','Themen entdecken')}</span></div>${arrow}</a><a href="#/phap-luat/duc"><span class="lvd-country-code">DE</span><div><h3>${l('Pháp luật Đức','Deutsches Recht')}</h3><p>${l('16 lĩnh vực · Nội dung đang biên tập','16 Rechtsgebiete · Inhalte in Vorbereitung')}</p><span>${l('Xem các lĩnh vực','Rechtsgebiete ansehen')}</span></div>${arrow}</a></div></section>
+  <section class="s-library"><div class="container s-library-inner"><div class="s-library-intro"><span class="s-eyebrow">${l('02 / TRA CỨU THEO LĨNH VỰC','02 / NACH RECHTSGEBIET SUCHEN')}</span><h2>${l('Từ chuyện gia đình<br>đến việc kinh doanh.','Von der Familie<br>bis zum Unternehmen.')}</h2><p>${l('Chọn lĩnh vực để tìm chủ đề liên quan đến giấy tờ, tài sản và những quyết định của bạn tại Việt Nam.','Finden Sie Themen rund um Dokumente, Vermögen und Ihre Vorhaben in Vietnam.')}</p><a class="s-all" href="#/tra-cuu">${l('Xem đủ 16 lĩnh vực','Alle 16 Rechtsgebiete')} ${arrow}</a><p class="lvd-catalog-note">${l('Đây là danh mục chủ đề, chưa phải bộ câu trả lời tư vấn.','Dies ist ein Themenverzeichnis, keine Sammlung geprüfter Rechtsauskünfte.')}</p></div><div class="s-library-links">${C.featuredGroups.map(g=>`<a href="#/chu-de/${g.id}"><span class="s-topic-number">${String(g.index).padStart(2,'0')}</span><span>${esc(window.LVD_I18N.groupTitle(g.title))}<small class="catalog-home-count">${g.count} ${l('chủ đề','Themen')}</small></span>${arrow}</a>`).join('')}</div></div></section>
+  <div class="container s-main"><section class="s-news-section chat-news"><div class="s-section-head"><div><span class="s-eyebrow">${l('03 / TIN PHÁP LUẬT','03 / RECHTSNACHRICHTEN')}</span><h2>${l('Những thay đổi cần biết.','Was sich rechtlich ändert.')}</h2><p>${l('Chính sách và quy định tại Đức, kèm nguồn để bạn đối chiếu.','Gesetze und Regelungen in Deutschland mit weiterführenden Quellen.')}</p></div><a class="s-all" href="#/tin-tuc">${l('Tất cả bài viết','Alle Beiträge')} ${arrow}</a></div><div class="s-news-grid">${['mindestlohn-2026','kindergeld-2026','deutschlandticket-2027'].map(card).join('')}</div></section></div>
+  ${window.LVD_FEATURES.teamTeaser()}${window.LVD_FEATURES.partnerSlider()}`;
+  function decorate(){document.body.classList.toggle('s-home',['','#/','#'].includes(location.hash));}
+  document.addEventListener('DOMContentLoaded',decorate);window.addEventListener('hashchange',decorate);
 })();

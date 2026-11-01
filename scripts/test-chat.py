@@ -19,7 +19,7 @@ with sync_playwright() as p:
  page=browser.new_page(viewport={'width':1440,'height':1000},reduced_motion='reduce',locale='vi-VN')
  errors=[];requests=[]
  page.on('pageerror',lambda e:errors.append(str(e)))
- page.on('console',lambda m:errors.append(m.text) if m.type=='error' else None)
+ page.on('console',lambda m:errors.append(m.text+' '+str(m.location)) if m.type=='error' else None)
  page.on('request',lambda r:requests.append(r.url))
  def go(route):page.goto(base+'#'+route,wait_until='load');page.evaluate('document.fonts.ready');page.wait_for_timeout(40)
  def checkcopy():
@@ -38,18 +38,26 @@ with sync_playwright() as p:
   page.set_viewport_size({'width':w,'height':1000})
   for route in routes:
    go(route);checkcopy()
-   assert page.locator('#main h1').count()==1,(route,'heading')
+   expect(page.locator('#main h1')).to_have_count(1)
    assert page.evaluate('document.documentElement.scrollWidth')<=w+1,(w,route,'overflow')
    if route=='/':
-    assert page.locator('#home-question').is_visible()
+    assert page.locator('#home-search-query').is_visible()
     assert page.locator('#home-demo,.demo-fine,.preview-bar').count()==0
-    assert page.locator('#home-question').bounding_box()['y']<1000
-    expect(page.locator('.s-hero-grid .s-ask-panel')).to_be_visible()
-    assert page.locator('.press-photo img').count()==7
+    assert page.locator('#home-search-query').bounding_box()['y']<1000
+    assert page.locator('#home-ask,#home-question').count()==0
+    expect(page.locator('#home-search [type=submit]')).to_be_visible()
+    assert page.locator('.press-photo img').count()==3
+    assert page.locator('.s-guides-section,a[href="#/song-o-duc"]').count()==0
    passed(f'Copy and layout {w}px {route}')
  page.set_viewport_size({'width':1440,'height':1000});go('/')
  for image in page.locator('.press-photo img').all():image.scroll_into_view_if_needed();image.evaluate('(el)=>el.decode()');assert image.evaluate('(el)=>el.naturalWidth>0')
- page.locator('#home-question').fill('Tôi muốn ủy quyền từ Đức');page.locator('#home-ask button').click()
+ page.locator('#home-search-query').fill('ủy quyền');page.locator('#home-search [type=submit]').click()
+ expect(page.locator('#main h1')).to_contain_text('Kết quả tìm kiếm')
+ assert page.locator('.result-item').count()>0
+ assert page.locator('.chat-message.user').count()==0
+ passed('Homepage search: relevant catalogue results without starting a chat')
+ go('/hoi-dap-ai')
+ page.locator('#chat-question').fill('Tôi muốn ủy quyền từ Đức');page.locator('#chat-compose [type=submit]').click()
  expect(page.locator('.chat-message.user')).to_have_count(1)
  expect(page.locator('.chat-source').first).to_be_visible();expect(page.locator('#chat-log')).to_contain_text('Chưa thể trả lời')
  checkcopy();assert 'quyen' not in page.url
