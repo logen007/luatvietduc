@@ -48,7 +48,7 @@
     if(country==='vn'){
       const target={...r,path:id?'/chu-de/'+id:'/tra-cuu'};
       const raw=window.LVD_CATALOG_UI.view(target);
-      return raw.replace('<div class="container page catalog-page">','<div class="container page catalog-page lvd-country-page">'+tabs('vn'));
+      return raw;
     }
     const group=groups.find(g=>g.id===id);
     const label=l('Pháp luật Đức','Deutsches Recht');
