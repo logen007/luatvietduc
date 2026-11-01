@@ -43,6 +43,8 @@ jobs:
           paths.update(str(p) for p in Path('assets/photos').glob('*.webp'))
           paths.update(str(p) for p in Path('assets/illustrations').glob('*.webp'))
           paths.update(str(p) for p in Path('assets/team').glob('*.webp'))
+          paths.update(str(p) for p in Path('assets/fonts').glob('*.woff2'))
+          paths.update(str(p) for p in Path('assets/flags').glob('*.svg'))
           paths.update(str(p) for p in Path('assets').glob('*.svg'))
           expected={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in sorted(paths)}
           for attempt in range(18):

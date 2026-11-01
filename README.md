@@ -1,12 +1,12 @@
-# Luật Việt Đức — 1.2.0
+# Luật Việt Đức — 1.3.0
 
 [Website](https://logen007.github.io/luatvietduc/) · [Thư viện Việt Nam](https://logen007.github.io/luatvietduc/#/phap-luat/viet-nam) · [Pháp luật Đức](https://logen007.github.io/luatvietduc/#/phap-luat/duc)
 
-Chuyên trang thông tin pháp luật cho cộng đồng người Việt tại Đức. Trang chủ đặt khung chat lớn ở trung tâm, tiếp theo là logo, hai hệ thống pháp luật, lĩnh vực và tin tức. Thiết kế dùng một mẫu tham khảo duy nhất: [MindCloud](https://mindcloud.co/), với gradient xanh navy–xanh dương, khối than chì, nền sáng, Geist và Geist Mono. Đội ngũ chuyên gia nằm trong trang Giới thiệu.
+Chuyên trang thông tin pháp luật cho cộng đồng người Việt tại Đức. Trang chủ đặt khung chat lớn ở trung tâm, tiếp theo là logo, hai hệ thống pháp luật, tin tức rồi lĩnh vực. Hai thẻ pháp luật dùng cờ Việt Nam và Đức với tỷ lệ riêng của từng cờ. Thiết kế dùng một mẫu tham khảo duy nhất: [MindCloud](https://mindcloud.co/), với gradient xanh navy–xanh dương, khối than chì, nền sáng, Roobert và các đường kẻ mảnh. Đội ngũ chuyên gia nằm trong trang Giới thiệu.
 
-## Hình ảnh và bố cục 1.2
+## Hình ảnh và bố cục 1.3
 
-- Trang chủ dùng khung chat gốc, các khối thư viện và ba ảnh tin. Các minh họa của phiên bản trước vẫn được lưu trong `assets/illustrations/`, không xuất hiện trong giao diện mới.
+- Trang chủ dùng khung chat gốc, cờ quốc gia và ba ảnh tin. Bỏ nhãn Việt Nam ↔ Đức, dòng mô tả cộng đồng và CTA hỏi thêm. Các minh họa của phiên bản trước vẫn được lưu trong `assets/illustrations/`, không xuất hiện trong giao diện mới.
 - Ba chân dung chính thức của Dương Thành Tâm, Võ Nguyễn Bảo Trâm và Nguyễn Xuân Phước, dẫn hồ sơ nguồn Bizlawyer; giữ ảnh xám gốc, chỉ nén WebP. Nguồn ở `assets/team/sources.json`.
 - Logo và ảnh tin vẫn giữ nguồn hiện có. Không tạo lại logo hoặc khuôn mặt nhân sự bằng AI.
 
@@ -27,7 +27,8 @@ Trang tĩnh, không cần build framework. Chạy `python3 -m http.server 8000` 
 - `index.html`: khung trang, menu, ngôn ngữ, chính sách tài nguyên.
 - `assets/steel-ui.js`: trang chủ có khung chat và gợi ý câu hỏi.
 - `assets/terms-alignment.css`: lớp thiết kế cuối cùng dùng chung; được tải sau các stylesheet nền.
-- `assets/typography.css`: Geist/Geist Mono đầy đủ dấu tiếng Việt.
+- `assets/typography.css`, `assets/fonts/`: Roobert Regular, Medium và SemiBold đầy đủ dấu tiếng Việt, được lưu cùng website. Chủ site xác nhận giấy phép webfont ngày 2026-11-01; giữ nguyên dữ liệu font và ghi nguồn trong `assets/fonts/sources.json`.
+- `assets/flags/`: cờ Việt Nam 2:3 và Đức 3:5 bằng SVG, cùng nguồn đối chiếu.
 - `assets/catalog-source.js`, `assets/catalog.js`: 16 lĩnh vực, 303 chủ đề, tìm kiếm, chi tiết và phân trang.
 - `assets/site-features.js`, `assets/bilingual.js`: hai nhánh pháp luật, đội ngũ, slider và ngôn ngữ.
 - `assets/chat-first.js`, `assets/app.js`: hỏi đáp, điều hướng và trạng thái biểu mẫu.
@@ -37,4 +38,4 @@ Trang tĩnh, không cần build framework. Chạy `python3 -m http.server 8000` 
 
 GitHub Actions chạy kiểm tra cú pháp JavaScript và các bài Playwright: `test-chat.py`, `test-fonts.py`, `test-catalog.py`, `test-terms-layout.py`, `test-bilingual-v090.py`, `test-slider.py`, `test-color-theme.py`. Cài `playwright==1.55.0`, `Pillow>=11,<13` và Chromium để chạy cục bộ. Các kiểm tra bao gồm 303 tiêu đề nguồn, 6 kích thước màn hình, hành trình tìm kiếm, ngôn ngữ, font, biểu mẫu và chuyển động logo. Workflow xuất bản đối chiếu nội dung thực tế trên Pages với bản trong repo.
 
-Không lưu câu hỏi hay biểu mẫu trên máy chủ. Hội thoại ở trong bộ nhớ trang; ngôn ngữ dùng sessionStorage. CSP giới hạn font và logo theo nguồn, chặn kết nối dữ liệu ứng dụng ra ngoài.
+Không lưu câu hỏi hay biểu mẫu trên máy chủ. Hội thoại ở trong bộ nhớ trang; ngôn ngữ dùng sessionStorage. CSP chỉ cho phép font nội bộ và giới hạn logo theo nguồn, chặn kết nối dữ liệu ứng dụng ra ngoài.

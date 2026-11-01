@@ -70,10 +70,13 @@ with sync_playwright() as p:
             page.evaluate('document.fonts.ready')
             expect(page.locator('#main h1')).to_have_count(1)
             assert page.evaluate('document.documentElement.scrollWidth') <= width+1, (width, route)
+            assert page.locator('.lvd-footer-connection').count()==0
+            assert 'Bạn cần hỏi thêm?' not in page.locator('body').inner_text()
             if route == '/':
                 expect(page.locator('.s-ask-panel #home-ask')).to_have_count(1)
                 expect(page.locator('#home-question')).to_be_visible()
-                assert page.locator('#home-search-query,.lvd-hero-art,.lvd-team-teaser,.lvd-team-section').count()==0
+                assert page.locator('#home-search-query,.lvd-hero-art,.lvd-hero-badge,.lvd-home-cta,.lvd-country-glyph,.lvd-team-teaser,.lvd-team-section').count()==0
+                expect(page.locator('.lvd-home-countries img.lvd-country-flag')).to_have_count(2)
                 question_size=float(page.locator('#home-question').evaluate('e=>getComputedStyle(e).fontSize').replace('px',''))
                 assert question_size>=16,(width,'mobile-safe chat input',question_size)
                 action=page.locator('#home-ask [type=submit]')

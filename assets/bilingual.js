@@ -4,7 +4,7 @@
 (() => {
   const D={
     'Tra cứu':'Nachschlagen',
-    'Thông tin pháp luật Việt Nam – Đức dành cho cộng đồng người Việt tại Đức.':'Rechtsinformationen zu Vietnam und Deutschland für die vietnamesische Community in Deutschland.',
+    'Thông tin pháp luật Việt Nam – Đức.':'Rechtsinformationen zu Vietnam und Deutschland.',
     'Hỏi đáp hiện gợi ý các chủ đề liên quan trong thư viện. Trả lời AI và gửi câu hỏi tới chuyên gia chưa khả dụng.':'Der Chat schlägt passende Bibliotheksthemen vor. KI-Antworten und die Weiterleitung an Fachleute sind derzeit nicht verfügbar.',
     'Trang chủ':'Startseite','Hỏi đáp':'Fragen & Antworten','Hỏi đáp pháp luật':'Rechtsfragen',
     'Thư viện':'Bibliothek','Thư viện pháp luật':'Rechtsbibliothek','Tin pháp luật':'Rechtsnachrichten',

@@ -41,6 +41,15 @@ with sync_playwright() as p:
     def home_structure():
         assert page.locator('.lvd-team-teaser,.lvd-team-section,.lvd-team-preview').count()==0
         assert page.locator('.lvd-partner-attribution').count()==0
+        assert page.locator('.lvd-hero-badge,.lvd-home-cta,.lvd-country-glyph').count()==0
+        hero_text=page.locator('.s-hero').inner_text()
+        assert 'Dành cho cộng đồng người Việt tại Đức.' not in hero_text
+        assert 'Für die vietnamesische Community in Deutschland.' not in hero_text
+        flags=page.locator('.lvd-home-countries img.lvd-country-flag')
+        assert flags.count()==2
+        for flag in flags.all():
+            flag.scroll_into_view_if_needed();flag.evaluate('(el)=>el.decode()')
+            assert flag.evaluate('(el)=>el.naturalWidth>0 && el.src.startsWith(location.origin+"/")')
         page.evaluate('scrollTo(0,0)')
     for width in [320,360,390,768,1024,1440]:
         page.set_viewport_size({'width':width,'height':1000})
@@ -50,6 +59,8 @@ with sync_playwright() as p:
             assert page.evaluate('document.documentElement.scrollWidth')<=width+1,(width,route,'overflow')
             assert page.locator('a[href="#/nguon-anh"]').count()==0
             assert page.locator('.s-footer-wordmark').count()==0
+            assert page.locator('.lvd-footer-connection').count()==0
+            assert 'Bạn cần hỏi thêm?' not in page.locator('body').inner_text()
             header=page.locator('.site-header .container').bounding_box()
             if name=='home':
                 assert page.locator('.s-hero-grid .s-ask-panel #home-ask').count()==1
@@ -62,7 +73,7 @@ with sync_playwright() as p:
                 home_structure()
                 library=page.locator('.s-library').bounding_box()
                 news=page.locator('.s-news-section').bounding_box()
-                assert library['y']+library['height']<=news['y']+1,(width,'library should precede news')
+                assert news['y']+news['height']<=library['y']+1,(width,'news should precede fields')
                 assert page.locator('#home-question').bounding_box()['y']<1000
                 assert float(page.locator('#home-question').evaluate('(e)=>getComputedStyle(e).fontSize').replace('px',''))>=16
                 if width==1440:assert header['width']>=1100

@@ -17,7 +17,7 @@
   function currentFor(r){let t=thread();const context=openContext(r.q.get('chu-de')||r.q.get('bai'));if(context&&(!t||t.context?.id!==context.id))t=create(context);if(!t)t=create();return t;}
   function contextBlock(t){return t.context?`<div class="chat-context ${t.context.catalog?'catalog-context':''}">${t.context.catalog?'Chủ đề · Pháp luật Việt Nam':'Về bài viết'}<strong>${esc(t.context.title)}</strong><a href="${t.context.catalog?'#/chu-de/'+t.context.groupId:contextURL(t.context)}">${t.context.catalog?'Xem lĩnh vực':'Đọc lại bài'}</a></div>`:'';}
   function newsCard(s){return `<article class="press-card"><a href="${contextURL(s)}" class="press-image-link" aria-label="${esc(s.title)}">${E.image(s.photo)}</a><div class="press-copy">${E.tag(s)}<h2><a href="${contextURL(s)}">${esc(s.title)}</a></h2><div class="press-source">${esc(s.sourceName)}</div></div></article>`;}
-  function newsCTA(s){return `<section class="news-to-chat"><h2>Bạn cần hỏi thêm?</h2><a class="button" href="#/hoi-dap-ai?bai=${encodeURIComponent(s.id)}">Hỏi về bài viết ${icon('right')}</a></section>`;}
+  function newsCTA(s){return `<section class="news-to-chat"><a class="button" href="#/hoi-dap-ai?bai=${encodeURIComponent(s.id)}">Hỏi về bài viết ${icon('right')}</a></section>`;}
   const oldStory=E.story;
   E.story=(s,c)=>oldStory(s,c).replace('<section class="news-sources">',newsCTA(s)+'<section class="news-sources">');
   // steel-ui.js owns the chat-first homepage.

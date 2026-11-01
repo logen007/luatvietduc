@@ -1,0 +1,13 @@
+{
+  "family": "Roobert",
+  "foundry": "Displaay",
+  "reference": "https://mindcloud.co/?ref=saaspo.com",
+  "license": "Commercial webfont; site owner confirmed licensed use on 2026-11-01. These files are not open-source and are not relicensed by this repository.",
+  "files": [
+    {"path":"roobert-regular.woff2","weight":400,"source":"https://mindcloud.co/_next/static/media/Roobert_Regular-s.p.3_h5lt7qxeu8q.woff2"},
+    {"path":"roobert-medium.woff2","weight":500,"source":"https://mindcloud.co/_next/static/media/Roobert_Medium-s.p.2n0_c-1q-e8tx.woff2"},
+    {"path":"roobert-semibold.woff2","weight":600,"source":"https://mindcloud.co/_next/static/media/Roobert_SemiBold-s.p.1bmzrks9snsln.woff2"}
+  ],
+  "modifications":"None. Original webfont data retained.",
+  "language_verification":"Complete Vietnamese uppercase/lowercase, NFC and NFD; browser QA verifies actual rendered fonts."
+}

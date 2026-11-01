@@ -119,7 +119,7 @@
   }
   document.addEventListener('DOMContentLoaded',()=>{initSourceSliders();new MutationObserver(initSourceSliders).observe(document.getElementById('main'),{childList:true});});
   function aboutGerman(){
-    return '<div class="container page lvd-about-intro"><div class="breadcrumb"><a href="#/">Startseite</a><span>/</span>Über uns</div><header class="page-heading"><h1>Über Luật Việt Đức</h1><p>Rechtsfragen und Informationen für die vietnamesische Community in Deutschland.</p></header><div class="prose"><p>Vietnamesisches und deutsches Recht: jeweils 16 Rechtsgebiete. Das vietnamesische Verzeichnis umfasst 303 Themen.</p><div class="button-row"><a class="button" href="#/hoi-dap-ai">Frage stellen</a><a class="button secondary" href="#/tra-cuu">Bibliothek</a></div></div></div>';
+    return '<div class="container page lvd-about-intro"><div class="breadcrumb"><a href="#/">Startseite</a><span>/</span>Über uns</div><header class="page-heading"><h1>Über Luật Việt Đức</h1><p>Rechtsfragen und Bibliothek zu vietnamesischem und deutschem Recht.</p></header><div class="prose"><p>Vietnamesisches und deutsches Recht: jeweils 16 Rechtsgebiete. Das vietnamesische Verzeichnis umfasst 303 Themen.</p><div class="button-row"><a class="button" href="#/hoi-dap-ai">Frage stellen</a><a class="button secondary" href="#/tra-cuu">Bibliothek</a></div></div></div>';
   }
   window.LVD_FEATURES=Object.freeze({accepts,view,partnerSlider,teamTeaser,teamSection,teamView,tabs,aboutGerman,team,partnerItems});
 })();

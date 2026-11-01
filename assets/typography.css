@@ -1,44 +1,30 @@
-/* Luat Viet Duc · Typography 0.6.4
-   The supplied ABC Latin subsets omit Vietnamese letters and combining marks.
-   Vietnamese uses one complete family per text role, never per-glyph mixing.
-   Pin complete upstream Geist webfonts under distinct CSS aliases so older
-   Google Fonts subsets cannot participate in font matching.
-   ABC is retained for compatible language scopes pending complete client files.
-   No font binaries are stored or redistributed in this repository. */
-@font-face {
-  font-family: 'LVD Geist';
-  src: url('https://raw.githubusercontent.com/vercel/geist-font/e1f671c727f6de7e97c1e1d26dbb44f349c19459/fonts/Geist/webfonts/Geist%5Bwght%5D.woff2') format('woff2');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
+/* Roobert webfonts used by the visual reference.
+   The site owner confirmed a webfont license on 2026-11-01.
+   Serve locally to avoid the reference host's cross-origin restriction.
+   Original font data is unmodified; source details are in fonts/sources.json. */
+@font-face{
+  font-family:'LVD Roobert';
+  src:url('fonts/roobert-regular.woff2') format('woff2');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
 }
-@font-face {
-  font-family: 'LVD Geist Mono';
-  src: url('https://raw.githubusercontent.com/vercel/geist-font/e1f671c727f6de7e97c1e1d26dbb44f349c19459/fonts/GeistMono/webfonts/GeistMono%5Bwght%5D.woff2') format('woff2');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
+@font-face{
+  font-family:'LVD Roobert';
+  src:url('fonts/roobert-medium.woff2') format('woff2');
+  font-weight:500;
+  font-style:normal;
+  font-display:swap;
 }
-@font-face {
-  font-family: 'ABC Schengen A';
-  src: url('https://steel.dev/_next/static/immutable/media/ABCSchengenA_Variable-s.p.3nb4eiitxra8w.woff2') format('woff2');
-  font-weight: 200 1000;
-  font-style: normal;
-  font-display: swap;
+@font-face{
+  font-family:'LVD Roobert';
+  src:url('fonts/roobert-semibold.woff2') format('woff2');
+  font-weight:600;
+  font-style:normal;
+  font-display:swap;
 }
-@font-face {
-  font-family: 'ABC Schengen A Mono';
-  src: url('https://steel.dev/_next/static/immutable/media/ABCSchengenAMono_Variable.p.1vh0uvnfona6i.woff2') format('woff2');
-  font-weight: 200 1000;
-  font-style: normal;
-  font-display: swap;
+:root,:lang(vi),:lang(de),:lang(en){
+  --font-sans:'LVD Roobert',Arial,sans-serif;
+  --font-mono:'LVD Roobert',Arial,sans-serif;
 }
-:root, :lang(vi) {
-  --font-sans: 'LVD Geist', Arial, sans-serif;
-  --font-mono: 'LVD Geist Mono', 'Courier New', monospace;
-}
-:lang(en), :lang(de) {
-  --font-sans: 'LVD Geist', Arial, sans-serif;
-  --font-mono: 'LVD Geist Mono', 'Courier New', monospace;
-}
-body { font-kerning: normal; }
+body{font-kerning:normal;font-synthesis:none}

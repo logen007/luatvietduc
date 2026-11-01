@@ -25,6 +25,8 @@ with sync_playwright() as p:
  def checkcopy():
   text=page.locator('body').inner_text()+' '+page.title()
   m=forbidden.search(text);assert not m,(page.url,m.group() if m else '')
+  assert 'Bạn cần hỏi thêm?' not in text,(page.url,'redundant question heading')
+  assert page.locator('.lvd-footer-connection').count()==0
   attributes=page.evaluate("()=>Array.from(document.querySelectorAll('[aria-label],input,textarea')).map(e=>[e.getAttribute('aria-label'),e.getAttribute('placeholder')].join(' ')).join(' ')")
   assert not forbidden.search(attributes),(page.url,'labels')
  def passed(name):
@@ -49,6 +51,9 @@ with sync_playwright() as p:
     expect(page.locator('#home-ask [type=submit]')).to_be_visible()
     assert page.locator('.lvd-team-teaser,.lvd-team-section,.lvd-team-preview').count()==0
     assert page.locator('.lvd-partner-attribution').count()==0
+    assert page.locator('.lvd-hero-badge,.lvd-home-cta,.lvd-country-glyph').count()==0
+    assert page.locator('.lvd-home-countries img.lvd-country-flag').count()==2
+    assert 'Dành cho cộng đồng người Việt tại Đức.' not in page.locator('.s-hero').inner_text()
     assert page.locator('.press-photo img').count()==3
     assert page.locator('.s-guides-section,a[href="#/song-o-duc"]').count()==0
    passed(f'Copy and layout {w}px {route}')

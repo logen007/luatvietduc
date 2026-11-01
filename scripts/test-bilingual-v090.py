@@ -24,12 +24,24 @@ with sync_playwright() as pw:
             go(path)
             assert page.locator('.lvd-footer-language button[data-language]').count()==2
             assert page.locator('.site-header button[data-language]').count()==2
+            assert page.locator('.lvd-footer-connection').count()==0
+            assert 'Bạn cần hỏi thêm?' not in page.locator('body').inner_text()
             if path=='/':
                 assert page.locator('.s-ask-panel #home-ask').count()==1
                 assert page.locator('#home-question').is_visible()
                 assert page.locator('#home-search,#home-search-query').count()==0
                 assert page.locator('.s-hero-grid').count()==1
-                assert page.locator('.lvd-hero-art,.lvd-home-countries img,.lvd-team-preview').count()==0
+                assert page.locator('.lvd-hero-art,.lvd-hero-badge,.lvd-home-cta,.lvd-country-glyph,.lvd-team-preview').count()==0
+                assert page.locator('.lvd-home-countries img:not(.lvd-country-flag)').count()==0
+                flags=page.locator('.lvd-home-countries img.lvd-country-flag')
+                assert flags.count()==2
+                for flag in flags.all():
+                    flag.scroll_into_view_if_needed();flag.evaluate('(el)=>el.decode()')
+                    assert flag.evaluate('(el)=>el.naturalWidth>0 && el.src.startsWith(location.origin+"/")')
+                hero_text=page.locator('.s-hero').inner_text()
+                assert 'Dành cho cộng đồng người Việt tại Đức.' not in hero_text
+                assert 'Für die vietnamesische Community in Deutschland.' not in hero_text
+                assert page.locator('.s-news-section').evaluate('(news)=>Boolean(news.compareDocumentPosition(document.querySelector(".s-library")) & Node.DOCUMENT_POSITION_FOLLOWING)')
                 assert page.locator('.lvd-partner-tile').count()==13
                 assert page.locator('.lvd-partner-tile img').count()==13
                 assert page.locator('.lvd-partner-tile figcaption').count()==0
@@ -81,6 +93,8 @@ with sync_playwright() as pw:
             assert control.get_attribute('aria-pressed')=='true'
         expect(page.locator('#home-ask [type=submit]')).to_contain_text('Frage')
         assert page.locator('#home-question').is_visible()
+        assert page.locator('.lvd-hero-badge,.lvd-home-cta,.lvd-footer-connection').count()==0
+        assert 'Für die vietnamesische Community in Deutschland.' not in page.locator('.s-hero').inner_text()
         go('/ve-chuyen-trang')
         assert page.locator('.lvd-team-section .lvd-expert-card').count()==9
         go('/lien-he')
