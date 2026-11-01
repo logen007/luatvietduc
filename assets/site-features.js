@@ -21,16 +21,28 @@
   ];
   const teamSource='https://bizlawyer.vn/vi/doi-ngu-chuyen-gia/';
   const directoryLink=(path,label)=>'<a href="'+path+'" class="lvd-feature-link">'+e(label)+' '+ic('arrow')+'</a>';
-  /* These are source organizations explicitly supplied for this site. They are
-     not represented as clients, members, or commercial partners. Brand names
-     remain plain text until written logo-use permission or an official asset licence is available. */
+  /* Logo assets are rendered from the official carousel URLs identified on
+     g2gcareer.com and bizlawyer.vn on 2026-11-01. Each asset appears once.
+     They identify the original carousel's published organizations only; this
+     does not assert any relationship with Luật Việt Đức. */
   const partnerItems=[
-    {name:'G2G Career',label:'G2G Career',url:'https://g2gcareer.com/',description:'Nền tảng nghề nghiệp',descriptionDe:'Karriereplattform'},
-    {name:'Bizlawyer & Partners',label:'Bizlawyer & Partners',url:'https://bizlawyer.vn/vi/',description:'Đơn vị luật và tư vấn chuyên môn',descriptionDe:'Kanzlei und Rechtsberatung'}
+    {source:'G2G Career',logo:'https://g2gcareer.com/wp-content/uploads/2026/08/p1.svg'},
+    {source:'G2G Career',logo:'https://g2gcareer.com/wp-content/uploads/2026/07/doi-tac-02.png'},
+    {source:'G2G Career',logo:'https://g2gcareer.com/wp-content/uploads/2026/07/doi-tac-03.jpg'},
+    {source:'Bizlawyer',logo:'https://bizlawyer.vn/wp-content/uploads/masterise.jpg'},
+    {source:'Bizlawyer',logo:'https://bizlawyer.vn/wp-content/uploads/bes.jpg'},
+    {source:'Bizlawyer',logo:'https://bizlawyer.vn/wp-content/uploads/SPIC.jpg'},
+    {source:'Bizlawyer',logo:'https://bizlawyer.vn/wp-content/uploads/yingje.jpg'},
+    {source:'Bizlawyer',logo:'https://bizlawyer.vn/wp-content/uploads/Aditya.jpg'},
+    {source:'Bizlawyer',logo:'https://bizlawyer.vn/wp-content/uploads/irc.jpg'},
+    {source:'Bizlawyer',logo:'https://bizlawyer.vn/wp-content/uploads/vingroup.jpg'},
+    {source:'Bizlawyer',logo:'https://bizlawyer.vn/wp-content/uploads/knightfrank.jpg'},
+    {source:'Bizlawyer',logo:'https://bizlawyer.vn/wp-content/uploads/masan.jpg'},
+    {source:'Bizlawyer',logo:'https://bizlawyer.vn/wp-content/uploads/ipcgroup.jpg'}
   ];
-  const partnerCard=p=>'<a class="lvd-partner-tile" href="'+e(p.url)+'" target="_blank" rel="noopener noreferrer"><span class="lvd-partner-source-label">'+e(l('NGUỒN CHÍNH THỨC','OFFIZIELLE QUELLE'))+'</span><strong class="lvd-partner-name">'+e(p.label)+'</strong><span class="lvd-partner-description">'+e(de()?p.descriptionDe:p.description)+' '+ic('arrow')+'</span></a>';
+  const partnerCard=(p,i)=>'<figure class="lvd-partner-tile"><img src="'+e(p.logo)+'" alt="'+e(l('Logo đơn vị xuất hiện trong carousel '+p.source,'Logo einer Organisation aus dem Karussell von '+p.source))+'" width="220" height="100" loading="'+(i<4?'eager':'lazy')+'" decoding="async" referrerpolicy="no-referrer"><figcaption>'+e(p.source)+'</figcaption></figure>';
   function partnerSlider(){
-    return '<section class="lvd-partner-section container" aria-label="'+e(l('Nguồn chính thức được dẫn','Verlinkte offizielle Quellen'))+'"><div class="lvd-feature-heading"><div><span class="s-eyebrow">'+e(l('NGUỒN THAM KHẢO','QUELLEN'))+'</span><h2>'+e(l('Nguồn chính thức được dẫn','Verlinkte offizielle Quellen'))+'</h2><p>'+e(l('Các tên dưới đây là nguồn công khai được dẫn, không phải xác nhận về khách hàng, thành viên tổ chức hay quan hệ đối tác.','Die folgenden Namen sind verlinkte öffentliche Quellen und keine Bestätigung einer Kunden-, Mitglieds- oder Partnerschaftsbeziehung.'))+'</p></div></div><div class="lvd-partner-slider" data-logo-slider tabindex="0" aria-label="'+e(l('Vuốt hoặc kéo để xem nguồn','Wischen oder ziehen, um Quellen zu sehen'))+'"><div class="lvd-partner-track">'+partnerItems.map(partnerCard).join('')+'</div><div class="lvd-partner-controls"><button type="button" data-slider-dir="-1" aria-label="'+e(l('Xem nguồn trước','Vorherige Quelle'))+'">‹</button><button type="button" data-slider-dir="1" aria-label="'+e(l('Xem nguồn tiếp theo','Nächste Quelle'))+'">›</button></div></div></section>';
+    return '<section class="lvd-partner-section container" aria-label="'+e(l('Logo đơn vị từ carousel nguồn','Logos aus den Quellkarussells'))+'"><div class="lvd-feature-heading"><div><span class="s-eyebrow">'+e(l('THƯƠNG HIỆU ĐƯỢC NGUỒN CÔNG KHAI HIỂN THỊ','ÖFFENTLICH ANGEZEIGTE MARKEN'))+'</span><h2>'+e(l('Đơn vị từ carousel nguồn','Organisationen aus Quellkarussells'))+'</h2><p>'+e(l('Mỗi logo dưới đây được lấy nguyên trạng một lần từ carousel công khai của G2G Career hoặc Bizlawyer, có ghi nguồn. Việc hiển thị không xác nhận quan hệ đối tác với Luật Việt Đức.','Jedes Logo stammt einmalig und unverändert aus einem öffentlichen Karussell von G2G Career oder Bizlawyer; die Quelle ist angegeben. Die Darstellung bestätigt keine Partnerschaft mit Luật Việt Đức.'))+'</p></div></div><div class="lvd-partner-slider" data-logo-slider tabindex="0" aria-label="'+e(l('Vuốt hoặc kéo để xem logo','Wischen oder ziehen, um Logos zu sehen'))+'"><div class="lvd-partner-track">'+partnerItems.map(partnerCard).join('')+'</div><div class="lvd-partner-controls"><button type="button" data-slider-dir="-1" aria-label="'+e(l('Xem logo trước','Vorheriges Logo'))+'">‹</button><button type="button" data-slider-dir="1" aria-label="'+e(l('Xem logo tiếp theo','Nächstes Logo'))+'">›</button></div></div><p class="lvd-partner-attribution">'+e(l('Nguồn: carousel công khai của ','Quelle: öffentliche Karussells von '))+'<a href="https://g2gcareer.com/" target="_blank" rel="noopener noreferrer">G2G Career</a> · <a href="https://bizlawyer.vn/vi/" target="_blank" rel="noopener noreferrer">Bizlawyer</a></p></section>';
   }
   const memberCard=(p,i)=>{
     const name=p.name.trim().split(/\s+/);
