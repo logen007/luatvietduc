@@ -62,7 +62,23 @@
     'Chưa xác định':'Noch nicht ausgewählt','Lưu bài':'Artikel speichern',
     'Chia sẻ':'Teilen','Nguồn thông tin':'Quellen','Điểm cần nhớ':'Das Wichtigste',
     'Tạo cuộc trò chuyện mới':'Neuen Chat beginnen',
-    'Đã lưu':'Gespeichert','Về chuyên trang':'Über das Portal'
+    'Đã lưu':'Gespeichert','cho người Việt':'für Vietnamesinnen und Vietnamesen',
+    'tại Đức.':'in Deutschland.',
+    'Tìm hiểu các vấn đề pháp luật Việt Nam và Đức.':'Informationen zum Recht Vietnams und Deutschlands.',
+    'pháp luật Việt Nam.':'des vietnamesischen Rechts.',
+    '01 / TIN PHÁP LUẬT':'01 / RECHTSNACHRICHTEN',
+    '02 / THƯ VIỆN':'02 / BIBLIOTHEK',
+    '03 / CẨM NANG':'03 / RATGEBER',
+    'Hôn nhân':'Ehe','Giấy tờ':'Dokumente','Nhà đất':'Immobilien',
+    'Ủy quyền':'Vollmacht','Xem tất cả':'Alle anzeigen',
+    'Tất cả lĩnh vực':'Alle Rechtsgebiete','Tin & cẩm nang':'Nachrichten & Ratgeber',
+    'Viết câu hỏi của bạn':'Ihre Frage formulieren',
+    'Tìm hiểu pháp luật Việt Nam theo lĩnh vực hoặc vấn đề cần giải quyết.':'Erkunden Sie das vietnamesische Recht nach Gebiet oder Fragestellung.',
+    'Hãy mô tả vấn đề bạn cần hỗ trợ và để lại email liên hệ.':'Beschreiben Sie Ihr Anliegen und hinterlassen Sie eine E-Mail-Adresse.',
+    'Tư vấn pháp luật':'Rechtsberatung',
+    'ĐỘI NGŨ CHUYÊN GIA':'EXPERTENTEAM',
+    'Gửi câu hỏi từ bài viết':'Frage zum Artikel stellen',
+    'Về chuyên trang':'Über das Portal'
   };
   let lang='vi';
   try{lang=sessionStorage.getItem('lvd-lang')==='de'?'de':'vi';}catch{}
