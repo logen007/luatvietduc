@@ -91,13 +91,14 @@
   function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());document.querySelectorAll('[data-dialog]').forEach(b=>b.setAttribute('aria-expanded','false'));}
   function render(){
     viewSerial++; clearInterval(timer); closeDialogs(); const route=parseRoute(); let html;
-    if(window.LVD_CATALOG_UI?.accepts(route)) html=window.LVD_CATALOG_UI.view(route);
+    if(window.LVD_FEATURES?.accepts(route)) html=window.LVD_FEATURES.view(route);
+    else if(window.LVD_CATALOG_UI?.accepts(route)) html=window.LVD_CATALOG_UI.view(route);
     else if(route.path==='/') html=window.LVD_EDITORIAL.home();
     else if(['/tin-tuc','/song-o-duc','/cong-dong'].includes(route.path)) html=window.LVD_EDITORIAL.listing(route);
     else if(['/tra-cuu','/chu-de','/hoi-dap','/tim-kiem'].includes(route.path)||route.path.startsWith('/chu-de/')) html=browseView(route);
     else if(/^\/(hoi-dap|bai-viet|tin)\//.test(route.path)) html=articleView(article(route.path.split('/')[2]));
     else if(['/cam-nang','/goc-viet-kieu','/tin-phap-luat'].includes(route.path)) html=window.LVD_EDITORIAL.listing(route);
-    else if(route.path==='/ve-chuyen-trang') html=aboutView();
+    else if(route.path==='/ve-chuyen-trang') html=aboutView()+window.LVD_FEATURES.teamTeaser();
     else if(['/gui-cau-hoi','/lien-he'].includes(route.path)) html=contactView(route);
     else if(['/da-tiep-nhan','/lien-he/da-tiep-nhan'].includes(route.path)) html=successView();
     else if(['/dang-nhap','/tai-khoan/dang-nhap'].includes(route.path)) html=authView();
@@ -109,7 +110,7 @@
     else html=notFound();
     main.innerHTML=html;
     const h1=main.querySelector('h1'); document.title=(h1?h1.textContent:'Luật Việt Đức')+' | Luật Việt Đức';
-    document.querySelectorAll('.desktop-nav a').forEach(a=>{const active=a.dataset.nav==='lookup'?/\/(tra-cuu|tim-kiem|chu-de|hoi-dap)/.test(route.path):a.dataset.nav==='news'?route.path==='/tin-tuc'||route.path.startsWith('/tin/'):a.dataset.nav==='life'?['/song-o-duc','/cam-nang','/goc-viet-kieu'].includes(route.path)||route.path.startsWith('/bai-viet/'):a.dataset.nav==='community'?route.path==='/cong-dong':false; if(active) a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+    document.querySelectorAll('.desktop-nav a').forEach(a=>{const active=a.dataset.nav==='lookup'?/\/(tra-cuu|tim-kiem|chu-de|phap-luat|hoi-dap)/.test(route.path):a.dataset.nav==='news'?route.path==='/tin-tuc'||route.path.startsWith('/tin/'):a.dataset.nav==='life'?['/song-o-duc','/cam-nang','/goc-viet-kieu'].includes(route.path)||route.path.startsWith('/bai-viet/'):a.dataset.nav==='community'?route.path==='/cong-dong':false; if(active) a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
     main.focus({preventScroll:true});window.scrollTo(0,0);
     document.getElementById('page-announcement').textContent=h1?h1.textContent:'Nội dung đã mở';
   }
