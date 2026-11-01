@@ -21,13 +21,16 @@
   ];
   const teamSource='https://bizlawyer.vn/vi/doi-ngu-chuyen-gia/';
   const directoryLink=(path,label)=>'<a href="'+path+'" class="lvd-feature-link">'+e(label)+' '+ic('arrow')+'</a>';
+  /* These are source organizations explicitly supplied for this site. They are
+     not represented as clients, members, or commercial partners. Brand names
+     remain plain text until written logo-use permission or an official asset licence is available. */
   const partnerItems=[
-    {name:'BIZLAWYER & PARTNERS',label:'Bizlawyer & Partners',url:'https://bizlawyer.vn/vi/',status:'law'}
+    {name:'G2G Career',label:'G2G Career',url:'https://g2gcareer.com/',description:'Nền tảng nghề nghiệp',descriptionDe:'Karriereplattform'},
+    {name:'Bizlawyer & Partners',label:'Bizlawyer & Partners',url:'https://bizlawyer.vn/vi/',description:'Đơn vị luật và tư vấn chuyên môn',descriptionDe:'Kanzlei und Rechtsberatung'}
   ];
-  const partnerCard=p=>'<a class="lvd-partner-tile" href="'+e(p.url)+'" target="_blank" rel="noopener noreferrer"><span class="lvd-partner-wordmark" aria-label="'+e(p.label)+'">BIZ<span>LAWYER</span><small>& PARTNERS</small></span><span class="lvd-partner-description">'+e(l('Đơn vị luật và tư vấn chuyên môn','Kanzlei und Rechtsberatung'))+' '+ic('arrow')+'</span></a>';
+  const partnerCard=p=>'<a class="lvd-partner-tile" href="'+e(p.url)+'" target="_blank" rel="noopener noreferrer"><span class="lvd-partner-source-label">'+e(l('NGUỒN CHÍNH THỨC','OFFIZIELLE QUELLE'))+'</span><strong class="lvd-partner-name">'+e(p.label)+'</strong><span class="lvd-partner-description">'+e(de()?p.descriptionDe:p.description)+' '+ic('arrow')+'</span></a>';
   function partnerSlider(){
-    const multi=partnerItems.length>1;
-    return '<section class="lvd-partner-section container" aria-label="'+e(l('Đơn vị chuyên môn được giới thiệu','Vorgestellte Fachorganisation'))+'"><div class="lvd-feature-heading"><div><span class="s-eyebrow">'+e(l('MẠNG LƯỚI','NETZWERK'))+'</span><h2>'+e(l('Đơn vị chuyên môn','Fachorganisationen'))+'</h2><p>'+e(l('Hồ sơ đơn vị được dẫn từ website chính thức.','Organisationsprofile verlinken auf die offiziellen Websites.'))+'</p></div></div><div class="lvd-partner-slider" data-logo-slider><div class="lvd-partner-track">'+partnerItems.map(partnerCard).join('')+'</div>'+(multi?'<div class="lvd-partner-controls"><button type="button" data-slider-dir="-1" aria-label="Trước">‹</button><button type="button" data-slider-dir="1" aria-label="Sau">›</button></div>':'')+'</div></section>';
+    return '<section class="lvd-partner-section container" aria-label="'+e(l('Nguồn chính thức được dẫn','Verlinkte offizielle Quellen'))+'"><div class="lvd-feature-heading"><div><span class="s-eyebrow">'+e(l('NGUỒN THAM KHẢO','QUELLEN'))+'</span><h2>'+e(l('Nguồn chính thức được dẫn','Verlinkte offizielle Quellen'))+'</h2><p>'+e(l('Các tên dưới đây là nguồn công khai được dẫn, không phải xác nhận về khách hàng, thành viên tổ chức hay quan hệ đối tác.','Die folgenden Namen sind verlinkte öffentliche Quellen und keine Bestätigung einer Kunden-, Mitglieds- oder Partnerschaftsbeziehung.'))+'</p></div></div><div class="lvd-partner-slider" data-logo-slider tabindex="0" aria-label="'+e(l('Vuốt hoặc kéo để xem nguồn','Wischen oder ziehen, um Quellen zu sehen'))+'"><div class="lvd-partner-track">'+partnerItems.map(partnerCard).join('')+'</div><div class="lvd-partner-controls"><button type="button" data-slider-dir="-1" aria-label="'+e(l('Xem nguồn trước','Vorherige Quelle'))+'">‹</button><button type="button" data-slider-dir="1" aria-label="'+e(l('Xem nguồn tiếp theo','Nächste Quelle'))+'">›</button></div></div></section>';
   }
   const memberCard=(p,i)=>{
     const name=p.name.trim().split(/\s+/);
@@ -61,10 +64,10 @@
     const field=(name,label,type='text',placeholder='')=>'<label class="lvd-visitor-field"><span>'+e(label)+' <small>'+e(l('(không bắt buộc)','(freiwillig)'))+'</small></span><input name="'+name+'" type="'+type+'" maxlength="'+(type==='email'?254:110)+'" autocomplete="off" value="'+e(v[name]||'')+'" placeholder="'+e(placeholder)+'"></label>';
     return '<div class="container page lvd-visitor-page"><div class="breadcrumb"><a href="#/">'+e(l('Trang chủ','Startseite'))+'</a><span>/</span>'+e(l('Thông tin tự nguyện','Freiwillige Angaben'))+'</div><div class="lvd-visitor-hero"><span class="s-eyebrow">'+e(l('LỰA CHỌN CỦA BẠN','IHRE ENTSCHEIDUNG'))+'</span><h1>'+e(l('Để lại thông tin tự nguyện','Freiwillige Kontaktdaten'))+'</h1><p>'+e(l('Các trường bên dưới đều không bắt buộc. Website chưa có hệ thống nhận và lưu đăng ký trên máy chủ.','Alle Felder sind freiwillig. Eine serverseitige Anmeldung oder Datenspeicherung ist derzeit nicht verfügbar.'))+'</p></div><form id="lvd-visitor-form" class="lvd-visitor-form" novalidate><div class="lvd-visitor-form-grid">'+field('name',l('Họ và tên','Name'))+field('email','E-Mail','email')+field('phone',l('Số điện thoại','Telefon'),'tel')+field('city',l('Thành phố / quốc gia','Stadt / Land'))+field('interest',l('Lĩnh vực quan tâm','Interessengebiet'))+'</div><label class="lvd-visitor-checkbox"><input type="checkbox" name="updates" '+(v.updates?'checked':'')+'><span>'+e(l('Tôi muốn nhận thông tin khi kênh đăng ký chính thức được triển khai (lựa chọn không bắt buộc; hiện chưa có dịch vụ gửi tin).','Ich möchte später informiert werden, sobald eine Anmeldung verfügbar ist (freiwillig; derzeit kein Versanddienst).'))+'</span></label><div class="lvd-visitor-form-actions"><button class="button" type="submit">'+e(l('Giữ thông tin trong phiên này','Angaben für diese Sitzung merken'))+'</button><button class="button secondary" data-clear-visitor type="button">'+e(l('Xóa thông tin','Angaben löschen'))+'</button></div><p id="lvd-visitor-result" class="lvd-visitor-result" role="status">'+e(l('Không có dữ liệu nào được gửi tới máy chủ.','Es werden keine Daten an einen Server gesendet.'))+'</p></form></div>';
   }
-  const accepts=r=>/^\/phap-luat\/(viet-nam|duc)(\/|$)/.test(r.path)||['/doi-ngu-chuyen-gia','/dang-ky-thong-tin'].includes(r.path);
+  const accepts=r=>/^\/phap-luat\/(viet-nam|duc)(\/|$)/.test(r.path)||['/doi-ngu-chuyen-gia'].includes(r.path);
   const view=r=>{
     if(r.path.startsWith('/phap-luat/'))return countryView(r);
-    return r.path==='/doi-ngu-chuyen-gia'?teamView():visitorView();
+    return teamView();
   };
   document.addEventListener('submit',e=>{
     if(e.target.id!=='lvd-visitor-form')return;
@@ -80,6 +83,19 @@
     const sl=e.target.closest('[data-slider-dir]');
     if(sl){const track=sl.closest('[data-logo-slider]')?.querySelector('.lvd-partner-track');track?.scrollBy({left:Number(sl.dataset.sliderDir)*320,behavior:'smooth'});}
   });
+  /* Gentle source-carousel motion; hover, keyboard focus and reduced-motion stop it. */
+  function initSourceSliders(){
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    document.querySelectorAll('[data-logo-slider]').forEach(slider=>{
+      const track=slider.querySelector('.lvd-partner-track');
+      if(!track||track.dataset.autoplay)return;
+      track.dataset.autoplay='true';let paused=false,last=0;
+      ['mouseenter','mouseleave','focusin','focusout','touchstart','touchend'].forEach(type=>slider.addEventListener(type,()=>{paused=type==='mouseenter'||type==='focusin'||type==='touchstart';},{passive:true}));
+      const step=now=>{if(!paused&&document.visibilityState==='visible'&&track.scrollWidth>track.clientWidth){if(now-last>55){track.scrollLeft+=.45;last=now;if(track.scrollLeft+track.clientWidth>=track.scrollWidth-2)track.scrollLeft=0;}}requestAnimationFrame(step);};
+      requestAnimationFrame(step);
+    });
+  }
+  document.addEventListener('DOMContentLoaded',initSourceSliders);
   function aboutGerman(){
     return '<div class="container page lvd-about-german"><div class="breadcrumb"><a href="#/">Startseite</a><span>/</span>Über uns</div><header class="page-heading"><span class="s-eyebrow">LUẬT VIỆT ĐỨC</span><h1>Über Luật Việt Đức</h1><p>Ein Informationsportal für Rechtsfragen und Themen, die für die vietnamesische Community in Deutschland wichtig sind.</p></header><div class="lvd-about-german-grid"><section><h2>Rechtsfragen</h2><p>Beschreiben Sie Ihre Situation, um passende Themen in der bestehenden Bibliothek zu finden. Eine produktive KI- oder Expertenübermittlung ist derzeit noch nicht aktiviert.</p><a class="lvd-feature-link" href="#/hoi-dap-ai">Frage formulieren →</a></section><section><h2>Bibliothek für zwei Rechtssysteme</h2><p>Das vietnamesische Recht umfasst 16 Sachgebiete und 303 Themen aus der bereitgestellten Gliederung. Für das deutsche Recht gibt es eine entsprechende Struktur; fachlich geprüfte Einzelinhalte werden später ergänzt.</p><a class="lvd-feature-link" href="#/phap-luat/duc">Deutsches Recht ansehen →</a></section><section><h2>Nachrichten und Ratgeber</h2><p>Beiträge zu rechtlichen Entwicklungen und Alltagsthemen in Deutschland weisen auf die jeweilige Quelle hin. Vietnamesische Originalbeiträge werden nicht automatisch als geprüfte deutsche Rechtsauskünfte dargestellt.</p><a class="lvd-feature-link" href="#/tin-tuc">Nachrichten ansehen →</a></section><section><h2>Fachleute bei Bizlawyer</h2><p>Öffentlich verfügbare Profile der bei Bizlawyer genannten Anwälte und Fachleute werden mit Links zur Originalquelle vorgestellt. Eine Mandatsannahme über diese Website wird nicht zugesichert.</p><a class="lvd-feature-link" href="#/doi-ngu-chuyen-gia">Expertenteam ansehen →</a></section></div></div>';
   }
