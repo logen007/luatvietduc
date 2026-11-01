@@ -61,12 +61,21 @@ with sync_playwright() as pw:
             if path=='/phap-luat/viet-nam':
                 assert page.locator('.lvd-country-tabs a').count()==2
                 assert page.locator('.catalog-group').count()==16
+                assert page.locator('.catalog-page > .page-heading').count()==1
+                assert page.locator('form[data-catalog-search],.tabs.catalog-tabs,.catalog-help').count()==3
+                expect(page.locator('.lvd-country-tabs a[aria-current="page"]')).to_have_attribute('href','#/phap-luat/viet-nam')
             if path=='/phap-luat/duc':
                 assert page.locator('.catalog-group').count()==16
-                assert page.locator('.lvd-country-alert').count()==1
-                assert '303' not in page.locator('.lvd-country-hero').inner_text()
+                assert page.locator('.catalog-page > .page-heading').count()==1
+                assert page.locator('form[data-catalog-search],.tabs.catalog-tabs,.catalog-help').count()==3
+                expect(page.locator('.lvd-country-tabs a[aria-current="page"]')).to_have_attribute('href','#/phap-luat/duc')
+                assert '303' not in page.locator('.catalog-page').inner_text()
+                assert page.locator('[data-catalog-topic]').count()==0
             if path=='/phap-luat/duc/thue':
-                assert page.locator('.catalog-group').count()==1
+                assert page.locator('.catalog-group,[data-catalog-topic]').count()==0
+                assert page.locator('.empty-state').count()==1
+                expect(page.locator('#catalog-group-filter')).to_have_value('thue')
+                assert page.locator('form[data-catalog-search],.tabs.catalog-tabs,.catalog-help').count()==3
             if path in ['/ve-chuyen-trang','/doi-ngu-chuyen-gia','/doi-ngu-chuyen-gia/']:
                 assert page.locator('.lvd-team-section .lvd-expert-card').count()==9
                 assert page.locator('.lvd-team-section .lvd-expert-portrait').count()==3
@@ -104,7 +113,9 @@ with sync_playwright() as pw:
         go('/dieu-khoan')
         assert 'Nutzungsbedingungen' in page.locator('h1').inner_text()
         go('/phap-luat/duc')
-        assert 'Deutsches Recht' in page.locator('h1').inner_text()
+        expect(page.locator('.lvd-country-tabs a[aria-current="page"]')).to_have_attribute('href','#/phap-luat/duc')
+        assert page.locator('form[data-catalog-search],.tabs.catalog-tabs,.catalog-help').count()==3
+        assert '303' not in page.locator('.catalog-page').inner_text()
         page.locator('.lvd-footer-language [data-language=vi]').click()
         page.wait_for_timeout(100)
         assert page.locator('html').get_attribute('lang')=='vi'

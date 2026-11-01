@@ -1,4 +1,4 @@
-# Luật Việt Đức — 1.3.0
+# Luật Việt Đức — 1.4.0
 
 [Website](https://logen007.github.io/luatvietduc/) · [Thư viện Việt Nam](https://logen007.github.io/luatvietduc/#/phap-luat/viet-nam) · [Pháp luật Đức](https://logen007.github.io/luatvietduc/#/phap-luat/duc)
 
@@ -14,6 +14,7 @@ Chuyên trang thông tin pháp luật cho cộng đồng người Việt tại �
 
 - Pháp luật Việt Nam: 16 lĩnh vực, 303 tiêu đề chủ đề giữ nguyên danh mục nguồn. Đây là danh mục định hướng, không phải 303 câu trả lời được kiểm duyệt.
 - Pháp luật Đức: 16 lĩnh vực; nội dung chi tiết đang biên tập.
+- Hai nhánh dùng chung giao diện thư viện trong `assets/catalog.js`: cờ chọn hệ thống, breadcrumb, tiêu đề, tìm kiếm, tab lĩnh vực/chủ đề, thẻ lĩnh vực, bộ lọc, kết quả và điều hướng. Đức hiện có 0 chủ đề, tìm kiếm được 16 lĩnh vực. Mọi liên kết và biểu mẫu giữ nhánh đang xem; ngôn ngữ giao diện độc lập với hệ thống pháp luật. Các URL Việt Nam cũ vẫn hoạt động.
 - Giao diện Việt/Đức; 7 từ khóa tìm kiếm tiếng Đức phổ biến được quy đổi về dữ liệu tiếng Việt. Tiêu đề pháp luật nguồn không bị tự động dịch thành ý kiến chuyên môn.
 - Đội ngũ: 9 hồ sơ theo nguồn Bizlawyer, liên kết hồ sơ gốc.
 - Logo: 3 ảnh từ carousel G2G Career và 10 từ Bizlawyer, mỗi URL một lần. Tải trực tiếp từ nguồn chính thức; nguồn được lưu trong `assets/site-features.js`. Giao diện chỉ hiển thị logo và điều khiển, không có đoạn ghi chú. Không suy diễn quan hệ với Luật Việt Đức. Tự chạy chậm, pause hover/focus/nút, kéo/vuốt, phím mũi tên và reduced-motion.
@@ -36,6 +37,6 @@ Trang tĩnh, không cần build framework. Chạy `python3 -m http.server 8000` 
 
 ## Kiểm thử
 
-GitHub Actions chạy kiểm tra cú pháp JavaScript và các bài Playwright: `test-chat.py`, `test-fonts.py`, `test-catalog.py`, `test-terms-layout.py`, `test-bilingual-v090.py`, `test-slider.py`, `test-color-theme.py`. Cài `playwright==1.55.0`, `Pillow>=11,<13` và Chromium để chạy cục bộ. Các kiểm tra bao gồm 303 tiêu đề nguồn, 6 kích thước màn hình, hành trình tìm kiếm, ngôn ngữ, font, biểu mẫu và chuyển động logo. Workflow xuất bản đối chiếu nội dung thực tế trên Pages với bản trong repo.
+GitHub Actions chạy kiểm tra cú pháp JavaScript và các bài Playwright: `test-chat.py`, `test-fonts.py`, `test-catalog.py`, `test-terms-layout.py`, `test-bilingual-v090.py`, `test-slider.py`, `test-color-theme.py`, `test-jurisdiction-parity.py`. Cài `playwright==1.55.0`, `Pillow>=11,<13` và Chromium để chạy cục bộ. Kiểm tra đối chiếu Việt Nam/Đức bao gồm 60 lượt xem, 64 trang lĩnh vực VI/DE, tìm kiếm, trạng thái rỗng, định tuyến và phóng to chữ 200%. Các kiểm tra còn lại bao gồm 303 tiêu đề nguồn, 6 kích thước màn hình, hành trình tìm kiếm, ngôn ngữ, font, biểu mẫu và chuyển động logo. Workflow xuất bản đối chiếu nội dung thực tế trên Pages với bản trong repo.
 
 Không lưu câu hỏi hay biểu mẫu trên máy chủ. Hội thoại ở trong bộ nhớ trang; ngôn ngữ dùng sessionStorage. CSP chỉ cho phép font nội bộ và giới hạn logo theo nguồn, chặn kết nối dữ liệu ứng dụng ra ngoài.

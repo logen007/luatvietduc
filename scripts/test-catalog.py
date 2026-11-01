@@ -129,7 +129,12 @@ with sync_playwright() as p:
    if width in [390,1440] and route in names:
     for image in page.locator('.press-photo img').all():image.scroll_into_view_if_needed();image.evaluate('(e)=>e.decode()')
     page.evaluate('scrollTo(0,0)');page.screenshot(path=str(out/f'{names[route]}-{width}.png'),full_page=True)
- go('/tim-kiem?q=%3Cimg+src%3Dx+onerror%3Dalert(1)%3E');assert page.locator('#main img').count()==0
+ go('/tim-kiem?q=%3Cimg+src%3Dx+onerror%3Dalert(1)%3E')
+ expect(page.locator('form[data-catalog-search] input[name=q]')).to_have_value('<img src=x onerror=alert(1)>')
+ flags=page.locator('#main img.lvd-country-tab-flag')
+ expect(flags).to_have_count(2)
+ assert flags.evaluate_all('(images)=>images.map(image=>image.getAttribute("src"))')==['assets/flags/vn.svg','assets/flags/de.svg']
+ assert page.locator('#main img:not(.lvd-country-tab-flag),#main img[src=x],#main [onerror]').count()==0
  assert not errors,errors
  report['runtime_errors']=errors;report['status']='passed';browser.close()
 srv.shutdown()

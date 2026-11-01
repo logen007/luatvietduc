@@ -91,7 +91,7 @@
   let applying=false, pending=false;
   const get=()=>lang;
   const t=(vi)=>lang==='de'?(D[vi]||vi):vi;
-  const topicTitle=(vi)=>lang==='de'?(D[vi]||vi):vi;
+  const topicTitle=(vi,target=lang)=>target==='de'?(D[vi]||vi):vi;
   const skip=node=>node.parentElement?.closest(exclusions);
   function refresh(){
     if(applying)return;

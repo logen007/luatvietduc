@@ -61,8 +61,8 @@ with sync_playwright() as p:
         if blue_required:
             assert any(rgb[2] > rgb[0] + 20 and rgb[2] > rgb[1] + 10 for rgb in channels), (label, 'expected blue surface', colors)
         checks.append(f'{label}: consistent cool palette')
-    routes = ['/', '/hoi-dap-ai', '/tra-cuu', '/tin-tuc', '/tin/mindestlohn-2026', '/gui-cau-hoi']
-    names = ['home', 'chat', 'library', 'news', 'article', 'contact']
+    routes = ['/', '/hoi-dap-ai', '/tra-cuu', '/phap-luat/viet-nam', '/phap-luat/duc', '/tin-tuc', '/tin/mindestlohn-2026', '/gui-cau-hoi']
+    names = ['home', 'chat', 'library', 'library-vn', 'library-de', 'news', 'article', 'contact']
     for width in [320, 390, 768, 1024, 1440]:
         page.set_viewport_size({'width':width, 'height':1000})
         for route, name in zip(routes, names):
@@ -91,7 +91,9 @@ with sync_playwright() as p:
             if route == '/hoi-dap-ai':
                 for selector in ['.chat-sidebar', '.chat-log', '.chat-welcome-symbol', '.chat-compose-wrap', '.chat-prompt-icon']:
                     cool_surface(page.locator(selector).first, f'{width}px {selector}')
-            if route == '/tra-cuu':
+            if route in ['/tra-cuu','/phap-luat/viet-nam','/phap-luat/duc']:
+                expect(page.locator('.catalog-group')).to_have_count(16)
+                expect(page.locator('form[data-catalog-search]')).to_be_visible()
                 cool_surface(page.locator('.catalog-page > .page-heading'), f'{width}px catalogue hero', blue_required=True)
                 cool_surface(page.locator('.catalog-help'), f'{width}px catalogue help', blue_required=True)
                 cool_surface(page.locator('.catalog-group-icon').first, f'{width}px catalogue icon')

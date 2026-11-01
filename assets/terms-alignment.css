@@ -1,4 +1,5 @@
 /* Luật Việt Đức 1.2 — one visual reference: MindCloud, navy / blue / white. */
+.lvd-country-tabs .lvd-country-tab-flag{display:block;flex:0 0 30px;width:30px;height:auto;max-width:none;border-radius:2px;box-shadow:0 0 0 1px #00000012}
 :root{--max:1120px;--ink:#202124;--muted:#6a6d75;--paper:#f7f8f7;--soft:#f1f3f6;--line:#e3e5e8;--wine:#1467ef;--brand:#1467ef;--brand-dark:#0754ce;--accent:#1260e0;--focus:#176fff;--t-ink:var(--ink);--t-muted:var(--muted);--t-line:var(--line);--t-wine:var(--brand);--t-warm:var(--paper)}
 body{background:var(--paper);color:var(--ink)}
 .container{width:min(var(--max),calc(100% - 96px))}

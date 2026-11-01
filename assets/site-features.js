@@ -55,20 +55,13 @@
     return '<section class="container lvd-team-section" id="doi-ngu" tabindex="-1"><h2>'+e(l('Đội ngũ chuyên gia','Expertenteam'))+'</h2><div class="lvd-expert-grid">'+team.map(memberCard).join('')+'</div></section>';
   }
   const teamTeaser=teamSection;
-  const tabs=(active)=>'<nav class="lvd-country-tabs" aria-label="'+e(l('Chọn hệ thống pháp luật','Rechtssystem wählen'))+'"><a '+(active==='vn'?'aria-current="page"':'')+' href="#/phap-luat/viet-nam">'+ic('scales')+'<span>'+e(l('Pháp luật Việt Nam','Vietnamesisches Recht'))+'</span></a><a '+(active==='de'?'aria-current="page"':'')+' href="#/phap-luat/duc">'+ic('globe')+'<span>'+e(l('Pháp luật Đức','Deutsches Recht'))+'</span></a></nav>';
+  const tabs=(active)=>'<nav class="lvd-country-tabs" aria-label="'+e(l('Chọn hệ thống pháp luật','Rechtssystem wählen'))+'">'+[['vn','viet-nam','Pháp luật Việt Nam','Vietnamesisches Recht'],['de','duc','Pháp luật Đức','Deutsches Recht']].map(([code,path,vi,ger])=>'<a '+(active===code?'aria-current="page"':'')+' href="#/phap-luat/'+path+'"><img class="lvd-country-tab-flag" src="assets/flags/'+code+'.svg" width="30" height="'+(code==='vn'?20:18)+'" alt=""><span>'+e(l(vi,ger))+'</span></a>').join('')+'</nav>';
   const groups=C.groups;
   function countryView(r){
-    const parts=r.path.split('/').filter(Boolean);
-    const country=parts[1]==='duc'?'de':'vn',id=parts[2];
-    if(country==='vn'){
-      const target={...r,path:id?'/chu-de/'+id:'/tra-cuu'};
-      const raw=window.LVD_CATALOG_UI.view(target);
-      return raw;
-    }
-    const group=groups.find(g=>g.id===id);
-    const label=l('Pháp luật Đức','Deutsches Recht');
-    const list=group?[group]:groups;
-    return '<div class="container page catalog-page lvd-country-page lvd-german-law"><div class="breadcrumb"><a href="#/">'+e(l('Trang chủ','Startseite'))+'</a><span>/</span><span>'+e(label)+'</span></div>'+tabs('de')+'<header class="lvd-country-hero"><span class="s-eyebrow">'+e(l('THƯ VIỆN PHÁP LUẬT ĐỨC','DEUTSCHES RECHT'))+'</span><h1>'+e(group?(de()?I.groupTitle(group.title):group.title):label)+'</h1><p>'+e(l('Danh mục lĩnh vực để định hướng tìm hiểu. Nội dung pháp luật Đức cần được chuyên gia kiểm tra trước khi công bố.','Übersicht der Rechtsgebiete. Inhalte zum deutschen Recht werden erst nach fachlicher Prüfung veröffentlicht.'))+'</p></header>'+(!group?'<div class="lvd-country-overview"><strong>'+e(l('16 nhóm lĩnh vực','16 Rechtsgebiete'))+'</strong><span>'+e(l('Chưa có nội dung pháp luật Đức được kiểm duyệt.','Noch keine geprüften deutschen Rechtsinhalte.'))+'</span></div>':'')+'<div class="catalog-groups lvd-german-groups">'+list.map((g,i)=>'<a class="catalog-group" href="#/phap-luat/duc/'+e(g.id)+'"><span class="catalog-group-number">'+String(groups.indexOf(g)+1).padStart(2,'0')+'</span><span class="catalog-group-body"><strong>'+e(de()?I.groupTitle(g.title):g.title)+'</strong><small>'+e(l('Đang biên tập nội dung','Inhalt in Vorbereitung'))+'</small></span><span class="catalog-group-icon">'+ic(g.icon||'scales')+'</span></a>').join('')+'</div><section class="lvd-country-alert">'+ic('info')+'<div><strong>'+e(l('Chưa có bài viết được kiểm duyệt trong nhánh này','Für diesen Bereich liegen noch keine geprüften Artikel vor'))+'</strong><p>'+e(l('Anh/chị có thể nêu vấn đề cần tìm hiểu ở phần hỏi đáp. Hệ thống hiện chưa tiếp nhận hoặc chuyển câu hỏi tới chuyên gia thật.','Sie können Ihre Frage im Chat formulieren. Eine tatsächliche Expertenübermittlung ist derzeit noch nicht eingerichtet.'))+'</p>'+directoryLink('#/hoi-dap-ai',l('Đặt câu hỏi','Frage stellen'))+'</div></section></div>';
+    const parts=r.path.split('/').filter(Boolean),country=parts[1]==='duc'?'de':'vn';
+    const basePath='/phap-luat/'+(country==='de'?'duc':'viet-nam');
+    const suffix=parts.slice(2).join('/');
+    return window.LVD_CATALOG_UI.view({...r,path:suffix?'/chu-de/'+suffix:'/tra-cuu',jurisdiction:country,basePath});
   }
   const state={visitor:null};
   function visitorView(){

@@ -15,7 +15,7 @@ base=f'http://127.0.0.1:{server.server_port}/'
 out=Path(os.environ['LAYOUT_QA']) if os.environ.get('LAYOUT_QA') else None
 if out:out.mkdir(parents=True,exist_ok=True)
 report=[]
-routes=[('home','/'),('catalog','/tra-cuu'),('category','/chu-de/hon-nhan-gia-dinh'),('topics','/tra-cuu?xem=tat-ca'),('chat','/hoi-dap-ai'),('news','/tin-tuc'),('article','/tin/mindestlohn-2026'),('contact','/lien-he'),('privacy','/chinh-sach-thong-tin'),('terms','/dieu-khoan'),('about','/ve-chuyen-trang'),('login','/dang-nhap')]
+routes=[('home','/'),('catalog','/tra-cuu'),('catalog-vn','/phap-luat/viet-nam'),('catalog-de','/phap-luat/duc'),('category','/chu-de/hon-nhan-gia-dinh'),('topics','/tra-cuu?xem=tat-ca'),('chat','/hoi-dap-ai'),('news','/tin-tuc'),('article','/tin/mindestlohn-2026'),('contact','/lien-he'),('privacy','/chinh-sach-thong-tin'),('terms','/dieu-khoan'),('about','/ve-chuyen-trang'),('login','/dang-nhap')]
 html=Path('index.html').read_text()
 assert '#/nguon-anh' not in html and 'terms-alignment.css' in html
 assert 'chromatic-editorial.css' not in html
@@ -77,8 +77,12 @@ with sync_playwright() as p:
                 assert page.locator('#home-question').bounding_box()['y']<1000
                 assert float(page.locator('#home-question').evaluate('(e)=>getComputedStyle(e).fontSize').replace('px',''))>=16
                 if width==1440:assert header['width']>=1100
-            if name=='catalog':
+            if name in ('catalog','catalog-vn','catalog-de'):
                 assert page.locator('.catalog-group').count()==16
+                assert page.locator('form[data-catalog-search],.tabs.catalog-tabs,.catalog-help').count()==3
+                if name=='catalog-de':
+                    assert '303' not in page.locator('.catalog-page').inner_text()
+                    assert page.locator('[data-catalog-topic]').count()==0
                 no_overlap()
             if name=='chat':
                 box=page.locator('.chat-shell').bounding_box()
@@ -94,14 +98,14 @@ with sync_playwright() as p:
                 for image in portraits.all():
                     image.scroll_into_view_if_needed();image.evaluate('(el)=>el.decode()')
                     assert image.evaluate('(el)=>el.naturalWidth>0')
-            if out and width in (390,1440) and name in ('home','catalog','news','chat','contact','about'):
+            if out and width in (390,1440) and name in ('home','catalog','catalog-vn','catalog-de','news','chat','contact','about'):
                 for image in page.locator('.press-photo img').all():
                     image.scroll_into_view_if_needed();image.evaluate('(e)=>e.decode()')
                     assert image.evaluate('(e)=>getComputedStyle(e).filter')=='none'
                 page.evaluate('scrollTo(0,0)')
                 page.screenshot(path=str(out/f'{name}-{width}.png'),full_page=True)
             report.append({'width':width,'route':route,'status':'passed'})
-        print('PASS: 12 routes at',width,flush=True)
+        print('PASS:',len(routes),'routes at',width,flush=True)
     page.set_viewport_size({'width':1440,'height':1000});go('/')
     page.locator('#home-question').focus()
     expect(page.locator('#home-question')).to_be_focused()
@@ -132,4 +136,4 @@ with sync_playwright() as p:
     if out:(out/'report.json').write_text(json.dumps({'views':report,'additional_checks':6,'runtime_errors':errors},ensure_ascii=False,indent=2))
     browser.close()
 server.shutdown()
-print('PASS: 72 responsive views, typography scaling, form honesty and core journeys')
+print(f'PASS: {len(report)} responsive views, typography scaling, form honesty and core journeys')
