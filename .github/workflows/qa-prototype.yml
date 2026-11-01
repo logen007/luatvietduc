@@ -33,3 +33,5 @@ jobs:
         run: python3 scripts/test-catalog.py
       - name: Check reference-aligned layout and icon separation
         run: python3 scripts/test-terms-layout.py
+      - name: Check multilingual switching, jurisdictions and expert directory
+        run: python3 scripts/test-bilingual-v090.py
