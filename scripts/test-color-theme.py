@@ -49,6 +49,18 @@ with sync_playwright() as p:
         ratio = contrast(colors['foreground'], colors['background'])
         assert ratio >= 4.5, (label, colors, ratio)
         checks.append(f'{label}: rendered contrast {ratio:.2f}:1')
+    def cool_surface(locator, label, blue_required=False):
+        colors = locator.evaluate('''el => {
+          const s = getComputedStyle(el);
+          return [s.backgroundColor, ...(s.backgroundImage.match(/rgba?\\([^)]+\\)/g) || [])];
+        }''')
+        channels = [[float(n) for n in re.findall(r'[\d.]+', value)] for value in colors]
+        channels = [rgb for rgb in channels if len(rgb) == 3 or rgb[3] > 0]
+        assert channels, (label, 'missing surface color', colors)
+        assert all(rgb[2] >= rgb[0] - 1 and rgb[2] >= rgb[1] - 1 for rgb in channels), (label, 'warm surface survived', colors)
+        if blue_required:
+            assert any(rgb[2] > rgb[0] + 20 and rgb[2] > rgb[1] + 10 for rgb in channels), (label, 'expected blue surface', colors)
+        checks.append(f'{label}: consistent cool palette')
     routes = ['/', '/hoi-dap-ai', '/tra-cuu', '/tin-tuc', '/tin/mindestlohn-2026', '/gui-cau-hoi']
     names = ['home', 'chat', 'library', 'news', 'article', 'contact']
     for width in [320, 390, 768, 1024, 1440]:
@@ -59,19 +71,33 @@ with sync_playwright() as p:
             expect(page.locator('#main h1')).to_have_count(1)
             assert page.evaluate('document.documentElement.scrollWidth') <= width+1, (width, route)
             if route == '/':
-                hero_art=page.locator('.lvd-hero-art img')
-                expect(hero_art).to_have_count(1)
-                hero_art.evaluate('(e)=>e.decode()')
-                assert hero_art.evaluate('(e)=>e.naturalWidth>=300 && e.getBoundingClientRect().width>32')
-                heading_size=float(page.locator('.s-hero h1').evaluate('e=>getComputedStyle(e).fontSize').replace('px',''))
-                assert heading_size>=36,(width,'readable hero title',heading_size)
-                search_size=float(page.locator('#home-search-query').evaluate('e=>getComputedStyle(e).fontSize').replace('px',''))
-                assert search_size>=16,(width,'mobile-safe search input',search_size)
-                readable(page.locator('#home-search [type=submit]'), f'{width}px search action')
+                expect(page.locator('.s-ask-panel #home-ask')).to_have_count(1)
+                expect(page.locator('#home-question')).to_be_visible()
+                assert page.locator('#home-search-query,.lvd-hero-art,.lvd-team-teaser,.lvd-team-section').count()==0
+                question_size=float(page.locator('#home-question').evaluate('e=>getComputedStyle(e).fontSize').replace('px',''))
+                assert question_size>=16,(width,'mobile-safe chat input',question_size)
+                action=page.locator('#home-ask [type=submit]')
+                readable(action, f'{width}px chat action')
+                color=action.evaluate('e=>getComputedStyle(e).backgroundColor')
+                channels=[float(n) for n in re.findall(r'[\d.]+',color)[:3]]
+                assert channels[2]>channels[0] and channels[2]>channels[1],(width,'blue chat action',color)
                 readable(page.locator('.s-library-links > a').first, f'{width}px library navigation')
                 readable(page.locator('.lvd-footer-nav a').first, f'{width}px footer navigation')
                 expect(page.locator('.press-photo img')).to_have_count(3)
                 assert page.locator('#home-demo,.preview-bar').count() == 0
+            if route == '/hoi-dap-ai':
+                for selector in ['.chat-sidebar', '.chat-log', '.chat-welcome-symbol', '.chat-compose-wrap', '.chat-prompt-icon']:
+                    cool_surface(page.locator(selector).first, f'{width}px {selector}')
+            if route == '/tra-cuu':
+                cool_surface(page.locator('.catalog-page > .page-heading'), f'{width}px catalogue hero', blue_required=True)
+                cool_surface(page.locator('.catalog-help'), f'{width}px catalogue help', blue_required=True)
+                cool_surface(page.locator('.catalog-group-icon').first, f'{width}px catalogue icon')
+            if route == '/tin-tuc':
+                cool_surface(page.locator('.newsroom-list > .page-heading'), f'{width}px news hero', blue_required=True)
+                cool_surface(page.locator('.listing-grid > .press-card').first, f'{width}px lead news card')
+            if route == '/tin/mindestlohn-2026':
+                cool_surface(page.locator('.news-summary'), f'{width}px article summary')
+                cool_surface(page.locator('.news-sources'), f'{width}px article sources')
             if width in [390, 1440]:
                 for image in page.locator('.press-photo img').all():
                     image.scroll_into_view_if_needed()
@@ -81,15 +107,10 @@ with sync_playwright() as p:
             checks.append(f'{width}px {route}')
     page.set_viewport_size({'width':1440, 'height':1000})
     page.goto(base+'#/', wait_until='load')
-    page.locator('#home-search-query').fill('ủy quyền')
-    page.locator('#home-search [type=submit]').click()
-    expect(page.locator('#main h1')).to_contain_text('Kết quả tìm kiếm')
-    assert page.locator('.result-item').count()>0
-    page.goto(base+'#/hoi-dap-ai', wait_until='load')
-    expect(page.locator('.chat-availability')).to_contain_text('chưa khả dụng')
-    page.locator('#chat-question').fill('Tôi muốn ủy quyền từ Đức')
-    page.locator('#chat-compose [type=submit]').click()
+    page.locator('#home-question').fill('Tôi muốn ủy quyền từ Đức')
+    page.locator('#home-ask [type=submit]').click()
     expect(page.locator('.chat-message.user')).to_have_count(1)
+    expect(page.locator('#chat-log')).to_contain_text('Chưa thể trả lời')
     expect(page.locator('.chat-source').first).to_be_visible()
     readable(page.locator('.chat-message.user .chat-message-body'), 'Chat user message')
     page.locator('.chat-top [data-handoff]').click()

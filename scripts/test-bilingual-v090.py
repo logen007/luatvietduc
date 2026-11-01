@@ -20,25 +20,25 @@ with sync_playwright() as pw:
             page.wait_for_timeout(115)
             page.wait_for_selector('#main h1')
             assert page.evaluate('document.documentElement.scrollWidth')<=width+2,(width,path,'overflow',page.evaluate('document.documentElement.scrollWidth'))
-        for path in ['/','/tra-cuu','/phap-luat/viet-nam','/phap-luat/duc','/phap-luat/duc/thue','/doi-ngu-chuyen-gia','/lien-he','/chinh-sach-thong-tin','/dieu-khoan','/hoi-dap-ai','/tin-tuc']:
+        for path in ['/','/tra-cuu','/phap-luat/viet-nam','/phap-luat/duc','/phap-luat/duc/thue','/ve-chuyen-trang','/doi-ngu-chuyen-gia','/doi-ngu-chuyen-gia/','/lien-he','/chinh-sach-thong-tin','/dieu-khoan','/hoi-dap-ai','/tin-tuc']:
             go(path)
             assert page.locator('.lvd-footer-language button[data-language]').count()==2
             assert page.locator('.site-header button[data-language]').count()==2
             if path=='/':
-                assert page.locator('#home-search [data-catalog-search],#home-search[data-catalog-search]').count()==1
-                assert page.locator('#home-search-query').is_visible()
+                assert page.locator('.s-ask-panel #home-ask').count()==1
+                assert page.locator('#home-question').is_visible()
+                assert page.locator('#home-search,#home-search-query').count()==0
                 assert page.locator('.s-hero-grid').count()==1
-                assert page.locator('.lvd-hero-art img').count()==1
-                assert page.locator('.lvd-home-countries img').count()==2
-                assert page.locator('.lvd-team-preview img').count()==3
+                assert page.locator('.lvd-hero-art,.lvd-home-countries img,.lvd-team-preview').count()==0
                 assert page.locator('.lvd-partner-tile').count()==13
                 assert page.locator('.lvd-partner-tile img').count()==13
                 assert page.locator('.lvd-partner-tile figcaption').count()==0
                 logos=page.locator('.lvd-partner-tile img').evaluate_all('(images)=>images.map(image=>image.src)')
                 assert len(set(logos))==13
                 assert all(url.startswith(('https://g2gcareer.com/','https://bizlawyer.vn/')) for url in logos)
-                assert 'không xác nhận quan hệ đối tác' in page.locator('.lvd-partner-section').inner_text()
-                assert page.locator('.lvd-team-teaser').count()==1
+                assert page.locator('.lvd-partner-attribution,.lvd-partner-section .lvd-feature-heading').count()==0
+                assert 'không xác nhận quan hệ đối tác' not in page.locator('#main').inner_text()
+                assert page.locator('.lvd-team-teaser,.lvd-team-section').count()==0
                 assert page.locator('.lvd-home-countries a').count()==2
                 expect(page.locator('.lvd-home-countries a[href="#/phap-luat/viet-nam"]')).to_contain_text('303')
                 expect(page.locator('.lvd-home-countries a[href="#/phap-luat/duc"]')).to_contain_text('16')
@@ -55,9 +55,10 @@ with sync_playwright() as pw:
                 assert '303' not in page.locator('.lvd-country-hero').inner_text()
             if path=='/phap-luat/duc/thue':
                 assert page.locator('.catalog-group').count()==1
-            if path=='/doi-ngu-chuyen-gia':
-                assert page.locator('.lvd-expert-card').count()==9
-                assert page.locator('.lvd-team-context').count()==1
+            if path in ['/ve-chuyen-trang','/doi-ngu-chuyen-gia','/doi-ngu-chuyen-gia/']:
+                assert page.locator('.lvd-team-section .lvd-expert-card').count()==9
+                assert page.locator('.lvd-team-section .lvd-expert-portrait').count()==3
+                assert page.locator('.lvd-team-context').count()==0
                 assert 'Dương Thành Tâm' in page.locator('.lvd-expert-grid').inner_text()
             if path=='/hoi-dap-ai':
                 assert page.get_by_text('Gặp chuyên gia',exact=True).count()>=1
@@ -78,7 +79,10 @@ with sync_playwright() as pw:
         assert page.locator('html').get_attribute('lang')=='de'
         for control in page.locator('[data-language=de]').all():
             assert control.get_attribute('aria-pressed')=='true'
-        expect(page.locator('#home-search [type=submit]')).to_contain_text('Thema suchen')
+        expect(page.locator('#home-ask [type=submit]')).to_contain_text('Frage')
+        assert page.locator('#home-question').is_visible()
+        go('/ve-chuyen-trang')
+        assert page.locator('.lvd-team-section .lvd-expert-card').count()==9
         go('/lien-he')
         assert 'Wobei können wir' in page.locator('h1').inner_text()
         go('/chinh-sach-thong-tin')

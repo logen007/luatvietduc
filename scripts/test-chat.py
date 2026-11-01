@@ -41,27 +41,25 @@ with sync_playwright() as p:
    expect(page.locator('#main h1')).to_have_count(1)
    assert page.evaluate('document.documentElement.scrollWidth')<=w+1,(w,route,'overflow')
    if route=='/':
-    assert page.locator('#home-search-query').is_visible()
+    assert page.locator('#home-question').is_visible()
     assert page.locator('#home-demo,.demo-fine,.preview-bar').count()==0
-    assert page.locator('#home-search-query').bounding_box()['y']<1000
-    assert page.locator('#home-ask,#home-question').count()==0
-    expect(page.locator('#home-search [type=submit]')).to_be_visible()
+    assert page.locator('#home-question').bounding_box()['y']<1000
+    assert page.locator('#home-search,#home-search-query').count()==0
+    expect(page.locator('.s-hero-grid .s-ask-panel')).to_be_visible()
+    expect(page.locator('#home-ask [type=submit]')).to_be_visible()
+    assert page.locator('.lvd-team-teaser,.lvd-team-section,.lvd-team-preview').count()==0
+    assert page.locator('.lvd-partner-attribution').count()==0
     assert page.locator('.press-photo img').count()==3
     assert page.locator('.s-guides-section,a[href="#/song-o-duc"]').count()==0
    passed(f'Copy and layout {w}px {route}')
  page.set_viewport_size({'width':1440,'height':1000});go('/')
  for image in page.locator('.press-photo img').all():image.scroll_into_view_if_needed();image.evaluate('(el)=>el.decode()');assert image.evaluate('(el)=>el.naturalWidth>0')
- page.locator('#home-search-query').fill('ủy quyền');page.locator('#home-search [type=submit]').click()
- expect(page.locator('#main h1')).to_contain_text('Kết quả tìm kiếm')
- assert page.locator('.result-item').count()>0
- assert page.locator('.chat-message.user').count()==0
- passed('Homepage search: relevant catalogue results without starting a chat')
- go('/hoi-dap-ai')
- page.locator('#chat-question').fill('Tôi muốn ủy quyền từ Đức');page.locator('#chat-compose [type=submit]').click()
+ page.locator('#home-question').fill('Tôi muốn ủy quyền từ Đức');page.locator('#home-ask [type=submit]').click()
  expect(page.locator('.chat-message.user')).to_have_count(1)
+ expect(page.locator('.chat-message.user')).to_contain_text('Tôi muốn ủy quyền từ Đức')
  expect(page.locator('.chat-source').first).to_be_visible();expect(page.locator('#chat-log')).to_contain_text('Chưa thể trả lời')
  checkcopy();assert 'quyen' not in page.url
- passed('Question: related library link without fabricated legal answer')
+ passed('Homepage chat: question preserved, related topics, no fabricated legal answer')
  page.locator('.chat-top [data-handoff]').click();page.locator('#handoff-form [type=submit]').click()
  expect(page.locator('#handoff-error')).to_contain_text('đồng ý')
  page.locator('#handoff-consent').check();page.locator('#handoff-form [type=submit]').click()

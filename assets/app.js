@@ -30,7 +30,7 @@
   const parseRoute = () => {
     const legacy = {WF01:'/',WF02:'/chu-de',WF03:'/chu-de/nha-dat',WF04:'/tim-kiem?q=uy+quyen',WF05:'/hoi-dap/uy-quyen-quan-ly-nha',WF06:'/hoi-dap',WF07:'/cam-nang',WF08:'/ve-chuyen-trang',WF09:'/gui-cau-hoi',WF10:'/da-tiep-nhan',WF11:'/dang-nhap',WF12:'/tai-khoan',WF13:'/tai-khoan/cau-hoi/DEMO-0001'};
     const raw = location.hash.slice(1) || '/';
-    const value = legacy[raw] || raw;
+    const value = raw.split('?')[0].replace(/\/+$/,'')==='/doi-ngu-chuyen-gia' ? '/ve-chuyen-trang?muc=doi-ngu' : legacy[raw] || raw;
     try {const parsed = new URL(value.startsWith('/') ? value : '/not-found', 'https://preview.invalid'); return {path:parsed.pathname.replace(/\/$/,'') || '/',q:parsed.searchParams};}
     catch {return {path:'/not-found',q:new URLSearchParams()};}
   };
@@ -73,7 +73,7 @@
     const related=DATA.articles.filter(x=>x.id!==a.id&&(x.topic===a.topic||x.situations.some(s=>a.situations.includes(s)))).slice(0,3);
     return `<div class="container page">${crumb('Thư viện',['Tra cứu','#/tra-cuu'])}<header class="article-head">${meta(a)}<h1>${esc(a.title)}</h1><p>${esc(a.summary)}</p></header><div class="article-meta"><div class="meta"><span>${esc(topicName(a.topic))}</span></div><div class="button-row"><button class="button secondary" data-save="${a.id}">${icon('bookmark')}Lưu bài</button><button class="button quiet" data-copy>${icon('link')}Chia sẻ</button></div></div><div class="article-layout"><article class="article-body"><section class="answer-box" id="answer"><h2>Thông tin cần làm rõ</h2><p>Để tìm hiểu đúng thủ tục, bạn nên xác định những thông tin sau:</p><ul class="clean-list">${a.checks.map(t=>`<li>${icon('check')}<span>${esc(t)}</span></li>`).join('')}</ul></section><section class="article-section" id="questions"><h2>Hỏi về trường hợp của bạn</h2><p>Nêu công việc cần giải quyết, nơi thực hiện và điều bạn còn băn khoăn. Không gửi số hộ chiếu, thông tin ngân hàng hoặc giấy tờ cá nhân trong câu hỏi.</p><a class="button" href="${url('/hoi-dap-ai',{bai:a.id})}">Đặt câu hỏi ${icon('arrow')}</a></section>${related.length?`<section class="article-section"><h2>Nội dung liên quan</h2><div class="question-list">${related.map(questionRow).join('')}</div></section>`:''}</article><aside class="article-aside"><details class="toc" open><summary>Trong bài viết</summary><nav aria-label="Mục lục"><a href="${articleURL(a)}" data-scroll="answer">Thông tin cần làm rõ</a><a href="${articleURL(a)}" data-scroll="questions">Đặt câu hỏi</a></nav></details></aside></div></div>`;
   }
-  function aboutView(){return `<div class="container page">${crumb('Giới thiệu')}${heading('Về Luật Việt Đức','Thông tin pháp luật Việt Nam – Đức dành cho cộng đồng người Việt tại Đức.')}<div class="prose"><p>Luật Việt Đức giúp bạn xác định chủ đề cần tìm hiểu, chọn hệ thống pháp luật liên quan và tiếp cận các nguồn thông tin được dẫn trong từng bài viết.</p><h2>Bắt đầu từ thư viện</h2><p>Nhánh pháp luật Việt Nam có 16 lĩnh vực và 303 chủ đề được tổ chức theo danh mục gốc. Đây là hệ thống định hướng tra cứu, chưa phải 303 bài tư vấn hoặc câu trả lời đã kiểm duyệt. Nhánh pháp luật Đức có 16 lĩnh vực tương ứng; nội dung chi tiết đang được biên tập.</p><a class="text-link" href="#/tra-cuu">Tra cứu thư viện ${icon('arrow')}</a><h2>Đọc tin cùng nguồn gốc</h2><p>Tin pháp luật giới thiệu các chính sách và quy định tại Đức, kèm ngày và đường dẫn nguồn để bạn đối chiếu. Nội dung bài viết được giữ theo nguồn công bố.</p><h2>Tìm hiểu đội ngũ chuyên môn</h2><p>Trang đội ngũ giới thiệu luật sư và chuyên gia theo hồ sơ công khai của Bizlawyer, có liên kết tới hồ sơ gốc.</p><h2>Trạng thái hỏi đáp</h2><p>Hỏi đáp hiện gợi ý các chủ đề liên quan trong thư viện. Trả lời AI và gửi câu hỏi tới chuyên gia chưa khả dụng.</p><a class="text-link" href="#/lien-he">Thông tin liên hệ ${icon('arrow')}</a></div></div>`;}
+  function aboutView(){return `<div class="container page lvd-about-intro">${crumb('Giới thiệu')}${heading('Về Luật Việt Đức','Hỏi đáp và thông tin pháp luật dành cho cộng đồng người Việt tại Đức.')}<div class="prose"><p>Hai nhánh pháp luật Việt Nam và Đức, mỗi nhánh 16 lĩnh vực. Danh mục Việt Nam gồm 303 chủ đề.</p><div class="button-row"><a class="button" href="#/hoi-dap-ai">Đặt câu hỏi ${icon('arrow')}</a><a class="button secondary" href="#/tra-cuu">Thư viện</a></div></div></div>`;}
   function field(name,label,type='text',value='',optional=false){return `<div class="field"><label for="${name}">${label}${optional?' <span class="muted">(không bắt buộc)</span>':' <span class="required">*</span>'}</label><input id="${name}" name="${name}" type="${type}" value="${esc(value)}" ${optional?'':'required'} ${type==='email'?'maxlength="254"':'maxlength="120"'} aria-describedby="${name}-error" autocomplete="${type==='email'?'email':name==='name'?'name':'off'}"><div class="error" id="${name}-error" role="alert"></div></div>`;}
   function contactView(route){
     const d=state.draft,context=article(route.q.get('bai')),purpose=route.q.get('muc-dich')||d.purpose||'question';
@@ -98,7 +98,7 @@
     else if(['/tra-cuu','/chu-de','/hoi-dap','/tim-kiem'].includes(route.path)||route.path.startsWith('/chu-de/')) html=browseView(route);
     else if(/^\/(hoi-dap|bai-viet|tin)\//.test(route.path)) html=articleView(article(route.path.split('/')[2]));
     else if(['/cam-nang','/goc-viet-kieu','/tin-phap-luat'].includes(route.path)) html=window.LVD_EDITORIAL.listing(route);
-    else if(route.path==='/ve-chuyen-trang') html=(window.LVD_I18N?.get()==='de'?window.LVD_FEATURES.aboutGerman():aboutView())+window.LVD_FEATURES.teamTeaser();
+    else if(route.path==='/ve-chuyen-trang') html=(window.LVD_I18N?.get()==='de'?window.LVD_FEATURES.aboutGerman():aboutView())+window.LVD_FEATURES.teamSection();
     else if(['/gui-cau-hoi','/lien-he'].includes(route.path)) html=contactView(route);
     else if(['/da-tiep-nhan','/lien-he/da-tiep-nhan'].includes(route.path)) html=successView();
     else if(['/dang-nhap','/tai-khoan/dang-nhap'].includes(route.path)) html=authView();
@@ -112,6 +112,10 @@
     const h1=main.querySelector('h1'); document.title=(h1?h1.textContent:'Luật Việt Đức')+' | Luật Việt Đức';
     document.querySelectorAll('.desktop-nav a').forEach(a=>{const active=a.dataset.nav==='lookup'?/\/(tra-cuu|tim-kiem|chu-de|phap-luat|hoi-dap)/.test(route.path):a.dataset.nav==='news'?route.path==='/tin-tuc'||route.path.startsWith('/tin/'):a.dataset.nav==='life'?['/song-o-duc','/cam-nang','/goc-viet-kieu'].includes(route.path)||route.path.startsWith('/bai-viet/'):a.dataset.nav==='community'?route.path==='/cong-dong':false; if(active) a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
     main.focus({preventScroll:true});window.scrollTo(0,0);
+    if(route.path==='/ve-chuyen-trang'&&route.q.get('muc')==='doi-ngu'){
+      const section=document.getElementById('doi-ngu');
+      section?.scrollIntoView({block:'start'});section?.focus({preventScroll:true});
+    }
     document.getElementById('page-announcement').textContent=h1?h1.textContent:'Nội dung đã mở';
   }
   function setError(form,id,message){const input=form.querySelector('#'+id),error=form.querySelector('#'+id+'-error'); if(input)input.setAttribute('aria-invalid',message?'true':'false'); if(error)error.textContent=message;}

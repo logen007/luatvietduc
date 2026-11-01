@@ -1,4 +1,4 @@
-"""Regression checks for the illustrated library-led layout.
+"""Regression checks for the MindCloud-aligned chat-led layout.
 Preserves the legal catalogue, truthful form status and source image credits.
 The visual reference is not bundled in the public website.
 """
@@ -38,26 +38,9 @@ with sync_playwright() as p:
             assert text['x']+text['width']<=icon['x']-4,(text,icon)
             assert icon['x']+icon['width']<=rect['x']+rect['width']-5,(rect,icon)
             assert card.locator(':scope > svg').count()==0
-    def home_art(width):
-        selectors=[('.lvd-hero-art img',1),('.lvd-home-countries img',2),('.lvd-team-preview img',3)]
-        for selector,expected in selectors:
-            images=page.locator(selector)
-            expect(images).to_have_count(expected)
-            for image in images.all():
-                assert image.get_attribute('src').startswith('assets/'),(selector,'local asset expected')
-                image.scroll_into_view_if_needed()
-                image.evaluate('(el)=>el.decode()')
-                assert image.evaluate('(el)=>el.naturalWidth>0 && el.naturalHeight>0'),(selector,'decoded source image')
-                rect=image.bounding_box()
-                assert rect and rect['width']>32 and rect['height']>32,(width,selector,'visible illustration')
-                bounds=image.locator('..').bounding_box() if selector=='.lvd-home-countries img' else rect
-                assert bounds['x']>=-1 and bounds['x']+bounds['width']<=width+1,(width,selector,'image frame outside viewport',bounds)
-        copy=page.locator('.s-hero-copy').bounding_box()
-        art=page.locator('.lvd-hero-art').bounding_box()
-        separated=(copy['x']+copy['width']<=art['x']+1 or art['x']+art['width']<=copy['x']+1
-                   or copy['y']+copy['height']<=art['y']+1 or art['y']+art['height']<=copy['y']+1)
-        assert separated,(width,'hero copy and illustration should not obscure each other',copy,art)
-        assert len(page.locator('#main').inner_text().split())<=320,(width,'homepage copy budget')
+    def home_structure():
+        assert page.locator('.lvd-team-teaser,.lvd-team-section,.lvd-team-preview').count()==0
+        assert page.locator('.lvd-partner-attribution').count()==0
         page.evaluate('scrollTo(0,0)')
     for width in [320,360,390,768,1024,1440]:
         page.set_viewport_size({'width':width,'height':1000})
@@ -69,18 +52,19 @@ with sync_playwright() as p:
             assert page.locator('.s-footer-wordmark').count()==0
             header=page.locator('.site-header .container').bounding_box()
             if name=='home':
-                assert page.locator('.s-hero-grid #home-search').count()==1
+                assert page.locator('.s-hero-grid .s-ask-panel #home-ask').count()==1
+                assert page.locator('#home-search,#home-search-query').count()==0
                 assert page.locator('.s-news-grid').count()==1
                 assert page.locator('.s-guides-section,a[href="#/song-o-duc"]').count()==0
                 assert page.locator('.s-library-links > a').count()==8
                 assert page.locator('.press-photo img').count()==3
                 assert page.locator('.lvd-home-countries a').count()==2
-                home_art(width)
+                home_structure()
                 library=page.locator('.s-library').bounding_box()
                 news=page.locator('.s-news-section').bounding_box()
                 assert library['y']+library['height']<=news['y']+1,(width,'library should precede news')
-                assert page.locator('#home-search-query').bounding_box()['y']<1000
-                assert float(page.locator('#home-search-query').evaluate('(e)=>getComputedStyle(e).fontSize').replace('px',''))>=16
+                assert page.locator('#home-question').bounding_box()['y']<1000
+                assert float(page.locator('#home-question').evaluate('(e)=>getComputedStyle(e).fontSize').replace('px',''))>=16
                 if width==1440:assert header['width']>=1100
             if name=='catalog':
                 assert page.locator('.catalog-group').count()==16
@@ -92,7 +76,14 @@ with sync_playwright() as p:
             if name in ('privacy','terms'):
                 assert page.locator('.lvd-legal-section').count()==11
             if name=='contact':assert page.locator('#contact-form').count()==1
-            if out and width in (390,1440) and name in ('home','catalog','news','chat','contact'):
+            if name=='about':
+                assert page.locator('.lvd-team-section .lvd-expert-card').count()==9
+                portraits=page.locator('.lvd-team-section .lvd-expert-portrait')
+                assert portraits.count()==3
+                for image in portraits.all():
+                    image.scroll_into_view_if_needed();image.evaluate('(el)=>el.decode()')
+                    assert image.evaluate('(el)=>el.naturalWidth>0')
+            if out and width in (390,1440) and name in ('home','catalog','news','chat','contact','about'):
                 for image in page.locator('.press-photo img').all():
                     image.scroll_into_view_if_needed();image.evaluate('(e)=>e.decode()')
                     assert image.evaluate('(e)=>getComputedStyle(e).filter')=='none'
@@ -101,15 +92,10 @@ with sync_playwright() as p:
             report.append({'width':width,'route':route,'status':'passed'})
         print('PASS: 12 routes at',width,flush=True)
     page.set_viewport_size({'width':1440,'height':1000});go('/')
-    page.locator('#home-search-query').focus()
-    expect(page.locator('#home-search-query')).to_be_focused()
-    page.locator('#home-search-query').fill('ủy quyền')
-    page.locator('#home-search-query').press('Enter')
-    expect(page.locator('#main h1')).to_contain_text('Kết quả tìm kiếm')
-    assert page.locator('.result-item').count()>0
-    go('/hoi-dap-ai')
-    page.locator('#chat-question').fill('Tôi muốn tìm hiểu việc ủy quyền quản lý nhà.')
-    page.locator('#chat-compose [type=submit]').click()
+    page.locator('#home-question').focus()
+    expect(page.locator('#home-question')).to_be_focused()
+    page.locator('#home-question').fill('Tôi muốn tìm hiểu việc ủy quyền quản lý nhà.')
+    page.locator('#home-ask [type=submit]').click()
     expect(page.locator('.chat-message.user')).to_have_count(1)
     expect(page.locator('#chat-log')).to_contain_text('Chưa thể trả lời')
     page.locator('.chat-top [data-handoff]').click()

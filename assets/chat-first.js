@@ -20,7 +20,7 @@
   function newsCTA(s){return `<section class="news-to-chat"><h2>Bạn cần hỏi thêm?</h2><a class="button" href="#/hoi-dap-ai?bai=${encodeURIComponent(s.id)}">Hỏi về bài viết ${icon('right')}</a></section>`;}
   const oldStory=E.story;
   E.story=(s,c)=>oldStory(s,c).replace('<section class="news-sources">',newsCTA(s)+'<section class="news-sources">');
-  // steel-ui.js owns the library-first homepage.
+  // steel-ui.js owns the chat-first homepage.
   function sourceCard(a){return `<a class="chat-source ${a.catalog?'catalog-source':''}" href="${contextURL(a)}"><small>${a.catalog?'CHỦ ĐỀ LIÊN QUAN':'NỘI DUNG LIÊN QUAN'}</small><strong>${esc(a.title)} ${icon('right')}</strong><span>${a.catalog?'Pháp luật Việt Nam · '+esc(C.getGroup(a.groupId).title):esc(a.country)}</span></a>`;}
   function message(m){
     if(m.role==='user')return `<div class="chat-message user"><div class="chat-message-body">${esc(m.text)}</div></div>`;
@@ -67,6 +67,6 @@
   window.LVD_CHAT={
     accepts:r=>['/hoi-dap-ai','/chuyen-vien','/thu-vien-quan-tri','/so-do'].includes(r.path),
     view:r=>r.path==='/hoi-dap-ai'?conversation(r):r.path==='/chuyen-vien'?workspace('Hộp thư chuyên gia'):r.path==='/thu-vien-quan-tri'?workspace('Quản lý kiến thức'):process(),
-    afterRender(r,render){state.render=render;document.body.classList.toggle('chat-mode',r.path==='/hoi-dap-ai');document.querySelectorAll('.desktop-nav a').forEach(a=>{const active=a.dataset.nav==='chat'?r.path==='/hoi-dap-ai':a.dataset.nav==='lookup'?/^\/(tra-cuu|chu-de|hoi-dap|tim-kiem|phap-luat)(\/|$)/.test(r.path):a.dataset.nav==='news'?/^\/(tin|tin-tuc|bai-viet|cong-dong)(\/|$)/.test(r.path):a.dataset.nav==='team'?r.path==='/doi-ngu-chuyen-gia':false;if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});if(r.path==='/hoi-dap-ai'&&state.pendingQuestion){const q=state.pendingQuestion;state.pendingQuestion='';queueMicrotask(()=>submitQuestion(q));}}
+    afterRender(r,render){state.render=render;document.body.classList.toggle('chat-mode',r.path==='/hoi-dap-ai');document.querySelectorAll('.desktop-nav a').forEach(a=>{const active=a.dataset.nav==='chat'?r.path==='/'||r.path==='/hoi-dap-ai':a.dataset.nav==='lookup'?/^\/(tra-cuu|chu-de|hoi-dap|tim-kiem|phap-luat)(\/|$)/.test(r.path):a.dataset.nav==='news'?/^\/(tin|tin-tuc|bai-viet|cong-dong)(\/|$)/.test(r.path):a.dataset.nav==='about'?['/ve-chuyen-trang','/doi-ngu-chuyen-gia'].includes(r.path):false;if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});if(r.path==='/hoi-dap-ai'&&state.pendingQuestion){const q=state.pendingQuestion;state.pendingQuestion='';queueMicrotask(()=>submitQuestion(q));}}
   };
 })();
