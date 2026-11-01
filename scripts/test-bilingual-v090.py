@@ -20,13 +20,14 @@ with sync_playwright() as pw:
             page.wait_for_timeout(115)
             page.wait_for_selector('#main h1')
             assert page.evaluate('document.documentElement.scrollWidth')<=width+2,(width,path,'overflow',page.evaluate('document.documentElement.scrollWidth'))
-        for path in ['/','/tra-cuu','/phap-luat/viet-nam','/phap-luat/duc','/phap-luat/duc/thue','/doi-ngu-chuyen-gia','/dang-ky-thong-tin','/lien-he','/chinh-sach-thong-tin','/dieu-khoan','/hoi-dap-ai','/tin-tuc']:
+        for path in ['/','/tra-cuu','/phap-luat/viet-nam','/phap-luat/duc','/phap-luat/duc/thue','/doi-ngu-chuyen-gia','/lien-he','/chinh-sach-thong-tin','/dieu-khoan','/hoi-dap-ai','/tin-tuc']:
             go(path)
             assert page.locator('.lvd-footer-language button[data-language]').count()==2
             if path=='/':
                 assert page.locator('#home-ask').count()==1
                 assert page.locator('.s-hero-grid').count()==1
-                assert page.locator('.lvd-partner-tile').count()==1
+                assert page.locator('.lvd-partner-tile').count()==2
+                assert 'không phải xác nhận' in page.locator('.lvd-partner-section').inner_text()
                 assert page.locator('.lvd-team-teaser').count()==1
                 assert page.locator('.lvd-home-countries a').count()==2
             if path=='/tra-cuu':
@@ -46,11 +47,6 @@ with sync_playwright() as pw:
                 assert page.locator('.lvd-expert-card').count()==9
                 assert page.locator('.lvd-team-context').count()==1
                 assert 'Dương Thành Tâm' in page.locator('.lvd-expert-grid').inner_text()
-            if path=='/dang-ky-thong-tin':
-                assert page.locator('#lvd-visitor-form input[required]').count()==0
-                page.locator('#lvd-visitor-form input[name=name]').fill('Test only')
-                page.locator('#lvd-visitor-form button[type=submit]').click()
-                assert 'tạm' in page.locator('#lvd-visitor-result').inner_text()
             if path=='/hoi-dap-ai':
                 assert page.get_by_text('Gặp chuyên gia',exact=True).count()>=1
             if path=='/':
@@ -62,6 +58,8 @@ with sync_playwright() as pw:
                 assert page.locator('.lvd-legal-section').count()==11
             count+=1;print('PASS',width,path,flush=True)
         go('/')
+        assert page.get_by_role('link',name='Cẩm nang tại Đức',exact=True).count()==0
+        assert page.get_by_role('link',name='Để lại thông tin',exact=False).count()==0
         page.locator('[data-language=de]').click()
         page.wait_for_timeout(160)
         assert page.locator('html').get_attribute('lang')=='de'
