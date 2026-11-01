@@ -98,7 +98,7 @@
     else if(['/tra-cuu','/chu-de','/hoi-dap','/tim-kiem'].includes(route.path)||route.path.startsWith('/chu-de/')) html=browseView(route);
     else if(/^\/(hoi-dap|bai-viet|tin)\//.test(route.path)) html=articleView(article(route.path.split('/')[2]));
     else if(['/cam-nang','/goc-viet-kieu','/tin-phap-luat'].includes(route.path)) html=window.LVD_EDITORIAL.listing(route);
-    else if(route.path==='/ve-chuyen-trang') html=aboutView()+window.LVD_FEATURES.teamTeaser();
+    else if(route.path==='/ve-chuyen-trang') html=(window.LVD_I18N?.get()==='de'?window.LVD_FEATURES.aboutGerman():aboutView())+window.LVD_FEATURES.teamTeaser();
     else if(['/gui-cau-hoi','/lien-he'].includes(route.path)) html=contactView(route);
     else if(['/da-tiep-nhan','/lien-he/da-tiep-nhan'].includes(route.path)) html=successView();
     else if(['/dang-nhap','/tai-khoan/dang-nhap'].includes(route.path)) html=authView();
