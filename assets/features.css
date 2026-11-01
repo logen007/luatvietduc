@@ -80,15 +80,18 @@
 .lvd-partner-section .lvd-feature-heading h2{font-size:clamp(27px,3vw,37px);margin:10px 0}
 .lvd-partner-section .lvd-feature-heading p{font-size:13px;color:#796b66}
 .lvd-partner-slider{margin-top:22px;overflow:hidden}
-.lvd-partner-track{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin;padding:4px 0 12px}
-.lvd-partner-tile{flex:0 0 320px;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:space-between;gap:30px;background:#f8f5ed;border:1px solid #e5ddd1;border-radius:11px;padding:26px;min-height:170px}
-.lvd-partner-wordmark{font:700 24px var(--font-sans);letter-spacing:-.055em;color:#46323e}
-.lvd-partner-wordmark span{color:#b0643e}
-.lvd-partner-wordmark small{font-size:9px;display:block;margin-top:5px;letter-spacing:.23em;color:#695e63}
+.lvd-partner-slider:focus-visible{outline:2px solid #9e6448;outline-offset:4px;border-radius:11px}
+.lvd-partner-track{display:flex;gap:14px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;scrollbar-width:thin;padding:4px 0 12px;cursor:grab}
+.lvd-partner-track:active{cursor:grabbing}
+.lvd-partner-tile{flex:0 0 min(320px,85vw);scroll-snap-align:start;display:flex;flex-direction:column;justify-content:space-between;gap:20px;background:#f8f5ed;border:1px solid #e5ddd1;border-radius:11px;padding:26px;min-height:170px;color:inherit}
+.lvd-partner-tile:hover{border-color:#c9ae9b;background:#fffaf4}
+.lvd-partner-source-label{font:500 10px var(--font-mono);letter-spacing:.11em;color:#806e7b}
+.lvd-partner-name{font:600 22px/1.15 var(--font-sans);letter-spacing:-.035em;color:#46323e}
 .lvd-partner-description{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#786e68}
 .lvd-partner-description svg{height:17px;width:17px}
 .lvd-partner-controls{display:flex;gap:10px;justify-content:flex-end}
 .lvd-partner-controls button{border:1px solid #d6cdc4;border-radius:8px;background:#fff;min-height:44px;min-width:44px;cursor:pointer}
+.lvd-partner-controls button:focus-visible{outline:2px solid #9e6448;outline-offset:2px}
 /* Voluntary visitor info (stored only in current JS memory). */
 .lvd-visitor-hero{padding:clamp(29px,5vw,56px);background:linear-gradient(112deg,#e4edf0,#efe7f4);border:1px solid #d9dcea;border-radius:12px;margin-bottom:24px}
 .lvd-visitor-hero h1{font-size:clamp(30px,4.3vw,51px);font-weight:475;letter-spacing:-.04em;margin:18px 0}
