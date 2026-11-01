@@ -26,8 +26,9 @@ with sync_playwright() as pw:
             if path=='/':
                 assert page.locator('#home-ask').count()==1
                 assert page.locator('.s-hero-grid').count()==1
-                assert page.locator('.lvd-partner-tile').count()==2
-                assert 'không phải xác nhận' in page.locator('.lvd-partner-section').inner_text()
+                assert page.locator('.lvd-partner-tile').count()==13
+                assert page.locator('.lvd-partner-tile img').count()==13
+                assert 'không xác nhận quan hệ đối tác' in page.locator('.lvd-partner-section').inner_text()
                 assert page.locator('.lvd-team-teaser').count()==1
                 assert page.locator('.lvd-home-countries a').count()==2
             if path=='/tra-cuu':
