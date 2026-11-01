@@ -34,6 +34,7 @@
     'Nhận thông tin':'Informationen erhalten',
     'Để lại thông tin':'Kontaktdaten hinterlassen',
     'Không bắt buộc':'Freiwillig',
+    '(tự nguyện)':'(freiwillig)',
     'Thông tin tự nguyện':'Freiwillige Angaben',
     'Đối tác chuyên môn':'Fachpartner',
     'Gửi lời nhắn':'Nachricht schreiben',
