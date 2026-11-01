@@ -77,13 +77,13 @@
   function field(name,label,type='text',value='',optional=false){return `<div class="field"><label for="${name}">${label}${optional?' <span class="muted">(không bắt buộc)</span>':' <span class="required">*</span>'}</label><input id="${name}" name="${name}" type="${type}" value="${esc(value)}" ${optional?'':'required'} ${type==='email'?'maxlength="254"':'maxlength="120"'} aria-describedby="${name}-error" autocomplete="${type==='email'?'email':name==='name'?'name':'off'}"><div class="error" id="${name}-error" role="alert"></div></div>`;}
   function contactView(route){
     const d=state.draft,context=article(route.q.get('bai')),purpose=route.q.get('muc-dich')||d.purpose||'question';
-    return window.LVD_LEGAL.contact({draft:d,context,purpose,topics:DATA.topics});
+    return (window.LVD_I18N?.get()==='de'?window.LVD_LEGAL_DE:window.LVD_LEGAL).contact({draft:d,context,purpose,topics:DATA.topics});
   }
   function successView(){return `<div class="container page">${crumb('Yêu cầu')}${heading('Chưa có yêu cầu được xác nhận','Trở lại biểu mẫu để kiểm tra nội dung và gửi yêu cầu.')}<a class="button" href="#/gui-cau-hoi">Trở lại biểu mẫu ${icon('arrow')}</a></div>`;}
   function authView(){return `<div class="container page"><div class="auth-wrap"><h1>Đăng nhập</h1><p>Nhập email để nhận mã đăng nhập.</p><div class="form-card"><form id="email-form" novalidate>${field('login-email','Email','email',state.pending?.email||'')}<button class="button full" type="submit">Nhận mã đăng nhập ${icon('arrow')}</button></form></div><a class="text-link" href="#/tra-cuu">Tiếp tục đọc không cần đăng nhập ${icon('arrow')}</a></div></div>`;}
   function accountView(){return authView();}
   function threadView(){return authView();}
-  function policyView(kind){return kind==='privacy'?window.LVD_LEGAL.privacy():window.LVD_LEGAL.terms();}
+  function policyView(kind){const p=window.LVD_I18N?.get()==='de'?window.LVD_LEGAL_DE:window.LVD_LEGAL;return kind==='privacy'?p.privacy():p.terms();}
   function reviewView(){return `<div class="container page">${crumb('Trợ giúp')}${heading('Trợ giúp')}<div class="prose"><h2>Đặt câu hỏi</h2><p>Nêu vấn đề cần giải quyết và quốc gia liên quan. Bạn có thể hỏi tiếp trong cùng cuộc trò chuyện.</p><h2>Tra cứu kiến thức</h2><p>Nhập từ khóa trong thư viện hoặc chọn một lĩnh vực để xem nội dung liên quan.</p><h2>Hỏi từ bài viết</h2><p>Chọn “Hỏi về bài viết” ở cuối bài. Tên bài viết sẽ được giữ trong cuộc trò chuyện.</p></div></div>`;}
   function notFound(){return `<div class="container page not-found">${heading('Không tìm thấy trang','Đường dẫn có thể đã thay đổi hoặc nội dung không còn được cung cấp.')}<div class="button-row"><a class="button secondary" href="#/">Về trang chủ</a><a class="button" href="#/tra-cuu">Tra cứu thư viện ${icon('arrow')}</a></div></div>`;}
 
