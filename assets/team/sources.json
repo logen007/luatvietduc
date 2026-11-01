@@ -1,0 +1,38 @@
+{
+  "source": "Bizlawyer & Partners public professional profiles",
+  "retrievedOn": "2026-11-01",
+  "usage": "Identify the named professionals with links to their official profiles. Portraits are source-provided grayscale images, resized proportionally and compressed to WebP; no AI generation, retouching or cropping.",
+  "rights": "Original portraits remain the property of their respective rights holders. Public availability is not asserted to be an open-content licence.",
+  "portraits": [
+    {
+      "name": "Dương Thành Tâm",
+      "profile": "https://bizlawyer.vn/vi/team/duong-thanh-tam/",
+      "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Duong-Thanh-Tam.jpg",
+      "verification": "Official profile heading and linked portrait alternative text name Dương Thành Tâm.",
+      "originalDimensions": [892, 1116],
+      "file": "assets/team/duong-thanh-tam.webp",
+      "dimensions": [639, 800],
+      "bytes": 20938
+    },
+    {
+      "name": "Võ Nguyễn Bảo Trâm",
+      "profile": "https://bizlawyer.vn/vi/team/vo-nguyen-bao-tram/",
+      "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Vo-Nguyen-Bao-Tram-1.jpg",
+      "verification": "Official profile heading and linked portrait alternative text name Võ Nguyễn Bảo Trâm.",
+      "originalDimensions": [800, 1001],
+      "file": "assets/team/vo-nguyen-bao-tram.webp",
+      "dimensions": [639, 800],
+      "bytes": 27596
+    },
+    {
+      "name": "Nguyễn Xuân Phước",
+      "profile": "https://bizlawyer.vn/vi/team/nguyen-xuan-phuoc/",
+      "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Nguyen-Xuan-Phuoc.jpg",
+      "verification": "Official profile page title, og:image, schema.org ImageObject caption, and visible image alt name Nguyễn Xuân Phước.",
+      "originalDimensions": [800, 1001],
+      "file": "assets/team/nguyen-xuan-phuoc.webp",
+      "dimensions": [639, 800],
+      "bytes": 65340
+    }
+  ]
+}

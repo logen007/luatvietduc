@@ -1,0 +1,57 @@
+{
+  "collection": "Luật Việt Đức — original editorial illustrations",
+  "type": "Original AI-generated 3D editorial illustrations",
+  "generator": "OpenAI Imagegen built-in tool",
+  "generation_date": "2026-11-01",
+  "prompt_set": "prompts.md",
+  "description": "Symbolic paper-and-ceramic still lifes created for this website. These are not photographs of real documents, real legal instruments or government emblems.",
+  "constraints": "No text, logos, seals, government emblems, flags or personal identities were requested.",
+  "optimization": {
+    "format": "WebP",
+    "quality": 84,
+    "method": 6,
+    "changes": "Mechanical proportional resize and format conversion only; no cropping or content edits."
+  },
+  "assets": [
+    {
+      "file": "hero-bridge-640.webp",
+      "subject": "A sculptural bridge between burgundy and sage books",
+      "width": 640,
+      "height": 427,
+      "bytes": 18126,
+      "original": "work/art-source/hero-bridge.png",
+      "original_width": 1536,
+      "original_height": 1024
+    },
+    {
+      "file": "hero-bridge-1200.webp",
+      "subject": "A sculptural bridge between burgundy and sage books",
+      "width": 1200,
+      "height": 800,
+      "bytes": 73632,
+      "original": "work/art-source/hero-bridge.png",
+      "original_width": 1536,
+      "original_height": 1024
+    },
+    {
+      "file": "vietnam-folio.webp",
+      "subject": "Burgundy folio with a symbolic Vietnamese-inspired roofed gate",
+      "width": 640,
+      "height": 640,
+      "bytes": 31170,
+      "original": "work/art-source/vietnam-folio.png",
+      "original_width": 1254,
+      "original_height": 1254
+    },
+    {
+      "file": "germany-folio.webp",
+      "subject": "Sage folio with a symbolic classical colonnaded gate",
+      "width": 640,
+      "height": 640,
+      "bytes": 26918,
+      "original": "work/art-source/germany-folio.png",
+      "original_width": 1254,
+      "original_height": 1254
+    }
+  ]
+}

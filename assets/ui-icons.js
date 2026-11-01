@@ -3,6 +3,7 @@
    Decorative UI only: neutral stroke, currentColor, and no external libraries. */
 (() => {
  const paths={
+  search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
   family:'<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20v-2a5.5 5.5 0 0 1 11 0v2M14 14a4.5 4.5 0 0 1 7.5 3.5V20"/>',
   globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 4.5-5 13.5 0 18M12 3c5 4.5 5 13.5 0 18"/>',
   file:'<path d="M6 2.5h8l5 5V21H6zM14 2.5v5h5M9 12h7M9 16h7"/>',

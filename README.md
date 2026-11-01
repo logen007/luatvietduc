@@ -1,8 +1,14 @@
-# Luật Việt Đức — 1.0.0
+# Luật Việt Đức — 1.1.0
 
 [Website](https://logen007.github.io/luatvietduc/) · [Thư viện Việt Nam](https://logen007.github.io/luatvietduc/#/phap-luat/viet-nam) · [Pháp luật Đức](https://logen007.github.io/luatvietduc/#/phap-luat/duc)
 
-Chuyên trang thông tin pháp luật cho cộng đồng người Việt tại Đức. Trang chủ ưu tiên tìm kiếm danh mục, chọn hệ thống pháp luật, lĩnh vực, tin tức và đội ngũ Bizlawyer. Thiết kế tham khảo nhịp bố cục của Terms.so, dùng màu đỏ trầm, nền giấy ấm, Geist và Geist Mono.
+Chuyên trang thông tin pháp luật cho cộng đồng người Việt tại Đức. Trang chủ ưu tiên tìm kiếm, hai hệ thống pháp luật, lĩnh vực, tin tức và đội ngũ Bizlawyer. Thiết kế lấy cảm hứng từ bố cục hình–chữ của Privy, Ferndesk và Weave, dùng màu đỏ trầm, giấy ấm, Geist và Geist Mono. Nội dung trang chủ gói trong 320 từ, kể cả các tiêu đề tin gốc và ghi nguồn.
+
+## Hình ảnh 1.1
+
+- Ba minh họa 3D nguyên bản: cầu nối tri thức, hồ sơ Việt Nam và hồ sơ Đức. Tạo bằng Imagegen, là hình biểu trưng, không phải tài liệu hoặc biểu trưng nhà nước. WebP responsive 18–74 KB; prompt và nguồn ở `assets/illustrations/`.
+- Ba chân dung chính thức của Dương Thành Tâm, Võ Nguyễn Bảo Trâm và Nguyễn Xuân Phước, dẫn hồ sơ nguồn Bizlawyer; giữ ảnh xám gốc, chỉ nén WebP. Nguồn ở `assets/team/sources.json`.
+- Logo và ảnh tin vẫn giữ nguồn hiện có. Không tạo lại logo hoặc khuôn mặt nhân sự bằng AI.
 
 ## Nội dung và trạng thái dịch vụ
 

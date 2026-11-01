@@ -1,4 +1,4 @@
-"""Regression checks for the library-led layout with Terms-inspired styling.
+"""Regression checks for the illustrated library-led layout.
 Preserves the legal catalogue, truthful form status and source image credits.
 The visual reference is not bundled in the public website.
 """
@@ -38,6 +38,27 @@ with sync_playwright() as p:
             assert text['x']+text['width']<=icon['x']-4,(text,icon)
             assert icon['x']+icon['width']<=rect['x']+rect['width']-5,(rect,icon)
             assert card.locator(':scope > svg').count()==0
+    def home_art(width):
+        selectors=[('.lvd-hero-art img',1),('.lvd-home-countries img',2),('.lvd-team-preview img',3)]
+        for selector,expected in selectors:
+            images=page.locator(selector)
+            expect(images).to_have_count(expected)
+            for image in images.all():
+                assert image.get_attribute('src').startswith('assets/'),(selector,'local asset expected')
+                image.scroll_into_view_if_needed()
+                image.evaluate('(el)=>el.decode()')
+                assert image.evaluate('(el)=>el.naturalWidth>0 && el.naturalHeight>0'),(selector,'decoded source image')
+                rect=image.bounding_box()
+                assert rect and rect['width']>32 and rect['height']>32,(width,selector,'visible illustration')
+                bounds=image.locator('..').bounding_box() if selector=='.lvd-home-countries img' else rect
+                assert bounds['x']>=-1 and bounds['x']+bounds['width']<=width+1,(width,selector,'image frame outside viewport',bounds)
+        copy=page.locator('.s-hero-copy').bounding_box()
+        art=page.locator('.lvd-hero-art').bounding_box()
+        separated=(copy['x']+copy['width']<=art['x']+1 or art['x']+art['width']<=copy['x']+1
+                   or copy['y']+copy['height']<=art['y']+1 or art['y']+art['height']<=copy['y']+1)
+        assert separated,(width,'hero copy and illustration should not obscure each other',copy,art)
+        assert len(page.locator('#main').inner_text().split())<=320,(width,'homepage copy budget')
+        page.evaluate('scrollTo(0,0)')
     for width in [320,360,390,768,1024,1440]:
         page.set_viewport_size({'width':width,'height':1000})
         for name,route in routes:
@@ -54,6 +75,7 @@ with sync_playwright() as p:
                 assert page.locator('.s-library-links > a').count()==8
                 assert page.locator('.press-photo img').count()==3
                 assert page.locator('.lvd-home-countries a').count()==2
+                home_art(width)
                 library=page.locator('.s-library').bounding_box()
                 news=page.locator('.s-news-section').bounding_box()
                 assert library['y']+library['height']<=news['y']+1,(width,'library should precede news')

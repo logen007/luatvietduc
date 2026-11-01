@@ -37,3 +37,5 @@ jobs:
         run: python3 scripts/test-bilingual-v090.py
       - name: Check logo carousel motion, pause and manual navigation
         run: python3 scripts/test-slider.py
+      - name: Check illustrated homepage and selected text contrast
+        run: python3 scripts/test-color-theme.py

@@ -59,9 +59,16 @@ with sync_playwright() as p:
             expect(page.locator('#main h1')).to_have_count(1)
             assert page.evaluate('document.documentElement.scrollWidth') <= width+1, (width, route)
             if route == '/':
-                assert 'gradient' in page.locator('.s-hero').evaluate('e=>getComputedStyle(e).backgroundImage')
+                hero_art=page.locator('.lvd-hero-art img')
+                expect(hero_art).to_have_count(1)
+                hero_art.evaluate('(e)=>e.decode()')
+                assert hero_art.evaluate('(e)=>e.naturalWidth>=300 && e.getBoundingClientRect().width>32')
+                heading_size=float(page.locator('.s-hero h1').evaluate('e=>getComputedStyle(e).fontSize').replace('px',''))
+                assert heading_size>=36,(width,'readable hero title',heading_size)
+                search_size=float(page.locator('#home-search-query').evaluate('e=>getComputedStyle(e).fontSize').replace('px',''))
+                assert search_size>=16,(width,'mobile-safe search input',search_size)
                 readable(page.locator('#home-search [type=submit]'), f'{width}px search action')
-                readable(page.locator('.s-library-intro > p').first, f'{width}px library description')
+                readable(page.locator('.s-library-links > a').first, f'{width}px library navigation')
                 readable(page.locator('.lvd-footer-nav a').first, f'{width}px footer navigation')
                 expect(page.locator('.press-photo img')).to_have_count(3)
                 assert page.locator('#home-demo,.preview-bar').count() == 0

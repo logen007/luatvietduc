@@ -28,6 +28,9 @@ with sync_playwright() as pw:
                 assert page.locator('#home-search [data-catalog-search],#home-search[data-catalog-search]').count()==1
                 assert page.locator('#home-search-query').is_visible()
                 assert page.locator('.s-hero-grid').count()==1
+                assert page.locator('.lvd-hero-art img').count()==1
+                assert page.locator('.lvd-home-countries img').count()==2
+                assert page.locator('.lvd-team-preview img').count()==3
                 assert page.locator('.lvd-partner-tile').count()==13
                 assert page.locator('.lvd-partner-tile img').count()==13
                 assert page.locator('.lvd-partner-tile figcaption').count()==0
