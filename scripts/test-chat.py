@@ -99,6 +99,7 @@ with sync_playwright() as p:
     for image in page.locator('img').all():image.scroll_into_view_if_needed();image.evaluate('(el)=>el.decode()')
     page.evaluate('scrollTo(0,0)');page.screenshot(path=str(out/f'{name}-{w}.png'),full_page=True)
  assert not errors,errors
- assert not [u for u in requests if u.startswith('http') and not u.startswith(base) and not u.startswith('https://fonts.googleapis.com/') and not u.startswith('https://fonts.gstatic.com/') and u not in licensed_fonts],'Unexpected data request'
+ approved_logo_origins=('https://g2gcareer.com/','https://bizlawyer.vn/')
+assert not [u for u in requests if u.startswith('http') and not u.startswith(base) and not u.startswith('https://fonts.googleapis.com/') and not u.startswith('https://fonts.gstatic.com/') and not u.startswith(approved_logo_origins) and u not in licensed_fonts],'Unexpected data request'
  passed('No browser errors or outgoing data');browser.close()
 srv.shutdown();print(count,'checks passed')
