@@ -38,4 +38,12 @@ class BackupBoundaryTests(unittest.TestCase):
         self.assertEqual([h['id'] for h in daily],['6','8','9'])
         self.assertEqual([h['id'] for h in monthly],['7'])
         self.assertEqual([h['id'] for h in runner.retention_plan(history,True)[1]],['2','7'])
+    def test_crash_cleanup_removes_only_private_job_directories(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=pathlib.Path(tmp);base=root/'worker';base.mkdir();outside=root/'outside';outside.mkdir();(outside/'keep').write_text('keep')
+            stale=base/'job-stale';stale.mkdir();(stale/'private-key-fixture').write_text('synthetic')
+            (base/'job-link').symlink_to(outside,target_is_directory=True)
+            (base/'runner.lock').write_text('');(base/'other').mkdir()
+            runner.clean_private_work(base)
+            self.assertFalse(stale.exists());self.assertTrue((outside/'keep').exists());self.assertTrue((base/'job-link').is_symlink());self.assertTrue((base/'runner.lock').exists());self.assertTrue((base/'other').is_dir())
 if __name__=='__main__':unittest.main()

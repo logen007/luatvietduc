@@ -27,7 +27,7 @@ For a trial restore the owner selects a recorded snapshot and submits the age id
 
 The worker verifies download checksum, decrypts, refuses traversal/absolute paths/links/devices/overwrites, and verifies every manifest file. It restores SQL into a disposable PostgreSQL container with no network, ports or host-mounted data. It never executes restored SQL in the live cluster. Media and environment are verified but not activated. Replacing live data still requires an explicit maintenance action, a successful trial, and a fresh current-state backup; this UI intentionally provides no live overwrite action.
 
-The database includes user accounts and private conversations, so all copies stay encrypted and access stays owner-only. The backup contains the app recovery environment including the encryption secret needed to read the vault after recovery. Never add keys, temporary bundles, or production metadata to Git.
+The database includes user accounts and private conversations, so all copies stay encrypted and access stays owner-only. The backup contains the app recovery environment including the encryption secret needed to read the vault after recovery. Private temporary job directories are removed normally and cleaned after a crashed worker restarts under its exclusive lock; cleanup never follows symlinks. Never add keys, temporary bundles, or production metadata to Git.
 
 ## Validation and limits
 

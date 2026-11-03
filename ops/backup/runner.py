@@ -34,6 +34,12 @@ def retention_plan(history, new_monthly):
     monthly=[h for h in history if h.get('monthly_path')]
     return daily[6:], monthly if new_monthly else monthly[1:]
 
+def clean_private_work(root):
+    # Caller holds the process-wide worker lock. Remaining job directories are from a crash.
+    for entry in root.iterdir():
+        if re.fullmatch(r'job-[a-zA-Z0-9_-]+',entry.name) and not entry.is_symlink() and entry.is_dir() and entry.stat().st_uid==os.geteuid():
+            shutil.rmtree(entry)
+
 def rclone_config(root, config):
     v=config['drive'];p=root/'rclone.conf'
     # Values are validated by the owner-only API; quote token through JSON, never shell interpolation.
@@ -133,10 +139,12 @@ def restore_drill(db,config,root,rc):
     return snapshot['id']
 
 def once():
+    if os.geteuid()!=0:raise BackupFailure('Privileged app worker required')
     os.umask(0o077);BASE.mkdir(mode=0o700,parents=True,exist_ok=True)
     with (BASE/'runner.lock').open('a') as lock:
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:return
+        clean_private_work(BASE)
         web=container('web');config=bridge(web,'claim')
         if not config:return
         stop=threading.Event()
