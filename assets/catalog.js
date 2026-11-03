@@ -80,9 +80,10 @@
   const result=isDE||q.get('quoc-gia')&&q.get('quoc-gia')!=='Việt Nam'?[]:search(keyword,g?.id||'',order);
   const pageSize=10,total=result.length,pages=Math.max(1,Math.ceil(total/pageSize)),page=Math.min(pages,Math.max(1,Number.parseInt(q.get('trang'),10)||1));
   const params={q:keyword,'linh-vuc':g?.id||'',xem:'tat-ca','sap-xep':order};
-  const title=g?g.title:path==='/tim-kiem'&&keyword?'Kết quả tìm kiếm':allMode?'Chủ đề pháp luật':r.basePath?label:'Thư viện pháp luật';
+  const title=g?g.title:path==='/tim-kiem'&&keyword?'Kết quả tìm kiếm':r.basePath?label:'Thư viện pháp luật';
   const subtitle=isDE?(g?l('Chủ đề đang được biên tập.','Die Themen werden derzeit vorbereitet.'):l('16 lĩnh vực · Nội dung đang biên tập.','16 Rechtsgebiete · Inhalte in Vorbereitung.')):r.basePath?(g?g.count+' '+l('chủ đề trong lĩnh vực.','Themen in diesem Rechtsgebiet.'):l('16 lĩnh vực · 303 chủ đề pháp luật Việt Nam.','16 Rechtsgebiete · 303 vietnamesische Rechtsthemen.')):g?`${g.count} ${l('chủ đề trong danh mục. Nội dung giải đáp được kiểm duyệt chưa được công bố.','Themen im Verzeichnis. Geprüfte Antworten wurden noch nicht veröffentlicht.')}`:l('Danh mục 303 chủ đề pháp luật Việt Nam theo lĩnh vực. Nội dung giải đáp được kiểm duyệt chưa được công bố.','Verzeichnis mit 303 vietnamesischen Rechtsthemen nach Rechtsgebiet. Geprüfte Antworten wurden noch nicht veröffentlicht.');
-  const tabs=`<nav class="tabs catalog-tabs" aria-label="Tra cứu nội dung"><a href="${url(basePath)}" class="${allMode?'':'active'}" ${allMode?'':'aria-current="page"'}>${groups.length} ${l('lĩnh vực','Rechtsgebiete')}</a><a href="${url(basePath,{xem:'tat-ca',q:keyword})}" class="${allMode?'active':''}" ${allMode?'aria-current="page"':''}>${isDE?0:topics.length} ${l('chủ đề','Themen')}</a><a href="${url('/tin-tuc',{q:keyword})}">Tin & cẩm nang ${arrow}</a></nav>`;
+  // Fields own their child topics. No separate "fields vs topics" navigation tabs.
+  const tabs="";
   let body;
   if(!allMode){
    const words=tokens(aliases(norm(keyword)));
