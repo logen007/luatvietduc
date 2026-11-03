@@ -37,3 +37,11 @@ Verification observed: 25/25 CMS unit tests, TypeScript check, initial migration
 ### Owner-selected workflow update — 2026-11-03
 
 Reviewer now approves and publishes in one operation within assigned country. Legacy publisher enum is retained without editorial access. Country-only permissions replace the earlier field-scope proposal. Recorded internal-only AI trials, human-first customer chat, R2 storage choice, domain report and pending email in docs/03-owner-decisions.md. Verification: 27 CMS tests, typecheck and actual Local API database integration passed. No schema change or deployment.
+
+### Integrated release — 2026-11-03
+
+Deployed code commit 04c6da7 to the owner-authorized public domain https://luatvietduc.com using a separate web container and PostgreSQL database. Owner provisioned offline; no credential is stored in this repository. HTTPS readiness returned 200 and status ready. Live synthetic checks passed: owner login, guest question, staff claim/reply, private-note filtering, cross-session denial and close. Browser QA verified homepage-to-chat, persisted history after reload and a human response on the public domain. Existing shared containers retained their uptimes.
+
+CI https://github.com/logen007/luatvietduc/actions/runs/41588280855 passed at 04c6da7: 50 foundation tests, 31 CMS tests, typecheck, migrations, editorial DB integration (including concurrent edits), chat DB integration and build. Local HTTP integration also passed. Fresh-install migrations were verified against an empty local database; a backup restore into a separate local database succeeded. Initial server backup created and daily backup scheduled (same-VPS only; off-VPS destination still unconfigured).
+
+External connections remaining: Google OAuth (owner explicitly deferred), R2 bucket/token, transactional email and the internal AI provider key/model. These are inactive in the UI, not simulated successes. No customer AI is enabled. No actual Google/R2/email/AI-provider integration test has occurred. Load testing and a full security review are not claimed.

@@ -4,7 +4,7 @@
 - The root `index.html`, `assets/` and existing workflows are the legacy public prototype.
 - Do not replace, redesign, delete or deploy it while building `platform/`.
 - Work on a feature branch. Never push directly to `main`, merge, change DNS, restart shared services or modify production data without explicit approval.
-- Domain `luatvietduc.com` is planned, not verified as purchased or configured.
+- Owner confirmed domain ownership and Cloudflare routing, authorized direct deployment, and the isolated application was verified serving HTTPS on `luatvietduc.com` on 2026-11-03. Changes to unrelated services still require explicit authorization.
 
 ## Product decisions
 - No n8n and no Chatwoot. Build the chat product and operator inbox in our codebase.
