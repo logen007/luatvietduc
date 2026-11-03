@@ -92,15 +92,6 @@ const footerColumns = [
       ["Điều khoản sử dụng", "/#/dieu-khoan"],
     ],
   },
-  {
-    title: "Nhân sự",
-    links: [
-      ["Đăng nhập quản trị", "/admin/login"],
-      ["Hộp thư chuyên viên", "/chuyen-vien"],
-      ["Kho kiến thức nội bộ", "/kien-thuc"],
-      ["Kết nối hệ thống", "/quan-tri"],
-    ],
-  },
 ];
 export function Footer() {
   return (

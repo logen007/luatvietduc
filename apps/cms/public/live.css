@@ -388,7 +388,7 @@
 }
 .live-footer-inner {
   display: grid;
-  grid-template-columns: 200px repeat(5, minmax(0, 1fr));
+  grid-template-columns: 200px repeat(4, minmax(0, 1fr));
   gap: 30px;
   max-width: 1600px;
   margin: auto;

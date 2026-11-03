@@ -26,7 +26,7 @@
 .lvd-redesign .lvd-footer-cta .button.secondary{color:#fff;background:transparent;border-color:rgba(255,255,255,.24)}
 .lvd-redesign .lvd-footer-cta .button.secondary:hover{background:rgba(255,255,255,.08)}
 .lvd-redesign .lvd-footer-inner{padding-top:80px;padding-bottom:40px}
-.lvd-redesign .lvd-footer-main{display:grid;grid-template-columns:1.4fr repeat(5,1fr);gap:28px}
+.lvd-redesign .lvd-footer-main{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:28px}
 .lvd-footer-wordmark{display:block;font:500 36px/1 var(--lvd-display);letter-spacing:-.03em;color:#fff;text-decoration:none}
 .lvd-redesign .lvd-footer-identity>p{max-width:23ch;margin:20px 0;color:rgba(255,255,255,.65);font:400 13px/22px var(--lvd-font)}
 .lvd-redesign .lvd-footer-nav h3{margin:0 0 12px;color:#fff;font:500 14px/20px var(--lvd-font);letter-spacing:0}
