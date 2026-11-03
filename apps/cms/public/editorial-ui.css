@@ -679,7 +679,7 @@ body.lvd-redesign{--font:var(--lvd-font);margin:0;background:#fff;color:#0b0b0b;
 .pm-partner-marquee::-webkit-scrollbar { display:none; }
 .pm-partner-track { display:flex; align-items:center; width:max-content; animation:lvd-partners 38s linear infinite; }
 .pm-partner-group { display:flex; align-items:center; flex-shrink:0; gap:64px; padding-right:64px; }
-.pm-partner-group img { display:block; width:auto; max-width:160px; height:28px; object-fit:contain; filter:url("/media/partner-knockout.svg#white-logo"); opacity:.85; }
+.pm-partner-group img { display:block; width:auto; max-width:160px; height:28px; object-fit:contain; filter:url("/media/partner-knockout.svg?v=2#white-logo"); opacity:.85; }
 .pm-partner-group img:hover { opacity:1; }
 .pm-partners:hover .pm-partner-track,.pm-partners:focus-within .pm-partner-track { animation-play-state:paused; }
 .pm-partner-marquee:focus-visible { outline:2px solid #fff; outline-offset:5px; }
