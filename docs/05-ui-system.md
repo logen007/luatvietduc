@@ -30,7 +30,7 @@ Papermark's server-rendered footer initially says `data-footer-theme="light"`, b
 
 The owner's later revision removes repetitive introductory and instructional sections. The public homepage now has this order:
 
-1. Video hero with the heading “Tra cứu pháp luật / Việt Nam và Đức.” and the description “Từ cư trú, quốc tịch đến các vấn đề về gia đình, tài sản và công việc.” The question field says “Bạn cần làm rõ vấn đề gì?”, its button says “Gửi câu hỏi”, and the secondary link says “Thư viện pháp luật”.
+1. Video hero with the heading “Giải đáp pháp luật / Việt Nam và Đức.” and the description “Từ cư trú, quốc tịch đến các vấn đề về gia đình, tài sản và công việc.” The question field says “Bạn cần làm rõ vấn đề gì?”, its button says “Gửi câu hỏi”, and the secondary link says “Thư viện pháp luật”.
 2. A masked, continuously moving logo strip at the foot of the same video hero, following the Papermark composition. It has no visible heading and sits on a12px backdrop blur with a translucent dark gradient. It pauses on hover or keyboard focus and stops moving when reduced motion is requested.
 3. Two compact links, “Pháp luật Việt Nam” and “Pháp luật Đức”, with small national flags. The Vietnamese catalog displays its actual 16-field, 303-topic count. The German link displays its 16-field count; the destination retains its content-in-preparation description.
 4. The existing article cards under “Tin tức & đời sống”, with “Xem tất cả tin tức”.
