@@ -68,7 +68,7 @@ def content_and_news_search():
     for s in data:
         nav(('/tin/' if s['type']=='news' else '/bai-viet/')+s['id'])
         expect(page.locator('.news-title h1')).to_have_text(s['title'])
-        assert page.locator('.news-sources a').count()>=1
+        assert page.locator('.news-sources').count()==0 and page.locator('.news-to-chat').count()==1
         assert page.locator('.news-figure figcaption').inner_text()
     nav('/tin-tuc?nhom=cong-dong')
     expect(page.locator('.listing-grid .press-card')).to_have_count(1)
