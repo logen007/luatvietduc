@@ -1,4 +1,7 @@
 /* The legacy and container builds use the same shell and ordering. */
+import { fileURLToPath } from 'node:url';
+import { getPresentationVersion } from '../src/modules/shared/presentation-version.mjs';
+const revision = getPresentationVersion(fileURLToPath(new URL('../public/', import.meta.url)));
 const arrow='<svg class="lvd-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>'
 const brand='<a class="brand" href="/#/" aria-label="Luật Việt Đức — Trang chủ"><span class="brand-mark" aria-hidden="true">L</span><span class="brand-name">Luật Việt Đức</span></a>'
 export function transformFrontend(source){
@@ -23,5 +26,5 @@ export function transformFrontend(source){
  for(const [vi,de] of Object.entries(phrases))html=html.replaceAll('>'+vi+' <','>'+vi+'<').replaceAll('>'+vi+'<','><span data-no-translation data-shell-vi="'+vi.replace(/"/g,'&quot;')+'" data-shell-de="'+de.replace(/"/g,'&quot;')+'">'+vi+'</span><');
  // The split CTA heading needs a marker on the element, not nested markup in attributes.
  html=html.replace('<h2>Bắt đầu từ<br>một câu hỏi.</h2>','<h2 data-no-translation data-shell-heading>Bắt đầu từ<br>một câu hỏi.</h2>');
- return html
+ return html.replace(/(src|href)="\/(design-system\.css|live\.css|editorial-ui\.css|live-bridge\.js|editorial-ui\.js|legal-runtime\.js)"/g, `$1="/$2?v=${revision}"`)
 }

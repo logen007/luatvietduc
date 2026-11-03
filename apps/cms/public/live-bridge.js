@@ -27,7 +27,7 @@
     try{
       const r=await fetch('/service/settings');if(!r.ok)return;settings=await r.json();
       const social=document.getElementById('live-social');for(const link of settings.socialLinks||[]){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;a.rel='noopener noreferrer';social?.append(a)}
-      for(const link of (settings.navigation||[])){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;document.querySelector('.desktop-nav')?.append(a)}
+      for(const link of (settings.navigation||[])){for(const nav of document.querySelectorAll('.desktop-nav,#menu-dialog .dialog-links')){const href=new URL(link.url,location.origin).href;if([...nav.querySelectorAll('a')].some(a=>a.href===href))continue;const a=document.createElement('a');a.textContent=link.label;a.href=link.url;nav.append(a)}}
       enrich();const news=await fetch('/api/articles?limit=6&sort=-updatedAt');if(news.ok){articles=(await news.json()).docs||[];enrich()}
     }catch{}
   });

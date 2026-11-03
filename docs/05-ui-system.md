@@ -18,6 +18,8 @@ The current owner request authorizes a full public and application redesign insp
 | src/app/(payload)/admin-custom.css | Scoped Payload admin typography, cards and dashboard |
 | src/modules/settings/AdminWelcome.tsx | Role-specific admin shortcuts and actual configured connection states |
 
+Custom public CSS/JS URLs carry a content revision computed by modules/shared/presentation-version.mjs, shared by the public shell and live application layout. Editing those files changes the URL automatically so the CDN and returning browsers receive the new release.
+
 Do not edit generated public/frontend.html or public/assets. Run npm run dev/build or node scripts/prepare-frontend.mjs to regenerate them. Container builds call prepare-container.mjs and the same transform. The root prototype is retained as reference; superseded theme-only stylesheets are omitted from generated output, while structural catalog, newsroom, feature and information-page styles remain.
 
 Editorial homepage override must execute after steel-ui.js and before app.js, because app.js renders synchronously. legal-runtime.js must execute after legal-pages.js/legal-de.js and before app.js. Preserve route identifiers, form names, language markers and dialog IDs when editing presentation.
