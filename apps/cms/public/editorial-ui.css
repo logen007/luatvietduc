@@ -858,3 +858,14 @@ body.lvd-redesign{--font:var(--lvd-font);margin:0;background:#fff;color:#0b0b0b;
  .live-header .brand-name { font-size:25px; }
  .live-header-login { display:none; }
 }
+
+/* Keep the single login action visible beside the phone menu. */
+@media(max-width:480px) {
+ .lvd-redesign .header-inner,.live-header .live-header-inner { gap:12px; }
+ .lvd-redesign .header-tools,.live-header .live-header-actions { gap:8px; }
+ .lvd-redesign .header-login,.live-header .live-header-login-button { min-height:40px; padding:9px 12px; font-size:14px; }
+ .lvd-redesign .header-login svg,.live-header .live-header-login-button svg { display:none; }
+}
+@media(max-width:359px) {
+ .lvd-redesign .brand-name,.live-header .brand-name { font-size:22px; }
+}
