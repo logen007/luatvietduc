@@ -1,5 +1,7 @@
 # Verified automatic releases
 
+Operational status: enabled with the owner's explicit approval on2026-11-03. The first automatic release78f8035 succeeded at18:09:33 Vietnam time, and the next timer run completed with no changes. Check the public `/release.json` for the currently deployed commit; later documentation-only commits do not replace the running image.
+
 This is a pull-based release service for the existing isolated Luật Việt Đức application. GitHub receives no VPS credentials. The VPS checks the public repository each minute and deploys only a successful push run for the exact commit, branch and approved workflow. GitHub API polling backs off while CI is pending. CI errors, rate limits or unknown state leave the running application alone.
 
 The production branch remains `feat/platform-cms-bootstrap`. Nothing is merged into `main`. The server-owned engine, Compose file, Dockerfile and CI policy are frozen during the one-time installation; pushing a changed deployment policy does not silently replace them. Routine changes to public UI or application code can use the automatic path. Schema and migration changes require a separate reviewed release because the automatic service never runs migrations.
