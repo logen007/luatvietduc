@@ -121,6 +121,9 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
         const v = await api(`conversations/${selected}?after=${cursor}`);
         if (!active) return;
         setConversation(v.conversation);
+        setRows((current) => current.map((row) => row.id === v.conversation.id
+          ? { ...row, state: v.conversation.state, version: v.conversation.version }
+          : row));
         if (v.messages.length) {
           cursor = Number(v.messages.at(-1).id);
           setMessages((old) => {
