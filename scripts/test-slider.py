@@ -86,18 +86,8 @@ with sync_playwright() as pw:
     assert movement(track) > 0, 'Autoplay must resume after focus leaves'
     passed('Keyboard focus pause and resume')
 
-    pause = slider.locator('[data-slider-pause]')
-    pause.click()
-    expect(pause).to_have_attribute('aria-pressed', 'true')
-    page.mouse.move(1, 1)
-    page.evaluate('document.activeElement.blur()')
-    assert abs(movement(track)) <= 1, 'Explicit pause must persist outside hover and focus'
-    pause.click()
-    expect(pause).to_have_attribute('aria-pressed', 'false')
-    page.mouse.move(1, 1)
-    page.evaluate('document.activeElement.blur()')
-    assert movement(track) > 0
-    passed('Explicit pause control persists and resumes')
+    assert slider.locator('[data-slider-pause],[data-slider-dir]').count() == 0
+    passed('No visible carousel arrow or pause controls')
 
     track.scroll_into_view_if_needed()
     rect = track.bounding_box()
@@ -135,13 +125,13 @@ with sync_playwright() as pw:
     slider, track = mount()
     assert abs(movement(track)) <= 1, 'Reduced-motion page must not autoplay'
     before = offset(track)
-    slider.locator('[data-slider-dir="1"]').click()
-    assert offset(track) > before + 100, 'Next button must work with reduced motion'
-    before = offset(track)
     slider.focus()
+    slider.press('ArrowRight')
+    assert offset(track) > before + 100, 'ArrowRight should scroll the slider'
+    before = offset(track)
     slider.press('ArrowLeft')
-    assert offset(track) < before - 100, 'Arrow key must work with reduced motion'
-    passed('Reduced-motion keeps manual buttons and keyboard navigation available')
+    assert offset(track) < before - 100, 'ArrowLeft should scroll the slider'
+    passed('Reduced-motion keeps keyboard navigation available without buttons')
 
     assert not errors, errors
     context.close()
