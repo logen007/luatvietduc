@@ -15,8 +15,8 @@ const Articles: CollectionConfig = {
  slug:'articles', versions:{drafts:true},
  access:{create:contentStaff,read:({req})=>req.user ? contentStaff({req}) : {and:[{_status:{equals:'published'}},{reviewState:{equals:'approved'}}]},update:contentStaff,delete:owner,readVersions:contentStaff},
  hooks:{beforeChange:[({data,originalDoc,req})=>{
-  if (data._status === 'published' && req.user?.role !== 'owner') throw new Error('Publication restricted until review workflow acceptance')
   if (originalDoc && ['title','body','jurisdiction','language','sourceUrl','slug'].some(k=>k in data && data[k]!==originalDoc[k])) {data.reviewState='draft';data._status='draft';data.aiAllowed=false}
+  if (data._status === 'published' && req.user?.role !== 'owner') throw new Error('Publication restricted until review workflow acceptance')
   if(data._status==='published' && (data.reviewState ?? originalDoc?.reviewState)!=='approved') throw new Error('Review required')
   return data
  }]},

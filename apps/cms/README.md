@@ -4,7 +4,7 @@ Continue the existing prototype; root HTML/assets are untouched. This applicatio
 
 ## Verified package matrix
 
-Checked on 2026-11-03 against the installed npm package metadata and official installation documentation: https://payloadcms.com/docs/getting-started/installation . The package peer range is stricter than the general docs: `@payloadcms/next@3.92.1` accepts Next >=16.3.3 <17. Pinned: Node 24.22.1, Payload/Next adapter/Postgres adapter 3.92.1, Next 16.4.4, React/ReactDOM 19.3.1, TypeScript 5.9.3. Lockfile is committed. PostgreSQL Compose/CI target is 17.6; pgvector, embeddings and providers are not installed.
+Checked on 2026-11-03 against the installed npm package metadata and official installation documentation: https://payloadcms.com/docs/getting-started/installation . The package peer range is stricter than the general docs: `@payloadcms/next@3.92.1` accepts Next >=16.3.3 <17. Pinned: Node 24.22.1, Payload/Next adapter/Postgres adapter 3.92.1, Next 16.4.4, React/ReactDOM 19.3.1, TypeScript 5.9.3. Lockfile is committed. DOMPurify is overridden to patched 3.4.17; audit has no high/critical findings, with upstream low/moderate findings still open. PostgreSQL Compose/CI target is 17.6; pgvector, embeddings and providers are not installed.
 
 ## Local startup
 

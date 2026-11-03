@@ -17,3 +17,5 @@ test('owner cannot publish unreviewed content',()=>assert.throws(()=>articleHook
 test('editing approved article invalidates approval and AI use',()=>assert.deepEqual(articleHook({req:req('editor'),data:{title:'Changed'},originalDoc:{title:'Old',reviewState:'approved',_status:'published',aiAllowed:true}}),{title:'Changed',reviewState:'draft',_status:'draft',aiAllowed:false}));
 test('first-register cannot bypass offline bootstrap hook',()=>assert.throws(()=>users.hooks.beforeChange[0]({req:req(),operation:'create',data:{role:'owner'}}),/Offline owner/));
 test('private site settings cannot be read by editor',()=>assert.equal(config.globals.find(g=>g.slug==='site-settings').access.read({req:req('editor')}),false));
+
+test('Payload merged publication state is invalidated before editor publication guard',()=>assert.equal(articleHook({req:req('editor'),data:{body:'New',_status:'published'},originalDoc:{body:'Old',_status:'published',reviewState:'approved'}})._status,'draft'));

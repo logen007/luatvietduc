@@ -19,3 +19,10 @@ The local runtime is Node 24.22.1. Docker/PostgreSQL binaries are absent. System
 ## Remaining acceptance
 
 Full CMS country/field scoped reviewer and publisher workflow, audit trail, settings coverage, UI port preserving fonts/layout/catalog and chat, private conversations and guest sessions, idempotency/transactions, inbox/realtime/AI cancellation, approved-source RAG, email and operational verification remain open. Current admin role restrictions are a conservative scaffold, not completed RBAC. No staging URL or deployment exists. luatvietduc.com remains planned and unverified.
+
+## Follow-up verification
+
+- Local HTTP smoke: `/` returned 200; `/health/live` returned the expected JSON.
+- PostgreSQL 17.6 migration passed in GitHub Actions. Its integration check revealed Payload merges existing publication status into update data; moved content invalidation ahead of the publication guard and added a regression test (12 CMS tests).
+- Patched transitive DOMPurify to 3.4.17 using an explicit npm override after audit found critical advisories. Audit after patch: 0 high, 0 critical; 6 low and 5 moderate remain in upstream dependencies (including development tooling). Do not run `npm audit fix --force` to downgrade the Payload adapter.
+- Git CLI has read access but no push credential; remote commits were saved through the authenticated GitHub connector. Draft PR: https://github.com/logen007/luatvietduc/pull/1 (base feat/platform-foundation).
