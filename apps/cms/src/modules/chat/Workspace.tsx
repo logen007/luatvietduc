@@ -31,13 +31,12 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
     [error, setError] = useState(""),
     [connectionError, setConnectionError] = useState(""),
     [text, setText] = useState(""),
-    [country, setCountry] = useState("VN"),
+    [country, setCountry] = useState(""),
     [consent, setConsent] = useState(false),
     [internal, setInternal] = useState(false),
     [busy, setBusy] = useState(false),
     [loaded, setLoaded] = useState(false),
-    [notice, setNotice] = useState(""),
-    [specialty, setSpecialty] = useState("general");
+    [notice, setNotice] = useState("");
   const [maxLength, setMaxLength] = useState(2000);
   const pending = useRef<{
       key: string;
@@ -197,11 +196,12 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
     try {
       let id = selected;
       if (!id) {
+        if (!country) throw new Error("Chọn pháp luật Việt Nam hoặc Đức để chuyển đúng chuyên viên.");
         if (!consent)
           throw new Error("Vui lòng đồng ý chuyển nội dung cho chuyên viên.");
         const c = await api("conversations", {
           jurisdiction: country,
-          specialty,
+          specialty: "general",
           consent,
         });
         id = c.id;
@@ -471,49 +471,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                     {staff ? "Nhận xử lý để xem nội dung và phản hồi." : notice}
                   </p>
                 )}
-                {!staff && (
-                  <div className="live-intake">
-                    <div className="live-intake-fields">
-                      <label htmlFor="intake-country">
-                        <span>Hệ thống pháp luật</span>
-                        <select
-                          id="intake-country"
-                          value={country}
-                          onChange={(e) => setCountry(e.target.value)}
-                        >
-                          <option value="VN">Việt Nam</option>
-                          <option value="DE">Đức</option>
-                        </select>
-                      </label>
-                      <label htmlFor="intake-specialty">
-                        <span>Lĩnh vực</span>
-                        <select
-                          id="intake-specialty"
-                          value={specialty}
-                          onChange={(e) => setSpecialty(e.target.value)}
-                        >
-                          <option value="general">Chung / chưa rõ</option>
-                          <option value="residence">Cư trú và quốc tịch</option>
-                          <option value="family">Gia đình và thừa kế</option>
-                          <option value="work">Lao động</option>
-                          <option value="business">Kinh doanh</option>
-                        </select>
-                      </label>
-                    </div>
-                    <label className="live-consent">
-                      <input
-                        type="checkbox"
-                        checked={consent}
-                        onChange={(e) => setConsent(e.target.checked)}
-                      />
-                      <span>
-                        Tôi đồng ý lưu và chuyển nội dung trao đổi cho chuyên
-                        viên.{" "}
-                        <a href="/#/chinh-sach-thong-tin">Quyền riêng tư ↗</a>
-                      </span>
-                    </label>
-                  </div>
-                )}
+
               </div>
             ) : messages.length === 0 ? (
               <div className="chat-message-empty">
@@ -616,6 +574,22 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                 </button>
               </div>
             </form>
+            {!staff && !selected && text.trim() && (
+              <div className="chat-start-options">
+                <label>
+                  <span className="sr-only">Pháp luật áp dụng</span>
+                  <select aria-label="Pháp luật áp dụng" value={country} onChange={(e) => setCountry(e.target.value)}>
+                    <option value="">Pháp luật áp dụng</option>
+                    <option value="VN">Việt Nam</option>
+                    <option value="DE">Đức</option>
+                  </select>
+                </label>
+                <label className="live-consent">
+                  <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+                  <span>Tôi đồng ý lưu và chuyển nội dung cho chuyên viên. <a href="/#/chinh-sach-thong-tin">Quyền riêng tư</a></span>
+                </label>
+              </div>
+            )}
             {staff && (
               <label className="chat-internal-toggle">
                 <input

@@ -19,21 +19,31 @@ export default function Page() {
       <main className="container live-page live-knowledge-page">
         <div className="live-page-heading">
           <div>
-            <p className="live-eyebrow">KIẾN THỨC / THỬ NGHIỆM NỘI BỘ</p>
+            <p className="live-eyebrow">KHO FAQ / DÀNH CHO CHUYÊN VIÊN</p>
             <h1>
-              Kiến thức có nguồn.
+              Quản lý câu trả lời.
               <br />
-              <span>Kiểm chứng trước khi dùng.</span>
+              <span>Xuất bản trong phạm vi được giao.</span>
             </h1>
             <p className="live-lead">
-              Thử tóm tắt và kiểm tra giới hạn từ nguồn công khai đã duyệt, còn
-              hiệu lực. Kết quả không tự động xuất bản.
+              Nhập câu hỏi, câu trả lời chuẩn và căn cứ. Chuyên viên tự xác nhận, xuất bản và chịu trách nhiệm rà soát FAQ của mình.
             </p>
           </div>
           <a className="button secondary" href="/admin/collections/knowledge">
-            Biên tập & duyệt nguồn <span aria-hidden="true">↗</span>
+            Quản lý FAQ <span aria-hidden="true">↗</span>
           </a>
         </div>
+        <section className="live-card" aria-label="Quy trình FAQ" style={{ marginBottom: 32 }}>
+          <h2>Từ FAQ đến câu trả lời</h2>
+          <ol>
+            <li><strong>Soạn FAQ:</strong> câu hỏi chuẩn, câu trả lời, điều kiện áp dụng và các trường hợp phải chuyển chuyên viên.</li>
+            <li><strong>Kiểm tra căn cứ:</strong> quốc gia, liên kết nguồn, ngày hiệu lực và hạn rà soát.</li>
+            <li><strong>Xuất bản:</strong> chuyên viên xác nhận nội dung trong phạm vi được phân quyền. Bản nháp không được dùng.</li>
+            <li><strong>Rà soát:</strong> sửa hoặc thu hồi khi căn cứ thay đổi. Không đưa hội thoại khách vào kho FAQ.</li>
+          </ol>
+          <a className="button secondary" href="/admin/collections/knowledge/create">Thêm FAQ <span aria-hidden="true">↗</span></a>
+          <p>AI hiện chỉ thử nghiệm nội bộ. FAQ xuất bản chưa tự bật trả lời khách; kết nối và luồng trả lời có kiểm soát sẽ được cấu hình riêng.</p>
+        </section>
         <div className="live-knowledge-grid">
           <form
             className="live-card live-source-form"

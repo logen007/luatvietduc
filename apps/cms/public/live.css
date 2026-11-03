@@ -1605,11 +1605,11 @@
   --chat-compose-gap: 8px;
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
-  width: 100%;
-  max-width: none;
+  width: calc(100% - 160px);
+  max-width: 1440px;
   height: calc(var(--lvd-chat-vh, 100dvh) - var(--lvd-header, 80px));
   min-height: 0;
-  margin: 0;
+  margin: 0 auto;
   overflow: hidden;
   border: 0;
   background: var(--lvd-paper, #fff);
@@ -2566,3 +2566,10 @@
     overflow: visible;
   }
 }
+
+/* Compact first-message routing; keep the welcome screen free of intake cards. */
+.live-shell .chat-start-options { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; max-width:760px; margin:12px auto 0; }
+.live-shell .chat-start-options select { width:auto; min-height:36px; padding:6px 28px 6px 10px; border:1px solid #dcd9d0; border-radius:4px; background:#fff; color:#595959; font:400 12px/20px var(--lvd-font, Inter, sans-serif); }
+.live-shell .chat-start-options .live-consent { flex:1 1 280px; margin:0; }
+@media (max-width:980px) { .live-shell.chat-shell { width:calc(100% - 48px); } }
+@media (max-width:480px) { .live-shell.chat-shell { width:calc(100% - 40px); } }

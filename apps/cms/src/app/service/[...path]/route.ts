@@ -143,7 +143,7 @@ async function route(
         result = await chat.transition(actor, id, data);
       else throw new chat.HttpError(404, "Không tìm thấy chức năng.");
     } else if (path === "knowledge-sources" && method === "GET") {
-      if (!user || !["owner", "reviewer", "knowledge"].includes(user.role))
+      if (!user || !["owner", "reviewer", "knowledge", "support"].includes(user.role))
         throw new chat.HttpError(403, "Chỉ dành cho nhân sự kiến thức.");
       const sources = await payload.find({
         collection: "knowledge",
