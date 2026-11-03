@@ -28,3 +28,7 @@ The original is 1920 × 1080, 25 fps, 30.08 seconds. The hero uses seconds 2–1
 - Giang: Berlin source7197894 documented above.
 
 Output: H.264720p25fps, silent, fast-start,3,049,532bytes. Mild saturation/contrast grading unifies scenes. Poster is an exported frame of the montage. Source downloads and render intermediates remain outside the public repository.
+
+## Full HD color revision (2026-11-03)
+
+`legal-hero-montage-v2.mp4` and `legal-hero-montage-poster-v2.webp` use the same six licensed sources above. Rendered again from source at 1920 × 1080, 25 fps, H.264 CRF 21, silent, fast-start; saturation 1.06 and contrast 1.02. CSS desaturation removed. These illustrative stock scenes do not establish that depicted people are Vietnamese or resident in Germany. Community-specific footage remains subject to sourcing.
