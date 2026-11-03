@@ -1,0 +1,55 @@
+name: luatvietduc
+services:
+  database:
+    image: postgres:17.6-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: luatvietduc
+      POSTGRES_USER: lvd
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Required}
+    volumes: [database:/var/lib/postgresql/data]
+    networks: [private]
+    mem_limit: 384m
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U lvd -d luatvietduc']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  web:
+    build:
+      context: ../..
+      dockerfile: ops/deploy/Dockerfile
+    image: luatvietduc-web:${RELEASE:-local}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://lvd:${DB_PASSWORD}@database:5432/luatvietduc
+      APP_URL: https://luatvietduc.com
+      NODE_OPTIONS: --max-old-space-size=768
+    depends_on:
+      database: {condition: service_healthy}
+    networks: [private, proxy]
+    ports: ['127.0.0.1:3049:3000']
+    mem_limit: 1g
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: root_default
+      traefik.http.routers.luatvietduc.rule: Host(`luatvietduc.com`)
+      traefik.http.routers.luatvietduc.entrypoints: websecure
+      traefik.http.routers.luatvietduc.tls: 'true'
+      traefik.http.routers.luatvietduc.tls.certresolver: mytlschallenge
+      traefik.http.services.luatvietduc.loadbalancer.server.port: '3000'
+      traefik.http.routers.luatvietduc.middlewares: lvd-headers
+      traefik.http.middlewares.lvd-headers.headers.contenttypenosniff: 'true'
+      traefik.http.middlewares.lvd-headers.headers.framedeny: 'true'
+      traefik.http.middlewares.lvd-headers.headers.referrerpolicy: same-origin
+      traefik.http.routers.lvd-http.rule: Host(`luatvietduc.com`)
+      traefik.http.routers.lvd-http.entrypoints: web
+      traefik.http.routers.lvd-http.middlewares: lvd-https
+      traefik.http.routers.lvd-http.service: luatvietduc
+      traefik.http.middlewares.lvd-https.redirectscheme.scheme: https
+networks:
+  private: {internal: true}
+  proxy: {external: true, name: root_default}
+volumes:
+  database:

@@ -13,3 +13,7 @@ These decisions supersede conflicting earlier workflow proposals.
 ## Next milestone
 
 Finish CMS acceptance: reviewer attribution and review history, race-safe transitions, then admin browser and HTTP authorization checks. Central settings follow with validated configuration and clear configured/unconfigured status. R2 access is needed only for storage integration; do not request secrets in chat.
+
+## Subsequent owner direction
+
+Owner requests completing the integrated working system without stopping at each module, keeping modules and UI easy to change. Google/Gmail login is required. Owner authorized deployment directly on https://luatvietduc.com on the previously selected VPS. Google Cloud OAuth and R2 are not created yet. Owner email is supplied separately and must not be committed to this public repository. Production release does not authorize changing unrelated services or using customer conversations in AI trials.

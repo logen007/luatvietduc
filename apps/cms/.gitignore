@@ -3,3 +3,7 @@ node_modules/
 .env*
 !.env.example
 *.tsbuildinfo
+
+public/assets/
+public/frontend.html
+private-media/

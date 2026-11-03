@@ -1,0 +1,3 @@
+'use client'
+import {useEffect,useState} from 'react'
+export function Header(){const [name,setName]=useState('Luật Việt Đức');useEffect(()=>{fetch('/service/settings').then(r=>r.ok?r.json():null).then(s=>{if(s?.siteName)setName(s.siteName)}).catch(()=>{})},[]);return <header className="site-header"><div className="container header-inner"><a className="brand" href="/"><span className="brand-mark">L</span><span className="brand-name">{name}</span></a><nav className="live-nav" aria-label="Điều hướng"><a href="/#/tra-cuu">Thư viện</a><a href="/bai-viet">Bài viết</a><a href="/tro-chuyen">Hỏi chuyên viên</a><a href="/tai-khoan">Tài khoản</a></nav></div></header>}

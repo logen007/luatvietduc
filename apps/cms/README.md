@@ -38,3 +38,7 @@ Owner assigns jurisdictions on user records. Missing assignments deny staff writ
 Editor: draft → pending. Reviewer: pending → approved / draft / withdrawn; approved → withdrawn / draft. Reviewer can approve and publish in the same operation, or unpublish approved content. The legacy publisher enum is retained for schema compatibility but grants no draft access or writes. Reviewer withdrawal forces draft and disables AI eligibility. Content edits invalidate review before checking merged Payload publication state. Only owner controls AI eligibility, accounts and settings. No schema changes are required for this slice.
 
 This is not the complete editorial acceptance gate: reviewer identity/revision audit and transactional concurrency handling remain pending. Browser QA and HTTP coverage also remain pending. Local API integration explicitly uses overrideAccess:false; public production deployment remains blocked by the handoff gate.
+
+## Integrated modules
+
+The implementation now includes guest/private chat storage, assigned specialist inbox, internal notes and cursor polling, verified Google OAuth integration code, CMS review attribution/audit and transaction locks, dated knowledge-source management, fixed internal-only AI trials, expanded owner settings and R2 media integration. External providers remain inactive until configured. See ../../docs/04-modular-system.md for actual boundaries, tests and operations; earlier scaffold limitations above describe the prior milestone.

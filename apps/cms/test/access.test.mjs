@@ -11,10 +11,10 @@ test('owner may provision users',()=>assert.equal(users.access.create({req:req('
 test('member only reads own user record',()=>assert.deepEqual(users.access.read({req:req('member')}),{id:{equals:1}}));
 test('support cannot edit articles',()=>assert.equal(articles.access.update({req:req('support')}),false));
 test('public article query requires publication and approval',()=>assert.deepEqual(articles.access.read({req:req()}),{and:[{_status:{equals:'published'}},{reviewState:{equals:'approved'}}]}));
-const articleHook=articles.hooks.beforeChange[0];
+const articleHook=articles.hooks.beforeChange[1];
 test('editor cannot publish',()=>assert.throws(()=>articleHook({req:req('editor'),data:{jurisdiction:'VN',_status:'published'}}),/Publication restricted/));
 test('owner cannot publish unreviewed content',()=>assert.throws(()=>articleHook({req:req('owner'),data:{_status:'published',reviewState:'draft'}}),/Review required/));
-test('editing approved article invalidates approval and AI use',()=>assert.deepEqual(articleHook({req:req('editor'),data:{title:'Changed'},originalDoc:{jurisdiction:'VN',title:'Old',reviewState:'approved',_status:'published',aiAllowed:true}}),{title:'Changed',reviewState:'draft',_status:'draft',aiAllowed:false}));
+test('editing approved article invalidates approval and AI use',()=>assert.deepEqual(articleHook({req:req('editor'),data:{title:'Changed'},originalDoc:{jurisdiction:'VN',title:'Old',reviewState:'approved',_status:'published',aiAllowed:true}}),{title:'Changed',reviewState:'draft',_status:'draft',aiAllowed:false,reviewedBy:null,reviewedAt:null}));
 test('first-register cannot bypass offline bootstrap hook',()=>assert.throws(()=>users.hooks.beforeChange[0]({req:req(),operation:'create',data:{role:'owner'}}),/Offline owner/));
 test('private site settings cannot be read by editor',()=>assert.equal(config.globals.find(g=>g.slug==='site-settings').access.read({req:req('editor')}),false));
 

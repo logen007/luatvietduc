@@ -69,6 +69,9 @@ export interface Config {
   collections: {
     users: User;
     articles: Article;
+    knowledge: Knowledge;
+    media: Media;
+    'audit-events': AuditEvent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +81,9 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
+    knowledge: KnowledgeSelect<false> | KnowledgeSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
+    'audit-events': AuditEventsSelect<false> | AuditEventsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -156,6 +162,12 @@ export interface User {
  */
 export interface Article {
   id: number;
+  kind?: ('article' | 'news' | 'question') | null;
+  legalField?: string | null;
+  effectiveFrom?: string | null;
+  reviewDueAt?: string | null;
+  reviewedBy?: (number | null) | User;
+  reviewedAt?: string | null;
   title: string;
   slug: string;
   body: string;
@@ -167,6 +179,69 @@ export interface Article {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * Chỉ nhập nguồn công khai. Không nhập hồ sơ khách hàng hoặc hội thoại riêng.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "knowledge".
+ */
+export interface Knowledge {
+  id: number;
+  title: string;
+  body: string;
+  jurisdiction: 'VN' | 'DE';
+  sourceUrl: string;
+  effectiveFrom: string;
+  expiresAt?: string | null;
+  reviewDueAt: string;
+  approved?: boolean | null;
+  reviewedBy?: (number | null) | User;
+  reviewedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  alt: string;
+  visibility?: ('private' | 'public') | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-events".
+ */
+export interface AuditEvent {
+  id: number;
+  action: string;
+  recordId: string;
+  actor?: (number | null) | User;
+  details?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -199,6 +274,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'articles';
         value: number | Article;
+      } | null)
+    | ({
+        relationTo: 'knowledge';
+        value: number | Knowledge;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'audit-events';
+        value: number | AuditEvent;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -273,6 +360,12 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "articles_select".
  */
 export interface ArticlesSelect<T extends boolean = true> {
+  kind?: T;
+  legalField?: T;
+  effectiveFrom?: T;
+  reviewDueAt?: T;
+  reviewedBy?: T;
+  reviewedAt?: T;
   title?: T;
   slug?: T;
   body?: T;
@@ -284,6 +377,56 @@ export interface ArticlesSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "knowledge_select".
+ */
+export interface KnowledgeSelect<T extends boolean = true> {
+  title?: T;
+  body?: T;
+  jurisdiction?: T;
+  sourceUrl?: T;
+  effectiveFrom?: T;
+  expiresAt?: T;
+  reviewDueAt?: T;
+  approved?: T;
+  reviewedBy?: T;
+  reviewedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  visibility?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-events_select".
+ */
+export interface AuditEventsSelect<T extends boolean = true> {
+  action?: T;
+  recordId?: T;
+  actor?: T;
+  details?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -332,6 +475,8 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface SiteSetting {
   id: number;
   siteName?: string | null;
+  tagline?: string | null;
+  logo?: (number | null) | Media;
   socialLinks?:
     | {
         label: string;
@@ -339,6 +484,25 @@ export interface SiteSetting {
         id?: string | null;
       }[]
     | null;
+  navigation?:
+    | {
+        label: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  footerText?: string | null;
+  supportNotice?: string | null;
+  officeHours?: string | null;
+  timeZone?: ('Europe/Berlin' | 'Asia/Ho_Chi_Minh') | null;
+  chatEnabled?: boolean | null;
+  retentionDays?: number | null;
+  maxMessageLength?: number | null;
+  aiMode?: ('off' | 'internal-only') | null;
+  aiDailyRequests?: number | null;
+  aiMaxOutputTokens?: number | null;
+  accentColor?: string | null;
+  privacyText?: string | null;
   publicIndexingEnabled?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -349,6 +513,8 @@ export interface SiteSetting {
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
   siteName?: T;
+  tagline?: T;
+  logo?: T;
   socialLinks?:
     | T
     | {
@@ -356,6 +522,25 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
+  navigation?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  footerText?: T;
+  supportNotice?: T;
+  officeHours?: T;
+  timeZone?: T;
+  chatEnabled?: T;
+  retentionDays?: T;
+  maxMessageLength?: T;
+  aiMode?: T;
+  aiDailyRequests?: T;
+  aiMaxOutputTokens?: T;
+  accentColor?: T;
+  privacyText?: T;
   publicIndexingEnabled?: T;
   updatedAt?: T;
   createdAt?: T;
