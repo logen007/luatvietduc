@@ -1,13 +1,15 @@
 /* Payload-only visual layer. Native controls, focus, validation and access rules remain intact. */
+@import url('/fonts/inter.css');
 @font-face {
-  font-family: Inter;
-  src: url('/fonts/Inter-variable.woff2') format('woff2');
-  font-weight: 100 900;
+  font-family: Articulat;
+  src: url('/fonts/Articulat-web.woff2') format('woff2');
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 html.lvd-admin {
   --font-body: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --lvd-admin-display: Articulat, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --style-radius-s: 6px;
   --style-radius-m: 10px;
   --style-radius-l: 14px;
@@ -17,12 +19,12 @@ html.lvd-admin {
 html.lvd-admin[data-theme='light'] {
   --theme-bg: #fff;
   --theme-input-bg: #fff;
-  --theme-border-color: #e5e5e7;
-  --theme-text: #202023;
-  --lvd-admin-muted: #727276;
+  --theme-border-color: #e5e5e5;
+  --theme-text: #0b0b0b;
+  --lvd-admin-muted: #737373;
 }
 html.lvd-admin body { font-family: var(--font-body); }
-html.lvd-admin :is(h1, h2, h3, h4) { font-family: var(--font-body); letter-spacing: -.035em; }
+html.lvd-admin :is(h1, h2, h3, h4) { font-family: var(--lvd-admin-display); font-weight: 500; letter-spacing: -.01em; }
 html.lvd-admin .dashboard { padding-top: 30px; }
 html.lvd-admin .nav { border-right: 1px solid var(--theme-border-color); }
 html.lvd-admin .nav__link { border-radius: 6px; }
@@ -35,7 +37,7 @@ html.lvd-admin .card {
   box-shadow: 0 1px 2px rgb(0 0 0 / 2%);
 }
 html.lvd-admin .card:hover { border-color: var(--theme-elevation-300); }
-html.lvd-admin .card__title { letter-spacing: -.015em; font-weight: 550; }
+html.lvd-admin .card__title { font-family: var(--lvd-admin-display); letter-spacing: -.01em; font-weight: 500; }
 html.lvd-admin .btn:not(.btn--style-none) { font-family: var(--font-body); }
 html.lvd-admin .btn--style-primary:not(.btn--disabled) {
   --bg-color: var(--theme-elevation-900);
@@ -60,7 +62,7 @@ html.lvd-admin .lvd-admin-welcome__header {
 html.lvd-admin .lvd-admin-eyebrow {
   margin: 0 0 16px;
   color: var(--lvd-admin-muted);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 550;
   line-height: 1.5;
   letter-spacing: .13em;
@@ -71,7 +73,7 @@ html.lvd-admin .lvd-admin-welcome h1 {
   font-size: clamp(30px, 3.3vw, 46px);
   font-weight: 500;
   line-height: 1.12;
-  letter-spacing: -.055em;
+  letter-spacing: -.01em;
 }
 html.lvd-admin .lvd-admin-welcome__intro {
   max-width: 640px;
@@ -126,7 +128,7 @@ html.lvd-admin .lvd-admin-destination__icon {
 }
 html.lvd-admin .lvd-admin-destination__icon svg { width: 20px; height: 20px; }
 html.lvd-admin .lvd-admin-destination__body { display: grid; gap: 8px; }
-html.lvd-admin .lvd-admin-destination__body strong { font-size: 16px; font-weight: 550; letter-spacing: -.025em; line-height: 1.4; }
+html.lvd-admin .lvd-admin-destination__body strong { font-family: var(--lvd-admin-display); font-size: 16px; font-weight: 500; letter-spacing: -.01em; line-height: 1.4; }
 html.lvd-admin .lvd-admin-destination__body>span { color: var(--lvd-admin-muted); font-size: 12px; line-height: 1.65; }
 html.lvd-admin .lvd-admin-destination__arrow { margin-left: auto; flex-shrink: 0; color: var(--lvd-admin-muted); }
 html.lvd-admin .lvd-admin-destination__arrow svg { width: 16px; height: 16px; }
@@ -140,18 +142,18 @@ html.lvd-admin .lvd-admin-workflow {
   padding-block: 15px;
   border-bottom: 1px solid var(--theme-border-color);
   color: var(--lvd-admin-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
 }
 html.lvd-admin .lvd-admin-workflow p { display: flex; align-items: center; gap: 9px; margin: 0; }
 html.lvd-admin .lvd-admin-workflow__dot { display: block; width: 5px; height: 5px; border-radius: 50%; background: var(--theme-elevation-700); flex-shrink: 0; }
 html.lvd-admin .lvd-admin-connections { margin-top: 26px; }
 html.lvd-admin .lvd-admin-connections__heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
-html.lvd-admin .lvd-admin-connections__heading h2 { margin: 0; font-size: 15px; font-weight: 550; letter-spacing: -.02em; }
+html.lvd-admin .lvd-admin-connections__heading h2 { margin: 0; font-size: 15px; font-weight: 500; letter-spacing: -.01em; }
 html.lvd-admin .lvd-admin-connection-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--theme-border-color); border-radius: 9px; overflow: hidden; }
 html.lvd-admin .lvd-admin-connection { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 17px 18px; border-right: 1px solid var(--theme-border-color); font-size: 12px; }
 html.lvd-admin .lvd-admin-connection:last-child { border-right: 0; }
-html.lvd-admin .lvd-admin-status { padding: 3px 7px; border: 1px solid var(--theme-border-color); border-radius: 4px; color: var(--lvd-admin-muted); font-size: 10px; line-height: 1.4; }
+html.lvd-admin .lvd-admin-status { padding: 3px 7px; border: 1px solid var(--theme-border-color); border-radius: 4px; color: var(--lvd-admin-muted); font-size: 12px; line-height: 1.4; }
 html.lvd-admin .lvd-admin-status--configured { color: var(--theme-text); background: var(--theme-elevation-50); }
 html.lvd-admin .template-minimal:has(.lvd-admin-login) { padding-block: 50px; }
 html.lvd-admin .template-minimal__wrap:has(.lvd-admin-login) {
@@ -166,13 +168,13 @@ html.lvd-admin .template-minimal__wrap:has(.lvd-admin-login) .login__brand { dis
 html.lvd-admin .lvd-admin-login { margin-bottom: 25px; }
 html.lvd-admin .lvd-admin-login__brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 40px; color: var(--theme-text); text-decoration: none; }
 html.lvd-admin .lvd-admin-login__brand>span { display: grid; place-items: center; width: 32px; height: 34px; border: 1px solid var(--theme-border-color); border-radius: 5px; font-family: Georgia, serif; font-size: 25px; line-height: 1; }
-html.lvd-admin .lvd-admin-login__brand>strong { font-size: 14px; font-weight: 550; letter-spacing: -.035em; }
-html.lvd-admin .lvd-admin-login h1 { margin: 0 0 15px; font-size: 31px; font-weight: 500; letter-spacing: -.055em; line-height: 1.15; }
+html.lvd-admin .lvd-admin-login__brand>strong { font-family: var(--lvd-admin-display); font-size: 14px; font-weight: 500; letter-spacing: -.01em; }
+html.lvd-admin .lvd-admin-login h1 { margin: 0 0 15px; font-size: 31px; font-weight: 500; letter-spacing: -.01em; line-height: 1.15; }
 html.lvd-admin .lvd-admin-login__intro { margin: 0 0 22px; color: var(--lvd-admin-muted); font-size: 12px; line-height: 1.75; }
-html.lvd-admin .lvd-admin-login__notice { margin: 0; padding: 13px 14px; border: 1px solid var(--theme-border-color); border-radius: 7px; color: var(--lvd-admin-muted); background: var(--theme-elevation-50); font-size: 11px; line-height: 1.7; }
+html.lvd-admin .lvd-admin-login__notice { margin: 0; padding: 13px 14px; border: 1px solid var(--theme-border-color); border-radius: 7px; color: var(--lvd-admin-muted); background: var(--theme-elevation-50); font-size: 12px; line-height: 1.7; }
 html.lvd-admin .lvd-admin-google-link { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 43px; padding: 12px 16px; border: 1px solid var(--theme-border-color); border-radius: 7px; color: var(--theme-text); background: var(--theme-elevation-0); text-decoration: none; font-size: 12px; font-weight: 500; }
 html.lvd-admin .lvd-admin-google-link svg { width: 17px; height: 17px; }
-html.lvd-admin .lvd-admin-login__divider { display: flex; align-items: center; gap: 10px; margin: 20px 0 0; color: var(--lvd-admin-muted); font-size: 10px; }
+html.lvd-admin .lvd-admin-login__divider { display: flex; align-items: center; gap: 10px; margin: 20px 0 0; color: var(--lvd-admin-muted); font-size: 12px; }
 html.lvd-admin .lvd-admin-login__divider::before,
 html.lvd-admin .lvd-admin-login__divider::after { content: ''; height: 1px; flex: 1; background: var(--theme-border-color); }
 html.lvd-admin .lvd-admin-website-link:hover,

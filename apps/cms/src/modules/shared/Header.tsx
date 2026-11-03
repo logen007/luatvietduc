@@ -86,19 +86,86 @@ export function Header() {
   );
 }
 
+const footerColumns = [
+  {
+    title: "Thư viện",
+    links: [
+      ["Thư viện pháp luật", "/#/tra-cuu"],
+      ["Pháp luật Việt Nam", "/#/phap-luat/viet-nam"],
+      ["Pháp luật Đức", "/#/phap-luat/duc"],
+      ["Bài viết mới", "/bai-viet"],
+    ],
+  },
+  {
+    title: "Chủ đề",
+    links: [
+      ["Quốc tịch", "/#/chu-de/quoc-tich"],
+      ["Hôn nhân & gia đình", "/#/chu-de/hon-nhan-gia-dinh"],
+      ["Thừa kế", "/#/chu-de/thua-ke"],
+      ["Giấy tờ tùy thân", "/#/chu-de/giay-to-tuy-than"],
+    ],
+  },
+  {
+    title: "Chuyên trang",
+    links: [
+      ["Về Luật Việt Đức", "/#/ve-chuyen-trang"],
+      ["Đội ngũ chuyên gia", "/#/ve-chuyen-trang?muc=doi-ngu"],
+      ["Tin tức & đời sống", "/#/tin-tuc"],
+      ["Liên hệ", "/#/lien-he"],
+    ],
+  },
+  {
+    title: "Hỗ trợ",
+    links: [
+      ["Hỏi chuyên viên", "/tro-chuyen"],
+      ["Tài khoản của bạn", "/tai-khoan"],
+      ["Quyền riêng tư", "/#/chinh-sach-thong-tin"],
+      ["Điều khoản sử dụng", "/#/dieu-khoan"],
+    ],
+  },
+  {
+    title: "Nhân sự",
+    links: [
+      ["Đăng nhập quản trị", "/admin/login"],
+      ["Hộp thư chuyên viên", "/chuyen-vien"],
+      ["Kho kiến thức nội bộ", "/kien-thuc"],
+      ["Kết nối hệ thống", "/quan-tri"],
+    ],
+  },
+];
 export function Footer() {
   return (
     <footer className="live-footer">
-      <div className="container live-footer-inner">
-        <a className="live-footer-wordmark" href="/">
-          Luật Việt Đức<span>Thông tin pháp luật Việt Nam & Đức.</span>
-        </a>
-        <nav aria-label="Thông tin website">
+      <div className="live-footer-inner">
+        <div className="live-footer-identity">
+          <a className="live-footer-wordmark" href="/">
+            Luật Việt Đức
+          </a>
+          <p>Thông tin pháp luật Việt Nam & Đức.</p>
+        </div>
+        {footerColumns.map((column) => (
+          <nav
+            className="live-footer-column"
+            key={column.title}
+            aria-label={column.title}
+          >
+            <h2>{column.title}</h2>
+            <ul>
+              {column.links.map(([label, href]) => (
+                <li key={href}>
+                  <a href={href}>{label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
+      </div>
+      <div className="live-footer-meta">
+        <small>© Luật Việt Đức. Thông tin pháp luật Việt Nam & Đức.</small>
+        <nav aria-label="Chính sách">
           <a href="/#/chinh-sach-thong-tin">Quyền riêng tư</a>
           <a href="/#/dieu-khoan">Điều khoản sử dụng</a>
-          <a href="/#/lien-he">Liên hệ</a>
         </nav>
-        <small>© Luật Việt Đức</small>
       </div>
     </footer>
   );

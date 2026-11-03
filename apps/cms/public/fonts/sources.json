@@ -1,21 +1,222 @@
 {
-  "family": "Inter",
+  "activeFamily": "Inter",
+  "activeStylesheet": "/fonts/inter.css",
   "license": "SIL Open Font License 1.1",
-  "source": "https://github.com/google/fonts/tree/main/ofl/inter",
-  "font_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz,wght%5D.ttf",
-  "license_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/OFL.txt",
+  "licenseFile": "OFL.txt",
+  "upstreamProject": "https://github.com/rsms/inter",
+  "verifiedSourceStylesheet": "https://www.papermark.com/_next/static/css/9bc31d1a4c88a0ce.css",
   "retrieved": "2026-11-03",
-  "build": "Converted unchanged complete variable TTF to WOFF2 using fontTools; no glyphs removed.",
-  "axes": {
-    "opsz": [
-      14,
-      32
-    ],
-    "wght": [
-      100,
-      900
-    ]
+  "notes": "Exact WOFF2 bytes and unicode-range values from the reference stylesheet; @font-face family renamed from Next-generated __Inter_d8ebd1 to Inter. No glyph conversion or subsetting performed. Papermark-specific private fonts are not part of this manifest.",
+  "subsets": [
+    {
+      "subset": "cyrillic-ext",
+      "filename": "Inter-cyrillic-ext.woff2",
+      "url": "https://www.papermark.com/_next/static/media/ba9851c3c22cd980-s.woff2",
+      "unicodeRange": "u+0460-052f,u+1c80-1c8a,u+20b4,u+2de0-2dff,u+a640-a69f,u+fe2e-fe2f",
+      "weight": "100 900",
+      "style": "normal",
+      "display": "swap",
+      "bytes": 25844,
+      "sha256": "fccca918fea40089dacadc7045861314d1a6bc91f1f323cc1eeb22ebcdb321b5"
+    },
+    {
+      "subset": "cyrillic",
+      "filename": "Inter-cyrillic.woff2",
+      "url": "https://www.papermark.com/_next/static/media/21350d82a1f187e9-s.woff2",
+      "unicodeRange": "u+0301,u+0400-045f,u+0490-0491,u+04b0-04b1,u+2116",
+      "weight": "100 900",
+      "style": "normal",
+      "display": "swap",
+      "bytes": 18744,
+      "sha256": "aebf2ab4a4ce6810d73c1ac7be7cafb4e5ec4cee2d6db5fb3e09691747ec4bd6"
+    },
+    {
+      "subset": "greek-ext",
+      "filename": "Inter-greek-ext.woff2",
+      "url": "https://www.papermark.com/_next/static/media/c5fe6dc8356a8c31-s.woff2",
+      "unicodeRange": "u+1f??",
+      "weight": "100 900",
+      "style": "normal",
+      "display": "swap",
+      "bytes": 11272,
+      "sha256": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271"
+    },
+    {
+      "subset": "greek",
+      "filename": "Inter-greek.woff2",
+      "url": "https://www.papermark.com/_next/static/media/19cfc7226ec3afaa-s.woff2",
+      "unicodeRange": "u+0370-0377,u+037a-037f,u+0384-038a,u+038c,u+038e-03a1,u+03a3-03ff",
+      "weight": "100 900",
+      "style": "normal",
+      "display": "swap",
+      "bytes": 19044,
+      "sha256": "46dd4cdca58c26ae87cc6927657bf83b2e8abfc39ffd0ab176e301a8d28d22bf"
+    },
+    {
+      "subset": "vietnamese",
+      "filename": "Inter-vietnamese.woff2",
+      "url": "https://www.papermark.com/_next/static/media/df0a9ae256c0569c-s.woff2",
+      "unicodeRange": "u+0102-0103,u+0110-0111,u+0128-0129,u+0168-0169,u+01a0-01a1,u+01af-01b0,u+0300-0301,u+0303-0304,u+0308-0309,u+0323,u+0329,u+1ea0-1ef9,u+20ab",
+      "weight": "100 900",
+      "style": "normal",
+      "display": "swap",
+      "bytes": 10280,
+      "sha256": "8db00ff46c67b22cda8bed865acf7077651cac8d2841d5b40980556b48961931"
+    },
+    {
+      "subset": "latin-ext",
+      "filename": "Inter-latin-ext.woff2",
+      "url": "https://www.papermark.com/_next/static/media/8e9860b6e62d6359-s.woff2",
+      "unicodeRange": "u+0100-02ba,u+02bd-02c5,u+02c7-02cc,u+02ce-02d7,u+02dd-02ff,u+0304,u+0308,u+0329,u+1d00-1dbf,u+1e00-1e9f,u+1ef2-1eff,u+2020,u+20a0-20ab,u+20ad-20c4,u+2113,u+2c60-2c7f,u+a720-a7ff",
+      "weight": "100 900",
+      "style": "normal",
+      "display": "swap",
+      "bytes": 85272,
+      "sha256": "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2"
+    },
+    {
+      "subset": "latin",
+      "filename": "Inter-latin.woff2",
+      "url": "https://www.papermark.com/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+      "unicodeRange": "u+00??,u+0131,u+0152-0153,u+02bb-02bc,u+02c6,u+02da,u+02dc,u+0304,u+0308,u+0329,u+2000-206f,u+20ac,u+2122,u+2191,u+2193,u+2212,u+2215,u+feff,u+fffd",
+      "weight": "100 900",
+      "style": "normal",
+      "display": "swap",
+      "bytes": 48432,
+      "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4"
+    }
+  ],
+  "legacyFullFont": {
+    "family": "Inter",
+    "license": "SIL Open Font License 1.1",
+    "source": "https://github.com/google/fonts/tree/main/ofl/inter",
+    "font_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz,wght%5D.ttf",
+    "license_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/OFL.txt",
+    "retrieved": "2026-11-03",
+    "build": "Converted unchanged complete variable TTF to WOFF2 using fontTools; no glyphs removed.",
+    "axes": {
+      "opsz": [
+        14,
+        32
+      ],
+      "wght": [
+        100,
+        900
+      ]
+    },
+    "vietnamese_sample_checked": "Luật Việt Đức · Tiếng Việt · Đăng nhập",
+    "sha256": "901ac84c6240045ab3b46424ae6022df536e8cd65c2da292dc0fbba33752194f"
   },
-  "vietnamese_sample_checked": "Luật Việt Đức · Tiếng Việt · Đăng nhập",
-  "sha256": "901ac84c6240045ab3b46424ae6022df536e8cd65c2da292dc0fbba33752194f"
+  "verification": {
+    "subsetCount": 7,
+    "allVietnameseToneLettersUpperAndLowerChecked": true,
+    "germanUmlautsAndEszettChecked": true,
+    "metadata": [
+      {
+        "filename": "Inter-cyrillic-ext.woff2",
+        "family": "Inter",
+        "version": "Version 4.001;git-66647c0bb",
+        "axes": [
+          {
+            "tag": "wght",
+            "min": 100.0,
+            "max": 900.0
+          }
+        ],
+        "license": null,
+        "licenseURL": "https://openfontlicense.org",
+        "unicodeCount": 157
+      },
+      {
+        "filename": "Inter-cyrillic.woff2",
+        "family": "Inter",
+        "version": "Version 4.001;git-66647c0bb",
+        "axes": [
+          {
+            "tag": "wght",
+            "min": 100.0,
+            "max": 900.0
+          }
+        ],
+        "license": null,
+        "licenseURL": "https://openfontlicense.org",
+        "unicodeCount": 107
+      },
+      {
+        "filename": "Inter-greek-ext.woff2",
+        "family": "Inter",
+        "version": "Version 4.001;git-66647c0bb",
+        "axes": [
+          {
+            "tag": "wght",
+            "min": 100.0,
+            "max": 900.0
+          }
+        ],
+        "license": null,
+        "licenseURL": "https://openfontlicense.org",
+        "unicodeCount": 238
+      },
+      {
+        "filename": "Inter-greek.woff2",
+        "family": "Inter",
+        "version": "Version 4.001;git-66647c0bb",
+        "axes": [
+          {
+            "tag": "wght",
+            "min": 100.0,
+            "max": 900.0
+          }
+        ],
+        "license": null,
+        "licenseURL": "https://openfontlicense.org",
+        "unicodeCount": 110
+      },
+      {
+        "filename": "Inter-latin-ext.woff2",
+        "family": "Inter",
+        "version": "Version 4.001;git-66647c0bb",
+        "axes": [
+          {
+            "tag": "wght",
+            "min": 100.0,
+            "max": 900.0
+          }
+        ],
+        "license": null,
+        "licenseURL": "https://openfontlicense.org",
+        "unicodeCount": 733
+      },
+      {
+        "filename": "Inter-latin.woff2",
+        "family": "Inter",
+        "version": "Version 4.001;git-66647c0bb",
+        "axes": [
+          {
+            "tag": "wght",
+            "min": 100.0,
+            "max": 900.0
+          }
+        ],
+        "license": null,
+        "licenseURL": "https://openfontlicense.org",
+        "unicodeCount": 230
+      },
+      {
+        "filename": "Inter-vietnamese.woff2",
+        "family": "Inter",
+        "version": "Version 4.001;git-66647c0bb",
+        "axes": [
+          {
+            "tag": "wght",
+            "min": 100.0,
+            "max": 900.0
+          }
+        ],
+        "license": null,
+        "licenseURL": "https://openfontlicense.org",
+        "unicodeCount": 115
+      }
+    ]
+  }
 }

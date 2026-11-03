@@ -13,14 +13,14 @@
   let settings=null,articles=[];
   const enrich=()=>{
     if(!settings)return;
-    document.querySelectorAll('.brand-name').forEach(el=>el.textContent=settings.siteName);
+    document.querySelectorAll('.brand-name,.lvd-footer-wordmark').forEach(el=>el.textContent=settings.siteName);
     const tagline=document.querySelector('.lvd-footer-identity>p');if(tagline)tagline.textContent=settings.tagline||'';
     const footer=document.querySelector('.lvd-footer-bottom>span');if(footer)footer.textContent='© '+settings.siteName+'. '+(settings.footerText||'');
     if(/^#[\da-fA-F]{6}$/.test(settings.accentColor||''))document.documentElement.style.setProperty('--accent',settings.accentColor);
     if(settings.logo)document.querySelectorAll('.brand-mark').forEach(el=>{const img=document.createElement('img');img.src=settings.logo;img.alt=settings.siteName;img.style.cssText='width:100%;height:100%;object-fit:contain';el.replaceChildren(img)});
     if(location.hash.startsWith('#/chinh-sach-thong-tin')&&settings.privacyText&&!document.getElementById('live-privacy')){const p=document.createElement('p');p.id='live-privacy';p.style.whiteSpace='pre-wrap';p.textContent=settings.privacyText;(document.querySelector('#main .prose')||document.getElementById('main'))?.append(p)}
     const grid=document.querySelector('.chat-news .press-grid');
-    if(grid&&articles.length){grid.replaceChildren();for(const item of articles){const article=document.createElement('article');article.className='press-card';const copy=document.createElement('div');copy.className='press-copy';const h=document.createElement('h2');const link=document.createElement('a');link.href='/bai-viet/'+encodeURIComponent(item.slug);link.textContent=item.title;h.append(link);const p=document.createElement('p');p.textContent=item.body.slice(0,140);copy.append(h,p);article.append(copy);grid.append(article)}}
+    if(grid&&articles.length){grid.replaceChildren();for(const item of articles){const article=document.createElement('article');article.className='press-card pm-story pm-story-cms';const copy=document.createElement('div');copy.className='press-copy';const h=document.createElement('h3');const link=document.createElement('a');link.href='/bai-viet/'+encodeURIComponent(item.slug);link.textContent=item.title;h.append(link);const p=document.createElement('p');p.textContent=item.body.slice(0,140);const more=document.createElement('a');more.className='lvd-link pm-story-read';more.href=link.href;more.textContent=window.LVD_I18N?.get()==='de'?'Beitrag lesen ↗':'Đọc bài viết ↗';copy.append(h,p,more);article.append(copy);grid.append(article)}}
   };
   window.addEventListener('hashchange',()=>queueMicrotask(enrich));
   document.addEventListener('DOMContentLoaded',async()=>{
