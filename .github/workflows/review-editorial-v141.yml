@@ -1,0 +1,105 @@
+name: Review minimalist news and nested legal topics
+on:
+  push:
+    branches: [clean-news-slider-nested-catalog-v141]
+    paths: ['.github/workflows/review-editorial-v141.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Validate script syntax and editorial source preservation
+        run: |
+          for f in assets/*.js; do node --check "$f"; done
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('assets/site-features.js').read_text()
+          c=Path('assets/catalog.js').read_text()
+          n=Path('assets/newsroom.js').read_text()
+          h=Path('index.html').read_text()
+          assert "data-slider-pause" not in s and "data-slider-dir" not in s
+          assert "catalog-tabs" not in c
+          assert "news-sources" not in n and "press-source" not in n
+          assert 'assets/editorial-cleanup.css?v=1.4.1' in h
+          assert 'content="1.4.1"' in h
+          assert '"photo": "dong-xuan"' not in Path('assets/news-content.js').read_text().split('"stories":',1)[-1]
+          assert "expectedTotal:303" in Path('assets/catalog-source.js').read_text()
+          print("PASS HTML and JS contracts")
+          PY
+      - name: Install browser
+        run: |
+          python3 -m pip install 'playwright==1.55.0' 'Pillow>=11,<13'
+          python3 -m playwright install --with-deps chromium
+      - name: Verify layout and removed public metadata
+        run: |
+          mkdir -p internal-review
+          python3 - <<'PY'
+          import functools,http.server,threading
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright,expect
+          class Quiet(http.server.SimpleHTTPRequestHandler):
+              def log_message(self,*a):pass
+          server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(Path.cwd())))
+          threading.Thread(target=server.serve_forever,daemon=True).start()
+          url=f'http://127.0.0.1:{server.server_port}/#'
+          with sync_playwright() as p:
+            browser=p.chromium.launch()
+            for w in (320,390,768,1440):
+              page=browser.new_page(viewport={'width':w,'height':900},locale='vi-VN',reduced_motion='reduce')
+              errs=[]
+              page.on('pageerror',lambda e:errs.append(str(e)))
+              def go(route):
+                page.goto(url+route,wait_until='load')
+                page.wait_for_timeout(140)
+                assert page.evaluate('document.documentElement.scrollWidth')<=w+2,(w,route,'overflow')
+              go('/')
+              expect(page.locator('.lvd-partner-controls')).to_have_count(0)
+              expect(page.locator('[data-slider-pause],[data-slider-dir]')).to_have_count(0)
+              expect(page.locator('.press-source,.s-story-source')).to_have_count(0)
+              assert page.locator('.lvd-partner-track img').count()>=8
+              assert page.locator('.s-news-section h2').inner_text().strip().startswith('Tin tức')
+              style=page.locator('.lvd-partner-section').evaluate('e => ({border:getComputedStyle(e).borderTopWidth,box:getComputedStyle(e).boxShadow})')
+              assert style['border']=='0px' and style['box']=='none',(w,style)
+              if w in (390,1440):
+                page.locator('.lvd-partner-section').screenshot(path=f'internal-review/logos-{w}.png')
+              go('/tra-cuu')
+              expect(page.locator('.catalog-tabs')).to_have_count(0)
+              expect(page.locator('.catalog-group')).to_have_count(16)
+              go('/chu-de/hon-nhan-gia-dinh')
+              expect(page.locator('.catalog-tabs')).to_have_count(0)
+              assert page.locator('[data-catalog-topic]').count()==10
+              assert page.locator('h1').inner_text().startswith('Hôn nhân')
+              go('/tin-tuc')
+              assert page.locator('h1').inner_text()=='Tin tức'
+              expect(page.locator('.press-source')).to_have_count(0)
+              go('/tin/mindestlohn-2026')
+              expect(page.locator('.news-sources,.news-photo-license')).to_have_count(0)
+              expect(page.locator('.news-to-chat a')).to_have_count(1)
+              expect(page.locator('.news-byline strong')).to_have_count(0)
+              assert 'Tóm tắt từ' not in page.locator('.news-detail').inner_text()
+              expect(page.locator('.news-figure img')).to_have_count(1)
+              if w in (390,1440):page.screenshot(path=f'internal-review/article-{w}.png',full_page=True)
+              assert not errs,errs
+              print('PASS width',w,flush=True)
+              page.close()
+            browser.close()
+          server.shutdown()
+          PY
+      - name: Verify existing article and law journeys
+        run: |
+          python3 scripts/test-chat.py
+          python3 scripts/test-catalog.py
+      - name: Review captures are internal
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: internal-news-cleanup-review
+          path: internal-review/
+          if-no-files-found: ignore
+          retention-days: 1
