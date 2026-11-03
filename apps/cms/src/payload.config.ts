@@ -1,10 +1,10 @@
 import { buildConfig, type Access, type CollectionConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import {articleWorkflow, createArticle, readArticles, scopedStaff} from './access/articles'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const owner: Access = ({ req }) => req.user?.role === 'owner'
-const contentStaff: Access = ({ req }) => Boolean(req.user && ['owner','editor'].includes(req.user.role))
 const Users: CollectionConfig = {
  slug: 'users', auth: {maxLoginAttempts:5,lockTime:600000,cookies:{sameSite:'Lax',secure:process.env.NODE_ENV==='production'}},
  hooks:{beforeChange:[({req,operation,data})=>{if(operation==='create' && req.user?.role!=='owner' && req.context.bootstrapOwner!==true) throw new Error('Offline owner provisioning required');return data}]},
@@ -13,14 +13,9 @@ const Users: CollectionConfig = {
 }
 const Articles: CollectionConfig = {
  slug:'articles', versions:{drafts:true},
- access:{create:contentStaff,read:({req})=>req.user ? contentStaff({req}) : {and:[{_status:{equals:'published'}},{reviewState:{equals:'approved'}}]},update:contentStaff,delete:owner,readVersions:contentStaff},
- hooks:{beforeChange:[({data,originalDoc,req})=>{
-  if (originalDoc && ['title','body','jurisdiction','language','sourceUrl','slug'].some(k=>k in data && data[k]!==originalDoc[k])) {data.reviewState='draft';data._status='draft';data.aiAllowed=false}
-  if (data._status === 'published' && req.user?.role !== 'owner') throw new Error('Publication restricted until review workflow acceptance')
-  if(data._status==='published' && (data.reviewState ?? originalDoc?.reviewState)!=='approved') throw new Error('Review required')
-  return data
- }]},
- fields:[{name:'title',type:'text',required:true},{name:'slug',type:'text',required:true,unique:true},{name:'body',type:'textarea',required:true},{name:'jurisdiction',type:'select',required:true,options:['VN','DE']},{name:'language',type:'select',required:true,options:['vi','de']},{name:'sourceUrl',type:'text'},{name:'reviewState',type:'select',defaultValue:'draft',options:['draft','pending','approved','withdrawn'],access:{create:({req})=>req.user?.role==='owner',update:({req})=>req.user?.role==='owner'}},{name:'aiAllowed',type:'checkbox',defaultValue:false,access:{create:({req})=>req.user?.role==='owner',update:({req})=>req.user?.role==='owner'}}],
+ access:{create:createArticle,read:readArticles,update:scopedStaff,delete:owner,readVersions:scopedStaff},
+ hooks:{beforeChange:[articleWorkflow]},
+ fields:[{name:'title',type:'text',required:true},{name:'slug',type:'text',required:true,unique:true},{name:'body',type:'textarea',required:true},{name:'jurisdiction',type:'select',required:true,options:['VN','DE']},{name:'language',type:'select',required:true,options:['vi','de']},{name:'sourceUrl',type:'text'},{name:'reviewState',type:'select',defaultValue:'draft',options:['draft','pending','approved','withdrawn'],access:{create:({req})=>['owner','editor'].includes(req.user?.role || ''),update:({req})=>['owner','editor','reviewer'].includes(req.user?.role || '')}},{name:'aiAllowed',type:'checkbox',defaultValue:false,access:{create:({req})=>req.user?.role==='owner',update:({req})=>req.user?.role==='owner'}}],
 }
 export default buildConfig({
  secret: process.env.PAYLOAD_SECRET || '',

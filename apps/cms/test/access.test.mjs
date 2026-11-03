@@ -4,7 +4,7 @@ import configPromise from '../src/payload.config.ts';
 const config=await configPromise;
 const users=config.collections.find(c=>c.slug==='users');
 const articles=config.collections.find(c=>c.slug==='articles');
-const req=role=>({user:role?{id:1,role}:null,context:{}});
+const req=role=>({user:role?{id:1,role,jurisdictions:['VN']}:null,context:{}});
 test('anonymous user creation denied',()=>assert.equal(users.access.create({req:req()}),false));
 test('editor cannot create privileged users',()=>assert.equal(users.access.create({req:req('editor')}),false));
 test('owner may provision users',()=>assert.equal(users.access.create({req:req('owner')}),true));
@@ -12,10 +12,25 @@ test('member only reads own user record',()=>assert.deepEqual(users.access.read(
 test('support cannot edit articles',()=>assert.equal(articles.access.update({req:req('support')}),false));
 test('public article query requires publication and approval',()=>assert.deepEqual(articles.access.read({req:req()}),{and:[{_status:{equals:'published'}},{reviewState:{equals:'approved'}}]}));
 const articleHook=articles.hooks.beforeChange[0];
-test('editor cannot publish',()=>assert.throws(()=>articleHook({req:req('editor'),data:{_status:'published'}}),/Publication restricted/));
+test('editor cannot publish',()=>assert.throws(()=>articleHook({req:req('editor'),data:{jurisdiction:'VN',_status:'published'}}),/Publication restricted/));
 test('owner cannot publish unreviewed content',()=>assert.throws(()=>articleHook({req:req('owner'),data:{_status:'published',reviewState:'draft'}}),/Review required/));
-test('editing approved article invalidates approval and AI use',()=>assert.deepEqual(articleHook({req:req('editor'),data:{title:'Changed'},originalDoc:{title:'Old',reviewState:'approved',_status:'published',aiAllowed:true}}),{title:'Changed',reviewState:'draft',_status:'draft',aiAllowed:false}));
+test('editing approved article invalidates approval and AI use',()=>assert.deepEqual(articleHook({req:req('editor'),data:{title:'Changed'},originalDoc:{jurisdiction:'VN',title:'Old',reviewState:'approved',_status:'published',aiAllowed:true}}),{title:'Changed',reviewState:'draft',_status:'draft',aiAllowed:false}));
 test('first-register cannot bypass offline bootstrap hook',()=>assert.throws(()=>users.hooks.beforeChange[0]({req:req(),operation:'create',data:{role:'owner'}}),/Offline owner/));
 test('private site settings cannot be read by editor',()=>assert.equal(config.globals.find(g=>g.slug==='site-settings').access.read({req:req('editor')}),false));
 
-test('Payload merged publication state is invalidated before editor publication guard',()=>assert.equal(articleHook({req:req('editor'),data:{body:'New',_status:'published'},originalDoc:{body:'Old',_status:'published',reviewState:'approved'}})._status,'draft'));
+test('Payload merged publication state is invalidated before editor publication guard',()=>assert.equal(articleHook({req:req('editor'),data:{body:'New',_status:'published'},originalDoc:{jurisdiction:'VN',body:'Old',_status:'published',reviewState:'approved'}})._status,'draft'));
+
+test('member sees public approved articles',()=>assert.deepEqual(articles.access.read({req:req('member')}),articles.access.read({req:req()})));
+test('staff updates are constrained by country',()=>assert.deepEqual(articles.access.update({req:req('reviewer')}),{jurisdiction:{in:['VN']}}));
+test('staff without a country cannot update',()=>assert.equal(articles.access.update({req:{user:{role:'editor'},context:{}}}),false));
+test('editor cannot create across countries',()=>assert.equal(articles.access.create({req:req('editor'),data:{jurisdiction:'DE'}}),false));
+test('editor cannot move article across countries',()=>assert.throws(()=>articleHook({req:req('editor'),data:{jurisdiction:'DE'},originalDoc:{jurisdiction:'VN'}}),/jurisdiction/));
+const pending={jurisdiction:'VN',reviewState:'pending',_status:'draft',title:'Draft'};
+test('reviewer approves pending in-scope article',()=>assert.equal(articleHook({req:req('reviewer'),data:{reviewState:'approved'},originalDoc:pending}).reviewState,'approved'));
+test('reviewer cannot edit legal text',()=>assert.throws(()=>articleHook({req:req('reviewer'),data:{title:'Replaced'},originalDoc:pending}),/Content editing/));
+test('reviewer cannot skip submission',()=>assert.throws(()=>articleHook({req:req('reviewer'),data:{reviewState:'approved'},originalDoc:{...pending,reviewState:'draft'}}),/Review transition/));
+test('editor cannot approve own content',()=>assert.throws(()=>articleHook({req:req('editor'),data:{reviewState:'approved'},originalDoc:pending}),/Review transition/));
+test('publisher cannot approve',()=>assert.throws(()=>articleHook({req:req('publisher'),data:{reviewState:'approved'},originalDoc:pending}),/Review transition/));
+test('publisher publishes approved article',()=>assert.equal(articleHook({req:req('publisher'),data:{_status:'published'},originalDoc:{...pending,reviewState:'approved'}})._status,'published'));
+test('publisher cannot publish pending article',()=>assert.throws(()=>articleHook({req:req('publisher'),data:{_status:'published'},originalDoc:pending}),/Review required/));
+test('withdrawal immediately unpublishes and disables AI',()=>assert.deepEqual(articleHook({req:req('reviewer'),data:{reviewState:'withdrawn'},originalDoc:{...pending,reviewState:'approved',_status:'published',aiAllowed:true}}),{reviewState:'withdrawn',_status:'draft',aiAllowed:false}));

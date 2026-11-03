@@ -26,3 +26,10 @@ Full CMS country/field scoped reviewer and publisher workflow, audit trail, sett
 - PostgreSQL 17.6 migration passed in GitHub Actions. Its integration check revealed Payload merges existing publication status into update data; moved content invalidation ahead of the publication guard and added a regression test (12 CMS tests).
 - Patched transitive DOMPurify to 3.4.17 using an explicit npm override after audit found critical advisories. Audit after patch: 0 high, 0 critical; 6 low and 5 moderate remain in upstream dependencies (including development tooling). Do not run `npm audit fix --force` to downgrade the Payload adapter.
 - Git CLI has read access but no push credential; remote commits were saved through the authenticated GitHub connector. Draft PR: https://github.com/logen007/luatvietduc/pull/1 (base feat/platform-foundation).
+
+
+### Continuation — 2026-11-03
+
+Continued feat/platform-cms-bootstrap from 12c1d43. Added country-scoped article writes/version access and editor/reviewer/publisher transitions using existing schema. Authenticated members now read approved public content. Added 13 focused regression cases and Local API integration exercising foreign-country denial, reviewer approval, publisher publication and withdrawal. No legacy UI, production or infrastructure changes. Remaining: field scope, reviewer attribution/audit, concurrency protection, settings expansion and UI port.
+
+Verification observed: 25/25 CMS unit tests, TypeScript check, initial migration on isolated local PostgreSQL, Local API database integration and production build passed. Local runtime Node 26.5.0 (CI remains pinned to Node 24.22.1); build emitted warnings. Test database was stopped after verification. No HTTP/browser acceptance or VPS deployment was performed.
