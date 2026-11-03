@@ -1,0 +1,169 @@
+/* Connections / source testing */
+.live-connection-card {
+  padding: 28px;
+  min-height: 224px;
+}
+.live-connection-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 38px;
+}
+.live-connection-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: #141414;
+  font-size: 26px;
+}
+.live-connection-card h2 {
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+.live-connection-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #666;
+  margin: 0;
+}
+.live-settings-links {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 80px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: 80px;
+  padding-top: 64px;
+}
+.live-settings-links h2 {
+  font-size: 40px;
+  line-height: 1.15;
+  margin-top: 24px;
+}
+.live-settings-links nav a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  line-height: 1.5;
+  color: #0b0b0b;
+  text-decoration: none;
+}
+.live-settings-links nav a:first-child {
+  padding-top: 0;
+}
+.live-settings-links nav a:hover > span:last-child {
+  color: #fb7a00;
+}
+.live-knowledge-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: start;
+  gap: 32px;
+}
+.live-source-form {
+  padding: 40px;
+}
+.live-step-index {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  color: #666;
+  margin-bottom: 32px;
+}
+.live-source-form h2 {
+  font-size: 32px;
+}
+.live-source-form > p {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 32px;
+}
+.live-source-form label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #141414;
+}
+.live-source-form select {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  margin: 12px 0 24px;
+  background: #fff;
+  color: #141414;
+  font: 400 14px/20px var(--lvd-font, Inter, sans-serif);
+}
+.live-source-form > .button {
+  width: 100%;
+}
+.live-source-form p.live-form-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #666;
+  margin: 24px 0 0;
+}
+.live-output-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 480px;
+  padding: 52px;
+  text-align: center;
+  background: #fafaf9;
+  border: 1px dashed rgba(0, 0, 0, 0.16);
+  border-radius: 8px;
+}
+.live-output-empty h2 {
+  font-size: 36px;
+  line-height: 1.15;
+  margin: 24px 0 18px;
+}
+.live-output-empty p:last-child {
+  max-width: 370px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+.live-source-result .live-body {
+  font-size: 16px;
+  line-height: 1.65;
+}
+.live-source-reference {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 26px;
+  margin-top: 36px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.live-source-reference a {
+  color: #0b0b0b;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  overflow-wrap: anywhere;
+}
+.live-source-reference a:hover {
+  text-decoration-color: #fb7a00;
+}
+.live-source-reference small {
+  display: block;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #666;
+  margin-top: 14px;
+}
+.live-knowledge-output > .live-error {
+  margin: 0;
+}

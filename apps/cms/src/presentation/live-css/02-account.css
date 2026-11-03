@@ -1,0 +1,204 @@
+/* Account */
+.live-page.live-auth-page {
+  padding-block: 64px 88px;
+}
+.live-auth-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 680px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.live-auth-intro {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 680px;
+  padding: 52px;
+  color: #fff;
+  background: #141414 url("/assets/photos/library-1200.webp") center/cover;
+}
+.live-auth-intro:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.85));
+}
+.live-auth-intro-copy {
+  padding-top: 30px;
+}
+.live-auth-intro .live-eyebrow {
+  color: rgba(255, 255, 255, 0.75);
+}
+.live-auth-intro h2 {
+  font: 500 clamp(40px, 3.7vw, 56px)/1.08 var(--lvd-display, Inter, sans-serif);
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 28px 0;
+}
+.live-auth-intro h2 span {
+  color: rgba(255, 255, 255, 0.65);
+}
+.live-auth-intro p {
+  max-width: 370px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+}
+.live-auth-caption {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.live-auth-caption .live-small-rule {
+  margin-bottom: 18px;
+}
+.live-auth-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 52px clamp(32px, 4.4vw, 72px);
+  background: #fff;
+}
+.live-auth-panel h1 {
+  font-size: 48px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 18px 0 24px;
+}
+.live-auth-panel .live-back-link {
+  margin-bottom: 44px;
+}
+.live-auth-panel .live-lead {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 28px;
+  max-width: 430px;
+}
+.live-auth-panel .live-google,
+.live-auth-panel .live-guest-link {
+  width: 100%;
+  justify-content: center;
+  gap: 14px;
+  min-height: 50px;
+}
+.live-auth-panel .live-google {
+  background: #fff;
+  color: #0b0b0b;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+.live-auth-panel .live-google:hover {
+  background: #f5f5f5;
+}
+.live-auth-panel .live-google:disabled {
+  background: #fafaf9;
+}
+.live-google svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.live-page p.live-inline-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #666;
+  margin: 14px 0 0;
+}
+.live-auth-divider {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 28px 0;
+  color: #666;
+  font-size: 13px;
+}
+.live-auth-divider:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+}
+.live-auth-divider span {
+  position: relative;
+  padding: 0 14px;
+  background: #fff;
+}
+.live-page p.live-auth-privacy {
+  max-width: 350px;
+  margin: 24px auto 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #666;
+}
+.live-staff-link {
+  display: block;
+  text-align: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: 38px;
+  padding-top: 28px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #666;
+  text-decoration: none;
+}
+.live-staff-link span {
+  color: #0b0b0b;
+  white-space: nowrap;
+}
+.live-staff-link:hover span {
+  text-decoration: underline;
+  text-decoration-color: #fb7a00;
+  text-underline-offset: 4px;
+}
+.live-account-links {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.live-account-links > .button {
+  margin-bottom: 16px;
+}
+.live-account-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 20px 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #0b0b0b;
+  text-decoration: none;
+}
+.live-account-link small {
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #666;
+  margin-top: 6px;
+}
+.live-account-link:hover > span:last-child {
+  color: #fb7a00;
+}
+.live-signout {
+  align-self: flex-start;
+  margin-top: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #666;
+  font: 400 14px/1.5 var(--lvd-font, Inter, sans-serif);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}

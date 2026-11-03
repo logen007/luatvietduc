@@ -1,0 +1,28 @@
+{
+  "editorial-ui.css": [
+    "editorial-ui-css/00-base.css",
+    "editorial-ui-css/01-header-hero.css",
+    "editorial-ui-css/02-partners.css",
+    "editorial-ui-css/03-countries.css",
+    "editorial-ui-css/04-topics.css",
+    "editorial-ui-css/05-news-footer-responsive.css",
+    "editorial-ui-css/06-application-menu.css"
+  ],
+  "live.css": [
+    "live-css/00-shared-shell.css",
+    "live-css/01-footer.css",
+    "live-css/02-account.css",
+    "live-css/03-connections.css",
+    "live-css/04-articles.css",
+    "live-css/05-responsive.css",
+    "live-css/06-chat.css"
+  ],
+  "editorial-ui.js": [
+    "editorial-ui-js/00-bootstrap.js",
+    "editorial-ui-js/01-partners.js",
+    "editorial-ui-js/02-content-helpers.js",
+    "editorial-ui-js/03-homepage.js",
+    "editorial-ui-js/04-video-counts.js",
+    "editorial-ui-js/05-navigation-lifecycle.js"
+  ]
+}

@@ -1,4 +1,5 @@
 /* The legacy and container builds use the same shell and ordering. */
+import './assemble-presentation.mjs';
 import { fileURLToPath } from 'node:url';
 import { getPresentationVersion } from '../src/modules/shared/presentation-version.mjs';
 const revision = getPresentationVersion(fileURLToPath(new URL('../public/', import.meta.url)));

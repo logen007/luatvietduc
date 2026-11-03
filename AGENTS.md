@@ -21,6 +21,7 @@
 - Production database ports stay private. Never use `docker system prune`, `down -v`, blanket upgrades or a new proxy on existing ports without a reviewed plan.
 
 ## Delivery
+- Owner workflow: skip local test/build/preview cycles for routine edits. Edit presentation modules, assemble tracked bundles and push; use GitHub CI and automatic release verification. Do not use Termius/VPS interaction for routine releases. See apps/cms/src/presentation/README.md.
 - Small changes, repeatable tests, documented migrations and separate staging/prod secrets.
 - Do not claim a test/deployment was performed unless its result was observed.
 - Before release, test access isolation, retries/idempotency, reconnects, AI handoff races, knowledge withdrawal and backup restore.
