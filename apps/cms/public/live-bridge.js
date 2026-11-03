@@ -15,7 +15,7 @@
     if(!settings)return;
     document.querySelectorAll('.brand-name,.lvd-footer-wordmark').forEach(el=>el.textContent=settings.siteName);
     const tagline=document.querySelector('.lvd-footer-identity>p');if(tagline)tagline.textContent=settings.tagline||'';
-    const footer=document.querySelector('.lvd-footer-bottom>span');const footerText=(settings.footerText||'').replace(/Thông tin tham khảo; không thay thế việc xem xét hồ sơ cụ thể\.?/gi,'').trim();if(footer)footer.textContent='© '+settings.siteName+'.'+(footerText?' '+footerText:'');
+    const footer=document.querySelector('.lvd-footer-bottom>span');const footerText=(settings.footerText||'').replace(/Thông tin tham khảo; không thay thế việc xem xét hồ sơ cụ thể\.?/gi,'').trim();if(footer){const version=footer.dataset.siteVersion;footer.textContent='© '+settings.siteName+'.'+(version?' · v'+version:'')+(footerText?' '+footerText:'');}
     if(/^#[\da-fA-F]{6}$/.test(settings.accentColor||''))document.documentElement.style.setProperty('--accent',settings.accentColor);
     if(settings.logo)document.querySelectorAll('.brand-mark').forEach(el=>{const img=document.createElement('img');img.src=settings.logo;img.alt=settings.siteName;img.style.cssText='width:100%;height:100%;object-fit:contain';el.replaceChildren(img)});
     if(location.hash.startsWith('#/chinh-sach-thong-tin')&&settings.privacyText&&!document.getElementById('live-privacy')){const p=document.createElement('p');p.id='live-privacy';p.style.whiteSpace='pre-wrap';p.textContent=settings.privacyText;(document.querySelector('#main .prose')||document.getElementById('main'))?.append(p)}
