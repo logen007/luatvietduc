@@ -123,7 +123,7 @@ window.LVD_NEWS = {
       "sourceName": "Bộ Giao thông bang Bayern",
       "sourceUrl": "https://www.verkehrsministerium.bayern.de/med/pressemitteilungen/pressearchiv/2026/115/index.php",
       "paragraphs": [
-        "Theo thông báo ngày 30/9/2026 của Bộ Giao thông bang Bayern, Deutschlandticket sẽ có giá 66,80 euro mỗi tháng từ 1/1/2027, tăng 3,80 euro so với mức năm 2026.",
+        "Deutschlandticket sẽ có giá 66,80 euro mỗi tháng từ 1/1/2027, tăng 3,80 euro so với mức năm 2026.",
         "Bạn đang có thuê bao nên đọc thông báo từ đơn vị bán vé của mình. Hướng xử lý thuê bao và thời điểm áp dụng ưu đãi có thể phụ thuộc loại vé; không nên suy từ mức vé tiêu chuẩn sang mọi trường hợp."
       ],
       "points": [
@@ -158,12 +158,12 @@ window.LVD_NEWS = {
       "sourceUrl": "https://www.bundesregierung.de/breg-de/service/fragen-und-anworten/mindestlohn-faq-1688186",
       "paragraphs": [
         "Từ ngày 1/1/2026, mức lương tối thiểu theo luật tại Đức là 13,90 euro brutto mỗi giờ. Brutto là khoản trước các khấu trừ, khác với số tiền netto chuyển vào tài khoản.",
-        "Không được áp dụng con số này đồng loạt cho mọi hình thức học tập hoặc làm việc. Nguồn chính thức nêu các ngoại lệ, trong đó có người đang học nghề theo hợp đồng đào tạo."
+        "Không được áp dụng con số này đồng loạt cho mọi hình thức học tập hoặc làm việc. Có các ngoại lệ, trong đó có người đang học nghề theo hợp đồng đào tạo."
       ],
       "points": [
         "Phân biệt lương brutto và netto.",
         "Kiểm tra loại hợp đồng của bạn.",
-        "Đọc phạm vi và ngoại lệ tại nguồn."
+        "Kiểm tra phạm vi áp dụng và các trường hợp ngoại lệ."
       ],
       "country": "Đức",
       "situations": [],
@@ -185,7 +185,7 @@ window.LVD_NEWS = {
       "sourceName": "Bundesagentur für Arbeit",
       "sourceUrl": "https://www.arbeitsagentur.de/en/node/12053",
       "paragraphs": [
-        "Bundesagentur für Arbeit thông báo Kindergeld tăng thêm 4 euro, lên 259 euro mỗi tháng cho mỗi trẻ từ tháng 1/2026. Mức tăng được Familienkasse điều chỉnh tự động.",
+        "Kindergeld tăng thêm 4 euro, lên 259 euro mỗi tháng cho mỗi trẻ từ tháng 1/2026. Mức tăng được Familienkasse điều chỉnh tự động.",
         "Người đã nhận hoặc đã nộp đơn không phải làm đơn mới chỉ để hưởng mức tăng. Thông tin này không đồng nghĩa mọi gia đình đều mặc nhiên đủ điều kiện; hồ sơ mới cần kiểm tra quy định riêng."
       ],
       "points": [
@@ -219,7 +219,7 @@ window.LVD_NEWS = {
       "points": [
         "Phạm vi bài: thủ tục tại Berlin.",
         "Đọc điều kiện và ngoại lệ về đăng ký.",
-        "Kiểm tra danh mục giấy tờ tại nguồn."
+        "Kiểm tra danh mục giấy tờ mới nhất trước khi nộp hồ sơ."
       ],
       "country": "Đức",
       "situations": [],
@@ -241,7 +241,7 @@ window.LVD_NEWS = {
       "sourceName": "Bezirksamt Lichtenberg, Berlin",
       "sourceUrl": "https://www.berlin.de/ba-lichtenberg/aktuelles/pressemitteilungen/2025/pressemitteilung.1556175.php",
       "paragraphs": [
-        "Thông báo của quận Lichtenberg giải thích việc chuyển sang ảnh sinh trắc học số đối với giấy tờ định danh, gồm thẻ cư trú điện tử, từ tháng 5/2025, có ngoại lệ theo quy định.",
+        "Từ tháng 5/2025, ảnh sinh trắc học số được áp dụng đối với một số giấy tờ định danh, gồm thẻ cư trú điện tử, với các trường hợp ngoại lệ theo quy định.",
         "Ảnh có thể được tạo tại cơ quan hoặc cơ sở ảnh được chứng nhận và truyền qua hệ thống phù hợp. Trước cuộc hẹn, kiểm tra hướng dẫn của cơ quan đang xử lý hồ sơ; không tự coi ảnh scan hoặc ảnh gửi email là hợp lệ."
       ],
       "points": [
@@ -297,7 +297,7 @@ window.LVD_NEWS = {
       "sourceName": "visitBerlin — cổng du lịch chính thức",
       "sourceUrl": "https://www.visitberlin.de/en/dong-xuan-center",
       "paragraphs": [
-        "visitBerlin giới thiệu Dong Xuan Center là một khu chợ châu Á trong nhà ở Lichtenberg, có nhiều gian hàng và nhà hàng. Địa chỉ được công bố là Herzbergstraße 128–139, 10365 Berlin.",
+        "Dong Xuan Center là một khu chợ châu Á trong nhà tại Lichtenberg, có nhiều gian hàng và nhà hàng. Địa chỉ được công bố là Herzbergstraße 128–139, 10365 Berlin.",
         "Đây là bài giới thiệu địa điểm, không phải thông báo về một sự kiện sắp diễn ra. Trước khi tới, nên xem thông tin vận hành hiện hành từ đơn vị quản lý; ảnh đi kèm là minh họa, không phải ảnh chụp Dong Xuan Center."
       ],
       "points": [
@@ -325,7 +325,7 @@ window.LVD_NEWS = {
       "sourceName": "Knappschaft-Bahn-See",
       "sourceUrl": "https://www.kbs.de/DE/AngeboteFuerFirmen/VersicherungsrechtBeitraegeUndMeldungen/news/25_11_midijobs_2026",
       "paragraphs": [
-        "Từ 1/1/2026, giới hạn thu nhập Minijob tăng từ 556 lên 603 euro mỗi tháng. Knappschaft-Bahn-See nêu mức tương ứng theo năm là 7.236 euro.",
+        "Từ 1/1/2026, giới hạn thu nhập Minijob tăng từ 556 lên 603 euro mỗi tháng. Mức tương ứng theo năm là 7.236 euro.",
         "Bài này tóm tắt mốc tiền, không kết luận hợp đồng cụ thể có phải Minijob hay không. Khi có nhiều công việc hoặc thu nhập biến động, hãy đọc hướng dẫn liên quan và hỏi đầu mối phụ trách."
       ],
       "points": [
@@ -387,7 +387,7 @@ window.LVD_NEWS = {
       "points": [
         "Đối tượng bài: công dân Đức.",
         "Không phải hướng dẫn cho mọi loại hộ chiếu.",
-        "Kiểm tra lại nguồn trước ngày khởi hành."
+        "Kiểm tra thông tin vận hành mới nhất trước ngày khởi hành."
       ],
       "country": "Việt Nam – Đức",
       "situations": [],
