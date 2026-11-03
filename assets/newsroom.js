@@ -7,7 +7,6 @@
   const find = id => D.stories.find(s=>s.id===id);
   const href = s => '#'+(s.type==='news'?'/tin/':'/bai-viet/')+s.id;
   const date = d => d ? d.split('-').reverse().join('.') : 'Cẩm nang';
-  const link = (url,label) => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} <span aria-hidden="true">↗</span><span class="sr-only"> (mở nguồn ở tab mới)</span></a>`;
   const image = (id,priority=false,cls='') => {
     const p=D.photos.find(x=>x.id===id); if(!p) return '';
     const positions={family:'50% 40%',work:'50% 42%',train:'50% 53%',housing:'50% 52%',library:'50% 50%',berlin:'50% 50%',tram:'50% 44%','dong-xuan':'50% 48%'};
@@ -32,7 +31,7 @@
   }
 
   function story(s,context={}){
-    const photo=D.photos.find(p=>p.id===s.photo),related=D.stories.filter(a=>a.id!==s.id&&(a.category===s.category||a.type===s.type)).slice(0,3);
+    const related=D.stories.filter(a=>a.id!==s.id&&(a.category===s.category||a.type===s.type)).slice(0,3);
     return `<div class="container page news-detail">${crumb(cat(s.category))}<header class="news-title">${tag(s)}<h1>${esc(s.title)}</h1><p>${esc(s.summary)}</p><div class="news-byline"><div class="button-row"><button class="button quiet small" data-save="${s.id}" aria-pressed="${!!context.saved}">${context.saved?'Đã lưu':'Lưu bài'}</button><button class="button quiet small" data-copy>Chia sẻ ↗</button></div></div></header>
       <figure class="news-figure">${image(s.photo,true)}<figcaption>${esc(s.caption)}</figcaption></figure>
       <div class="news-reading"><article class="news-text"><div class="news-summary"><div class="press-kicker">${window.LVD_ICON?.("bookmark","news-summary-icon")||""} ĐIỂM CẦN NHỚ</div><ul>${s.points.map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>${s.paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')}<div class="news-bottom-nav"><a href="#/tin-tuc">← Trở lại chuyên mục</a><a href="#/hoi-dap-ai">Đặt câu hỏi →</a></div></article><aside class="news-aside"><div class="press-kicker">TIẾP TỤC TÌM HIỂU</div>${related.map(a=>card(a,'aside')).join('')}<div class="press-aside-legal"><strong>Có câu hỏi cần giải đáp?</strong><a class="text-link" href="#/tra-cuu">Tra cứu thư viện ${arrow}</a></div></aside></div></div>`;
