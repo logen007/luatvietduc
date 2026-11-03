@@ -73,6 +73,8 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
   };
   useEffect(() => {
     let active = true;
+    const draft = staff ? null : sessionStorage.getItem("lvd-question");
+    if (draft) setText(draft);
     (async () => {
       try {
         const user = await api("me");
@@ -90,19 +92,21 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
           );
           setMaxLength(s.maxMessageLength || 2000);
         }
-        const list = await refreshList();
-        if (active && !staff && list[0]) setSelected(list[0].id);
+        const list = await api(staff ? "queue" : "conversations");
+        if (!active) return;
+        setRows(list);
+        // A question from the homepage starts its own intake, even with saved history.
+        if (active && !staff && !draft && list[0]) setSelected(list[0].id);
       } catch (e) {
         if (active) setError((e as Error).message);
       } finally {
-        if (active) setLoaded(true);
+        if (active) {
+          setLoaded(true);
+          if (draft && sessionStorage.getItem("lvd-question") === draft)
+            sessionStorage.removeItem("lvd-question");
+        }
       }
     })();
-    const draft = sessionStorage.getItem("lvd-question");
-    if (draft) {
-      setText(draft);
-      sessionStorage.removeItem("lvd-question");
-    }
     return () => {
       active = false;
     };
