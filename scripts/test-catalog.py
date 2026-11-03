@@ -83,6 +83,8 @@ with sync_playwright() as p:
  assert page.locator('.result-item').count()>0
  expect(page.locator('.catalog-results-caption')).to_contain_text('Chọn chủ đề để tìm hiểu')
  assert not page.evaluate("window.LVD_CATALOG.search('zzzzkhongcoketqua')")
+ go('/tra-cuu');expect(page.locator('.catalog-tabs')).to_have_count(0)
+ go('/chu-de/hon-nhan-gia-dinh');expect(page.locator('[data-catalog-topic]')).to_have_count(10)
  go('/tra-cuu?xem=tat-ca');expect(page.locator('.result-item')).to_have_count(10)
  page.locator('.catalog-pagination a[rel=next]').click();expect(page.locator('.catalog-results-caption')).to_contain_text('11–20')
  page.go_back();expect(page.locator('.catalog-results-caption')).to_contain_text('1–10')
@@ -113,7 +115,7 @@ with sync_playwright() as p:
  for old,new in aliases.items():
   go('/chu-de/'+old);expect(page.locator('#main h1')).to_have_text(next(g['title'] for g in data['groups'] if g['id']==new))
  go('/gui-cau-hoi');expect(page.locator('#topic option')).to_have_count(17)
- go('/tin/mindestlohn-2026');expect(page.locator('.news-sources')).to_be_visible()
+ go('/tin/mindestlohn-2026');expect(page.locator('.news-sources')).to_have_count(0)
  page.locator('.news-to-chat a').click();expect(page.locator('.chat-context')).to_contain_text('Về bài viết')
  assert page.locator('.catalog-context').count()==0
  routes=['/','/tra-cuu','/tra-cuu?xem=tat-ca','/chu-de/khai-sinh-ho-tich-giam-ho','/chu-de/tai-chinh-ngan-hang-bao-hiem','/tim-kiem?q=uy+quyen','/tim-kiem?q=zzzzkhongcoketqua','/hoi-dap/uy-quyen-quan-ly-nha','/hoi-dap-ai?chu-de=thua-ke-12','/gui-cau-hoi','/tin-tuc']
