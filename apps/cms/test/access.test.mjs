@@ -37,3 +37,11 @@ test('withdrawal immediately unpublishes and disables AI',()=>assert.deepEqual(a
 
 test('reviewer approves and publishes submitted content in one operation',()=>assert.equal(articleHook({req:req('reviewer'),data:{reviewState:'approved',_status:'published'},originalDoc:pending})._status,'published'));
 test('legacy publisher role has no draft write access',()=>assert.equal(articles.access.update({req:req('publisher')}),false));
+
+const knowledge=config.collections.find(c=>c.slug==='knowledge');
+const sourceHook=knowledge.hooks.beforeChange[1];
+const approvedSource={id:1,title:'Public source',approved:true,_status:'published',jurisdiction:'VN',body:'Reviewed source',reviewedBy:1,reviewedAt:'2026-11-03T00:00:00Z'};
+test('source withdrawal immediately removes publication',()=>{const d=sourceHook({req:req('reviewer'),data:{approved:false,_status:'published'},originalDoc:approvedSource});assert.equal(d._status,'draft');assert.equal(d.reviewedBy,null)});
+test('editing source invalidates approval and review attribution',()=>{const d=sourceHook({req:req('knowledge'),data:{body:'New text'},originalDoc:approvedSource});assert.equal(d.approved,false);assert.equal(d._status,'draft');assert.equal(d.reviewedAt,null)});
+test('knowledge author cannot approve own source',()=>assert.throws(()=>sourceHook({req:req('knowledge'),data:{approved:true},originalDoc:{...approvedSource,approved:false,_status:'draft'}}),/Reviewer required/));
+test('reviewer cannot move source to another country',()=>assert.throws(()=>sourceHook({req:req('reviewer'),data:{jurisdiction:'DE'},originalDoc:approvedSource}),/Country scope/));

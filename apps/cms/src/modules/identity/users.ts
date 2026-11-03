@@ -1,4 +1,4 @@
-import type { CollectionConfig } from "payload";
+import {APIError, type CollectionConfig} from "payload";
 import { owner } from "../shared/access";
 import { googleSessionStrategy } from "./session";
 export const Users: CollectionConfig = {
@@ -9,7 +9,7 @@ export const Users: CollectionConfig = {
     lockTime: 600000,
     cookies: { sameSite: "Lax", secure: process.env.NODE_ENV === "production" },
   },
-  hooks: {
+  hooks: {beforeOperation:[({operation,args})=>{if(["forgotPassword","resetPassword"].includes(operation))throw new APIError("Email chưa được cấu hình. Liên hệ chủ hệ thống.",503);return args}],
     beforeChange: [
       ({ req, operation, data }) => {
         if (
