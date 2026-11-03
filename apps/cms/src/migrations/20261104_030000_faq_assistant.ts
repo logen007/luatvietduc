@@ -10,7 +10,7 @@ export async function up({db}:MigrateUpArgs){await db.execute(sql`
  ALTER TABLE lvd_messages ADD COLUMN metadata jsonb;
  ALTER TABLE knowledge ADD COLUMN question_aliases varchar;
  ALTER TABLE _knowledge_v ADD COLUMN version_question_aliases varchar;
- ALTER TABLE site_settings ADD COLUMN customer_ai_enabled boolean NOT NULL DEFAULT true;
+ ALTER TABLE site_settings ADD COLUMN customer_a_i_enabled boolean NOT NULL DEFAULT true;
  CREATE INDEX lvd_ai_pending ON lvd_conversations(ai_started_at) WHERE ai_enabled;
 `)}
 // Preserve source attribution and conversations during application rollback.
