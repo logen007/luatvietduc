@@ -47,7 +47,9 @@ export const Knowledge: CollectionConfig = {
         if (changed) {
           data.approved = false;
           data._status = "draft";
+          data.reviewedBy = null; data.reviewedAt = null;
         }
+        if(data.approved===false&&originalDoc?.approved===true){data._status='draft';data.reviewedBy=null;data.reviewedAt=null}
         if (data.approved === true && originalDoc?.approved !== true) {
           if (!["owner", "reviewer"].includes(req.user?.role || ""))
             throw new Error("Reviewer required");

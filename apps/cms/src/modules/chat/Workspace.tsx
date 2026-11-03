@@ -344,10 +344,10 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
           )}
           {!staff && (
             <details className="mobile-history">
-              <summary>Lịch sử hội thoại</summary>
+              <summary>{staff?"Hàng chờ & hội thoại đang xử lý":"Lịch sử hội thoại"}</summary>
               {rows.map((r) => (
                 <button key={r.id} onClick={() => setSelected(r.id)}>
-                  {r.title}
+                  {staff?`${r.jurisdiction} · ${r.specialty||"Chung"} · ${r.state}`:r.title}
                 </button>
               ))}
             </details>
