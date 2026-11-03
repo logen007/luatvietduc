@@ -51,7 +51,8 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
   useEffect(() => {
     const viewport = window.visualViewport;
     const measure = () => {
-      const height = viewport && viewport.scale === 1 ? viewport.height : window.innerHeight;
+      const height =
+        viewport && viewport.scale === 1 ? viewport.height : window.innerHeight;
       const element = shell.current;
       if (!element) return;
       element.style.setProperty("--lvd-chat-vh", `${height}px`);
@@ -125,9 +126,17 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
         const v = await api(`conversations/${selected}?after=${cursor}`);
         if (!active) return;
         setConversation(v.conversation);
-        setRows((current) => current.map((row) => row.id === v.conversation.id
-          ? { ...row, state: v.conversation.state, version: v.conversation.version }
-          : row));
+        setRows((current) =>
+          current.map((row) =>
+            row.id === v.conversation.id
+              ? {
+                  ...row,
+                  state: v.conversation.state,
+                  version: v.conversation.version,
+                }
+              : row,
+          ),
+        );
         if (v.messages.length) {
           cursor = Number(v.messages.at(-1).id);
           setMessages((old) => {
@@ -243,22 +252,20 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
             <span className="live-lock-icon" aria-hidden="true">
               ⌑
             </span>
-            <p className="live-eyebrow">KHÔNG GIAN CHUYÊN VIÊN</p>
-            <h1>
-              Một không gian
-              <br />
-              dành cho nhân sự.
-            </h1>
+            <h1>Hộp thư chuyên viên</h1>
             <p>
-              Cần tài khoản được phân quyền hỗ trợ để truy cập hộp thư và tiếp
-              nhận hội thoại.
+              Đăng nhập bằng tài khoản được phân quyền để xem và xử lý yêu cầu.
             </p>
-            {error && <p className="live-error" role="alert">{error}</p>}
+            {error && (
+              <p className="live-error" role="alert">
+                {error}
+              </p>
+            )}
             <a className="button" href="/tai-khoan">
               Đăng nhập tài khoản <span aria-hidden="true">↗</span>
             </a>
             <a className="live-back-link" href="/tro-chuyen">
-              Bạn muốn đặt câu hỏi? Gặp chuyên viên →
+              Gửi câu hỏi cho chuyên viên ↗
             </a>
           </div>
         </main>
@@ -274,11 +281,11 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
           (staff ? "live-staff-shell" : "live-customer-shell")
         }
       >
-        <aside className="chat-sidebar">
+        <aside
+          className="chat-sidebar"
+          aria-label={staff ? "Danh sách yêu cầu" : "Lịch sử hội thoại"}
+        >
           <div className="chat-sidebar-heading">
-            <span className="live-eyebrow">
-              {staff ? "KHÔNG GIAN CHUYÊN VIÊN" : "KHÔNG GIAN CỦA BẠN"}
-            </span>
             <button
               className="button chat-new-button"
               disabled={busy}
@@ -289,31 +296,28 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                 setError("");
               }}
             >
-              <span aria-hidden="true">＋</span>
-              {staff ? "Hàng chờ chuyên viên" : "Cuộc trò chuyện mới"}
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              {staff ? "Xem hàng chờ" : "Cuộc trò chuyện mới"}
             </button>
           </div>
           <div className="chat-history-heading">
-            <span>{staff ? "Hàng chờ & đang xử lý" : "Hội thoại gần đây"}</span>
+            <span>{staff ? "Yêu cầu" : "Cuộc trò chuyện"}</span>
             <span>{loaded ? String(rows.length).padStart(2, "0") : "—"}</span>
           </div>
           <div className="chat-history">
             {!loaded ? (
               <div className="chat-sidebar-empty" role="status">
                 <span className="live-spinner"></span>
-                <p>Đang kết nối…</p>
+                <p>Đang tải hội thoại…</p>
               </div>
             ) : rows.length === 0 ? (
               <div className="chat-sidebar-empty">
-                <span className="chat-empty-lines" aria-hidden="true">
-                  <i></i>
-                  <i></i>
-                  <i></i>
-                </span>
                 <p>
                   {staff
                     ? "Chưa có yêu cầu trong phạm vi được giao."
-                    : "Những cuộc trao đổi của bạn sẽ xuất hiện tại đây."}
+                    : "Chưa có cuộc trò chuyện."}
                 </p>
               </div>
             ) : (
@@ -341,9 +345,6 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                     </span>
                     <small>{stateLabel(r.state)}</small>
                   </span>
-                  <span aria-hidden="true" className="chat-thread-arrow">
-                    ↗
-                  </span>
                 </button>
               ))
             )}
@@ -361,11 +362,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
               </span>
               <span>
                 <strong>{me?.user?.name || "Tài khoản của bạn"}</strong>
-                <small>
-                  {me?.user
-                    ? "Xem không gian cá nhân"
-                    : "Đăng nhập"}
-                </small>
+                <small>{me?.user ? "Tài khoản của bạn" : "Đăng nhập"}</small>
               </span>
               <span aria-hidden="true">↗</span>
             </a>
@@ -373,39 +370,27 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
         </aside>
         <section className="chat-main">
           <header className="chat-top">
-            <div>
-              <p className="live-eyebrow">
-                {staff ? "HỘP THƯ HỖ TRỢ" : "VIỆT NAM & ĐỨC"}
-              </p>
-              <h1>{staff ? "Hộp thư chuyên viên" : "Hỏi đáp pháp luật"}</h1>
-              <p className="chat-state">
-                <span
-                  className={
-                    "live-status-dot " +
-                    (conversation?.state === "human" ? "is-ready" : "")
-                  }
-                ></span>
-                {conversation
-                  ? `${conversation.jurisdiction} · ${stateLabel(conversation.state)}`
-                  : "Chuyên viên hỗ trợ"}
-              </p>
+            <div className="chat-top-copy">
+              <h1>{staff ? "Hộp thư chuyên viên" : "Hỏi chuyên viên"}</h1>
+              {conversation && (
+                <p className="chat-state">
+                  {conversation.jurisdiction} · {stateLabel(conversation.state)}
+                </p>
+              )}
             </div>
             <div className="chat-top-actions">
-              <span className="chat-private-label">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5zM12 14v3" />
-                </svg>
-                Trao đổi riêng tư
-              </span>
               <button
                 className="button secondary chat-new-mobile"
                 disabled={busy}
+                aria-label={staff ? "Về hàng chờ" : "Cuộc trò chuyện mới"}
                 onClick={() => {
                   setError("");
                   setSelected("");
                 }}
               >
-                Mới <span aria-hidden="true">＋</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
               </button>
               {staff && conversation?.state === "queued" && (
                 <button
@@ -431,16 +416,14 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                   disabled={busy}
                   onClick={() => act("reopen")}
                 >
-                  Mở lại hội thoại <span aria-hidden="true">↗</span>
+                  Mở lại <span aria-hidden="true">↗</span>
                 </button>
               )}
             </div>
           </header>
           <details className="mobile-history">
             <summary>
-              <span>
-                {staff ? "Hàng chờ & đang xử lý" : "Hội thoại gần đây"}
-              </span>
+              <span>{staff ? "Hàng chờ & đang xử lý" : "Cuộc trò chuyện"}</span>
               <span>
                 {rows.length} <span aria-hidden="true">⌄</span>
               </span>
@@ -452,6 +435,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                     key={r.id}
                     className={selected === r.id ? "active" : ""}
                     disabled={busy}
+                    aria-current={selected === r.id ? "true" : undefined}
                     onClick={() => {
                       setError("");
                       setSelected(r.id);
@@ -477,36 +461,16 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
           <div className="chat-log" ref={log} role="log" aria-live="polite">
             {!selected ? (
               <div className="chat-welcome">
-                <div className="chat-welcome-symbol" aria-hidden="true">
-                  <svg viewBox="0 0 32 32">
-                    <path d="M7 7h18v14H14l-7 5V7zm5 6h8m-8 4h5" />
-                  </svg>
-                </div>
-                <p className="live-eyebrow">
-                  {staff
-                    ? "TIẾP NHẬN & ĐỒNG HÀNH"
-                    : "BẮT ĐẦU MỘT CUỘC TRAO ĐỔI"}
-                </p>
                 <h2>
-                  {staff ? (
-                    <>
-                      Mỗi yêu cầu.
-                      <br />
-                      <span>Một người đồng hành.</span>
-                    </>
-                  ) : (
-                    <>
-                      Bạn cần làm rõ
-                      <br />
-                      <span>vấn đề gì?</span>
-                    </>
-                  )}
-                </h2>
-                <p className="chat-welcome-intro">
                   {staff
-                    ? "Chọn yêu cầu trong hàng chờ để nhận xử lý và phản hồi trong cùng hội thoại."
-                    : notice}
-                </p>
+                    ? "Chọn một yêu cầu để bắt đầu."
+                    : "Bạn cần làm rõ vấn đề gì?"}
+                </h2>
+                {(staff || notice) && (
+                  <p className="chat-welcome-intro">
+                    {staff ? "Nhận xử lý để xem nội dung và phản hồi." : notice}
+                  </p>
+                )}
                 {!staff && (
                   <div className="live-intake">
                     <div className="live-intake-fields">
@@ -522,7 +486,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                         </select>
                       </label>
                       <label htmlFor="intake-specialty">
-                        <span>Chuyên môn liên quan</span>
+                        <span>Lĩnh vực</span>
                         <select
                           id="intake-specialty"
                           value={specialty}
@@ -557,7 +521,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                 <p>
                   {staff && conversation?.state === "queued"
                     ? "Nhận xử lý yêu cầu để mở nội dung trao đổi."
-                    : "Chưa có tin nhắn. Tin gửi thành công sẽ được lưu tại đây."}
+                    : "Chưa có tin nhắn."}
                 </p>
               </div>
             ) : (
@@ -626,15 +590,17 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                 required
               />
               <div className="chat-compose-bottom">
-                <span>
-                  {staff
-                    ? "Phản hồi trong cùng hội thoại"
-                    : "Nêu bối cảnh và điều bạn cần làm rõ."}
+                <span
+                  className="chat-compose-counter"
+                  aria-label={`${text.length} trên ${maxLength} ký tự`}
+                >
+                  {text.length} / {maxLength}
                 </span>
                 <button
                   type="submit"
                   disabled={
-                    !loaded || busy ||
+                    !loaded ||
+                    busy ||
                     conversation?.state === "closed" ||
                     (staff && conversation?.state !== "human")
                   }
@@ -662,11 +628,11 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                 </span>
               </label>
             )}
-            <p className="chat-compose-help">
-              {staff
-                ? "Chỉ trả lời trong hội thoại đã nhận xử lý."
-                : "Xem lại phản hồi bằng trình duyệt này."}
-            </p>
+            {!staff && !me?.user && (
+              <p className="chat-compose-help">
+                Giữ trình duyệt này để xem phản hồi.
+              </p>
+            )}
           </div>
         </section>
       </main>

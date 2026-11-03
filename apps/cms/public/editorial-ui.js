@@ -17,8 +17,7 @@
     const group = clone => `<div class="pm-partner-group"${clone ? ' aria-hidden="true"' : ''}>${logos.map(img =>
       `<img src="${esc(img.getAttribute('src'))}" alt="${clone ? '' : esc(img.alt)}" loading="eager" decoding="async" draggable="false" referrerpolicy="no-referrer">`
     ).join('')}</div>`;
-    return `<section class="pm-partners" aria-label="${l('Đối tác','Partner')}">
-      <div class="container pm-partners-heading"><h2>${l('Đối tác','Partner')}</h2></div>
+    return `<section class="pm-partners" aria-label="${l('Logo đối tác','Partnerlogos')}">
       <div class="container pm-partners-inner"><div class="pm-partner-marquee" tabindex="0" aria-label="${l('Logo đối tác','Partnerlogos')}"><div class="pm-partner-track">${group(false)}${group(true)}</div></div></div>
     </section>`;
   }
@@ -34,7 +33,8 @@
   };
 
   E.home = () => `<section class="pm-hero" aria-labelledby="pm-title">
-    <img class="pm-hero-photo" src="/assets/photos/berlin-1800.webp" srcset="/assets/photos/berlin-1200.webp 1200w,/assets/photos/berlin-1800.webp 1800w" sizes="100vw" alt="" width="1800" height="1200" fetchpriority="high">
+    <video class="pm-hero-video" muted loop playsinline preload="metadata" poster="/media/berlin-hero-poster.webp" aria-hidden="true" tabindex="-1"><source src="/media/berlin-hero.mp4" type="video/mp4"></video>
+    <button class="pm-video-toggle" type="button" aria-label="${l('Tạm dừng video','Video anhalten')}" aria-pressed="false"><svg class="pm-video-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><svg class="pm-video-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
     <div class="container pm-hero-inner"><div class="pm-hero-copy">
       <h1 id="pm-title">${l('Tra cứu pháp luật <br>Việt Nam và Đức.','Recht in Vietnam <br>und Deutschland.')}</h1>
       <p class="pm-hero-description">${l('Từ cư trú, quốc tịch đến các vấn đề về gia đình, tài sản và công việc.','Von Aufenthalt und Staatsangehörigkeit bis zu Familie, Eigentum und Arbeit.')}</p>
@@ -46,14 +46,48 @@
     ${country('vn','viet-nam','Pháp luật Việt Nam','Vietnamesisches Recht','16 lĩnh vực · 303 chủ đề','16 Rechtsgebiete · 303 Themen')}
     ${country('de','duc','Pháp luật Đức','Deutsches Recht','16 lĩnh vực','16 Rechtsgebiete')}
   </section>
-  <section class="pm-fields"><div class="container">
-    <div class="pm-section-head"><h2>${l('Chủ đề đang được quan tâm','Themen im Fokus')}</h2><a class="lvd-link" href="#/tra-cuu">${l('Xem tất cả lĩnh vực','Alle Rechtsgebiete')} ${arrow}</a></div>
-    <div class="pm-fields-grid">${C.featuredGroups.map(g => `<a href="#/chu-de/${g.id}"><span class="pm-field-icon">${icon(g.icon || 'book')}</span><h3>${esc(window.LVD_I18N.groupTitle(g.title))}</h3><span class="pm-field-bottom"><span>${g.count} ${l('chủ đề','Themen')}</span>${arrow}</span></a>`).join('')}</div>
-  </div></section>
   <section class="pm-news chat-news"><div class="container">
     <div class="pm-section-head"><h2>${l('Tin tức & đời sống','Nachrichten & Alltag')}</h2><a href="#/tin-tuc" class="lvd-link">${l('Xem tất cả tin tức','Alle Nachrichten')} ${arrow}</a></div>
     <div class="pm-news-grid press-grid">${['mindestlohn-2026','kindergeld-2026','deutschlandticket-2027'].map(story).join('')}</div>
+  </div></section>
+  <section class="pm-fields"><div class="container">
+    <div class="pm-section-head"><h2>${l('Chủ đề đang được quan tâm','Themen im Fokus')}</h2><a class="lvd-link" href="#/tra-cuu">${l('Xem tất cả lĩnh vực','Alle Rechtsgebiete')} ${arrow}</a></div>
+    <div class="pm-fields-grid">${C.featuredGroups.map(g => `<a href="#/chu-de/${g.id}"><span class="pm-field-icon">${icon(g.icon || 'book')}</span><h3>${esc(window.LVD_I18N.groupTitle(g.title))}</h3><span class="pm-field-bottom"><span class="pm-topic-stat"><b class="pm-topic-number">${g.count}</b><span class="pm-topic-unit">${l('chủ đề','Themen')}</span></span>${arrow}</span></a>`).join('')}</div>
   </div></section>`;
+
+  let videoChoice = null;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  function syncVideo() {
+    const video = document.querySelector('.pm-hero-video');
+    if (!video) return;
+    const button = document.querySelector('.pm-video-toggle');
+    const update = () => {
+      button?.setAttribute('aria-pressed', String(video.paused));
+      button?.setAttribute('aria-label', video.paused ? l('Phát video','Video abspielen') : l('Tạm dừng video','Video anhalten'));
+    };
+    if (!video.dataset.heroReady) {
+      video.dataset.heroReady = 'true';
+      video.muted = true;
+      video.addEventListener('play', update);
+      video.addEventListener('pause', update);
+      button?.addEventListener('click', () => { videoChoice = video.paused ? 'play' : 'pause'; syncVideo(); });
+    }
+    const paused = videoChoice === 'pause' || ((reducedMotion.matches || navigator.connection?.saveData) && videoChoice !== 'play') || document.hidden;
+    video.autoplay = !paused;
+    if (paused) video.pause();
+    else video.play().catch(update);
+    update();
+  }
+
+  function topicCounts() {
+    document.querySelectorAll('.catalog-group-body>small').forEach(el => {
+      if (el.querySelector('.pm-topic-number')) return;
+      const match = el.textContent.trim().match(/^(\d+)\s+(.+)$/);
+      if (!match) return;
+      el.dataset.noTranslation = '';
+      el.innerHTML = `<b class="pm-topic-number">${match[1]}</b><span class="pm-topic-unit">${esc(match[2])}</span>`;
+    });
+  }
 
   function decorate() {
     const [path, query = ''] = (location.hash.slice(1) || '/').split('?');
@@ -68,19 +102,23 @@
         else a.removeAttribute('aria-current');
       }
     });
+    topicCounts();
+    syncVideo();
   }
   function shellLanguage() {
     const de = window.LVD_I18N?.get() === 'de';
     document.querySelectorAll('[data-shell-vi]').forEach(el => { el.textContent = de ? el.dataset.shellDe : el.dataset.shellVi; });
-    const geography = document.querySelector('[data-shell-geography]');
-    if (geography) geography.innerHTML = de ? 'VIETNAM <i></i> DEUTSCHLAND' : 'VIỆT NAM <i></i> ĐỨC';
-    const title = document.querySelector('[data-shell-heading]');
-    if (title) title.textContent = de ? 'Mit einer Fachperson sprechen.' : 'Trao đổi với chuyên viên.';
   }
   function scrollState() { document.body.classList.toggle('pm-scrolled', scrollY > 80); }
-  document.addEventListener('DOMContentLoaded', () => { decorate(); scrollState(); shellLanguage(); });
+  document.addEventListener('DOMContentLoaded', () => {
+    decorate(); scrollState(); shellLanguage();
+    const main = document.getElementById('main');
+    if (main) new MutationObserver(() => { topicCounts(); syncVideo(); }).observe(main, {childList:true});
+  });
   window.addEventListener('hashchange', () => queueMicrotask(() => { decorate(); scrollState(); shellLanguage(); }));
   document.addEventListener('lvd:languagechange', shellLanguage);
+  document.addEventListener('visibilitychange', syncVideo);
+  reducedMotion.addEventListener('change', syncVideo);
   window.addEventListener('scroll', scrollState, {passive:true});
   decorate();
 })();

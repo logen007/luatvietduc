@@ -26,7 +26,7 @@ export default async function Page({
           <nav className="live-breadcrumb" aria-label="Đường dẫn">
             <a href="/">Trang chủ</a>
             <span>/</span>
-            <a href="/bai-viet">Bài viết</a>
+            <a href="/#/tin-tuc">Tin tức & đời sống</a>
             <span>/</span>
             <span>{a.jurisdiction === "VN" ? "Việt Nam" : "Đức"}</span>
           </nav>

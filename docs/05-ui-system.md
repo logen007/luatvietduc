@@ -21,7 +21,7 @@ Body, navigation and interface text use self-hosted Inter. `public/fonts/inter.c
 | Country links and topic titles | Compact country links use small national flags and Inter 600 at 20px/1.3. Topic-card titles use the actual Inter 600 variable weight at 20px/1.3, changing to 18px on mobile; do not synthesize a bold weight from the Articulat 500 file. |
 | Buttons | Inter 500 at 14px, 14px × 22px padding, 4px radius, 10px icon gap, 16px icons. Primary neutral black, white text; hover `#1a1a1a`. |
 | Neutral palette | Ink `#0b0b0b` / `#141414`; white `#ffffff`; warm paper `#fafaf9`; cream `#f5f3ee`; quote gray `#ececea`. Dark sections use `#000000`, `#0a0a0a` or `#0b0b0b`. Orange `#fb7a00` is a limited accent, not a dominant background. The earlier olive/green palette is superseded. |
-| Hero image treatment | Existing Luật Việt Đức Berlin photo with neutral black gradient overlays; no colored olive tint. Papermark's video and brand imagery are not used. |
+| Hero video treatment | Self-hosted 13-second Berlin video (Giang/Pexels), H.264720p,871KB, muted loop with71KBposter and neutral black overlays. Source and license are in public/media/LICENSES.md. A pause/play control and reduced-motion/data-saving fallback are provided. Papermark's proprietary video is not used. |
 | Footer | Black `#000000`, white titles, links/muted text at 65% white, separators at 12% white; six desktop columns, collapsing responsively. Source wordmark is Articulat 500 at 36px/1; navigation headings 14px/500 and links 13px/24px. |
 
 Papermark's server-rendered footer initially says `data-footer-theme="light"`, but its client code derives the theme from the preceding section. The black final CTA makes the live homepage footer dark. The Luật Việt Đức footer deliberately uses this observed black appearance; do not infer a light footer from the initial HTML alone. Shared tokens are in `design-system.css`; public component details are in the final source-matched section of `editorial-ui.css`.
@@ -30,12 +30,12 @@ Papermark's server-rendered footer initially says `data-footer-theme="light"`, b
 
 The owner's later revision removes repetitive introductory and instructional sections. The public homepage now has this order:
 
-1. Photo hero with the heading “Tra cứu pháp luật / Việt Nam và Đức.” and the description “Từ cư trú, quốc tịch đến các vấn đề về gia đình, tài sản và công việc.” The question field says “Bạn cần làm rõ vấn đề gì?”, its button says “Gửi câu hỏi”, and the secondary link says “Thư viện pháp luật”.
-2. A masked, continuously moving logo strip at the foot of the same photographic hero, following the Papermark composition. It pauses on hover or keyboard focus and stops moving when reduced motion is requested.
+1. Video hero with the heading “Tra cứu pháp luật / Việt Nam và Đức.” and the description “Từ cư trú, quốc tịch đến các vấn đề về gia đình, tài sản và công việc.” The question field says “Bạn cần làm rõ vấn đề gì?”, its button says “Gửi câu hỏi”, and the secondary link says “Thư viện pháp luật”.
+2. A masked, continuously moving logo strip at the foot of the same video hero, following the Papermark composition. It has no visible heading and sits on a12px backdrop blur with a translucent dark gradient. It pauses on hover or keyboard focus and stops moving when reduced motion is requested.
 3. Two compact links, “Pháp luật Việt Nam” and “Pháp luật Đức”, with small national flags. The Vietnamese catalog displays its actual 16-field, 303-topic count. The German link displays its 16-field count; the destination retains its content-in-preparation description.
-4. One topic-card grid with the owner's exact heading, “Chủ đề đang được quan tâm”, and the link “Xem tất cả lĩnh vực”. Keep the source catalog names and counts. The heading identifies the editorial selection; it does not establish an analytics ranking.
-5. The existing article cards under “Tin tức & đời sống”, with “Xem tất cả tin tức”.
-6. The single standalone specialist callout in the black footer: “Trao đổi với chuyên viên.” with “Gửi câu hỏi” and “Thư viện pháp luật”. The black directory footer follows it.
+4. The existing article cards under “Tin tức & đời sống”, with “Xem tất cả tin tức”.
+5. One topic-card grid with the owner's exact heading, “Chủ đề đang được quan tâm”, and the link “Xem tất cả lĩnh vực”. Keep the source catalog names and counts. Counts use Articulat 500 at 76px on desktop and 60px on phone, with a smaller Inter unit label, including the Vietnamese library cards. The heading identifies the editorial selection; it does not establish an analytics ranking.
+6. A black directory footer without the standalone specialist callout or geography row. The default reference disclaimer is omitted; configured custom footer copy can still be changed in admin.
 
 The separate popular-topic strip, introductory slogan, statistics row, support process, FAQ, decorative hero caption and repeated pre-footer callout are removed. The question form and header entry remain available. Keep operational instructions beside the relevant interaction in chat or account pages rather than restoring them as homepage sections.
 
@@ -70,7 +70,7 @@ Public legacy pages retain Vietnamese/German switching. The live application rem
 
 The homepage extracts the original logo images from `LVD_FEATURES.partnerSlider()` and preserves all 13 entries (three from the G2G Career source and ten from Bizlawyer), in their existing order. The continuous track includes a second, accessibility-hidden visual copy for the loop; this is not another set of partners. The new strip owns its presentation and scrolling, so the original slider's DOM hooks are not used on the homepage. Keep the source records and do not add partner names or endorsement claims.
 
-Revised copy distinguishes the 303-topic Vietnamese catalog from published, reviewed answers; the German catalog destination states that content is being edited. The homepage form, contact page and footer direct questions into the existing specialist queue and same conversation. They do not promise fixed response times, an available Google sign-in, or customer-facing AI. Public hero and section copy are bilingual; retained legal/catalog/news content stays in its existing content modules.
+Revised copy distinguishes the 303-topic Vietnamese catalog from published, reviewed answers; the German catalog destination states that content is being edited. The homepage form, contact page and footer support link direct questions into the existing specialist queue and same conversation. They do not promise fixed response times, an available Google sign-in, or customer-facing AI. Public hero and section copy are bilingual; retained legal/catalog/news content stays in its existing content modules.
 
 Admin settings continue to own site name, logo, extra navigation, social links, public notices and operating settings. Structural design changes use the shared tokens and modules above. Light/dark admin themes use Payload's own account preference.
 
@@ -88,3 +88,7 @@ These results were recorded during the redesign. Later presentation changes stil
 - Font verification confirms all seven active Inter subsets match their recorded source bytes and cover the checked Vietnamese/German characters. The Articulat declaration and binary are handled under the owner's confirmed Web license; the binary is excluded from Git.
 
 Deployment uses the existing isolated Compose project; backup and rollback remain as documented in ops/deploy/README.md. Never restart unrelated VPS services for a presentation release.
+
+## November3 presentation refinement
+
+News appears before the featured topics. The separate /bai-viet listing and its navigation links are removed; the old list URL redirects to /#/tin-tuc. Published /bai-viet/[slug] pages and homepage links remain valid. Product pages load editorial-ui.css after live.css so the shared application header and native modal menu match the public shell. Chat uses one scoped CSS section, Inter600titles and black controls, a cream intake/active history, white transcript, and independently scrolling content with a fixed composer. Chat consent, configured notice, submission logic, access and history remain unchanged. No customer data or settings schema is changed.

@@ -13,6 +13,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <link rel="stylesheet" href="/assets/chat-first.css" />
         <link rel="stylesheet" href={`/design-system.css?v=${revision}`} />
         <link rel="stylesheet" href={`/live.css?v=${revision}`} />
+        <link rel="stylesheet" href={`/editorial-ui.css?v=${revision}`} />
       </head>
       <body>{children}</body>
     </html>
