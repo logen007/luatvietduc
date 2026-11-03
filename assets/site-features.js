@@ -43,7 +43,7 @@
   ];
   const partnerCard=(p,i)=>'<figure class="lvd-partner-tile"><img src="'+e(p.logo)+'" alt="'+e(l('Logo từ '+p.source,'Logo aus dem Karussell von '+p.source))+'" width="220" height="100" loading="lazy" decoding="async" draggable="false" referrerpolicy="no-referrer"></figure>';
   function partnerSlider(){
-    return '<section class="lvd-partner-section container" aria-label="'+e(l('Logo','Logos'))+'"><div class="lvd-partner-slider" data-logo-slider tabindex="0" aria-label="'+e(l('Vuốt hoặc dùng phím mũi tên để xem logo','Logos durch Wischen oder mit den Pfeiltasten ansehen'))+'"><div class="lvd-partner-track">'+partnerItems.map(partnerCard).join('')+'</div><div class="lvd-partner-controls"><button type="button" data-slider-dir="-1" aria-label="'+e(l('Xem logo trước','Vorheriges Logo'))+'">‹</button><button type="button" data-slider-pause aria-pressed="false" aria-label="'+e(l('Tạm dừng tự chạy','Automatischen Lauf pausieren'))+'">Ⅱ</button><button type="button" data-slider-dir="1" aria-label="'+e(l('Xem logo tiếp theo','Nächstes Logo'))+'">›</button></div></div></section>';
+    return '<section class="lvd-partner-section container" aria-label="'+e(l('Logo','Logos'))+'"><div class="lvd-partner-slider" data-logo-slider tabindex="0" aria-label="'+e(l('Vuốt hoặc dùng phím mũi tên để xem logo','Logos durch Wischen oder mit den Pfeiltasten ansehen'))+'"><div class="lvd-partner-track">'+partnerItems.map(partnerCard).join('')+'</div></div></section>';
   }
   const memberCard=(p,i)=>{
     const name=p.name.trim().split(/\s+/);
@@ -85,26 +85,22 @@
   document.addEventListener('click',e=>{
     const b=e.target.closest('[data-clear-visitor]');
     if(b){state.visitor=null;const f=b.closest('form');f.reset();f.querySelector('#lvd-visitor-result').textContent=l('Thông tin đã được xóa trong phiên này.','Ihre Angaben wurden aus dieser Sitzung entfernt.');}
-    const sl=e.target.closest('[data-slider-dir]');
-    if(sl){const track=sl.closest('[data-logo-slider]')?.querySelector('.lvd-partner-track');track?.scrollBy({left:Number(sl.dataset.sliderDir)*320,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
   });
   /* Gentle source-carousel motion; hover, keyboard focus and reduced-motion stop it. */
   function initSourceSliders(){
     document.querySelectorAll('[data-logo-slider]').forEach(slider=>{
       const track=slider.querySelector('.lvd-partner-track');
       if(!track||track.dataset.autoplay)return;
-      track.dataset.autoplay='true';let hover=false,focus=false,drag=false,stopped=false,last=0,remainder=0,startX=0,startScroll=0;
+      track.dataset.autoplay='true';let hover=false,focus=false,drag=false,last=0,remainder=0,startX=0,startScroll=0;
       const reduced=matchMedia('(prefers-reduced-motion: reduce)');
       slider.addEventListener('mouseenter',()=>hover=true);slider.addEventListener('mouseleave',()=>hover=false);
       slider.addEventListener('focusin',()=>focus=true);slider.addEventListener('focusout',ev=>focus=slider.contains(ev.relatedTarget));
-      const pause=slider.querySelector('[data-slider-pause]');
-      pause.addEventListener('click',()=>{stopped=!stopped;pause.setAttribute('aria-pressed',String(stopped));pause.textContent=stopped?'▶':'Ⅱ';});
       slider.addEventListener('keydown',ev=>{if(ev.target!==slider||!['ArrowLeft','ArrowRight'].includes(ev.key))return;ev.preventDefault();track.scrollBy({left:(ev.key==='ArrowLeft'?-1:1)*220,behavior:reduced.matches?'instant':'smooth'});});
       track.addEventListener('pointerdown',ev=>{drag=true;if(ev.pointerType==='mouse'){startX=ev.clientX;startScroll=track.scrollLeft;track.setPointerCapture(ev.pointerId);ev.preventDefault();}});
       track.addEventListener('pointermove',ev=>{if(drag&&ev.pointerType==='mouse')track.scrollLeft=startScroll-(ev.clientX-startX);});
       ['pointerup','pointercancel','lostpointercapture'].forEach(type=>track.addEventListener(type,()=>drag=false));
       const step=now=>{if(!slider.isConnected)return;const dt=Math.min(60,now-last);last=now;
-        if(!hover&&!focus&&!drag&&!stopped&&!reduced.matches&&document.visibilityState==='visible'&&track.scrollWidth>track.clientWidth){remainder+=dt*.018;if(remainder>=1){const advance=Math.floor(remainder);remainder-=advance;track.scrollLeft+=advance;if(track.scrollLeft+track.clientWidth>=track.scrollWidth-1)track.scrollLeft=0;}}
+        if(!hover&&!focus&&!drag&&!reduced.matches&&document.visibilityState==='visible'&&track.scrollWidth>track.clientWidth){remainder+=dt*.018;if(remainder>=1){const advance=Math.floor(remainder);remainder-=advance;track.scrollLeft+=advance;if(track.scrollLeft+track.clientWidth>=track.scrollWidth-1)track.scrollLeft=0;}}
         requestAnimationFrame(step);
       };
       requestAnimationFrame(step);
