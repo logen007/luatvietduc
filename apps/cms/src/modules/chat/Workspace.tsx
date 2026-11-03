@@ -27,6 +27,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
     [loaded, setLoaded] = useState(false),
     [notice, setNotice] = useState(""),
     [specialty, setSpecialty] = useState("general");
+  const [maxLength,setMaxLength]=useState(2000);
   const pending = useRef<{
       key: string;
       body: string;
@@ -46,7 +47,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
         if (!active) return;
         setMe(user);
         const s = await api("settings");
-        if (active) setNotice(s.supportNotice || "");
+        if(active){setNotice([s.supportNotice,s.officeHours?`Giờ trực (${s.timeZone}): ${s.officeHours}`:""].filter(Boolean).join(" "));setMaxLength(s.maxMessageLength||2000)}
         const list = await refreshList();
         if (active && !staff && list[0]) setSelected(list[0].id);
       } catch (e) {
@@ -359,7 +360,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
               </label>
               <textarea
                 id="message"
-                maxLength={2000}
+                maxLength={maxLength}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 disabled={

@@ -87,6 +87,9 @@ async function route(
     else if (path === "settings" && method === "GET")
       result = {
         siteName: settings.siteName,
+        logo:typeof settings.logo==='object'&&settings.logo?.visibility==='public'?settings.logo.url:null,
+        privacyText:settings.privacyText,
+        maxMessageLength:settings.maxMessageLength,
         tagline: settings.tagline,
         socialLinks: settings.socialLinks,
         navigation: settings.navigation,

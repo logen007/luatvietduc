@@ -2,7 +2,7 @@ import {APIError, type CollectionConfig} from "payload";
 import { owner } from "../shared/access";
 import { googleSessionStrategy } from "./session";
 export const Users: CollectionConfig = {
-  slug: "users",
+  slug: "users", labels:{singular:"Tài khoản",plural:"Tài khoản & phân quyền"},admin:{group:"Vận hành",useAsTitle:"name"},
   auth: {
     strategies: [googleSessionStrategy],
     maxLoginAttempts: 5,
@@ -37,9 +37,9 @@ export const Users: CollectionConfig = {
     admin: ({ req }) => Boolean(req.user && req.user.role !== "member"),
   },
   fields: [
-    { name: "name", type: "text", required: true },
+    { name: "name",label:"Tên hiển thị", type: "text", required: true },
     {
-      name: "role",
+      name: "role",label:"Vai trò",
       type: "select",
       required: true,
       defaultValue: "member",
@@ -59,7 +59,7 @@ export const Users: CollectionConfig = {
       },
     },
     {
-      name: "jurisdictions",
+      name: "jurisdictions",label:"Quốc gia được phân quyền",
       type: "select",
       hasMany: true,
       options: ["VN", "DE"],

@@ -1,7 +1,33 @@
 'use strict';
-(()=>{
- const redirect=()=>{const p=location.hash.slice(1).split('?')[0];const target={'/hoi-dap-ai':'/tro-chuyen','/chuyen-vien':'/chuyen-vien','/thu-vien-quan-tri':'/admin/collections/knowledge','/dang-nhap':'/tai-khoan','/khong-gian-ca-nhan':'/tai-khoan'}[p];if(target)location.replace(target)};
- window.addEventListener('hashchange',redirect,true);redirect();
- document.addEventListener('submit',e=>{if(e.target.id==='home-ask'){e.preventDefault();e.stopImmediatePropagation();sessionStorage.setItem('lvd-question',e.target.elements.question.value);location.href='/tro-chuyen'}},true);
- document.addEventListener('DOMContentLoaded',async()=>{try{const r=await fetch('/service/settings');if(!r.ok)return;const s=await r.json();document.querySelectorAll('.brand-name').forEach(el=>el.textContent=s.siteName);if(/^#[\da-fA-F]{6}$/.test(s.accentColor||''))document.documentElement.style.setProperty('--accent',s.accentColor);const social=document.getElementById('live-social');for(const link of s.socialLinks||[]){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;a.rel='noopener noreferrer';social?.append(a)}for(const link of s.navigation||[]){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;document.querySelector('.desktop-nav')?.append(a)}const a=document.createElement('a');a.textContent='Bài viết mới';a.href='/bai-viet';document.querySelector('.desktop-nav')?.append(a);const news=await fetch('/api/articles?limit=6&sort=-updatedAt');if(news.ok){const result=await news.json();const grid=document.querySelector('.chat-news .press-grid');if(grid&&result.docs?.length){grid.replaceChildren();for(const item of result.docs){const article=document.createElement('article');article.className='press-card';const copy=document.createElement('div');copy.className='press-copy';const h=document.createElement('h2');const link=document.createElement('a');link.href='/bai-viet/'+encodeURIComponent(item.slug);link.textContent=item.title;h.append(link);const p=document.createElement('p');p.textContent=item.body.slice(0,140);copy.append(h,p);article.append(copy);grid.append(article)}}}}catch{}});
+(() => {
+  const redirect = () => {
+    const p = location.hash.slice(1).split('?')[0];
+    const target = {'/hoi-dap-ai':'/tro-chuyen','/chuyen-vien':'/chuyen-vien','/thu-vien-quan-tri':'/kien-thuc','/dang-nhap':'/tai-khoan','/khong-gian-ca-nhan':'/tai-khoan'}[p];
+    if (target) location.replace(target);
+  };
+  window.addEventListener('hashchange', redirect, true); redirect();
+  document.addEventListener('submit', e => {
+    if (e.target.id === 'home-ask') {e.preventDefault();e.stopImmediatePropagation();sessionStorage.setItem('lvd-question', e.target.elements.question.value);location.href='/tro-chuyen';}
+  }, true);
+  let settings=null,articles=[];
+  const enrich=()=>{
+    if(!settings)return;
+    document.querySelectorAll('.brand-name').forEach(el=>el.textContent=settings.siteName);
+    const tagline=document.querySelector('.lvd-footer-identity>p');if(tagline)tagline.textContent=settings.tagline||'';
+    const footer=document.querySelector('.lvd-footer-bottom>span');if(footer)footer.textContent='© '+settings.siteName+'. '+(settings.footerText||'');
+    if(/^#[\da-fA-F]{6}$/.test(settings.accentColor||''))document.documentElement.style.setProperty('--accent',settings.accentColor);
+    if(settings.logo)document.querySelectorAll('.brand-mark').forEach(el=>{const img=document.createElement('img');img.src=settings.logo;img.alt=settings.siteName;img.style.cssText='width:100%;height:100%;object-fit:contain';el.replaceChildren(img)});
+    if(location.hash.startsWith('#/chinh-sach-thong-tin')&&settings.privacyText&&!document.getElementById('live-privacy')){const p=document.createElement('p');p.id='live-privacy';p.style.whiteSpace='pre-wrap';p.textContent=settings.privacyText;(document.querySelector('#main .prose')||document.getElementById('main'))?.append(p)}
+    const grid=document.querySelector('.chat-news .press-grid');
+    if(grid&&articles.length){grid.replaceChildren();for(const item of articles){const article=document.createElement('article');article.className='press-card';const copy=document.createElement('div');copy.className='press-copy';const h=document.createElement('h2');const link=document.createElement('a');link.href='/bai-viet/'+encodeURIComponent(item.slug);link.textContent=item.title;h.append(link);const p=document.createElement('p');p.textContent=item.body.slice(0,140);copy.append(h,p);article.append(copy);grid.append(article)}}
+  };
+  window.addEventListener('hashchange',()=>queueMicrotask(enrich));
+  document.addEventListener('DOMContentLoaded',async()=>{
+    try{
+      const r=await fetch('/service/settings');if(!r.ok)return;settings=await r.json();
+      const social=document.getElementById('live-social');for(const link of settings.socialLinks||[]){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;a.rel='noopener noreferrer';social?.append(a)}
+      for(const link of [...(settings.navigation||[]),{label:'Bài viết mới',url:'/bai-viet'}]){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;document.querySelector('.desktop-nav')?.append(a)}
+      enrich();const news=await fetch('/api/articles?limit=6&sort=-updatedAt');if(news.ok){articles=(await news.json()).docs||[];enrich()}
+    }catch{}
+  });
 })();

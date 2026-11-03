@@ -8,7 +8,7 @@ import {
 } from "../../access/articles";
 import { articleLock, auditArticle } from "./audit";
 export const Articles: CollectionConfig = {
-  slug: "articles",
+  slug: "articles",labels:{singular:"Bài viết",plural:"Bài viết & hỏi đáp"},
   versions: { drafts: true },
   admin: { group: "Nội dung", useAsTitle: "title" },
   access: {
@@ -46,18 +46,18 @@ export const Articles: CollectionConfig = {
       type: "date",
       access: { create: () => false, update: () => false },
     },
-    { name: "title", type: "text", required: true },
-    { name: "slug", type: "text", required: true, unique: true },
-    { name: "body", type: "textarea", required: true },
+    { name: "title", label:"Tiêu đề", type: "text", required: true },
+    { name: "slug", label:"Đường dẫn", type: "text", required: true, unique: true },
+    { name: "body", label:"Nội dung", type: "textarea", required: true },
     {
-      name: "jurisdiction",
+      name: "jurisdiction", label:"Quốc gia",
       type: "select",
       required: true,
       options: ["VN", "DE"],
     },
-    { name: "language", type: "select", required: true, options: ["vi", "de"] },
+    { name: "language", label:"Ngôn ngữ nội dung", type: "select", required: true, options: ["vi", "de"] },
     {
-      name: "sourceUrl",
+      name: "sourceUrl", label:"Nguồn tham khảo",
       type: "text",
       validate: (v: unknown) => {
         if (!v) return true;
@@ -69,7 +69,7 @@ export const Articles: CollectionConfig = {
       },
     },
     {
-      name: "reviewState",
+      name: "reviewState", label:"Trạng thái duyệt",
       type: "select",
       defaultValue: "draft",
       options: ["draft", "pending", "approved", "withdrawn"],
@@ -80,7 +80,7 @@ export const Articles: CollectionConfig = {
       },
     },
     {
-      name: "aiAllowed",
+      name: "aiAllowed", label:"Cho phép dùng cho AI",
       type: "checkbox",
       defaultValue: false,
       access: {

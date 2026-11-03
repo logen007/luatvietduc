@@ -1,3 +1,6 @@
+import {vi} from '@payloadcms/translations/languages/vi';
+import {de} from '@payloadcms/translations/languages/de';
+import {en} from '@payloadcms/translations/languages/en';
 import { buildConfig } from "payload";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { s3Storage } from "@payloadcms/storage-s3";
@@ -11,6 +14,7 @@ import { Knowledge } from "./modules/knowledge/collection";
 import { Media, storageReady } from "./modules/storage/collection";
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
+  i18n:{fallbackLanguage:'vi',supportedLanguages:{vi,de,en}},
   secret: process.env.PAYLOAD_SECRET || "",
   serverURL: process.env.APP_URL || "http://localhost:3000",
   admin: {

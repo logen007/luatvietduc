@@ -6,7 +6,7 @@ import type {
 import { sql } from "@payloadcms/db-postgres";
 import { owner } from "../shared/access";
 export const Audit: CollectionConfig = {
-  slug: "audit-events",
+  slug: "audit-events",labels:{singular:"Sự kiện",plural:"Nhật ký thay đổi"},
   admin: { group: "Vận hành", useAsTitle: "action" },
   access: {
     create: () => false,
