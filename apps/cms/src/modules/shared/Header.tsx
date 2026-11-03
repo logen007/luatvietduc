@@ -32,8 +32,7 @@ export function Header() {
             {publicLinks.map((link) => <a key={link.href} href={link.href}>{link.label}</a>)}
           </nav>
           <div className="live-header-actions">
-            <a className="live-header-login" href="/tai-khoan" aria-current={pathname === "/tai-khoan" ? "page" : undefined}>Đăng nhập</a>
-            <a className="live-header-ask button" href="/tro-chuyen" aria-current={pathname === "/tro-chuyen" ? "page" : undefined}>Đặt câu hỏi {arrow}</a>
+            <a className="live-header-login-button button" href="/tai-khoan" aria-current={pathname === "/tai-khoan" ? "page" : undefined}>Đăng nhập {arrow}</a>
             <button className="live-menu-button" type="button" aria-label="Mở menu" aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="live-menu-dialog" onClick={() => { dialog.current?.showModal(); setMenuOpen(true); }}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </button>
