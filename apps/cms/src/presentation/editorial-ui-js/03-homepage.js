@@ -2,8 +2,8 @@
     <video class="pm-hero-video" muted loop playsinline preload="metadata" poster="/media/legal-hero-montage-poster-v1.webp" aria-hidden="true" tabindex="-1"><source src="/media/legal-hero-montage-v1.mp4" type="video/mp4"></video>
     <button class="pm-video-toggle" type="button" aria-label="${l('Tạm dừng video','Video anhalten')}" aria-pressed="false"><svg class="pm-video-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><svg class="pm-video-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
     <div class="container pm-hero-inner"><div class="pm-hero-copy">
-      <h1 id="pm-title">${l('Tra cứu pháp luật <br>Việt Nam và Đức.','Recht in Vietnam <br>und Deutschland.')}</h1>
-      <p class="pm-hero-description">${l('Từ cư trú, quốc tịch đến các vấn đề về gia đình, tài sản và công việc.','Von Aufenthalt und Staatsangehörigkeit bis zu Familie, Eigentum und Arbeit.')}</p>
+      <h1 id="pm-title">${l('Giải đáp pháp luật <br>Việt Nam và Đức.','Recht in Vietnam <br>und Deutschland.')}</h1>
+      <p class="pm-hero-description">${l('Từ cư trú, quốc tịch đến các vấn đề về gia đình, tài&nbsp;sản và công việc.','Von Aufenthalt und Staatsangehörigkeit bis zu Familie, Eigentum und Arbeit.')}</p>
       <form id="home-ask" class="pm-ask ask-box"><label class="sr-only" for="home-question">${l('Bạn cần làm rõ vấn đề gì?','Was möchten Sie klären?')}</label><div class="pm-ask-row"><textarea id="home-question" name="question" maxlength="2000" required placeholder="${l('Bạn cần làm rõ vấn đề gì?','Was möchten Sie klären?')}" rows="1"></textarea><button class="button" type="submit" aria-label="${l('Gửi câu hỏi','Frage senden')}">${l('Gửi câu hỏi','Frage senden')} ${arrow}</button></div></form>
       <div class="pm-hero-links"><a href="#/tra-cuu">${l('Thư viện pháp luật','Rechtsbibliothek')} ${arrow}</a></div>
     </div></div>${partnerStrip()}
