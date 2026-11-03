@@ -20,11 +20,19 @@ export default buildConfig({
   serverURL: process.env.APP_URL || "http://localhost:3000",
   admin: {
     components: {
+      afterNavLinks: ["./modules/admin/Navigation#AdminNavigation"],
+      views: {
+        settings: { Component: "./modules/admin/Views#SettingsView", path: "/settings", exact: true },
+        connections: { Component: "./modules/admin/Views#ConnectionsView", path: "/settings/connections", exact: true },
+        backups: { Component: "./modules/admin/Views#BackupsView", path: "/settings/backups", exact: true },
+        knowledge: { Component: "./modules/admin/Views#KnowledgeView", path: "/knowledge", exact: true },
+        inbox: { Component: "./modules/admin/Views#InboxView", path: "/inbox", exact: true },
+      },
       beforeDashboard: ["./modules/settings/AdminWelcome#AdminWelcome"],
       beforeLogin: ["./modules/settings/AdminWelcome#GoogleLogin"],
     },
     user: "users",
-    importMap: { baseDir: dirname },
+    importMap: { baseDir: dirname, importMapFile: path.resolve(dirname, "app/(payload)/admin/importMap.ts") },
     meta: { titleSuffix: " — Luật Việt Đức" },
   },
   db: postgresAdapter({

@@ -22,7 +22,7 @@ export async function api(path: string, data?: unknown) {
     throw new Error("Không thể đọc phản hồi của dịch vụ. Vui lòng thử lại.");
   return result;
 }
-export function Workspace({ staff = false }: { staff?: boolean }) {
+export function Workspace({ staff = false, embedded = false }: { staff?: boolean; embedded?: boolean }) {
   const [me, setMe] = useState<any>(null),
     [rows, setRows] = useState<any[]>([]),
     [selected, setSelected] = useState(""),
@@ -246,7 +246,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
   if (staff && loaded && !staffAllowed)
     return (
       <>
-        <Header />
+        {!embedded && <Header />}
         <main className="container live-page live-access-page">
           <div className="live-empty-state">
             <span className="live-lock-icon" aria-hidden="true">
@@ -273,7 +273,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
     );
   return (
     <>
-      <Header />
+      {!embedded && <Header />}
       <main
         ref={shell}
         className={

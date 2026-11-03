@@ -8,6 +8,14 @@ export function r2Client(v: Values) {
 }
 export async function checkConnection(provider: Provider, v: Values, email: string) {
   validateValues(provider, v);
+  if (provider === 'drive') {
+    const {driveAccess} = await import('../backup/google');
+    if(!v.refreshToken||!v.folderId)return {state:'failed',message:'Hãy kết nối tài khoản Google Drive trước khi kiểm tra.'};
+    const token=await driveAccess(v);
+    const response=await fetch('https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(v.folderId)+'?fields=id,mimeType,trashed',{headers:{Authorization:'Bearer '+token},redirect:'error',signal:AbortSignal.timeout(10000)});
+    const folder=response.ok?await response.json():null;
+    return folder?.mimeType==='application/vnd.google-apps.folder'&&!folder.trashed?{state:'passed',message:'Đọc được thư mục sao lưu riêng trên Drive.'}:{state:'failed',message:'Không truy cập được thư mục sao lưu.'};
+  }
   if (provider === 'google') return { state: 'configured', message: 'Định dạng hợp lệ. Sau khi bật, đăng nhập Google để xác nhận Client Secret, màn hình đồng ý và redirect URI.' };
   if (provider === 'ai') {
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(v.model), {

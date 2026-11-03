@@ -13,21 +13,29 @@ export const SiteSettings: GlobalConfig = {
   label: "Cài đặt website",
   admin: { group: "Vận hành" },
   access: { read: owner, update: owner },
-  fields: [
-    {
+  fields: [{ type: "tabs", tabs: [
+{label:"Nhận diện",fields:[{
       name: "siteName",
       label: "Tên website",
       type: "text",
       defaultValue: "Luật Việt Đức",
     },
-    {
+{
       name: "tagline",
       label: "Giới thiệu ngắn",
       type: "textarea",
       defaultValue: "Thông tin pháp luật Việt Nam – Đức.",
     },
-    { name: "logo", label: "Logo", type: "upload", relationTo: "media" },
-    {
+{ name: "logo", label: "Logo", type: "upload", relationTo: "media" },
+{
+      name: "accentColor",
+      label: "Màu nhấn",
+      type: "text",
+      defaultValue: "#176FFF",
+      validate: (v: unknown) =>
+        /^#[\da-fA-F]{6}$/.test(String(v)) || "Nhập mã màu #RRGGBB",
+    }]},
+{label:"Điều hướng & mạng xã hội",fields:[{
       name: "socialLinks",
       label: "Mạng xã hội riêng",
       type: "array",
@@ -36,7 +44,7 @@ export const SiteSettings: GlobalConfig = {
         { name: "url", type: "text", required: true, validate: https },
       ],
     },
-    {
+{
       name: "navigation",
       label: "Menu bổ sung",
       type: "array",
@@ -52,40 +60,33 @@ export const SiteSettings: GlobalConfig = {
               : /^\/(?!\/)|^#\//.test(String(v)) || "Chỉ dùng đường dẫn nội bộ",
         },
       ],
-    },
-    {
-      name: "footerText",
-      label: "Nội dung chân trang",
-      type: "textarea",
-      defaultValue:
-        "Thông tin tham khảo; không thay thế việc xem xét hồ sơ cụ thể.",
-    },
-    {
+    }]},
+{label:"Hỗ trợ & trò chuyện",fields:[{
       name: "supportNotice",
       label: "Thông báo hỗ trợ",
       type: "textarea",
       defaultValue:
         "Yêu cầu được lưu vào hàng chờ. Chuyên viên phản hồi trong cuộc trò chuyện khi tiếp nhận.",
     },
-    {
+{
       name: "officeHours",
       label: "Giờ trực (chỉ hiển thị, không tự hứa thời gian phản hồi)",
       type: "text",
     },
-    {
+{
       name: "timeZone",
       label: "Múi giờ",
       type: "select",
       defaultValue: "Europe/Berlin",
       options: ["Europe/Berlin", "Asia/Ho_Chi_Minh"],
     },
-    {
+{
       name: "chatEnabled",
       label: "Cho phép tiếp nhận chat",
       type: "checkbox",
       defaultValue: true,
     },
-    {
+{
       name: "retentionDays",
       label: "Thời hạn lưu hội thoại (ngày; xóa cần quy trình riêng)",
       type: "number",
@@ -93,15 +94,15 @@ export const SiteSettings: GlobalConfig = {
       max: 3650,
       defaultValue: 365,
     },
-    {
+{
       name: "maxMessageLength",
       label: "Độ dài tin nhắn tối đa",
       type: "number",
       min: 100,
       max: 10000,
       defaultValue: 2000,
-    },
-    {
+    }]},
+{label:"AI nội bộ",fields:[{
       name: "aiMode",
       label: "Chế độ AI",
       type: "select",
@@ -111,7 +112,7 @@ export const SiteSettings: GlobalConfig = {
         { label: "Chỉ thử nội bộ, dữ liệu công khai", value: "internal-only" },
       ],
     },
-    {
+{
       name: "aiDailyRequests",
       label: "Hạn mức thử AI mỗi ngày",
       type: "number",
@@ -119,32 +120,31 @@ export const SiteSettings: GlobalConfig = {
       max: 1000,
       defaultValue: 20,
     },
-    {
+{
       name: "aiMaxOutputTokens",
       label: "Token đầu ra tối đa",
       type: "number",
       min: 100,
       max: 2000,
       defaultValue: 700,
+    }]},
+{label:"Chính sách & tìm kiếm",fields:[{
+      name: "footerText",
+      label: "Nội dung chân trang",
+      type: "textarea",
+      defaultValue:
+        "Thông tin tham khảo; không thay thế việc xem xét hồ sơ cụ thể.",
     },
-    {
-      name: "accentColor",
-      label: "Màu nhấn",
-      type: "text",
-      defaultValue: "#176FFF",
-      validate: (v: unknown) =>
-        /^#[\da-fA-F]{6}$/.test(String(v)) || "Nhập mã màu #RRGGBB",
-    },
-    {
+{
       name: "privacyText",
       label: "Bổ sung chính sách thông tin",
       type: "textarea",
     },
-    {
+{
       name: "publicIndexingEnabled",
       label: "Cho phép công cụ tìm kiếm lập chỉ mục",
       type: "checkbox",
       defaultValue: false,
-    },
-  ],
+    }]}
+]}],
 };

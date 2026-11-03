@@ -8,5 +8,7 @@ node_modules/
 __pycache__/
 *.pyc
 **/backups/
+!apps/cms/src/app/service/backups/
+!apps/cms/src/app/service/backups/**
 **/private-media/
 *.dump

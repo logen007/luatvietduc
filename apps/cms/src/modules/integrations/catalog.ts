@@ -1,4 +1,9 @@
 export const integrationCatalog = {
+  drive: { title: 'Google Drive · Sao lưu', help: 'Dùng OAuth riêng cho sao lưu, khóa age công khai và thư mục riêng của Luật Việt Đức. Lưu thay đổi ở đây sẽ yêu cầu kết nối lại tài khoản Drive.', fields: [
+    {key:'clientId',label:'OAuth Client ID cho sao lưu',secret:false,placeholder:'…apps.googleusercontent.com'},
+    {key:'clientSecret',label:'OAuth Client Secret',secret:true,placeholder:''},
+    {key:'ageRecipient',label:'Khóa age công khai để mã hóa',secret:false,placeholder:'age1…'},
+  ] },
   google: { title: 'Đăng nhập Google', help: 'Tạo OAuth Client loại Web application trong Google Cloud.', fields: [
     { key: 'clientId', label: 'Client ID', secret: false, placeholder: '…apps.googleusercontent.com' },
     { key: 'clientSecret', label: 'Client Secret', secret: true, placeholder: '' },

@@ -1,3 +1,4 @@
+import {mediaWriteGuard} from "../backup/media-lock";
 import type { CollectionConfig } from "payload";
 import { owner } from "../shared/access";
 import { activeValues } from "../integrations/store";
@@ -17,6 +18,7 @@ export const Media: CollectionConfig = {
     update: owner,
     delete: owner,
   },
+  hooks:{beforeChange:[mediaWriteGuard],beforeDelete:[mediaWriteGuard]},
   upload: {
     disableLocalStorage: true,
     mimeTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf"],

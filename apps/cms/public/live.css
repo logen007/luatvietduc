@@ -1103,7 +1103,7 @@
     margin-left: 0;
   }
   .live-footer-inner {
-    grid-template-columns: 180px repeat(5, minmax(0, 1fr));
+    grid-template-columns: 180px repeat(4, minmax(0, 1fr));
     gap: 24px;
   }
   .live-auth-intro,

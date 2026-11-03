@@ -1,4 +1,2 @@
-import { Workspace } from "../../../modules/chat/Workspace";
-export default function Page() {
-  return <Workspace staff />;
-}
+import { redirect } from "next/navigation";
+export default function Page(){ redirect("/admin/inbox"); }

@@ -97,7 +97,7 @@ export default function Page() {
                   {["owner", "support", "operations"].includes(
                     data.user.role,
                   ) && (
-                    <a className="live-account-link" href="/chuyen-vien">
+                    <a className="live-account-link" href="/admin/inbox">
                       <span>
                         Hộp thư chuyên viên
                         <small>Tiếp nhận và phản hồi yêu cầu</small>
@@ -115,7 +115,7 @@ export default function Page() {
                     </a>
                   )}
                   {data.user.role === "owner" && (
-                    <a className="live-account-link" href="/quan-tri">
+                    <a className="live-account-link" href="/admin/settings">
                       <span>
                         Kết nối hệ thống
                         <small>Cài đặt và trạng thái dịch vụ</small>

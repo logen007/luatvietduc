@@ -5,6 +5,7 @@ import { IntegrationError, mergeValues } from './validation';
 type Row = { provider: Provider; encrypted_values: string; enabled: boolean; version: number; check_state: string; checked_at: string | null; updated_at: string };
 const envValues = (p: Provider): Values => {
   const e = process.env;
+  if (p === 'drive') return {clientId:'',clientSecret:'',ageRecipient:''};
   if (p === 'google') return { clientId: e.GOOGLE_CLIENT_ID || '', clientSecret: e.GOOGLE_CLIENT_SECRET || '' };
   if (p === 'ai') return { apiKey: e.GEMINI_API_KEY || '', model: e.GEMINI_MODEL || '' };
   if (p === 'r2') return { endpoint: e.R2_ENDPOINT || '', bucket: e.R2_BUCKET || '', accessKeyId: e.R2_ACCESS_KEY_ID || '', secretAccessKey: e.R2_SECRET_ACCESS_KEY || '' };

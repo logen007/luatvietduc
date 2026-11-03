@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { integrationCatalog, type Provider, type Values } from './catalog';
+import {ConnectionInstructions} from './Instructions';
 type Connection={provider:Provider;values:Values;stored:Record<string,boolean>;version:number;enabled:boolean;checkState:string;checkedAt:string|null};
 const labels:Record<string,string>={untested:'Chưa kiểm tra',passed:'Kiểm tra đạt',failed:'Kiểm tra chưa đạt',configured:'Định dạng hợp lệ · cần thử đăng nhập'};
 async function request(data?:unknown){
@@ -21,6 +22,7 @@ function ConnectionForm({initial}:{initial:Connection}){
   return <section className="live-card integration-card">
     <div className="integration-title"><h2>{definition.title}</h2><span className={'live-status '+(connection.enabled?'is-ready':'is-pending')}>{connection.enabled?'Đang bật':'Đang tắt'}</span></div>
     <p>{definition.help}</p>
+    <ConnectionInstructions provider={connection.provider}/>
     {connection.provider==='google'&&<label>Redirect URI để điền trong Google Cloud<input readOnly value="https://luatvietduc.com/auth/google/callback" onFocus={e=>e.target.select()}/></label>}
     <form onSubmit={e=>{e.preventDefault();void act('save');}} autoComplete="off">
       {definition.fields.map(field=><label key={field.key}>{field.label}
@@ -39,10 +41,10 @@ function ConnectionForm({initial}:{initial:Connection}){
     {error&&<p className="live-error" role="alert">{error}</p>}
   </section>;
 }
-export function IntegrationPanel(){
+export function IntegrationPanel({providers=['google','ai','r2','email']}:{providers?:Provider[]}){
   const [connections,setConnections]=useState<Connection[]|null>(null),[error,setError]=useState('');
   useEffect(()=>{let active=true;request().then(data=>{if(active)setConnections(data.connections);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[]);
   if(error)return <div className="live-card"><p className="live-error" role="alert">{error}</p><a className="button" href="/admin/login">Đăng nhập quản trị</a></div>;
   if(!connections)return <p role="status">Đang tải cấu hình…</p>;
-  return <><p className="integration-intro">Lưu cấu hình → Kiểm tra → Bật sử dụng. Để trống ô khóa đã lưu nếu không thay đổi. Lưu bản mới sẽ tạm tắt kết nối đó cho đến khi anh kiểm tra và bật lại.</p><div className="integration-grid">{connections.map(connection=><ConnectionForm key={connection.provider} initial={connection}/>)}</div></>;
+  return <><p className="integration-intro">Lưu cấu hình → Kiểm tra → Bật sử dụng. Để trống ô khóa đã lưu nếu không thay đổi. Lưu bản mới sẽ tạm tắt kết nối đó cho đến khi anh kiểm tra và bật lại.</p><div className="integration-grid">{connections.filter(c=>providers.includes(c.provider)).map(connection=><ConnectionForm key={connection.provider} initial={connection}/>)}</div></>;
 }

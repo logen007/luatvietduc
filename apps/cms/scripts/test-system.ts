@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
-import { getPayload } from "payload";
+import { getPayload, type PayloadRequest } from "payload";
 import config from "../src/payload.config";
 import { pool } from "../src/modules/shared/db";
 import * as chat from "../src/modules/chat/service";
 import * as integrations from "../src/modules/integrations/store";
+import {seal} from '../src/modules/integrations/crypto';
+import {mediaWriteGuard} from '../src/modules/backup/media-lock';
 const url = new URL(process.env.DATABASE_URL || "");
 if (
   !["localhost", "127.0.0.1"].includes(url.hostname) ||
@@ -48,6 +50,21 @@ try {
   assert.equal(parallel.filter(result=>result.status==='fulfilled').length,1);
   await pool.query("DELETE FROM lvd_integration_events WHERE provider='ai'");
   await pool.query("DELETE FROM lvd_integrations WHERE provider='ai'");
+  await integrations.saveConnection('drive',{clientId:'synthetic.apps.googleusercontent.com',clientSecret:'synthetic-secret',ageRecipient:'age1'+'a'.repeat(58)},0,owner.id);
+  await pool.query("UPDATE lvd_integrations SET encrypted_values=$1 WHERE provider='drive'",[seal('drive',{clientId:'synthetic.apps.googleusercontent.com',clientSecret:'synthetic-secret',ageRecipient:'age1'+'a'.repeat(58),refreshToken:'synthetic-refresh-token',folderId:'synthetic-folder'})]);
+  const safeDrive=JSON.stringify(await integrations.safeConnection('drive'));
+  assert.ok(!safeDrive.includes('synthetic-secret')&&!safeDrive.includes('synthetic-refresh-token')&&!safeDrive.includes('synthetic-folder'));
+  await integrations.saveConnection('drive',{clientId:'synthetic.apps.googleusercontent.com',clientSecret:'',ageRecipient:'age1'+'a'.repeat(58)},1,owner.id);
+  assert.ok(!(await integrations.storedValues('drive',2)).values.refreshToken,'Changing Drive settings revokes app-side saved authorization');
+  await pool.query("DELETE FROM lvd_integration_events WHERE provider='drive'");
+  await pool.query("DELETE FROM lvd_integrations WHERE provider='drive'");
+  const backupJobs=await Promise.allSettled([1,2].map(()=>pool.query("INSERT INTO lvd_backup_jobs(id,kind,requested_by) VALUES($1,'backup',$2)",[crypto.randomUUID(),owner.id])));
+  assert.equal(backupJobs.filter(r=>r.status==='fulfilled').length,1,'Only one backup/restore job may be active');
+  await pool.query('DELETE FROM lvd_backup_jobs WHERE requested_by=$1',[owner.id]);
+  await pool.query("UPDATE lvd_backup_runtime SET media_locked_until=now()+interval '1 minute' WHERE id=1");
+  const mediaTransaction=await payload.db.beginTransaction();assert.ok(mediaTransaction);
+  try{await assert.rejects(()=>mediaWriteGuard({req:{payload,transactionID:mediaTransaction} as unknown as PayloadRequest}),/Đang sao lưu/);}
+  finally{await payload.db.rollbackTransaction(mediaTransaction);await pool.query('UPDATE lvd_backup_runtime SET media_locked_until=NULL WHERE id=1');}
   const staff = await payload.create({
     collection: "users",
     overrideAccess: false,
