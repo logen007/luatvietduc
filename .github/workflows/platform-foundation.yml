@@ -2,9 +2,9 @@ name: Platform foundation checks
 on:
   push:
     branches: ['feat/platform-*']
-    paths: ['apps/cms/**', 'platform/**', 'ops/server-audit.sh', '.github/workflows/platform-foundation.yml']
+    paths: ['apps/cms/**', 'assets/**', 'index.html', '.dockerignore', 'platform/**', 'ops/**', '.github/workflows/platform-foundation.yml']
   pull_request:
-    paths: ['apps/cms/**', 'platform/**', 'ops/server-audit.sh', '.github/workflows/platform-foundation.yml']
+    paths: ['apps/cms/**', 'assets/**', 'index.html', '.dockerignore', 'platform/**', 'ops/**', '.github/workflows/platform-foundation.yml']
 permissions:
   contents: read
 concurrency:
@@ -31,7 +31,18 @@ jobs:
       - run: npm test
       - name: Validate read-only audit script syntax
         run: bash -n ../ops/server-audit.sh
-# Intentionally no deployment job, SSH, credentials, database, or production writes.
+# Production pulls only successful push runs of this exact workflow and commit.
+# This workflow receives no VPS credentials and performs no production writes.
+  deploy-tool-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest discover -s ops/deploy -p 'test_auto_release.py' -v
+      - run: bash -n ops/deploy/install-auto-deploy.sh
+      - run: bash -n ops/deploy/backup.sh
   cms-checks:
     runs-on: ubuntu-latest
     timeout-minutes: 15

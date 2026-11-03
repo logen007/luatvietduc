@@ -1,5 +1,7 @@
 # Isolated VPS deployment
 
+For the prepared GitHub-to-VPS automatic path, see [AUTO_DEPLOY.md](AUTO_DEPLOY.md). Its timer is enabled only after the one-time policy is reviewed and explicitly approved; it preserves this isolated Compose project.
+
 Only this Compose project is managed here. The existing root_default Traefik network and the verified websecure/mytlschallenge names are reused; never restart or edit shared proxy services. Database has no host port. Web diagnostic port binds loopback only. Domain routing is limited to luatvietduc.com.
 
 Create .env with umask 077. Generate random DB_PASSWORD (hex) and PAYLOAD_SECRET on the server; never commit them. Configure Google/R2 only through server-side environment. Build this image, start this project's database and web, check localhost:3049/health/ready and then the public HTTPS domain. No provider is activated by filling a client-side setting.
