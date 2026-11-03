@@ -33,3 +33,7 @@ Full CMS country/field scoped reviewer and publisher workflow, audit trail, sett
 Continued feat/platform-cms-bootstrap from 12c1d43. Added country-scoped article writes/version access and editor/reviewer/publisher transitions using existing schema. Authenticated members now read approved public content. Added 13 focused regression cases and Local API integration exercising foreign-country denial, reviewer approval, publisher publication and withdrawal. No legacy UI, production or infrastructure changes. Remaining: field scope, reviewer attribution/audit, concurrency protection, settings expansion and UI port.
 
 Verification observed: 25/25 CMS unit tests, TypeScript check, initial migration on isolated local PostgreSQL, Local API database integration and production build passed. Local runtime Node 26.5.0 (CI remains pinned to Node 24.22.1); build emitted warnings. Test database was stopped after verification. No HTTP/browser acceptance or VPS deployment was performed.
+
+### Owner-selected workflow update — 2026-11-03
+
+Reviewer now approves and publishes in one operation within assigned country. Legacy publisher enum is retained without editorial access. Country-only permissions replace the earlier field-scope proposal. Recorded internal-only AI trials, human-first customer chat, R2 storage choice, domain report and pending email in docs/03-owner-decisions.md. Verification: 27 CMS tests, typecheck and actual Local API database integration passed. No schema change or deployment.

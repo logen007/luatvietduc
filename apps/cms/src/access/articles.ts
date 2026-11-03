@@ -1,6 +1,6 @@
 import type { Access, AccessArgs, AccessResult, Where, CollectionBeforeChangeHook } from 'payload'
 
-const staffRoles = ['editor', 'reviewer', 'publisher']
+const staffRoles = ['editor', 'reviewer']
 const contentKeys = ['title', 'body', 'jurisdiction', 'language', 'sourceUrl', 'slug']
 export const publicArticles: Where = {and: [{_status: {equals: 'published'}}, {reviewState: {equals: 'approved'}}]}
 
@@ -43,9 +43,8 @@ export const articleWorkflow: CollectionBeforeChangeHook = ({data, originalDoc, 
     if (!changed && !allowed) throw new Error('Review transition denied')
   }
   const status = data._status ?? originalDoc?._status ?? 'draft'
-  if (!isOwner && !changed && status !== (originalDoc?._status ?? 'draft') && role !== 'publisher') {
-    // Review withdrawal must remove the public version immediately.
-    if (!(role === 'reviewer' && review !== 'approved')) throw new Error('Publication restricted')
+  if (!isOwner && !changed && status !== (originalDoc?._status ?? 'draft') && role !== 'reviewer') {
+    throw new Error('Publication restricted')
   }
   if (review !== 'approved') {data._status = 'draft'; data.aiAllowed = false}
   if (status === 'published' && review !== 'approved' && !changed && review === previousReview) throw new Error('Review required')

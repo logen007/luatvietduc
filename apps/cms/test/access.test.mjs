@@ -30,7 +30,10 @@ test('reviewer approves pending in-scope article',()=>assert.equal(articleHook({
 test('reviewer cannot edit legal text',()=>assert.throws(()=>articleHook({req:req('reviewer'),data:{title:'Replaced'},originalDoc:pending}),/Content editing/));
 test('reviewer cannot skip submission',()=>assert.throws(()=>articleHook({req:req('reviewer'),data:{reviewState:'approved'},originalDoc:{...pending,reviewState:'draft'}}),/Review transition/));
 test('editor cannot approve own content',()=>assert.throws(()=>articleHook({req:req('editor'),data:{reviewState:'approved'},originalDoc:pending}),/Review transition/));
-test('publisher cannot approve',()=>assert.throws(()=>articleHook({req:req('publisher'),data:{reviewState:'approved'},originalDoc:pending}),/Review transition/));
-test('publisher publishes approved article',()=>assert.equal(articleHook({req:req('publisher'),data:{_status:'published'},originalDoc:{...pending,reviewState:'approved'}})._status,'published'));
-test('publisher cannot publish pending article',()=>assert.throws(()=>articleHook({req:req('publisher'),data:{_status:'published'},originalDoc:pending}),/Review required/));
+test('legacy publisher role cannot approve',()=>assert.throws(()=>articleHook({req:req('publisher'),data:{reviewState:'approved'},originalDoc:pending}),/jurisdiction access denied/));
+test('reviewer publishes approved article',()=>assert.equal(articleHook({req:req('reviewer'),data:{_status:'published'},originalDoc:{...pending,reviewState:'approved'}})._status,'published'));
+test('reviewer cannot publish pending article',()=>assert.throws(()=>articleHook({req:req('reviewer'),data:{_status:'published'},originalDoc:pending}),/Review required/));
 test('withdrawal immediately unpublishes and disables AI',()=>assert.deepEqual(articleHook({req:req('reviewer'),data:{reviewState:'withdrawn'},originalDoc:{...pending,reviewState:'approved',_status:'published',aiAllowed:true}}),{reviewState:'withdrawn',_status:'draft',aiAllowed:false}));
+
+test('reviewer approves and publishes submitted content in one operation',()=>assert.equal(articleHook({req:req('reviewer'),data:{reviewState:'approved',_status:'published'},originalDoc:pending})._status,'published'));
+test('legacy publisher role has no draft write access',()=>assert.equal(articles.access.update({req:req('publisher')}),false));

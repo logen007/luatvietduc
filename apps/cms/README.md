@@ -24,9 +24,9 @@ Checked on 2026-11-03 against the installed npm package metadata and official in
 ## Implemented boundaries
 
 - Payload admin and REST wiring, generated types, Postgres adapter and initial migration.
-- User roles enumerated; only owner manages accounts. Editors create/edit and submit drafts; reviewers approve submitted content or withdraw approval; publishers publish approved content. Staff access is constrained by the owner-assigned VN/DE jurisdictions. Members and other readers see public approved articles. Owner retains administrative override.
+- User roles enumerated; only owner manages accounts. Editors create/edit and submit drafts; reviewers approve and publish submitted content or withdraw approval. Staff access is constrained by the owner-assigned VN/DE jurisdictions. Members and other readers see public approved articles. Owner retains administrative override.
 - Article drafts/versions, public filtering, role-separated publication, review invalidation on content edits, private settings and empty dedicated social list.
-- No working private chat storage, realtime, uploads, email, RAG, field-level assignments, durable reviewer attribution, concurrency-safe review transitions or production backup yet. AI remains off. The approved chat UI is still the unchanged prototype.
+- No working private chat storage, realtime, uploads, email, RAG, durable reviewer attribution, concurrency-safe review transitions or production backup yet. AI remains off. The approved chat UI is still the unchanged prototype.
 - Local API callers must explicitly choose `overrideAccess:false` with an authenticated server user; offline bootstrap is the documented exception. CI uses elevated creation only for its synthetic initial owner.
 
 Do not deploy this scaffold publicly, change main/DNS, or touch shared VPS services without the release gate in the handoff.
@@ -35,6 +35,6 @@ Do not deploy this scaffold publicly, change main/DNS, or touch shared VPS servi
 
 Owner assigns jurisdictions on user records. Missing assignments deny staff writes and version access. Staff can read in-scope drafts plus public approved articles; members only see the latter. Record queries constrain the existing country, and the hook checks the resulting country to prevent moving a record outside an assignment.
 
-Editor: draft → pending. Reviewer: pending → approved / draft / withdrawn; approved → withdrawn / draft. Publisher: approved draft → published or back to draft. Reviewer withdrawal forces draft and disables AI eligibility. Content edits invalidate review before checking merged Payload publication state. Only owner controls AI eligibility, accounts and settings. No schema changes are required for this slice.
+Editor: draft → pending. Reviewer: pending → approved / draft / withdrawn; approved → withdrawn / draft. Reviewer can approve and publish in the same operation, or unpublish approved content. The legacy publisher enum is retained for schema compatibility but grants no draft access or writes. Reviewer withdrawal forces draft and disables AI eligibility. Content edits invalidate review before checking merged Payload publication state. Only owner controls AI eligibility, accounts and settings. No schema changes are required for this slice.
 
-This is not the complete editorial acceptance gate: field assignments, reviewer identity/revision audit and transactional concurrency handling remain pending. Browser QA and HTTP coverage also remain pending. Local API integration explicitly uses overrideAccess:false; public production deployment remains blocked by the handoff gate.
+This is not the complete editorial acceptance gate: reviewer identity/revision audit and transactional concurrency handling remain pending. Browser QA and HTTP coverage also remain pending. Local API integration explicitly uses overrideAccess:false; public production deployment remains blocked by the handoff gate.
