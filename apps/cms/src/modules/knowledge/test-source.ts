@@ -1,3 +1,4 @@
+import { activeValues } from "../integrations/store";
 import type { Payload } from "payload";
 import { pool } from "../shared/db";
 import { HttpError } from "../chat/service";
@@ -10,10 +11,11 @@ export async function testSource(
 ) {
   if (!user || !["owner", "reviewer", "knowledge"].includes(user.role))
     throw new HttpError(403, "Chỉ dành cho nhân sự kiểm duyệt kiến thức.");
+  const ai = await activeValues("ai");
   if (
     settings.aiMode !== "internal-only" ||
-    !process.env.GEMINI_API_KEY ||
-    !process.env.GEMINI_MODEL
+    !ai?.apiKey ||
+    !ai?.model
   )
     throw new HttpError(503, "AI nội bộ chưa được cấu hình.");
   const source = await payload.findByID({
@@ -39,7 +41,7 @@ export async function testSource(
   );
   if (!count.rowCount || !settings.aiDailyRequests)
     throw new HttpError(429, "Đã hết hạn mức thử AI hôm nay.");
-  const model = process.env.GEMINI_MODEL;
+  const model = ai!.model;
   if (!/^[a-zA-Z0-9.-]+$/.test(model))
     throw new HttpError(503, "Tên model không hợp lệ.");
   const response = await fetch(
@@ -48,7 +50,7 @@ export async function testSource(
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-goog-api-key": process.env.GEMINI_API_KEY,
+        "x-goog-api-key": ai!.apiKey,
       },
       body: JSON.stringify({
         systemInstruction: {

@@ -24,8 +24,10 @@
     "test:http": "payload run scripts/test-http.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1161.0",
     "@payloadcms/db-postgres": "3.92.1",
     "@payloadcms/next": "3.92.1",
+    "@payloadcms/plugin-cloud-storage": "3.92.1",
     "@payloadcms/storage-s3": "3.92.1",
     "@payloadcms/translations": "3.92.1",
     "graphql": "16.11.0",

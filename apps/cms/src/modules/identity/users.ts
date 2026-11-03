@@ -1,5 +1,6 @@
 import {APIError, type CollectionConfig} from "payload";
 import { owner } from "../shared/access";
+import { activeValues } from "../integrations/store";
 import { googleSessionStrategy } from "./session";
 export const Users: CollectionConfig = {
   slug: "users", labels:{singular:"Tài khoản",plural:"Tài khoản & phân quyền"},admin:{group:"Vận hành",useAsTitle:"name"},
@@ -9,7 +10,7 @@ export const Users: CollectionConfig = {
     lockTime: 600000,
     cookies: { sameSite: "Lax", secure: process.env.NODE_ENV === "production" },
   },
-  hooks: {beforeOperation:[({operation,args})=>{if(["forgotPassword","resetPassword"].includes(operation))throw new APIError("Email chưa được cấu hình. Liên hệ chủ hệ thống.",503);return args}],
+  hooks: {beforeOperation:[async ({operation,args})=>{if(["forgotPassword","resetPassword"].includes(operation)&&!(await activeValues("email")))throw new APIError("Email chưa được cấu hình. Liên hệ chủ hệ thống.",503);return args}],
     beforeChange: [
       ({ req, operation, data }) => {
         if (

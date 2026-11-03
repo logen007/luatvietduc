@@ -82,7 +82,7 @@ async function route(
               jurisdictions: user.jurisdictions,
             }
           : null,
-        connections: connectionStatus(),
+        connections: await connectionStatus(),
       };
     else if (path === "settings" && method === "GET")
       result = {
@@ -169,7 +169,7 @@ async function route(
       if (user?.role !== "owner")
         throw new chat.HttpError(403, "Chỉ chủ hệ thống.");
       result = {
-        ...connectionStatus(),
+        ...(await connectionStatus()),
         database: (await pool.query("SELECT 1")).rowCount === 1,
       };
     } else throw new chat.HttpError(404, "Không tìm thấy chức năng.");

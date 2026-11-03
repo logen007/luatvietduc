@@ -2,19 +2,8 @@ import type { Payload } from "payload";
 export async function siteSettings(payload: Payload) {
   return payload.findGlobal({ slug: "site-settings", overrideAccess: true });
 }
-export function connectionStatus() {
-  return {
-    google: Boolean(
-      process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET,
-    ),
-    storage: [
-      "R2_BUCKET",
-      "R2_ENDPOINT",
-      "R2_ACCESS_KEY_ID",
-      "R2_SECRET_ACCESS_KEY",
-    ].every((k) => Boolean(process.env[k])),
-    email: false,
-    ai: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_MODEL),
-    customerAI: false,
-  };
+export async function connectionStatus() {
+  const { activeValues } = await import('../integrations/store');
+  const [google, storage, email, ai] = await Promise.all(['google','r2','email','ai'].map(p => activeValues(p as 'google'|'r2'|'email'|'ai')));
+  return {google:Boolean(google), storage:Boolean(storage), email:Boolean(email), ai:Boolean(ai), customerAI:false};
 }

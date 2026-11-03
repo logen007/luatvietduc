@@ -3,6 +3,7 @@ import { getPayload } from "payload";
 import config from "../src/payload.config";
 import { pool } from "../src/modules/shared/db";
 import * as chat from "../src/modules/chat/service";
+import * as integrations from "../src/modules/integrations/store";
 const url = new URL(process.env.DATABASE_URL || "");
 if (
   !["localhost", "127.0.0.1"].includes(url.hostname) ||
@@ -24,6 +25,29 @@ try {
       role: "owner",
     },
   });
+  // Vault tests run only in the isolated CI database; no provider request is made.
+  await integrations.saveConnection('ai', {apiKey:'synthetic-secret-not-a-real-key',model:'test-model'}, 0, owner.id);
+  const safe = await integrations.safeConnection('ai');
+  assert.equal(safe.values.apiKey, undefined);
+  assert.equal(safe.stored.apiKey, true);
+  assert.equal(safe.enabled, false);
+  const raw = (await pool.query("SELECT encrypted_values FROM lvd_integrations WHERE provider='ai'")).rows[0].encrypted_values;
+  assert.ok(!raw.includes('synthetic-secret-not-a-real-key'));
+  await assert.rejects(() => integrations.setEnabled('ai',1,true,owner.id), /Kiểm tra/);
+  await integrations.markCheck('ai',1,'passed',owner.id);
+  await integrations.setEnabled('ai',1,true,owner.id);
+  assert.equal((await integrations.activeValues('ai'))?.apiKey,'synthetic-secret-not-a-real-key');
+  await assert.rejects(() => integrations.saveConnection('ai',{apiKey:'',model:'test-model'},1,owner.id), /thay đổi/);
+  await integrations.saveConnection('ai',{apiKey:'',model:'changed-model'},2,owner.id);
+  assert.equal(await integrations.activeValues('ai'),null);
+  await assert.rejects(() => integrations.markCheck('ai',2,'passed',owner.id), /thay đổi/);
+  const parallel = await Promise.allSettled([
+    integrations.saveConnection('ai',{apiKey:'',model:'concurrent-one'},3,owner.id),
+    integrations.saveConnection('ai',{apiKey:'',model:'concurrent-two'},3,owner.id),
+  ]);
+  assert.equal(parallel.filter(result=>result.status==='fulfilled').length,1);
+  await pool.query("DELETE FROM lvd_integration_events WHERE provider='ai'");
+  await pool.query("DELETE FROM lvd_integrations WHERE provider='ai'");
   const staff = await payload.create({
     collection: "users",
     overrideAccess: false,

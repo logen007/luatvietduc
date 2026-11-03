@@ -1,8 +1,10 @@
+import { activeValues } from "../../../modules/integrations/store";
 import { NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 import { SignJWT } from "jose";
 export async function GET() {
-  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET)
+  const google = await activeValues("google");
+  if (!google)
     return NextResponse.redirect(
       new URL(
         "/tai-khoan?error=google-not-configured",
@@ -14,13 +16,13 @@ export async function GET() {
     nonce = randomBytes(32).toString("base64url"),
     verifier = randomBytes(32).toString("base64url");
   const { createHash } = await import("node:crypto");
-  const token = await new SignJWT({ state, nonce, verifier })
+  const token = await new SignJWT({ state, nonce, verifier, clientId: google.clientId })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("10m")
     .sign(new TextEncoder().encode(process.env.PAYLOAD_SECRET));
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   Object.entries({
-    client_id: process.env.GOOGLE_CLIENT_ID,
+    client_id: google.clientId,
     redirect_uri: origin + "/auth/google/callback",
     response_type: "code",
     scope: "openid email profile",

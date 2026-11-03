@@ -1,3 +1,4 @@
+import { activeValues } from "../../../../modules/integrations/store";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createRemoteJWKSet, jwtVerify } from "jose";
@@ -18,6 +19,8 @@ export async function GET(req: Request) {
     return r;
   };
   try {
+    const google = await activeValues("google");
+    if (!google) return fail();
     const url = new URL(req.url),
       jar = await cookies(),
       cookie = jar.get("lvd-oauth")?.value;
@@ -27,14 +30,14 @@ export async function GET(req: Request) {
       new TextEncoder().encode(process.env.PAYLOAD_SECRET),
       { algorithms: ["HS256"] },
     );
-    if (flow.state !== url.searchParams.get("state")) return fail();
+    if (flow.clientId !== google.clientId || flow.state !== url.searchParams.get("state")) return fail();
     const response = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         code: url.searchParams.get("code")!,
-        client_id: process.env.GOOGLE_CLIENT_ID!,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        client_id: google.clientId,
+        client_secret: google.clientSecret,
         redirect_uri: origin + "/auth/google/callback",
         grant_type: "authorization_code",
         code_verifier: String(flow.verifier),
@@ -45,7 +48,7 @@ export async function GET(req: Request) {
     const tokens = await response.json();
     const { payload: identity } = await jwtVerify(tokens.id_token, keys, {
       issuer: ["https://accounts.google.com", "accounts.google.com"],
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: google.clientId,
       algorithms: ["RS256"],
     });
     const email = String(identity.email || "").toLowerCase();

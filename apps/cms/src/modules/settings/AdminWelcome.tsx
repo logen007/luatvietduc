@@ -17,17 +17,17 @@ function WorkIcon({ name }: { name: IconName }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 
-export function AdminWelcome({ user }: WelcomeProps) {
+export async function AdminWelcome({ user }: WelcomeProps) {
   const role = user?.role || "";
   const canEdit = ["owner", "editor", "reviewer"].includes(role);
   const canSupport = ["owner", "support", "operations"].includes(role);
   const canKnowledge = ["owner", "knowledge", "reviewer"].includes(role);
-  const connections = connectionStatus();
+  const connections = await connectionStatus();
   const destinations = [
     ...(canEdit ? [{ href: "/admin/collections/articles", title: "Nội dung & xuất bản", text: "Soạn bài, xem phiên bản và duyệt nội dung theo quốc gia.", icon: "article" as const }] : []),
     ...(canSupport ? [{ href: "/chuyen-vien", title: "Hộp thư chuyên viên", text: "Tiếp nhận yêu cầu, trao đổi và theo dõi hội thoại được giao.", icon: "chat" as const }] : []),
     ...(canKnowledge ? [{ href: "/admin/collections/knowledge", title: "Kho kiến thức", text: "Biên soạn nguồn công khai, kiểm duyệt và theo dõi hạn rà soát.", icon: "knowledge" as const }] : []),
-    ...(role === "owner" ? [{ href: "/admin/globals/site-settings", title: "Cài đặt hệ thống", text: "Quản lý nhận diện, điều hướng và chính sách vận hành.", icon: "settings" as const }] : []),
+    ...(role === "owner" ? [{ href: "/quan-tri", title: "Kết nối", text: "Thiết lập Google, AI, R2 và email; kiểm tra, bật hoặc tắt ngay tại đây.", icon: "settings" as const }, { href: "/admin/globals/site-settings", title: "Cài đặt hệ thống", text: "Quản lý nhận diện, điều hướng và chính sách vận hành.", icon: "settings" as const }] : []),
   ];
   return (
     <section className="lvd-admin-welcome" aria-labelledby="lvd-admin-welcome-title">
@@ -51,7 +51,7 @@ export function AdminWelcome({ user }: WelcomeProps) {
         <span>Phân quyền theo Việt Nam / Đức</span>
       </div>
       {role === "owner" && <section className="lvd-admin-connections" aria-labelledby="lvd-admin-connections-title">
-        <div className="lvd-admin-connections__heading"><h2 id="lvd-admin-connections-title">Kết nối hệ thống</h2><a href="/quan-tri">Xem trạng thái <WorkIcon name="arrow" /></a></div>
+        <div className="lvd-admin-connections__heading"><h2 id="lvd-admin-connections-title">Kết nối hệ thống</h2><a href="/quan-tri">Thiết lập kết nối <WorkIcon name="arrow" /></a></div>
         <div className="lvd-admin-connection-list">
           {[{ label: "Google", ready: connections.google }, { label: "Lưu tệp R2", ready: connections.storage }, { label: "Email", ready: connections.email }, { label: "AI nội bộ", ready: connections.ai }].map((item) => <div key={item.label} className="lvd-admin-connection"><span>{item.label}</span><span className={item.ready ? "lvd-admin-status lvd-admin-status--configured" : "lvd-admin-status"}>{item.ready ? "Đã cấu hình" : "Chưa kết nối"}</span></div>)}
         </div>
@@ -60,8 +60,8 @@ export function AdminWelcome({ user }: WelcomeProps) {
   );
 }
 
-export function GoogleLogin() {
-  const googleConfigured = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+export async function GoogleLogin() {
+  const googleConfigured = (await connectionStatus()).google;
   return (
     <section className="lvd-admin-login" aria-labelledby="lvd-admin-login-title">
       <a href="/" className="lvd-admin-login__brand"><span aria-hidden="true">L</span><strong>Luật Việt Đức</strong></a>
