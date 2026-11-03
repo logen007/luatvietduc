@@ -41,7 +41,8 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    const current=(await db.query('SELECT * FROM knowledge WHERE id=$1 FOR SHARE',[faq.id])).rows[0] as Faq|undefined;
    const settings=(await db.query('SELECT customer_ai_enabled,chat_enabled FROM site_settings LIMIT 1 FOR SHARE')).rows[0];
    const provider=(await db.query("SELECT enabled,version FROM lvd_integrations WHERE provider='ai' FOR SHARE")).rows[0];
-   if(!current||!eligible(current)||current.jurisdiction!==work.country||!matchesQuestion(work.question,current)||faqRevision(current)!==faqRevision(faq)||settings?.customer_ai_enabled===false||settings?.chat_enabled===false||(providerVersion!==undefined&&(!provider?.enabled||provider.version!==providerVersion)))answer=null;
+   const providerChanged=providerVersion===undefined?Boolean(provider):!provider?.enabled||provider.version!==providerVersion;
+   if(!current||!eligible(current)||current.jurisdiction!==work.country||!matchesQuestion(work.question,current)||faqRevision(current)!==faqRevision(faq)||settings?.customer_ai_enabled===false||settings?.chat_enabled===false||providerChanged)answer=null;
   }
   const metadata=answer&&faq?{kind:'ai',sources:[{id:faq.id,title:faq.title,url:faq.source_url,revision:new Date(faq.updated_at).toISOString()+'#'+faqRevision(faq).slice(0,12)}]}:{kind:'handoff'};
   await db.query("INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,'assistant',$2,false,'assistant',$3,$4) ON CONFLICT(conversation_id,client_key) DO NOTHING",[id,answer||handoffText,replyKey,JSON.stringify(metadata)]);

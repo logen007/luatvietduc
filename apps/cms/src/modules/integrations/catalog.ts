@@ -8,7 +8,7 @@ export const integrationCatalog = {
     { key: 'clientId', label: 'Client ID', secret: false, placeholder: '…apps.googleusercontent.com' },
     { key: 'clientSecret', label: 'Client Secret', secret: true, placeholder: '' },
   ] },
-  ai: { title: 'AI · Google Gemini', help: 'Dùng để thử nội bộ với nguồn công khai. Không tự bật trả lời khách.', fields: [
+  ai: { title: 'AI · Google Gemini', help: 'Chỉ nhận FAQ công khai; không nhận câu hỏi hay hồ sơ riêng của khách. Sau khi kiểm tra và bật kết nối, quản lý trợ lý cho khách trong Cài đặt website → AI & kho FAQ.', fields: [
     { key: 'apiKey', label: 'API key', secret: true, placeholder: '' },
     { key: 'model', label: 'Tên model', secret: false, placeholder: 'Tên model trong tài khoản Google AI của anh' },
   ] },
