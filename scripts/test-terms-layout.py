@@ -79,7 +79,8 @@ with sync_playwright() as p:
                 if width==1440:assert header['width']>=1100
             if name in ('catalog','catalog-vn','catalog-de'):
                 assert page.locator('.catalog-group').count()==16
-                assert page.locator('form[data-catalog-search],.tabs.catalog-tabs,.catalog-help').count()==3
+                assert page.locator('form[data-catalog-search],.catalog-help').count()==2
+                assert page.locator('.catalog-tabs').count()==0
                 if name=='catalog-de':
                     assert '303' not in page.locator('.catalog-page').inner_text()
                     assert page.locator('[data-catalog-topic]').count()==0
