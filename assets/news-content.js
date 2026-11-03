@@ -291,19 +291,19 @@ window.LVD_NEWS = {
       "summary": "Góc mua sắm, ẩm thực và gặp gỡ cho những ngày muốn tìm lại hương vị gần gũi.",
       "category": "cong-dong",
       "type": "guide",
-      "photo": "dong-xuan",
+      "photo": "berlin",
       "topic": "gia-dinh",
       "published": null,
       "sourceName": "visitBerlin — cổng du lịch chính thức",
       "sourceUrl": "https://www.visitberlin.de/en/dong-xuan-center",
       "paragraphs": [
         "visitBerlin giới thiệu Dong Xuan Center là một khu chợ châu Á trong nhà ở Lichtenberg, có nhiều gian hàng và nhà hàng. Địa chỉ được công bố là Herzbergstraße 128–139, 10365 Berlin.",
-        "Đây là bài giới thiệu địa điểm, không phải thông báo về một sự kiện sắp diễn ra. Trước khi tới, nên xem thông tin vận hành hiện hành từ đơn vị quản lý; ảnh cổng trong bài là tư liệu năm 2012."
+        "Đây là bài giới thiệu địa điểm, không phải thông báo về một sự kiện sắp diễn ra. Trước khi tới, nên xem thông tin vận hành hiện hành từ đơn vị quản lý; ảnh đi kèm là minh họa, không phải ảnh chụp Dong Xuan Center."
       ],
       "points": [
         "Địa điểm: Berlin-Lichtenberg.",
         "Chuyên mục: đời sống và cộng đồng.",
-        "Ảnh tư liệu không phản ánh thời điểm hiện tại."
+        "Kiểm tra giờ mở cửa và thông tin tại đơn vị quản lý."
       ],
       "country": "Đức",
       "situations": [],
@@ -311,7 +311,7 @@ window.LVD_NEWS = {
       "editorial": true,
       "keywords": "Dong Xuan Center: điểm hẹn tại Berlin Góc mua sắm, ẩm thực và gặp gỡ cho những ngày muốn tìm lại hương vị gần gũi. cong-dong",
       "checked": "2026-10-19",
-      "caption": "Cổng Dong Xuan Center, Berlin. Ảnh tư liệu ngày 12/04/2012; bản màu gốc theo CC BY-SA 3.0."
+      "caption": "Một góc Berlin, ảnh minh họa, không phải ảnh chụp Dong Xuan Center."
     },
     {
       "id": "minijob-603",
