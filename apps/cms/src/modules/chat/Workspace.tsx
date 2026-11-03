@@ -146,11 +146,14 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
     };
   }, [selected]);
   useEffect(() => {
-    log.current?.scrollTo({
-      top: log.current.scrollHeight,
-      behavior: "smooth",
+    if (!log.current) return;
+    // Keep a new conversation at the start of its intake form on small screens.
+    const hasMessages = Boolean(selected && messages.length);
+    log.current.scrollTo({
+      top: hasMessages ? log.current.scrollHeight : 0,
+      behavior: hasMessages ? "smooth" : "auto",
     });
-  }, [messages.length]);
+  }, [messages.length, selected]);
   useEffect(() => {
     if (!staff || !me?.user) return;
     const timer = setInterval(() => refreshList().catch(() => {}), 5000);
