@@ -68,7 +68,7 @@ with sync_playwright() as pw:
             expect(page.locator('.catalog-page').get_by_role('search')).to_have_count(1)
             expect(page.locator('form[data-catalog-search] input[name=q]')).to_be_enabled()
             expect(page.locator('form[data-catalog-search] [type=submit]')).to_be_enabled()
-            expect(page.locator('.tabs.catalog-tabs')).to_have_count(1)
+            expect(page.locator('.tabs.catalog-tabs')).to_have_count(0)
             expect(page.locator('.catalog-help')).to_have_count(1)
             expect(page.locator('.lvd-country-tabs a')).to_have_count(2)
             expect(page.locator('.lvd-country-tabs a[aria-current="page"]')).to_have_attribute('href', '#' + prefixes[country])
@@ -148,7 +148,7 @@ with sync_playwright() as pw:
 
             for country, prefix in prefixes.items():
                 go(prefix)
-                page.locator('.catalog-page h1,.catalog-group-body strong,.catalog-group-body small,.catalog-search input,.catalog-search .search-label,.catalog-tabs a').evaluate_all('''elements=>{
+                page.locator('.catalog-page h1,.catalog-group-body strong,.catalog-group-body small,.catalog-search input,.catalog-search .search-label').evaluate_all('''elements=>{
                   const sizes=elements.map(el=>parseFloat(getComputedStyle(el).fontSize));
                   elements.forEach((el,index)=>el.style.fontSize=(sizes[index]*2)+'px');
                 }''')
