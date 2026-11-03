@@ -181,7 +181,7 @@ export interface Article {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Chỉ nhập nguồn công khai. Không nhập hồ sơ khách hàng hoặc hội thoại riêng.
+ * Nhập FAQ công khai, kiểm tra căn cứ và xuất bản trong quốc gia được giao. Không nhập hồ sơ hay hội thoại riêng. Xuất bản là xác nhận chuyên viên chịu trách nhiệm nội dung.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "knowledge".
@@ -189,6 +189,13 @@ export interface Article {
 export interface Knowledge {
   id: number;
   title: string;
+  /**
+   * Mỗi dòng một câu hỏi có cùng phạm vi và điều kiện với câu hỏi chuẩn. Nội dung ngoài các câu này được chuyển chuyên viên.
+   */
+  questionAliases?: string | null;
+  /**
+   * FAQ gồm: câu trả lời; điều kiện áp dụng; trường hợp loại trừ; khi nào chuyển chuyên viên. Chỉ dùng nội dung công khai đã kiểm chứng.
+   */
   body: string;
   jurisdiction: 'VN' | 'DE';
   sourceUrl: string;
@@ -210,6 +217,8 @@ export interface Media {
   id: number;
   alt: string;
   visibility?: ('private' | 'public') | null;
+  prefix?: string | null;
+  _objectKey?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -384,6 +393,7 @@ export interface ArticlesSelect<T extends boolean = true> {
  */
 export interface KnowledgeSelect<T extends boolean = true> {
   title?: T;
+  questionAliases?: T;
   body?: T;
   jurisdiction?: T;
   sourceUrl?: T;
@@ -404,6 +414,8 @@ export interface KnowledgeSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   visibility?: T;
+  prefix?: T;
+  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -477,6 +489,7 @@ export interface SiteSetting {
   siteName?: string | null;
   tagline?: string | null;
   logo?: (number | null) | Media;
+  accentColor?: string | null;
   socialLinks?:
     | {
         label: string;
@@ -491,17 +504,20 @@ export interface SiteSetting {
         id?: string | null;
       }[]
     | null;
-  footerText?: string | null;
   supportNotice?: string | null;
   officeHours?: string | null;
   timeZone?: ('Europe/Berlin' | 'Asia/Ho_Chi_Minh') | null;
   chatEnabled?: boolean | null;
   retentionDays?: number | null;
   maxMessageLength?: number | null;
+  /**
+   * Chỉ dùng FAQ đúng quốc gia, còn hiệu lực và đã xác nhận. Không gửi câu hỏi hoặc hồ sơ riêng của khách cho Gemini. Thiếu căn cứ hoặc lỗi dịch vụ sẽ chuyển chuyên viên.
+   */
+  customerAIEnabled?: boolean | null;
   aiMode?: ('off' | 'internal-only') | null;
   aiDailyRequests?: number | null;
   aiMaxOutputTokens?: number | null;
-  accentColor?: string | null;
+  footerText?: string | null;
   privacyText?: string | null;
   publicIndexingEnabled?: boolean | null;
   updatedAt?: string | null;
@@ -515,6 +531,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   siteName?: T;
   tagline?: T;
   logo?: T;
+  accentColor?: T;
   socialLinks?:
     | T
     | {
@@ -529,17 +546,17 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
-  footerText?: T;
   supportNotice?: T;
   officeHours?: T;
   timeZone?: T;
   chatEnabled?: T;
   retentionDays?: T;
   maxMessageLength?: T;
+  customerAIEnabled?: T;
   aiMode?: T;
   aiDailyRequests?: T;
   aiMaxOutputTokens?: T;
-  accentColor?: T;
+  footerText?: T;
   privacyText?: T;
   publicIndexingEnabled?: T;
   updatedAt?: T;

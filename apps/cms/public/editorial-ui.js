@@ -14,9 +14,11 @@
     template.innerHTML = window.LVD_FEATURES?.partnerSlider() || '';
     const logos = [...template.content.querySelectorAll('img')];
     if (!logos.length) return '';
-    const group = clone => `<div class="pm-partner-group"${clone ? ' aria-hidden="true"' : ''}>${logos.map(img =>
-      `<img src="${esc(img.getAttribute('src'))}" alt="${clone ? '' : esc(img.alt)}" loading="eager" decoding="async" draggable="false" referrerpolicy="no-referrer">`
-    ).join('')}</div>`;
+    // Keep the white knockout inside each SVG, avoiding external CSS filter references on mobile.
+    const group = clone => `<div class="pm-partner-group"${clone ? ' aria-hidden="true"' : ''}>${logos.map((img,index) => {
+      const filterId=`lvd-logo-${clone?'copy':'original'}-${index}`;
+      return `<svg class="pm-partner-logo" viewBox="0 0 220 60" width="140" height="38" role="img" aria-label="${clone?'':esc(img.alt)}" focusable="false" xmlns="http://www.w3.org/2000/svg"><defs><filter id="${filterId}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  -.2126 -.7152 -.0722 0 1"/><feComponentTransfer><feFuncA type="linear" slope="1.1" intercept="-.05"/></feComponentTransfer><feComposite operator="in" in2="SourceGraphic"/></filter></defs><image href="${esc(img.getAttribute('src'))}" width="220" height="60" preserveAspectRatio="xMidYMid meet" filter="url(#${filterId})"/></svg>`;
+    }).join('')}</div>`;
     return `<section class="pm-partners" aria-label="${l('Logo đối tác','Partnerlogos')}">
       <div class="container pm-partners-inner"><div class="pm-partner-marquee" tabindex="0" aria-label="${l('Logo đối tác','Partnerlogos')}"><div class="pm-partner-track">${group(false)}${group(true)}</div></div></div>
     </section>`;
@@ -33,7 +35,7 @@
   };
 
   E.home = () => `<section class="pm-hero" aria-labelledby="pm-title">
-    <video class="pm-hero-video" muted loop playsinline preload="metadata" poster="/media/legal-hero-montage-poster-v2.webp" aria-hidden="true" tabindex="-1"><source src="/media/legal-hero-montage-v2.mp4" type="video/mp4"></video>
+    <video class="pm-hero-video" muted loop playsinline preload="none" poster="/media/legal-hero-montage-poster-v2.webp" aria-hidden="true" tabindex="-1"><source data-src="/media/legal-hero-montage-v2.mp4" type="video/mp4"></video>
     <button class="pm-video-toggle" type="button" aria-label="${l('Tạm dừng video','Video anhalten')}" aria-pressed="false"><svg class="pm-video-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><svg class="pm-video-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
     <div class="container pm-hero-inner"><div class="pm-hero-copy">
       <h1 id="pm-title">${l('Giải đáp pháp luật <br>Việt Nam và Đức.','Recht in Vietnam <br>und Deutschland.')}</h1>
@@ -56,10 +58,11 @@
   </div></section>`;
 
   let videoChoice = null;
+  let heroObserver = null;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   function syncVideo() {
     const video = document.querySelector('.pm-hero-video');
-    if (!video) return;
+    if (!video) { heroObserver?.disconnect(); heroObserver=null; return; }
     const button = document.querySelector('.pm-video-toggle');
     const update = () => {
       button?.setAttribute('aria-pressed', String(video.paused));
@@ -71,11 +74,20 @@
       video.addEventListener('play', update);
       video.addEventListener('pause', update);
       button?.addEventListener('click', () => { videoChoice = video.paused ? 'play' : 'pause'; syncVideo(); });
+      heroObserver?.disconnect();
+      if('IntersectionObserver' in window){
+        heroObserver=new IntersectionObserver(([entry])=>{video.dataset.heroVisible=String(entry.isIntersecting);syncVideo();},{threshold:0});
+        heroObserver.observe(video);
+      }
     }
-    const paused = videoChoice === 'pause' || ((reducedMotion.matches || navigator.connection?.saveData) && videoChoice !== 'play') || document.hidden;
+    const paused = videoChoice === 'pause' || video.dataset.heroVisible==='false' || ((reducedMotion.matches || navigator.connection?.saveData) && videoChoice !== 'play') || document.hidden;
     video.autoplay = !paused;
     if (paused) video.pause();
-    else video.play().catch(update);
+    else {
+      const source=video.querySelector('source[data-src]');
+      if(source){source.src=source.dataset.src;source.removeAttribute('data-src');video.load();}
+      video.play().catch(update);
+    }
     update();
   }
 
@@ -109,7 +121,8 @@
     const de = window.LVD_I18N?.get() === 'de';
     document.querySelectorAll('[data-shell-vi]').forEach(el => { el.textContent = de ? el.dataset.shellDe : el.dataset.shellVi; });
   }
-  function scrollState() { document.body.classList.toggle('pm-scrolled', scrollY > 80); }
+  let scrolled=null;
+  function scrollState() { const next=scrollY>80;if(next!==scrolled){scrolled=next;document.body.classList.toggle('pm-scrolled',next);} }
   document.addEventListener('DOMContentLoaded', () => {
     decorate(); scrollState(); shellLanguage();
     const main = document.getElementById('main');
@@ -119,6 +132,7 @@
   document.addEventListener('lvd:languagechange', shellLanguage);
   document.addEventListener('visibilitychange', syncVideo);
   reducedMotion.addEventListener('change', syncVideo);
+  navigator.connection?.addEventListener('change',syncVideo);
   window.addEventListener('scroll', scrollState, {passive:true});
   decorate();
 })();

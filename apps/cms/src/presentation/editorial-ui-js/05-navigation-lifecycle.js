@@ -18,7 +18,8 @@
     const de = window.LVD_I18N?.get() === 'de';
     document.querySelectorAll('[data-shell-vi]').forEach(el => { el.textContent = de ? el.dataset.shellDe : el.dataset.shellVi; });
   }
-  function scrollState() { document.body.classList.toggle('pm-scrolled', scrollY > 80); }
+  let scrolled=null;
+  function scrollState() { const next=scrollY>80;if(next!==scrolled){scrolled=next;document.body.classList.toggle('pm-scrolled',next);} }
   document.addEventListener('DOMContentLoaded', () => {
     decorate(); scrollState(); shellLanguage();
     const main = document.getElementById('main');
@@ -28,6 +29,7 @@
   document.addEventListener('lvd:languagechange', shellLanguage);
   document.addEventListener('visibilitychange', syncVideo);
   reducedMotion.addEventListener('change', syncVideo);
+  navigator.connection?.addEventListener('change',syncVideo);
   window.addEventListener('scroll', scrollState, {passive:true});
   decorate();
 })();

@@ -6,6 +6,7 @@ import * as chat from "../src/modules/chat/service";
 import * as integrations from "../src/modules/integrations/store";
 import {seal} from '../src/modules/integrations/crypto';
 import {mediaWriteGuard} from '../src/modules/backup/media-lock';
+import {testAssistant} from './test-assistant';
 const url = new URL(process.env.DATABASE_URL || "");
 if (
   !["localhost", "127.0.0.1"].includes(url.hostname) ||
@@ -180,6 +181,7 @@ try {
   console.log(
     "System database checks passed: guest isolation, country scope, idempotent send, concurrent claim, assignment privacy, internal notes, close and reopen",
   );
+  await testAssistant(payload,owner,staff);
 } finally {
   await payload.destroy();
   await pool.end();

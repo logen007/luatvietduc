@@ -6,6 +6,8 @@ import { hash, pool } from "../../../modules/shared/db";
 import { cookieValue } from "../../../modules/identity/session";
 import * as chat from "../../../modules/chat/service";
 import { testSource } from "../../../modules/knowledge/test-source";
+import {replyToMessage} from '../../../modules/assistant/reply';
+import {activeValues} from '../../../modules/integrations/store';
 import {
   siteSettings,
   connectionStatus,
@@ -36,8 +38,10 @@ async function route(
       guest = randomBytes(32).toString("base64url");
       fresh = true;
     }
-    const actor: chat.Actor = { user, guestHash: await hash(guest) },
-      settings = await siteSettings(payload);
+    const actor: chat.Actor = { user, guestHash: await hash(guest) };
+    // Private polling needs only authentication and its own scoped query.
+    let settingsPromise:ReturnType<typeof siteSettings>|null=null;
+    const settings = () => settingsPromise??=siteSettings(payload);
     let data: any = {};
     if (method === "POST") {
       const origin = process.env.APP_URL || "http://localhost:3000";
@@ -66,6 +70,7 @@ async function route(
       } catch {
         throw new chat.HttpError(400, "JSON không hợp lệ.");
       }
+      if(!data||typeof data!=='object'||Array.isArray(data))throw new chat.HttpError(400,'Nội dung không hợp lệ.');
       await chat.rateLimit(
         user ? "user:" + user.id : "guest:" + actor.guestHash,
       );
@@ -84,23 +89,6 @@ async function route(
           : null,
         connections: await connectionStatus(),
       };
-    else if (path === "settings" && method === "GET")
-      result = {
-        siteName: settings.siteName,
-        logo:typeof settings.logo==='object'&&settings.logo?.visibility==='public'?settings.logo.url:null,
-        privacyText:settings.privacyText,
-        maxMessageLength:settings.maxMessageLength,
-        tagline: settings.tagline,
-        socialLinks: settings.socialLinks,
-        navigation: settings.navigation,
-        footerText: settings.footerText,
-        supportNotice: settings.supportNotice,
-        officeHours: settings.officeHours,
-        timeZone: settings.timeZone,
-        accentColor: settings.accentColor,
-        chatEnabled: settings.chatEnabled,
-        publicIndexingEnabled: settings.publicIndexingEnabled,
-      };
     else if (path === "logout" && method === "POST") {
       const token = cookieValue(req.headers, "lvd-session");
       if (token)
@@ -114,9 +102,9 @@ async function route(
     } else if (path === "conversations" && method === "GET")
       result = await chat.chatList(actor);
     else if (path === "conversations" && method === "POST") {
-      if (settings.chatEnabled === false)
+      if ((await settings()).chatEnabled === false)
         throw new chat.HttpError(503, "Tiếp nhận chat đang tạm dừng.");
-      result = await chat.createConversation(actor, data);
+      result = await chat.createConversation(actor, data,{assistantEnabled:(await settings()).customerAIEnabled!==false&&Boolean(await activeValues('ai'))});
     } else if (path === "queue" && method === "GET")
       result = await chat.queue(actor);
     else if (
@@ -131,19 +119,25 @@ async function route(
           throw new chat.HttpError(400, "Cursor không hợp lệ.");
         result = await chat.transcript(actor, id, after);
       } else if (segments[2] === "messages" && method === "POST") {
-        if (settings.chatEnabled === false)
+        if ((await settings()).chatEnabled === false)
           throw new chat.HttpError(503, "Tiếp nhận chat đang tạm dừng.");
-        result = await chat.message(
+        const sent = await chat.message(
           actor,
           id,
           data,
-          settings.maxMessageLength || 2000,
+          (await settings()).maxMessageLength || 2000,
         );
+        if(sent.role==='user')await replyToMessage(actor,id,sent.id,await settings());
+        result=sent;
+      } else if(segments[2]==='answer'&&method==='POST'){
+        if((await settings()).chatEnabled===false)throw new chat.HttpError(503,'Tiếp nhận chat đang tạm dừng.');
+        if(typeof data.messageId!=='string'||!/^\d{1,19}$/.test(data.messageId))throw new chat.HttpError(400,'Tin nhắn không hợp lệ.');
+        await replyToMessage(actor,id,data.messageId,await settings());result={ok:true};
       } else if (segments[2] === "transition" && method === "POST")
         result = await chat.transition(actor, id, data);
       else throw new chat.HttpError(404, "Không tìm thấy chức năng.");
     } else if (path === "knowledge-sources" && method === "GET") {
-      if (!user || !["owner", "reviewer", "knowledge"].includes(user.role))
+      if (!user || !["owner", "reviewer", "knowledge", "support"].includes(user.role))
         throw new chat.HttpError(403, "Chỉ dành cho nhân sự kiến thức.");
       const sources = await payload.find({
         collection: "knowledge",
@@ -164,7 +158,7 @@ async function route(
         reviewDueAt: s.reviewDueAt,
       }));
     } else if (path === "knowledge-test" && method === "POST")
-      result = await testSource(payload, user, Number(data.id), settings);
+      result = await testSource(payload, user, Number(data.id), await settings());
     else if (path === "connections" && method === "GET") {
       if (user?.role !== "owner")
         throw new chat.HttpError(403, "Chỉ chủ hệ thống.");

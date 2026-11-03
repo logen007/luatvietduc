@@ -1,8 +1,9 @@
   let videoChoice = null;
+  let heroObserver = null;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   function syncVideo() {
     const video = document.querySelector('.pm-hero-video');
-    if (!video) return;
+    if (!video) { heroObserver?.disconnect(); heroObserver=null; return; }
     const button = document.querySelector('.pm-video-toggle');
     const update = () => {
       button?.setAttribute('aria-pressed', String(video.paused));
@@ -14,11 +15,20 @@
       video.addEventListener('play', update);
       video.addEventListener('pause', update);
       button?.addEventListener('click', () => { videoChoice = video.paused ? 'play' : 'pause'; syncVideo(); });
+      heroObserver?.disconnect();
+      if('IntersectionObserver' in window){
+        heroObserver=new IntersectionObserver(([entry])=>{video.dataset.heroVisible=String(entry.isIntersecting);syncVideo();},{threshold:0});
+        heroObserver.observe(video);
+      }
     }
-    const paused = videoChoice === 'pause' || ((reducedMotion.matches || navigator.connection?.saveData) && videoChoice !== 'play') || document.hidden;
+    const paused = videoChoice === 'pause' || video.dataset.heroVisible==='false' || ((reducedMotion.matches || navigator.connection?.saveData) && videoChoice !== 'play') || document.hidden;
     video.autoplay = !paused;
     if (paused) video.pause();
-    else video.play().catch(update);
+    else {
+      const source=video.querySelector('source[data-src]');
+      if(source){source.src=source.dataset.src;source.removeAttribute('data-src');video.load();}
+      video.play().catch(update);
+    }
     update();
   }
 

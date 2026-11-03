@@ -21,7 +21,7 @@ export async function AdminWelcome({ user }: WelcomeProps) {
   const role = user?.role || "";
   const canEdit = ["owner", "editor", "reviewer"].includes(role);
   const canSupport = ["owner", "support", "operations"].includes(role);
-  const canKnowledge = ["owner", "knowledge", "reviewer"].includes(role);
+  const canKnowledge = ["owner", "knowledge", "reviewer", "support"].includes(role);
   const connections = await connectionStatus();
   const destinations = [
     ...(canEdit ? [{ href: "/admin/collections/articles", title: "Nội dung & xuất bản", text: "Soạn bài, xem phiên bản và duyệt nội dung theo quốc gia.", icon: "article" as const }] : []),
@@ -53,7 +53,7 @@ export async function AdminWelcome({ user }: WelcomeProps) {
       {role === "owner" && <section className="lvd-admin-connections" aria-labelledby="lvd-admin-connections-title">
         <div className="lvd-admin-connections__heading"><h2 id="lvd-admin-connections-title">Kết nối hệ thống</h2><a href="/admin/settings/connections">Thiết lập kết nối <WorkIcon name="arrow" /></a></div>
         <div className="lvd-admin-connection-list">
-          {[{ label: "Google", ready: connections.google }, { label: "Lưu tệp R2", ready: connections.storage }, { label: "Email", ready: connections.email }, { label: "AI nội bộ", ready: connections.ai }].map((item) => <div key={item.label} className="lvd-admin-connection"><span>{item.label}</span><span className={item.ready ? "lvd-admin-status lvd-admin-status--configured" : "lvd-admin-status"}>{item.ready ? "Đã cấu hình" : "Chưa kết nối"}</span></div>)}
+          {[{ label: "Google", ready: connections.google }, { label: "Lưu tệp R2", ready: connections.storage }, { label: "Email", ready: connections.email }, { label: "Gemini / FAQ", ready: connections.ai }].map((item) => <div key={item.label} className="lvd-admin-connection"><span>{item.label}</span><span className={item.ready ? "lvd-admin-status lvd-admin-status--configured" : "lvd-admin-status"}>{item.ready ? "Đã cấu hình" : "Chưa kết nối"}</span></div>)}
         </div>
       </section>}
     </section>

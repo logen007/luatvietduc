@@ -1,7 +1,8 @@
 import { getPayload } from "payload";
 import config from "@payload-config";
 import { notFound } from "next/navigation";
-import { Header, Footer } from "../../../../modules/shared/Header";
+import { Header } from "../../../../modules/shared/Header";
+import { Footer } from "../../../../modules/shared/Footer";
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,

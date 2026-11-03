@@ -17,7 +17,7 @@ All operational screens use the authenticated native Payload shell:
 
 The previous `/quan-tri`, `/kien-thuc`, `/chuyen-vien` routes redirect to these locations. Customer account/chat remain public product routes. Owner-only settings and role-specific inbox/knowledge visibility are checked on the server, independently of navigation links. All native collection access rules remain in force.
 
-Site settings use unnamed tabs: identity, navigation/social, support/chat, internal AI, privacy/search. Existing SQL field paths are preserved; this is not a data migration of website settings.
+Site settings use unnamed tabs: identity, navigation/social, support/chat, AI & FAQ, privacy/search. Existing SQL field paths are preserved; this is not a data migration of website settings.
 
 ## Actual status, not just stored values
 
@@ -25,18 +25,18 @@ Site settings use unnamed tabs: identity, navigation/social, support/chat, inter
 | --- | --- |
 | Provider credentials and enable/disable | Existing encrypted runtime vault; moved into native admin, with provider setup instructions. Save → check → enable. |
 | Google login | Wired, but a real client and successful sign-in are still required. Structural check is explicitly labeled, not claimed as an OAuth test. |
-| Gemini | Internal public-source test only. No customer AI response pipeline enabled. A model metadata check does not prove generation quota. |
+| Gemini | 01.04.00 adds a strictly scoped published-FAQ response pipeline; only public FAQ is sent to Gemini. Provider activation and real FAQ publication are still required. A model metadata check does not prove generation quota. |
 | R2 | Wired private media adapter; actual activation deferred by owner on 2026-11-04. No replacement bucket or public access enabled. |
 | Resend | Wired email adapter and owner-only test. Provider account and `mail.luatvietduc.com` configuration created; keys and DNS verification still need completion. Owner approved three sending verification DNS records, not root MX replacement. |
-| Drive backup | New owner-only queue, encrypted archive worker and trial-restore UI. Requires reviewed migration, worker installation, separate OAuth authorization and an external age identity before any operational claim. |
+| Drive backup | 01.03.01 migration and encrypted archive worker installed; ready heartbeat observed. Separate Drive OAuth grant and first encrypted backup/isolated restore remain pending. |
 | Chat enable, message length | Existing runtime enforcement. |
 | Support notice, office hours, time zone | Existing display settings; do not promise an automatic staffing schedule. |
 | Conversation retention | A stored policy value, not an implemented automatic deletion job. Keep the field label explicit. |
-| AI request/token limits | Existing internal-test limits. |
+| AI request/token limits | Shared request budget; customer formatter validates complete source paragraphs. Internal test remains separate. |
 | Social links | Existing settings and icons; blank slots remain non-clickable. |
-| Logo, name, navigation, privacy | Existing public bridge settings; React application header currently consumes name only. Header/footer synchronization should be a focused follow-up, not claimed complete here. |
+| Logo, name, navigation, privacy | Existing public bridge settings; Public and React shells now share static navigation definitions; React header consumes site name. Arbitrary menu/theme editing is not fully synchronized and is not claimed complete. |
 | Accent and footer text | Legacy setting values; neutral redesign overrides parts of the original theme, and the owner removed the old disclaimer. Do not claim full visual theme editing. |
-| FAQ specialist self-publication | Still pending the previously separated protected collection change. This admin reorganization does not grant new publication rights. |
+| FAQ specialist self-publication | 01.04.00 includes the reviewed scoped collection change: support/knowledge/reviewer self-publish in assigned countries, with attribution and history. |
 
 ## Responsive source review
 

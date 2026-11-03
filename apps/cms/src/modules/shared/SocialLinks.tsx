@@ -1,18 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import {usePublicSettings} from '../settings/client';
 import icons from "../../../public/social-icons.json";
 type Link = { label: string; url: string };
 export function SocialLinks() {
-  const [links, setLinks] = useState<Link[]>([]);
-  useEffect(() => {
-    let active = true;
-    fetch('/service/settings').then(r => r.ok ? r.json() : null).then(settings => {
-      if (active) setLinks((settings?.socialLinks || []).filter((link: Link) => {
+  const settings=usePublicSettings();
+  const links=(settings?.socialLinks||[]).filter((link: Link) => {
         try { return new URL(link.url).protocol === 'https:'; } catch { return false; }
-      }));
-    }).catch(() => {});
-    return () => { active = false; };
-  }, []);
+      });
   const used = new Set<Link>();
   return <div className="lvd-footer-social" aria-label="Mạng xã hội">{icons.map(icon => {
     const link = links.find(l => {

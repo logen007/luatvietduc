@@ -1,27 +1,18 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import siteVersion from "./site-version.json";
-import { SocialLinks } from "./SocialLinks";
 
-const publicLinks = [
-  { href: "/#/tra-cuu", label: "Thư viện pháp luật" },
-  { href: "/#/tin-tuc", label: "Tin tức" },
-  { href: "/#/ve-chuyen-trang", label: "Giới thiệu" },
-];
+import navigation from "./navigation.json";
+import {usePublicSettings} from "../settings/client";
+const publicLinks=navigation.primary;
 const arrow = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6" /></svg>;
 
 export function Header() {
-  const [name, setName] = useState("Luật Việt Đức");
+  const settings=usePublicSettings();
+  const name=settings?.siteName||"Luật Việt Đức";
   const [menuOpen, setMenuOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
-  useEffect(() => {
-    fetch("/service/settings")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((s) => { if (s?.siteName) setName(s.siteName); })
-      .catch(() => {});
-  }, []);
   const closeMenu = () => dialog.current?.close();
   return (
     <>
@@ -55,81 +46,5 @@ export function Header() {
         </nav>
       </dialog>
     </>
-  );
-}
-
-const footerColumns = [
-  {
-    title: "Thư viện",
-    links: [
-      ["Thư viện pháp luật", "/#/tra-cuu"],
-      ["Pháp luật Việt Nam", "/#/phap-luat/viet-nam"],
-      ["Pháp luật Đức", "/#/phap-luat/duc"],
-    ],
-  },
-  {
-    title: "Chủ đề",
-    links: [
-      ["Quốc tịch", "/#/chu-de/quoc-tich"],
-      ["Hôn nhân & gia đình", "/#/chu-de/hon-nhan-gia-dinh"],
-      ["Thừa kế", "/#/chu-de/thua-ke"],
-      ["Giấy tờ tùy thân", "/#/chu-de/giay-to-tuy-than"],
-    ],
-  },
-  {
-    title: "Chuyên trang",
-    links: [
-      ["Về Luật Việt Đức", "/#/ve-chuyen-trang"],
-      ["Đội ngũ chuyên gia", "/#/ve-chuyen-trang?muc=doi-ngu"],
-      ["Tin tức & đời sống", "/#/tin-tuc"],
-      ["Liên hệ", "/#/lien-he"],
-    ],
-  },
-  {
-    title: "Hỗ trợ",
-    links: [
-      ["Hỏi chuyên viên", "/tro-chuyen"],
-      ["Tài khoản của bạn", "/tai-khoan"],
-      ["Quyền riêng tư", "/#/chinh-sach-thong-tin"],
-      ["Điều khoản sử dụng", "/#/dieu-khoan"],
-    ],
-  },
-];
-export function Footer() {
-  return (
-    <footer className="live-footer">
-      <div className="live-footer-inner">
-        <div className="live-footer-identity">
-          <a className="live-footer-wordmark" href="/">
-            Luật Việt Đức
-          </a>
-          <p>Thông tin pháp luật Việt Nam & Đức.</p>
-          <SocialLinks />
-        </div>
-        {footerColumns.map((column) => (
-          <nav
-            className="live-footer-column"
-            key={column.title}
-            aria-label={column.title}
-          >
-            <h2>{column.title}</h2>
-            <ul>
-              {column.links.map(([label, href]) => (
-                <li key={href}>
-                  <a href={href}>{label}</a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ))}
-      </div>
-      <div className="live-footer-meta">
-        <small>© Luật Việt Đức. · v{siteVersion.version}</small>
-        <nav aria-label="Chính sách">
-          <a href="/#/chinh-sach-thong-tin">Quyền riêng tư</a>
-          <a href="/#/dieu-khoan">Điều khoản sử dụng</a>
-        </nav>
-      </div>
-    </footer>
   );
 }

@@ -15,7 +15,9 @@
     "live-css/03-connections.css",
     "live-css/04-articles.css",
     "live-css/05-responsive.css",
-    "live-css/06-chat.css"
+    "live-css/06-chat.css",
+    "editorial-ui-css/06-application-menu.css",
+    "live-css/07-assistant-chat.css"
   ],
   "editorial-ui.js": [
     "editorial-ui-js/00-bootstrap.js",

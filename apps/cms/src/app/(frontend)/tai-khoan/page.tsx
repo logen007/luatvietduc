@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { api } from "../../../modules/chat/Workspace";
-import { Header, Footer } from "../../../modules/shared/Header";
+import { api } from "../../../modules/shared/client-api";
+import { Header } from "../../../modules/shared/Header";
+import { Footer } from "../../../modules/shared/Footer";
 function GoogleMark() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">

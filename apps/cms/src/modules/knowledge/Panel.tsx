@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { api } from "../chat/Workspace";
+import { api } from "../shared/client-api";
 export function KnowledgePanel() {
   const [sources, setSources] = useState<any[]>([]),
     [id, setId] = useState(""),
@@ -24,7 +24,7 @@ export function KnowledgePanel() {
               <span>Biên tập trong phạm vi được giao.</span>
             </h1>
             <p className="live-lead">
-              Nhập câu hỏi, câu trả lời chuẩn và căn cứ. Chuyên viên biên tập FAQ và theo dõi thời hạn rà soát. Quyền tự xuất bản đang chờ phát hành riêng.
+              Biên soạn và tự xuất bản FAQ trong quốc gia được giao. Mỗi câu trả lời đi cùng căn cứ và thời hạn rà soát.
             </p>
           </div>
           <a className="button secondary" href="/admin/collections/knowledge">
@@ -36,11 +36,11 @@ export function KnowledgePanel() {
           <ol>
             <li><strong>Soạn FAQ:</strong> câu hỏi chuẩn, câu trả lời, điều kiện áp dụng và các trường hợp phải chuyển chuyên viên.</li>
             <li><strong>Kiểm tra căn cứ:</strong> quốc gia, liên kết nguồn, ngày hiệu lực và hạn rà soát.</li>
-            <li><strong>Xuất bản:</strong> hiện chủ hệ thống hoặc người duyệt xác nhận nội dung. Quyền chuyên viên tự xuất bản chưa bật. Bản nháp không được dùng.</li>
+            <li><strong>Xuất bản:</strong> chuyên viên tự xác nhận nội dung; hệ thống lưu người xuất bản và phiên bản. Bản nháp không được dùng.</li>
             <li><strong>Rà soát:</strong> sửa hoặc thu hồi khi căn cứ thay đổi. Không đưa hội thoại khách vào kho FAQ.</li>
           </ol>
           <a className="button secondary" href="/admin/collections/knowledge/create">Thêm FAQ <span aria-hidden="true">↗</span></a>
-          <p>AI hiện chỉ thử nghiệm nội bộ. FAQ xuất bản chưa tự bật trả lời khách; kết nối và luồng trả lời có kiểm soát sẽ được cấu hình riêng.</p>
+          <p>Thêm từng cách hỏi tương đương vào “Cách hỏi khác đã được chuyên viên xác nhận”. Trợ lý chỉ trả lời câu hỏi chuẩn hoặc những cách hỏi này; nội dung khác chuyển chuyên viên. Cần bật Gemini và AI & FAQ trong cài đặt để trả lời tự động.</p>
         </section>
         <div className="live-knowledge-grid">
           <form

@@ -1,10 +1,11 @@
 "use client";
 import {useEffect,useState} from 'react';
 import {IntegrationPanel} from '../integrations/Panel';
+import {visiblePoll} from '../shared/polling';
 export function BackupPanel(){
  const [status,setStatus]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[selected,setSelected]=useState(''),[identity,setIdentity]=useState('');
  async function reload(){const r=await fetch('/service/backups',{cache:'no-store'}),body=await r.json();if(!r.ok)throw new Error(body.error);setStatus(body);}
- useEffect(()=>{void reload().catch(e=>setError(e.message));const interval=setInterval(()=>{void reload().catch(()=>{});},15000);return()=>clearInterval(interval);},[]);
+ useEffect(()=>visiblePoll(()=>reload().catch(e=>setError(e.message)),15000),[]);
  async function run(action:string){setBusy(true);setError('');setMessage('');try{const r=await fetch('/service/backups',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,...(action==='restore-test'?{snapshotId:selected,identity}:{})})});setIdentity('');const body=await r.json();if(!r.ok)throw new Error(body.error);setMessage(body.message);await reload();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
  const active=Boolean(status?.jobs?.some((j:any)=>['queued','running'].includes(j.state)));
  return <div className="backup-panel">

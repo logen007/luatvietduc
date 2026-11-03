@@ -1,0 +1,51 @@
+import {randomUUID} from 'node:crypto';
+import {transaction} from '../shared/db';
+import {activeValues,readRow} from '../integrations/store';
+import {HttpError,isCustomer,type Actor} from '../chat/service';
+import {findFaq,eligible,matchesQuestion,requiresHuman,faqRevision,type Faq} from './faq';
+import {formatFaq} from './format';
+type Policy={customerAIEnabled?:boolean|null;chatEnabled?:boolean|null;aiDailyRequests?:number|null;aiMaxOutputTokens?:number|null};
+type Formatter=(faq:Faq,connection:Record<string,string>,maxTokens:number,dailyLimit:number)=>Promise<string>;
+const handoffText='Câu hỏi này cần chuyên viên xem xét thêm. Mình đã chuyển cuộc trò chuyện để chuyên viên tiếp tục hỗ trợ tại đây.';
+export async function replyToMessage(actor:Actor,id:string,messageId:string|number,policy:Policy,formatter:Formatter=formatFaq){
+ const token=randomUUID(),replyKey='assistant:'+messageId;
+ const work=await transaction(async db=>{
+  const conversation=(await db.query('SELECT * FROM lvd_conversations WHERE id=$1 FOR UPDATE',[id])).rows[0];
+  if(!conversation||!isCustomer(actor,conversation))throw new HttpError(403,'Bạn không có quyền truy cập hội thoại này.');
+  if(conversation.state!=='queued'||!conversation.ai_enabled)return null;
+  if((await db.query('SELECT 1 FROM lvd_messages WHERE conversation_id=$1 AND client_key=$2',[id,replyKey])).rowCount)return null;
+  const message=(await db.query("SELECT id,body FROM lvd_messages WHERE conversation_id=$1 AND role='user' ORDER BY id DESC LIMIT 1",[id])).rows[0];
+  if(!message||String(message.id)!==String(messageId))return null;
+  if(conversation.ai_generation&&new Date(conversation.ai_started_at).getTime()>Date.now()-35000)return null;
+  await db.query('UPDATE lvd_conversations SET ai_generation=$2,ai_message_id=$3,ai_started_at=now() WHERE id=$1',[id,token,message.id]);
+  return {question:String(message.body),country:conversation.jurisdiction,version:conversation.version};
+ });
+ if(!work)return;
+ let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined;
+ try{
+  if(policy.customerAIEnabled===false||policy.chatEnabled===false)throw new Error('Disabled');
+  if(requiresHuman(work.question))throw new Error('Specialist required');
+  faq=await findFaq(work.country,work.question);
+  if(!faq)throw new Error('Outside approved coverage');
+  providerVersion=(await readRow('ai'))?.version;
+  const connection=await activeValues('ai');if(!connection)throw new Error('Provider not connected');
+  const limit=policy.aiDailyRequests||0;if(!limit)throw new Error('Budget disabled');
+  answer=await formatter(faq,connection,policy.aiMaxOutputTokens||700,limit);
+ }catch{/* Fall through to a recorded specialist handoff. Never generate an unsupported fallback. */}
+ await transaction(async db=>{
+  const conversation=(await db.query('SELECT * FROM lvd_conversations WHERE id=$1 FOR UPDATE',[id])).rows[0];
+  if(!conversation||conversation.state!=='queued'||!conversation.ai_enabled||conversation.ai_generation!==token||conversation.version!==work.version)return;
+  const latest=(await db.query("SELECT id FROM lvd_messages WHERE conversation_id=$1 AND role='user' ORDER BY id DESC LIMIT 1",[id])).rows[0];
+  if(String(latest?.id)!==String(messageId))return;
+  if(answer&&faq){
+   const current=(await db.query('SELECT * FROM knowledge WHERE id=$1 FOR SHARE',[faq.id])).rows[0] as Faq|undefined;
+   const settings=(await db.query('SELECT customer_ai_enabled,chat_enabled FROM site_settings LIMIT 1 FOR SHARE')).rows[0];
+   const provider=(await db.query("SELECT enabled,version FROM lvd_integrations WHERE provider='ai' FOR SHARE")).rows[0];
+   if(!current||!eligible(current)||current.jurisdiction!==work.country||!matchesQuestion(work.question,current)||faqRevision(current)!==faqRevision(faq)||settings?.customer_ai_enabled===false||settings?.chat_enabled===false||(providerVersion!==undefined&&(!provider?.enabled||provider.version!==providerVersion)))answer=null;
+  }
+  const metadata=answer&&faq?{kind:'ai',sources:[{id:faq.id,title:faq.title,url:faq.source_url,revision:new Date(faq.updated_at).toISOString()+'#'+faqRevision(faq).slice(0,12)}]}:{kind:'handoff'};
+  await db.query("INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,'assistant',$2,false,'assistant',$3,$4) ON CONFLICT(conversation_id,client_key) DO NOTHING",[id,answer||handoffText,replyKey,JSON.stringify(metadata)]);
+  await db.query('UPDATE lvd_conversations SET ai_enabled=$2,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,version=version+$3,updated_at=clock_timestamp() WHERE id=$1',[id,Boolean(answer),answer?0:1]);
+  await db.query('INSERT INTO lvd_chat_events(conversation_id,action,version) SELECT id,$2,version FROM lvd_conversations WHERE id=$1',[id,answer?'ai.reply':'ai.handoff']);
+ });
+}

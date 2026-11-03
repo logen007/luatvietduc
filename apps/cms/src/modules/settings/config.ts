@@ -102,9 +102,12 @@ export const SiteSettings: GlobalConfig = {
       max: 10000,
       defaultValue: 2000,
     }]},
-{label:"AI nội bộ",fields:[{
+{label:"AI & kho FAQ",fields:[{
+      name:'customerAIEnabled',label:'Ưu tiên trợ lý AI từ FAQ đã xuất bản',type:'checkbox',defaultValue:true,
+      admin:{description:'Chỉ dùng FAQ đúng quốc gia, còn hiệu lực và đã xác nhận. Không gửi câu hỏi hoặc hồ sơ riêng của khách cho Gemini. Thiếu căn cứ hoặc lỗi dịch vụ sẽ chuyển chuyên viên.'},
+    },{
       name: "aiMode",
-      label: "Chế độ AI",
+      label: "Thử AI nội bộ",
       type: "select",
       defaultValue: "internal-only",
       options: [
@@ -114,7 +117,7 @@ export const SiteSettings: GlobalConfig = {
     },
 {
       name: "aiDailyRequests",
-      label: "Hạn mức thử AI mỗi ngày",
+      label: "Hạn mức gọi AI mỗi ngày",
       type: "number",
       min: 0,
       max: 1000,

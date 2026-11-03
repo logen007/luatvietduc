@@ -1,0 +1,101 @@
+{
+  "primary": [
+    {
+      "key": "lookup",
+      "href": "/#/tra-cuu",
+      "label": "Thư viện pháp luật"
+    },
+    {
+      "key": "news",
+      "href": "/#/tin-tuc",
+      "label": "Tin tức"
+    },
+    {
+      "key": "about",
+      "href": "/#/ve-chuyen-trang",
+      "label": "Giới thiệu"
+    }
+  ],
+  "footer": [
+    {
+      "title": "Thư viện",
+      "links": [
+        [
+          "Thư viện pháp luật",
+          "/#/tra-cuu"
+        ],
+        [
+          "Pháp luật Việt Nam",
+          "/#/phap-luat/viet-nam"
+        ],
+        [
+          "Pháp luật Đức",
+          "/#/phap-luat/duc"
+        ]
+      ]
+    },
+    {
+      "title": "Chủ đề",
+      "links": [
+        [
+          "Quốc tịch",
+          "/#/chu-de/quoc-tich"
+        ],
+        [
+          "Hôn nhân & gia đình",
+          "/#/chu-de/hon-nhan-gia-dinh"
+        ],
+        [
+          "Thừa kế",
+          "/#/chu-de/thua-ke"
+        ],
+        [
+          "Giấy tờ tùy thân",
+          "/#/chu-de/giay-to-tuy-than"
+        ]
+      ]
+    },
+    {
+      "title": "Chuyên trang",
+      "links": [
+        [
+          "Về Luật Việt Đức",
+          "/#/ve-chuyen-trang"
+        ],
+        [
+          "Đội ngũ chuyên gia",
+          "/#/ve-chuyen-trang?muc=doi-ngu"
+        ],
+        [
+          "Tin tức & đời sống",
+          "/#/tin-tuc"
+        ],
+        [
+          "Liên hệ",
+          "/#/lien-he"
+        ]
+      ]
+    },
+    {
+      "title": "Hỗ trợ",
+      "links": [
+        [
+          "Hỏi chuyên viên",
+          "/tro-chuyen"
+        ],
+        [
+          "Tài khoản của bạn",
+          "/tai-khoan"
+        ],
+        [
+          "Quyền riêng tư",
+          "/#/chinh-sach-thong-tin"
+        ],
+        [
+          "Điều khoản sử dụng",
+          "/#/dieu-khoan"
+        ]
+      ]
+    }
+  ]
+}

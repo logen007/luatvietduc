@@ -679,13 +679,14 @@ body.lvd-redesign{--font:var(--lvd-font);margin:0;background:#fff;color:#0b0b0b;
 .pm-partner-marquee::-webkit-scrollbar { display:none; }
 .pm-partner-track { display:flex; align-items:center; width:max-content; animation:lvd-partners 38s linear infinite; }
 .pm-partner-group { display:flex; align-items:center; flex-shrink:0; gap:64px; padding-right:64px; }
-.pm-partner-group img { display:block; width:auto; max-width:160px; height:28px; object-fit:contain; filter:url("/media/partner-knockout.svg?v=2#white-logo"); opacity:.85; }
-.pm-partner-group img:hover { opacity:1; }
+.pm-partner-logo { display:block; flex:none; width:140px; height:38px; opacity:.85; }
+.pm-partner-logo:hover { opacity:1; }
 .pm-partners:hover .pm-partner-track,.pm-partners:focus-within .pm-partner-track { animation-play-state:paused; }
 .pm-partner-marquee:focus-visible { outline:2px solid #fff; outline-offset:5px; }
 @keyframes lvd-partners { to { transform:translateX(-50%); } }
 /* The two libraries are compact links with small national flags. */
-.lvd-redesign .pm-countries { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; padding-top:80px; padding-bottom:80px; }
+.lvd-redesign
+.pm-countries { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; padding-top:80px; padding-bottom:80px; }
 .pm-country { display:flex; align-items:center; gap:20px; min-width:0; padding:28px; border:1px solid rgba(0,0,0,.1); border-radius:4px; color:#0b0b0b; background:#fff; text-decoration:none; }
 .pm-country:hover { background:#fafaf9; border-color:rgba(0,0,0,.24); }
 .pm-country-flag { flex:none; width:30px; height:auto; max-height:22px; object-fit:contain; }

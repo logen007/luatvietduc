@@ -21,14 +21,14 @@ function countryAllowed(a: Actor, country: string) {
     Boolean(a.user?.jurisdictions?.includes(country as "VN" | "DE"))
   );
 }
-function customer(a: Actor, c: any) {
+export function isCustomer(a: Actor, c: any) {
   return (
     a.user?.id === c.user_id || (!c.user_id && a.guestHash === c.guest_hash)
   );
 }
 function allowed(a: Actor, c: any) {
   return (
-    customer(a, c) ||
+    isCustomer(a, c) ||
     (isStaff(a.user) &&
       countryAllowed(a, c.jurisdiction) &&
       (a.user?.role === "owner" || c.assigned_to === a.user?.id))
@@ -36,7 +36,7 @@ function allowed(a: Actor, c: any) {
 }
 export async function chatList(a: Actor) {
   const result = await pool.query(
-    "SELECT id,title,jurisdiction,state,version,created_at,updated_at FROM lvd_conversations WHERE " +
+      "SELECT id,title,jurisdiction,state,version,ai_enabled,created_at,updated_at FROM lvd_conversations WHERE " +
       (a.user ? "user_id=$1" : "user_id IS NULL AND guest_hash=$1") +
       " ORDER BY updated_at DESC LIMIT 100",
     [a.user?.id ?? a.guestHash],
@@ -49,12 +49,12 @@ export async function queue(a: Actor) {
     a.user?.role === "owner" ? ["VN", "DE"] : a.user?.jurisdictions || [];
   return (
     await pool.query(
-      "SELECT id,jurisdiction,specialty,state,version,created_at,assigned_to FROM lvd_conversations WHERE jurisdiction=ANY($1) AND (state='queued' OR assigned_to=$2) ORDER BY created_at LIMIT 100",
+      "SELECT id,jurisdiction,specialty,state,version,created_at,assigned_to FROM lvd_conversations WHERE jurisdiction=ANY($1) AND ((state='queued' AND (NOT ai_enabled OR (COALESCE(ai_started_at,updated_at)<now()-interval '45 seconds' AND EXISTS(SELECT 1 FROM lvd_messages question WHERE question.id=(SELECT max(id) FROM lvd_messages WHERE conversation_id=lvd_conversations.id AND role='user') AND NOT EXISTS(SELECT 1 FROM lvd_messages reply WHERE reply.conversation_id=lvd_conversations.id AND reply.client_key='assistant:'||question.id::text))))) OR assigned_to=$2) ORDER BY created_at LIMIT 100",
       [countries, a.user!.id],
     )
   ).rows;
 }
-export async function createConversation(a: Actor, data: any) {
+export async function createConversation(a: Actor, data: any,options:{assistantEnabled?:boolean}={}) {
   if (!["VN", "DE"].includes(data.jurisdiction) || data.consent !== true)
     throw new HttpError(
       400,
@@ -62,13 +62,15 @@ export async function createConversation(a: Actor, data: any) {
     );
   const id = randomUUID();
   const result = await pool.query(
-    "INSERT INTO lvd_conversations(id,user_id,guest_hash,jurisdiction,specialty,title) VALUES($1,$2,$3,$4,$5,'Cuộc trò chuyện mới') RETURNING id,state,version",
+    "INSERT INTO lvd_conversations(id,user_id,guest_hash,jurisdiction,specialty,title,ai_enabled,privacy_notice_version) VALUES($1,$2,$3,$4,$5,'Cuộc trò chuyện mới',$6,$7) RETURNING id,state,version",
     [
       id,
       a.user?.id || null,
       a.user ? null : a.guestHash,
       data.jurisdiction,
       String(data.specialty || "general").slice(0, 100),
+      Boolean(options.assistantEnabled&&data.mode!=='human'),
+      data.privacyNoticeVersion==='chat-v2'?'chat-v2':'checkbox-v1',
     ],
   );
   return result.rows[0];
@@ -99,9 +101,9 @@ export async function transcript(a: Actor, id: string, after = 0) {
       };
     deny();
   }
-  const staff = isStaff(a.user) && !customer(a, c);
+  const staff = isStaff(a.user) && !isCustomer(a, c);
   const messages = await pool.query(
-    "SELECT id,role,body,internal,created_at FROM lvd_messages WHERE conversation_id=$1 AND id>$2 " +
+    "SELECT id,role,body,internal,created_at,client_key,metadata FROM lvd_messages WHERE conversation_id=$1 AND id>$2 " +
       (staff ? "" : "AND internal=false ") +
       "ORDER BY id LIMIT 200",
     [id, after],
@@ -114,6 +116,9 @@ export async function transcript(a: Actor, id: string, after = 0) {
       state: c.state,
       version: c.version,
       assignedTo: c.assigned_to,
+      aiEnabled:c.ai_enabled,
+      aiStartedAt:c.ai_started_at,
+      aiMessageId:c.ai_message_id,
     },
     messages: messages.rows,
   };
@@ -136,7 +141,7 @@ export async function message(
     ).rows[0];
     if (!c) throw new HttpError(404, "Không tìm thấy hội thoại.");
     if (!allowed(a, c)) deny();
-    const own = customer(a, c),
+    const own = isCustomer(a, c),
       internal = !own && data.internal === true;
     const actorKey = own
       ? a.user
@@ -156,7 +161,7 @@ export async function message(
         prior.internal !== internal
       )
         throw new HttpError(409, "Mã gửi đã dùng cho nội dung khác.");
-      return { id: prior.id, duplicate: true };
+      return { id: prior.id, duplicate: true,role:prior.role };
     }
     if (c.state === "closed")
       throw new HttpError(409, "Hội thoại đã đóng. Hãy mở lại trước khi gửi.");
@@ -171,10 +176,10 @@ export async function message(
       [id, own ? "user" : "staff", body, internal, actorKey, key],
     );
     await db.query(
-      "UPDATE lvd_conversations SET updated_at=clock_timestamp(),title=CASE WHEN title='Cuộc trò chuyện mới' THEN $2 ELSE title END WHERE id=$1",
-      [id, body.slice(0, 75)],
+      "UPDATE lvd_conversations SET updated_at=clock_timestamp(),title=CASE WHEN title='Cuộc trò chuyện mới' THEN $2 ELSE title END,ai_generation=CASE WHEN $3 THEN NULL ELSE ai_generation END,ai_started_at=CASE WHEN $3 THEN NULL ELSE ai_started_at END,ai_message_id=CASE WHEN $3 THEN NULL ELSE ai_message_id END WHERE id=$1",
+      [id, body.slice(0, 75),own],
     );
-    return result.rows[0];
+    return {...result.rows[0],role:own?'user':'staff'};
   });
 }
 export async function transition(a: Actor, id: string, data: any) {
@@ -187,7 +192,7 @@ export async function transition(a: Actor, id: string, data: any) {
     if (!c) throw new HttpError(404, "Không tìm thấy hội thoại.");
     if (!Number.isInteger(data.version) || c.version !== data.version)
       throw new HttpError(409, "Hội thoại đã thay đổi. Vui lòng tải lại.");
-    const own = customer(a, c),
+    const own = isCustomer(a, c),
       staff = isStaff(a.user) && countryAllowed(a, c.jurisdiction);
     let state = c.state,
       assigned = c.assigned_to;
@@ -195,6 +200,11 @@ export async function transition(a: Actor, id: string, data: any) {
       if (!staff) deny();
       if (c.state !== "queued")
         throw new HttpError(409, "Hội thoại đã được nhận.");
+      if(c.ai_enabled&&new Date(c.ai_started_at||c.updated_at).getTime()>Date.now()-45000)throw new HttpError(409,'Trợ lý đang xử lý. Yêu cầu sẽ chuyển chuyên viên nếu cần.');
+      if(c.ai_enabled){
+        const pending=(await db.query("SELECT 1 FROM lvd_messages question WHERE question.id=(SELECT max(id) FROM lvd_messages WHERE conversation_id=$1 AND role='user') AND NOT EXISTS(SELECT 1 FROM lvd_messages reply WHERE reply.conversation_id=$1 AND reply.client_key='assistant:'||question.id::text)",[id])).rowCount;
+        if(!pending)throw new HttpError(409,'Hội thoại chưa yêu cầu chuyên viên tiếp nhận.');
+      }
       state = "human";
       assigned = a.user!.id;
     } else if (data.action === "close") {
@@ -205,11 +215,12 @@ export async function transition(a: Actor, id: string, data: any) {
       if (!own && !allowed(a, c)) deny();
       if (c.state === "human" && data.action === "handoff")
         return { state: c.state, version: c.version };
+      if(c.state==='queued'&&!c.ai_enabled&&data.action==='handoff')return {state:c.state,version:c.version};
       state = "queued";
       assigned = null;
     } else throw new HttpError(400, "Thao tác không hợp lệ.");
     const r = await db.query(
-      "UPDATE lvd_conversations SET state=$2,assigned_to=$3,version=version+1,updated_at=clock_timestamp() WHERE id=$1 RETURNING state,version",
+      "UPDATE lvd_conversations SET state=$2,assigned_to=$3,ai_enabled=false,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,version=version+1,updated_at=clock_timestamp() WHERE id=$1 RETURNING state,version",
       [id, state, assigned],
     );
     await db.query(

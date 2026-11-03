@@ -9,7 +9,7 @@ export async function testSource(
   id: number,
   settings: SiteSetting,
 ) {
-  if (!user || !["owner", "reviewer", "knowledge"].includes(user.role))
+  if (!user || !["owner", "reviewer", "knowledge", "support"].includes(user.role))
     throw new HttpError(403, "Chỉ dành cho nhân sự kiểm duyệt kiến thức.");
   const ai = await activeValues("ai");
   if (
