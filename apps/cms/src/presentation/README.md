@@ -15,3 +15,23 @@ bash ops/deploy/publish.sh "fix(ui): describe the change"
 ```
 
 This assembles and commits the tracked public bundles and pushes the current project branch. It runs no local tests or preview and does not connect to the VPS. GitHub performs the required checks; the existing server-owned release service handles backup, candidate validation and promotion. CI rejects stale generated bundles, preserving the release service's existing content hash contract. Deployment policy and schema changes still require their separate reviewed path.
+
+## Fast edits — owner workflow
+
+For routine UI and copy requests: edit the responsible source module, stage intended files, run the publish command once, and finish after the push succeeds. The owner checks the interface. Do not run local checks/build/preview, browser review, screenshots, CI polling or deployment polling. The existing automatic checks and release protection remain in place. A successful push means sent for automatic update, not verified live.
+
+Batch related requests into one push. Do not interrupt an already running release with a second push for cosmetic follow-up work; combine changes before publishing where possible. No Termius or VPS steps are needed.
+
+| Requested area | Edit here (relative to apps/cms) |
+| --- | --- |
+| Hero text / video source / section order | src/presentation/editorial-ui-js/03-homepage.js |
+| Hero and public header style | src/presentation/editorial-ui-css/01-header-hero.css |
+| Partner logos / display | src/presentation/editorial-ui-js/01-partners.js; src/presentation/editorial-ui-css/02-partners.css |
+| Topic cards and counts | src/presentation/editorial-ui-css/04-topics.css; src/presentation/editorial-ui-js/04-video-counts.js |
+| Public header/footer links | scripts/frontend-shell.mjs |
+| Shared application header/footer links | src/modules/shared/Header.tsx |
+| Public footer / responsive layout | src/presentation/editorial-ui-css/05-news-footer-responsive.css |
+| Application footer | src/presentation/live-css/01-footer.css |
+| Chat | src/modules/chat/Workspace.tsx; src/presentation/live-css/06-chat.css |
+
+Suggested completion: “Đã đẩy bản sửa [phần thay đổi]. Hệ thống đang tự cập nhật; anh kiểm tra giao diện giúp em.” If publishing fails, report the actual failure. Never claim the website is updated based only on a push.

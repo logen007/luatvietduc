@@ -21,7 +21,11 @@
 - Production database ports stay private. Never use `docker system prune`, `down -v`, blanket upgrades or a new proxy on existing ports without a reviewed plan.
 
 ## Delivery
-- Owner workflow: skip local test/build/preview cycles for routine edits. Edit presentation modules, assemble tracked bundles and push; use GitHub CI and automatic release verification. Do not use Termius/VPS interaction for routine releases. See apps/cms/src/presentation/README.md.
+- Owner fast-edit workflow (2026-11-03): for routine UI/copy changes, locate the responsible module, make the focused edit, stage only intended files, assemble tracked bundles and push once. User checks the interface.
+- Do not run local tests/build/preview, open a browser, take screenshots, poll CI/release status, wait for deployment, or request approval for routine authorized edits. Existing GitHub checks and server-owned backup/validation/rollback continue automatically. Do not use Termius/VPS interaction for routine releases.
+- Finish after a successful push with one short Vietnamese status: changes sent, automatic update pending. Never call a pushed change live without observing deployment. Report an observed push failure directly.
+- Batch related edits into one release. Reuse the module map in apps/cms/src/presentation/README.md; avoid re-researching the project or reference sites for small requested edits. Keep security/data/schema work on its existing reviewed path.
+- Do not use Higgsfield; owner explicitly prohibited it on 2026-11-03.
 - Small changes, repeatable tests, documented migrations and separate staging/prod secrets.
 - Do not claim a test/deployment was performed unless its result was observed.
 - Before release, test access isolation, retries/idempotency, reconnects, AI handoff races, knowledge withdrawal and backup restore.
