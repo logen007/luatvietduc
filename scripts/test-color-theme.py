@@ -102,7 +102,7 @@ with sync_playwright() as p:
                 cool_surface(page.locator('.listing-grid > .press-card').first, f'{width}px lead news card')
             if route == '/tin/mindestlohn-2026':
                 cool_surface(page.locator('.news-summary'), f'{width}px article summary')
-                cool_surface(page.locator('.news-sources'), f'{width}px article sources')
+                assert page.locator('.news-sources').count() == 0
             if width in [390, 1440]:
                 for image in page.locator('.press-photo img').all():
                     image.scroll_into_view_if_needed()
