@@ -1,0 +1,42 @@
+/* Editorial cleanup v1.4.1.
+   A field contains its own topics; news items contain no external-source chrome.
+   The partner rail is a minimal image-only carousel. */
+.s-home .lvd-partner-section,
+.lvd-partner-section {
+  border:0!important;
+  border-top:0!important;
+  border-bottom:0!important;
+  box-shadow:none!important;
+  outline:0;
+  background:transparent;
+  padding-bottom:0;
+  margin-bottom:0;
+}
+.lvd-partner-section::before,
+.lvd-partner-section::after {
+  display:none!important;
+  content:none!important;
+}
+.lvd-partner-section .lvd-partner-slider,
+.lvd-partner-section .lvd-partner-track {
+  border:0!important;
+  border-top:0!important;
+  border-bottom:0!important;
+  box-shadow:none!important;
+  background:transparent;
+}
+.lvd-partner-controls { display:none!important; }
+.press-source,
+.s-story-source,
+.news-sources,
+.news-photo-license {
+  display:none!important;
+}
+.catalog-page .catalog-tabs { display:none!important; }
+.catalog-page .catalog-groups {margin-top:26px;}
+.catalog-page .catalog-topic-list {margin-top:12px;}
+.catalog-page .catalog-topic .meta {color:#768194;}
+@media(max-width:680px){
+ .catalog-page .catalog-groups {margin-top:17px;}
+ .lvd-partner-section {padding-bottom:0;}
+}
