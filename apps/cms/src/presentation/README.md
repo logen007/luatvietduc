@@ -35,3 +35,7 @@ Batch related requests into one push. Do not interrupt an already running releas
 | Chat | src/modules/chat/Workspace.tsx; src/presentation/live-css/06-chat.css |
 
 Suggested completion: “Đã đẩy bản sửa [phần thay đổi]. Hệ thống đang tự cập nhật; anh kiểm tra giao diện giúp em.” If publishing fails, report the actual failure. Never claim the website is updated based only on a push.
+
+## Footer version
+
+Shared version: `src/modules/shared/site-version.json`, format `xx.xx.xx`, shown in both public and application footers. Publishing automatically increments the patch by default. Pass `minor` as the second argument for a feature group or `major` for a major change; lower components reset. The first version is `01.00.00`. Documentation-only commits need no bump. Do not edit this version separately from publishing.

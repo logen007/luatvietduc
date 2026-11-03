@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import siteVersion from "./site-version.json";
 
 const publicLinks = [
   { href: "/#/tra-cuu", label: "Thư viện pháp luật" },
@@ -121,7 +122,7 @@ export function Footer() {
         ))}
       </div>
       <div className="live-footer-meta">
-        <small>© Luật Việt Đức.</small>
+        <small>© Luật Việt Đức. · v{siteVersion.version}</small>
         <nav aria-label="Chính sách">
           <a href="/#/chinh-sach-thong-tin">Quyền riêng tư</a>
           <a href="/#/dieu-khoan">Điều khoản sử dụng</a>
