@@ -72,3 +72,7 @@ Sau cuộc trò chuyện, chuyên viên có thể biên soạn FAQ mới bằng 
 Đã chuẩn bị trong mã: chiều ngang chat theo trang chung; bỏ thẻ tiếp nhận lớn; lựa chọn quốc gia/đồng ý lưu gọn cạnh ô nhập; chuyên viên tự xuất bản FAQ theo quốc gia; hướng dẫn nhập FAQ và đường dẫn quản trị; kiểm tra quyền phía máy chủ và nhật ký phiên bản được giữ.
 
 Chưa bật: hỏi đáp AI công khai, truy xuất FAQ ngữ nghĩa, đồng ý nhà cung cấp AI riêng, cấu hình quy tắc AI tại giao diện quản trị và gắn căn cứ vào từng tin nhắn. Các phần này cần luồng dữ liệu/thiết lập mới, kiểm tra quyền và chạy thử bằng FAQ thực tế trước khi bật. Không gộp chúng vào thay đổi giao diện hay tự gửi hội thoại khách sang nhà cung cấp.
+
+## Điều chỉnh phát hành
+
+Bản tự động tiếp theo chỉ đưa lên giao diện chat, version và hướng dẫn FAQ. Thay đổi cấu hình collection bị cơ chế phát hành đóng băng chặn; quyền tự xuất bản FAQ chưa được bật. Thay đổi dự kiến được lưu tại docs/product/faq-self-publication.pending.patch để phát hành riêng. Không đổi tên tệp để né chốt kiểm soát. Quyền đang hoạt động vẫn là chuyên viên soạn và owner/reviewer duyệt; lựa chọn tự xuất bản là mục tiêu chưa hoàn thành.

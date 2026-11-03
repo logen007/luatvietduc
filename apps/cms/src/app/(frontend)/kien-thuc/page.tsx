@@ -23,10 +23,10 @@ export default function Page() {
             <h1>
               Quản lý câu trả lời.
               <br />
-              <span>Xuất bản trong phạm vi được giao.</span>
+              <span>Biên tập trong phạm vi được giao.</span>
             </h1>
             <p className="live-lead">
-              Nhập câu hỏi, câu trả lời chuẩn và căn cứ. Chuyên viên tự xác nhận, xuất bản và chịu trách nhiệm rà soát FAQ của mình.
+              Nhập câu hỏi, câu trả lời chuẩn và căn cứ. Chuyên viên biên tập FAQ và theo dõi thời hạn rà soát. Quyền tự xuất bản đang chờ phát hành riêng.
             </p>
           </div>
           <a className="button secondary" href="/admin/collections/knowledge">
@@ -38,7 +38,7 @@ export default function Page() {
           <ol>
             <li><strong>Soạn FAQ:</strong> câu hỏi chuẩn, câu trả lời, điều kiện áp dụng và các trường hợp phải chuyển chuyên viên.</li>
             <li><strong>Kiểm tra căn cứ:</strong> quốc gia, liên kết nguồn, ngày hiệu lực và hạn rà soát.</li>
-            <li><strong>Xuất bản:</strong> chuyên viên xác nhận nội dung trong phạm vi được phân quyền. Bản nháp không được dùng.</li>
+            <li><strong>Xuất bản:</strong> hiện chủ hệ thống hoặc người duyệt xác nhận nội dung. Quyền chuyên viên tự xuất bản chưa bật. Bản nháp không được dùng.</li>
             <li><strong>Rà soát:</strong> sửa hoặc thu hồi khi căn cứ thay đổi. Không đưa hội thoại khách vào kho FAQ.</li>
           </ol>
           <a className="button secondary" href="/admin/collections/knowledge/create">Thêm FAQ <span aria-hidden="true">↗</span></a>

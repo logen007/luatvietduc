@@ -1,0 +1,167 @@
+diff --git a/apps/cms/src/app/service/[...path]/route.ts b/apps/cms/src/app/service/[...path]/route.ts
+index 8c1f56b..c19f24b 100644
+--- a/apps/cms/src/app/service/[...path]/route.ts
++++ b/apps/cms/src/app/service/[...path]/route.ts
+@@ -143,7 +143,7 @@ async function route(
+         result = await chat.transition(actor, id, data);
+       else throw new chat.HttpError(404, "Không tìm thấy chức năng.");
+     } else if (path === "knowledge-sources" && method === "GET") {
+-      if (!user || !["owner", "reviewer", "knowledge"].includes(user.role))
++      if (!user || !["owner", "reviewer", "knowledge", "support"].includes(user.role))
+         throw new chat.HttpError(403, "Chỉ dành cho nhân sự kiến thức.");
+       const sources = await payload.find({
+         collection: "knowledge",
+diff --git a/apps/cms/src/modules/knowledge/collection.ts b/apps/cms/src/modules/knowledge/collection.ts
+index 3dfe92f..bd7cf94 100644
+--- a/apps/cms/src/modules/knowledge/collection.ts
++++ b/apps/cms/src/modules/knowledge/collection.ts
+@@ -1,7 +1,13 @@
+-import type { CollectionConfig } from "payload";
+-import { scopedStaff } from "../../access/articles";
++import type { Access, CollectionConfig } from "payload";
+ import { articleLock, auditArticle } from "../content/audit";
+ import { owner } from "../shared/access";
++const knowledgeRoles = ["knowledge", "support", "reviewer"];
++const knowledgeScope: Access = ({ req }) => {
++  if (req.user?.role === "owner") return true;
++  if (!req.user || !knowledgeRoles.includes(req.user.role)) return false;
++  const countries = (req.user.jurisdictions || []).filter(j => j === "VN" || j === "DE");
++  return countries.length ? { jurisdiction: { in: countries } } : false;
++};
+ export const Knowledge: CollectionConfig = {
+   slug: "knowledge",
+   labels: { singular: "Nguồn kiến thức", plural: "Kho kiến thức AI" },
+@@ -9,17 +15,17 @@ export const Knowledge: CollectionConfig = {
+     group: "Kiến thức",
+     useAsTitle: "title",
+     description:
+-      "Chỉ nhập nguồn công khai. Không nhập hồ sơ khách hàng hoặc hội thoại riêng.",
++      "Nhập FAQ công khai, kiểm tra căn cứ và xuất bản trong quốc gia được giao. Không nhập hồ sơ hay hội thoại riêng. Xuất bản là xác nhận chuyên viên chịu trách nhiệm nội dung.",
+   },
+   versions: { drafts: true },
+   access: {
+-    read: ({ req }) =>
+-      req.user?.role === "knowledge" ? true : scopedStaff({ req }),
+-    readVersions: ({ req }) =>
+-      req.user?.role === "knowledge" ? true : scopedStaff({ req }),
+-    create: ({ req }) => ["owner", "knowledge"].includes(req.user?.role || ""),
+-    update: ({ req }) =>
+-      req.user?.role === "knowledge" ? true : scopedStaff({ req }),
++    read: knowledgeScope,
++    readVersions: knowledgeScope,
++    create: ({ req, data }) => req.user?.role === "owner" || Boolean(
++      req.user && knowledgeRoles.includes(req.user.role) &&
++      req.user.jurisdictions?.includes(data?.jurisdiction)
++    ),
++    update: knowledgeScope,
+     delete: owner,
+   },
+   hooks: {
+@@ -27,12 +33,14 @@ export const Knowledge: CollectionConfig = {
+       articleLock,
+       ({ data, originalDoc, req }) => {
+         if (
+-          req.user?.role === "reviewer" &&
+-          !req.user.jurisdictions?.includes(
++          req.user?.role !== "owner" &&
++          !req.user?.jurisdictions?.includes(
+             data.jurisdiction ?? originalDoc?.jurisdiction,
+           )
+         )
+           throw new Error("Country scope required");
++        if (req.user?.role !== "owner" && !knowledgeRoles.includes(req.user?.role || ""))
++          throw new Error("Knowledge staff required");
+         const changed =
+           originalDoc &&
+           [
+@@ -44,15 +52,17 @@ export const Knowledge: CollectionConfig = {
+             "expiresAt",
+             "reviewDueAt",
+           ].some((k) => k in data && data[k] !== originalDoc[k]);
+-        if (changed) {
++        // Publication is an explicit self-approval of this revision by scoped staff.
++        const publishing = data._status === "published" && data.approved !== false;
++        if (changed && !publishing) {
+           data.approved = false;
+           data._status = "draft";
+           data.reviewedBy = null; data.reviewedAt = null;
+         }
+         if(data.approved===false&&originalDoc?.approved===true){data._status='draft';data.reviewedBy=null;data.reviewedAt=null}
+-        if (data.approved === true && originalDoc?.approved !== true) {
+-          if (!["owner", "reviewer"].includes(req.user?.role || ""))
+-            throw new Error("Reviewer required");
++        if (publishing || (data.approved === true && originalDoc?.approved !== true)) {
++          if (!["owner", ...knowledgeRoles].includes(req.user?.role || ""))
++            throw new Error("Knowledge publisher required");
+           if (
+             req.user?.role !== "owner" &&
+             !req.user?.jurisdictions?.includes(
+@@ -60,6 +70,7 @@ export const Knowledge: CollectionConfig = {
+             )
+           )
+             throw new Error("Country scope required");
++          data.approved = true;
+           data.reviewedBy = req.user?.id;
+           data.reviewedAt = new Date().toISOString();
+         }
+@@ -68,17 +79,18 @@ export const Knowledge: CollectionConfig = {
+           !(data.approved ?? originalDoc?.approved)
+         )
+           throw new Error("Approved source required");
+-        if(data._status==='published' && originalDoc?._status!=='published' && !['owner','reviewer'].includes(req.user?.role||''))throw new Error('Reviewer publication required');
++        if(data._status==='published' && originalDoc?._status!=='published' && !['owner',...knowledgeRoles].includes(req.user?.role||''))throw new Error('Reviewer publication required');
+         return data;
+       },
+     ],
+     afterChange: [auditArticle],
+   },
+   fields: [
+-    { name: "title", label: "Tên nguồn", type: "text", required: true },
++    { name: "title", label: "Câu hỏi chuẩn / tên nguồn", type: "text", required: true },
+     {
+       name: "body",
+-      label: "Nội dung công khai đã biên tập",
++      label: "Câu trả lời chuẩn và phạm vi áp dụng",
++      admin: { description: "FAQ gồm: câu trả lời; điều kiện áp dụng; trường hợp loại trừ; khi nào chuyển chuyên viên. Chỉ dùng nội dung công khai đã kiểm chứng." },
+       type: "textarea",
+       required: true,
+     },
+@@ -117,7 +129,7 @@ export const Knowledge: CollectionConfig = {
+     },
+     {
+       name: "approved",
+-      label: "Đã duyệt cho AI nội bộ",
++      label: "Đã xác nhận nội dung cho kho kiến thức AI",
+       type: "checkbox",
+       defaultValue: false,
+     },
+diff --git a/apps/cms/src/modules/knowledge/test-source.ts b/apps/cms/src/modules/knowledge/test-source.ts
+index aecbc5b..3d468a4 100644
+--- a/apps/cms/src/modules/knowledge/test-source.ts
++++ b/apps/cms/src/modules/knowledge/test-source.ts
+@@ -8,7 +8,7 @@ export async function testSource(
+   id: number,
+   settings: SiteSetting,
+ ) {
+-  if (!user || !["owner", "reviewer", "knowledge"].includes(user.role))
++  if (!user || !["owner", "reviewer", "knowledge", "support"].includes(user.role))
+     throw new HttpError(403, "Chỉ dành cho nhân sự kiểm duyệt kiến thức.");
+   if (
+     settings.aiMode !== "internal-only" ||
+diff --git a/apps/cms/test/access.test.mjs b/apps/cms/test/access.test.mjs
+index cc17535..ba6b028 100644
+--- a/apps/cms/test/access.test.mjs
++++ b/apps/cms/test/access.test.mjs
+@@ -43,5 +43,11 @@ const sourceHook=knowledge.hooks.beforeChange[1];
+ const approvedSource={id:1,title:'Public source',approved:true,_status:'published',jurisdiction:'VN',body:'Reviewed source',reviewedBy:1,reviewedAt:'2026-11-03T00:00:00Z'};
+ test('source withdrawal immediately removes publication',()=>{const d=sourceHook({req:req('reviewer'),data:{approved:false,_status:'published'},originalDoc:approvedSource});assert.equal(d._status,'draft');assert.equal(d.reviewedBy,null)});
+ test('editing source invalidates approval and review attribution',()=>{const d=sourceHook({req:req('knowledge'),data:{body:'New text'},originalDoc:approvedSource});assert.equal(d.approved,false);assert.equal(d._status,'draft');assert.equal(d.reviewedAt,null)});
+-test('knowledge author cannot approve own source',()=>assert.throws(()=>sourceHook({req:req('knowledge'),data:{approved:true},originalDoc:{...approvedSource,approved:false,_status:'draft'}}),/Reviewer required/));
++test('scoped knowledge author can self-approve own source',()=>assert.equal(sourceHook({req:req('knowledge'),data:{approved:true},originalDoc:{...approvedSource,approved:false,_status:'draft'}}).approved,true));
++test('support self-publishes an in-scope FAQ and records author',()=>{const d=sourceHook({req:req('support'),data:{title:'Question',body:'Answer',jurisdiction:'VN',_status:'published'}});assert.equal(d.approved,true);assert.equal(d.reviewedBy,1);assert.ok(d.reviewedAt)});
++test('support cannot create knowledge outside assigned country',()=>assert.equal(knowledge.access.create({req:req('support'),data:{jurisdiction:'DE'}}),false));
++test('knowledge read access is scoped to assigned country',()=>assert.deepEqual(knowledge.access.read({req:req('knowledge')}),{jurisdiction:{in:['VN']}}));
++test('support cannot move an in-scope source outside scope',()=>assert.throws(()=>sourceHook({req:req('support'),data:{jurisdiction:'DE'},originalDoc:approvedSource}),/Country scope/));
++test('member cannot self-publish knowledge',()=>assert.throws(()=>sourceHook({req:req('member'),data:{jurisdiction:'VN',_status:'published'}}),/Country scope|Knowledge staff/));
++test('self-publication records the edited revision author',()=>{const d=sourceHook({req:req('support'),data:{body:'Revised answer',_status:'published'},originalDoc:approvedSource});assert.equal(d.approved,true);assert.equal(d.reviewedBy,1);assert.equal(d._status,'published')});
+ test('reviewer cannot move source to another country',()=>assert.throws(()=>sourceHook({req:req('reviewer'),data:{jurisdiction:'DE'},originalDoc:approvedSource}),/Country scope/));
