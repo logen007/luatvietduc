@@ -50,7 +50,7 @@ Editorial homepage override must execute after steel-ui.js and before app.js, be
 
 ## User-facing behavior
 
-Public legacy pages retain Vietnamese/German switching. The live application remains Vietnamese. Mobile navigation includes account access. The chat composer stays within the visible viewport and its transcript scrolls independently; short viewports compact secondary content. No automatic submission is introduced when transferring a question from the homepage. Existing consent and server authorization still apply.
+Public legacy pages retain Vietnamese/German switching. The live application remains Vietnamese. Mobile navigation includes account access. The chat composer stays within the visible viewport and its transcript scrolls independently; short viewports compact secondary content. A homepage question opens a new intake even for returning guests with saved conversations, and is never submitted automatically. Empty/new intake opens at the top; actual messages scroll to the newest entry. Phone intake compacts decoration and uses two fields side by side at390px, reverting to one column below360px. Existing consent and server authorization still apply.
 
 The homepage reuses the existing `LVD_FEATURES.partnerSlider()` and all 13 partner entries (three from the G2G Career source and ten from Bizlawyer). The redesign changes their presentation and scrolling, not the data or order. Keep the original logos and their source records; do not replace the row with invented partner names or endorsement claims.
 
