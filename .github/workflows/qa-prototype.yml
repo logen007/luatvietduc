@@ -37,7 +37,7 @@ jobs:
         run: python3 scripts/test-bilingual-v090.py
       - name: Verify matching VN and DE catalogue structure and jurisdiction isolation
         run: python3 scripts/test-jurisdiction-parity.py
-      - name: Check logo carousel motion, pause and manual navigation
+      - name: Check logo carousel autoplay and button-free keyboard navigation
         run: python3 scripts/test-slider.py
       - name: Check chat homepage and selected text contrast
         run: python3 scripts/test-color-theme.py
