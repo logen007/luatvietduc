@@ -26,7 +26,17 @@
   document.addEventListener('DOMContentLoaded',async()=>{
     try{
       const r=await fetch('/service/settings');if(!r.ok)return;settings=await r.json();
-      const social=document.getElementById('live-social');for(const link of settings.socialLinks||[]){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;a.rel='noopener noreferrer';social?.append(a)}
+      const social=document.getElementById('live-social');
+      if(social){
+        const icons=await fetch('/social-icons.json?v=1').then(r=>r.ok?r.json():[]).catch(()=>[]);
+        if(icons.length){
+          const links=(settings.socialLinks||[]).filter(link=>{try{return new URL(link.url).protocol==='https:'}catch{return false}});
+          const used=new Set();social.replaceChildren();
+          const match=(icon,link)=>{const host=new URL(link.url).hostname.toLowerCase();return icon.hosts.some(h=>host===h||host.endsWith('.'+h))||String(link.label).toLowerCase()===icon.name.toLowerCase()};
+          for(const icon of icons){const link=links.find(l=>match(icon,l));if(link)used.add(link);const el=document.createElement(link?'a':'span');el.className='lvd-social-icon'+(link?'':' is-unset');el.setAttribute('aria-label',icon.name);el.title=icon.name;if(link){el.href=link.url;el.target='_blank';el.rel='noopener noreferrer'}else el.setAttribute('role','img');const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');for(const d of icon.paths){const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);path.setAttribute('fill-rule','evenodd');svg.append(path)}el.append(svg);social.append(el)}
+          for(const link of links.filter(l=>!used.has(l))){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;a.target='_blank';a.rel='noopener noreferrer';social.append(a)}
+        }
+      }
       for(const link of (settings.navigation||[])){const destination=new URL(link.url,location.origin);if(destination.origin===location.origin&&/^\/bai-viet\/?$/.test(destination.pathname))continue;for(const nav of document.querySelectorAll('.desktop-nav,#menu-dialog .dialog-links')){const href=new URL(link.url,location.origin).href;if([...nav.querySelectorAll('a')].some(a=>a.href===href))continue;const a=document.createElement('a');a.textContent=link.label;a.href=link.url;nav.append(a)}}
       enrich();const news=await fetch('/api/articles?limit=6&sort=-updatedAt');if(news.ok){articles=(await news.json()).docs||[];enrich()}
     }catch{}

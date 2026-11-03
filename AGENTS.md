@@ -31,3 +31,5 @@
 - Before release, test access isolation, retries/idempotency, reconnects, AI handoff races, knowledge withdrawal and backup restore.
 
 - Footer release version lives in apps/cms/src/modules/shared/site-version.json, exactly xx.xx.xx. Publish through ops/deploy/publish.sh: default patch for small fixes, second argument minor for feature groups or major for a major redesign/platform change. The script bumps and stages the version automatically; do not manually double-bump. Documentation-only commits do not need a version bump.
+
+- Owner requests pre-created social icon slots in the footer even before accounts exist. Unconfigured slots are non-clickable; configured HTTPS links come from existing SiteSettings.socialLinks. Do not fabricate social URLs.

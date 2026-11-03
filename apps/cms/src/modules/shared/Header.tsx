@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import siteVersion from "./site-version.json";
+import { SocialLinks } from "./SocialLinks";
 
 const publicLinks = [
   { href: "/#/tra-cuu", label: "Thư viện pháp luật" },
@@ -103,6 +104,7 @@ export function Footer() {
             Luật Việt Đức
           </a>
           <p>Thông tin pháp luật Việt Nam & Đức.</p>
+          <SocialLinks />
         </div>
         {footerColumns.map((column) => (
           <nav
