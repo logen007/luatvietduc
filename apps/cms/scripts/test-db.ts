@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict'
+import {getPayload} from 'payload'
+import config from '../src/payload.config'
+const url=new URL(process.env.DATABASE_URL || '')
+if(!['127.0.0.1','localhost'].includes(url.hostname)||url.pathname!=='/lvd_test') throw new Error('Use isolated localhost lvd_test only')
+const payload=await getPayload({config})
+try {
+ const suffix=crypto.randomUUID()
+ const owner=await payload.create({collection:'users',overrideAccess:true,context:{bootstrapOwner:true},data:{name:'CI owner',email:`owner-${suffix}@example.invalid`,password:crypto.randomUUID(),role:'owner'}})
+ const password=crypto.randomUUID()
+ const editor=await payload.create({collection:'users',overrideAccess:false,user:owner,data:{name:'CI editor',email:`editor-${suffix}@example.invalid`,password,role:'editor'}})
+ const login=await payload.login({collection:'users',data:{email:editor.email,password}})
+ assert.ok(login.token)
+ await assert.rejects(()=>payload.create({collection:'users',overrideAccess:false,user:editor,data:{name:'Escalation',email:`bad-${suffix}@example.invalid`,password,role:'owner'}}))
+ const article=await payload.create({collection:'articles',overrideAccess:false,user:editor,data:{title:'CI draft',slug:suffix,body:'Test content only',jurisdiction:'VN',language:'vi'}})
+ assert.equal((await payload.find({collection:'articles',overrideAccess:false,where:{id:{equals:article.id}}})).totalDocs,0)
+ await assert.rejects(()=>payload.update({collection:'articles',id:article.id,overrideAccess:false,user:editor,data:{_status:'published',reviewState:'approved'}}))
+ await payload.update({collection:'articles',id:article.id,overrideAccess:false,user:owner,data:{reviewState:'approved',_status:'published'}})
+ assert.equal((await payload.find({collection:'articles',overrideAccess:false,where:{id:{equals:article.id}}})).totalDocs,1)
+ await payload.update({collection:'articles',id:article.id,overrideAccess:false,user:editor,data:{body:'Changed after review'}})
+ assert.equal((await payload.find({collection:'articles',overrideAccess:false,where:{id:{equals:article.id}}})).totalDocs,0)
+ console.log('Database checks passed: login, privilege isolation, draft visibility, publication and re-review')
+} finally {await payload.destroy()}

@@ -1,0 +1,26 @@
+# Luật Việt Đức — development rules
+
+## Preserve the current website
+- The root `index.html`, `assets/` and existing workflows are the legacy public prototype.
+- Do not replace, redesign, delete or deploy it while building `platform/`.
+- Work on a feature branch. Never push directly to `main`, merge, change DNS, restart shared services or modify production data without explicit approval.
+- Domain `luatvietduc.com` is planned, not verified as purchased or configured.
+
+## Product decisions
+- No n8n and no Chatwoot. Build the chat product and operator inbox in our codebase.
+- Keep the approved chat UI. Social accounts belong to Luật Việt Đức, not Bizlawyer. Empty social settings render nothing.
+- Target architecture: Next.js + TypeScript + Payload CMS + PostgreSQL/pgvector; custom realtime and worker processes. Verify and lock mutually supported package versions before scaffolding the application.
+- Treat 303 Vietnamese topic titles as topic-only, not approved legal answers. Never fabricate legal approval, sources, staff availability or message delivery.
+
+## Data and security
+- Secrets, VPS identifiers, SSH keys and customer conversations never belong in this public repository.
+- Public knowledge and private conversations are separate. Do not send private records to model providers or search indexes by default.
+- Authorization is enforced server-side for every HTTP endpoint, socket event, upload and CMS Local API call. Domain helpers do not replace authentication or database authorization.
+- Read/write transitions must use database transactions and optimistic concurrency checks. Human handoff invalidates any in-flight AI generation.
+- Do not use AI self-reported confidence as the only handoff criterion.
+- Production database ports stay private. Never use `docker system prune`, `down -v`, blanket upgrades or a new proxy on existing ports without a reviewed plan.
+
+## Delivery
+- Small changes, repeatable tests, documented migrations and separate staging/prod secrets.
+- Do not claim a test/deployment was performed unless its result was observed.
+- Before release, test access isolation, retries/idempotency, reconnects, AI handoff races, knowledge withdrawal and backup restore.

@@ -1,0 +1,38 @@
+{
+  "name": "@luatvietduc/cms",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24.22.1"
+  },
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "payload": "payload",
+    "generate:types": "payload generate:types",
+    "migrate:create": "payload migrate:create",
+    "migrate": "payload migrate",
+    "test": "node --import tsx --test test/*.test.mjs",
+    "bootstrap:owner": "payload run scripts/bootstrap-owner.ts",
+    "test:db": "payload run scripts/test-db.ts"
+  },
+  "dependencies": {
+    "payload": "3.92.1",
+    "@payloadcms/next": "3.92.1",
+    "@payloadcms/db-postgres": "3.92.1",
+    "next": "16.4.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "graphql": "16.11.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "24.10.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "tsx": "4.20.6"
+  }
+}

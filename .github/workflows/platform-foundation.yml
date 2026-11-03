@@ -1,0 +1,72 @@
+name: Platform foundation checks
+on:
+  push:
+    branches: ['feat/platform-*']
+    paths: ['apps/cms/**', 'platform/**', 'ops/server-audit.sh', '.github/workflows/platform-foundation.yml']
+  pull_request:
+    paths: ['apps/cms/**', 'platform/**', 'ops/server-audit.sh', '.github/workflows/platform-foundation.yml']
+permissions:
+  contents: read
+concurrency:
+  group: platform-foundation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  domain-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: platform
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.22.1'
+          cache: npm
+          cache-dependency-path: platform/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+      - name: Validate read-only audit script syntax
+        run: bash -n ../ops/server-audit.sh
+# Intentionally no deployment job, SSH, credentials, database, or production writes.
+  cms-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/cms
+    env:
+      PAYLOAD_SECRET: ci-only-nonproduction-secret-000000000000
+      DATABASE_URL: postgresql://lvd:ci_only@127.0.0.1:5432/lvd_test
+      NEXT_TELEMETRY_DISABLED: '1'
+    services:
+      postgres:
+        image: postgres:17.6-bookworm
+        env:
+          POSTGRES_DB: lvd_test
+          POSTGRES_USER: lvd
+          POSTGRES_PASSWORD: ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd 'pg_isready -U lvd -d lvd_test'
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.22.1'
+          cache: npm
+          cache-dependency-path: apps/cms/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run migrate
+      - run: npm run test:db
+      - run: npm run build

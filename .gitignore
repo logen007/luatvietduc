@@ -1,0 +1,7 @@
+# No secrets or local server inventory in the public repository
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+node_modules/
