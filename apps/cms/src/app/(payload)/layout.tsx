@@ -1,5 +1,6 @@
 import config from "@payload-config";
 import "@payloadcms/next/css";
+import "./admin-custom.css";
 import { RootLayout, handleServerFunctions } from "@payloadcms/next/layouts";
 import type { ServerFunctionClient } from "payload";
 import { importMap } from "./admin/importMap";
@@ -10,6 +11,7 @@ const serverFunction: ServerFunctionClient = async (args) => {
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <RootLayout
+      htmlProps={{ className: "lvd-admin" }}
       config={config}
       importMap={importMap}
       serverFunction={serverFunction}

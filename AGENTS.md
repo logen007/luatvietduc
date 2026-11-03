@@ -2,13 +2,13 @@
 
 ## Preserve the current website
 - The root `index.html`, `assets/` and existing workflows are the legacy public prototype.
-- Do not replace, redesign, delete or deploy it while building `platform/`.
+- User authorized a full Papermark-inspired UI redesign on 2026-11-03. Preserve the original prototype sources as reference; apply the new shell, theme and page presentation in apps/cms while keeping content, routes and behavior intact.
 - Work on a feature branch. Never push directly to `main`, merge, change DNS, restart shared services or modify production data without explicit approval.
 - Owner confirmed domain ownership and Cloudflare routing, authorized direct deployment, and the isolated application was verified serving HTTPS on `luatvietduc.com` on 2026-11-03. Changes to unrelated services still require explicit authorization.
 
 ## Product decisions
 - No n8n and no Chatwoot. Build the chat product and operator inbox in our codebase.
-- Keep the approved chat UI. Social accounts belong to Luật Việt Đức, not Bizlawyer. Empty social settings render nothing.
+- Redesign the approved chat UI under the current user instruction while preserving its behavior. Social accounts belong to Luật Việt Đức, not Bizlawyer. Empty social settings render nothing.
 - Target architecture: Next.js + TypeScript + Payload CMS + PostgreSQL/pgvector; custom realtime and worker processes. Verify and lock mutually supported package versions before scaffolding the application.
 - Treat 303 Vietnamese topic titles as topic-only, not approved legal answers. Never fabricate legal approval, sources, staff availability or message delivery.
 

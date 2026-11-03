@@ -1,0 +1,21 @@
+{
+  "family": "Inter",
+  "license": "SIL Open Font License 1.1",
+  "source": "https://github.com/google/fonts/tree/main/ofl/inter",
+  "font_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz,wght%5D.ttf",
+  "license_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/OFL.txt",
+  "retrieved": "2026-11-03",
+  "build": "Converted unchanged complete variable TTF to WOFF2 using fontTools; no glyphs removed.",
+  "axes": {
+    "opsz": [
+      14,
+      32
+    ],
+    "wght": [
+      100,
+      900
+    ]
+  },
+  "vietnamese_sample_checked": "Luật Việt Đức · Tiếng Việt · Đăng nhập",
+  "sha256": "901ac84c6240045ab3b46424ae6022df536e8cd65c2da292dc0fbba33752194f"
+}

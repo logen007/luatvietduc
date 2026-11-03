@@ -2,13 +2,14 @@
 (() => {
   const redirect = () => {
     const p = location.hash.slice(1).split('?')[0];
-    const target = {'/hoi-dap-ai':'/tro-chuyen','/chuyen-vien':'/chuyen-vien','/thu-vien-quan-tri':'/kien-thuc','/dang-nhap':'/tai-khoan','/khong-gian-ca-nhan':'/tai-khoan'}[p];
+    const target = {'/hoi-dap-ai':'/tro-chuyen','/chuyen-vien':'/chuyen-vien','/thu-vien-quan-tri':'/kien-thuc','/dang-nhap':'/tai-khoan','/tai-khoan':'/tai-khoan','/tai-khoan/dang-nhap':'/tai-khoan','/gui-cau-hoi':'/tro-chuyen','/khong-gian-ca-nhan':'/tai-khoan'}[p];
     if (target) location.replace(target);
   };
   window.addEventListener('hashchange', redirect, true); redirect();
   document.addEventListener('submit', e => {
     if (e.target.id === 'home-ask') {e.preventDefault();e.stopImmediatePropagation();sessionStorage.setItem('lvd-question', e.target.elements.question.value);location.href='/tro-chuyen';}
   }, true);
+  document.addEventListener('click',e=>{const prompt=e.target.closest('[data-ask-example]');if(prompt){e.preventDefault();e.stopImmediatePropagation();sessionStorage.setItem('lvd-question',prompt.dataset.askExample);location.href='/tro-chuyen'}},true);
   let settings=null,articles=[];
   const enrich=()=>{
     if(!settings)return;
@@ -26,7 +27,7 @@
     try{
       const r=await fetch('/service/settings');if(!r.ok)return;settings=await r.json();
       const social=document.getElementById('live-social');for(const link of settings.socialLinks||[]){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;a.rel='noopener noreferrer';social?.append(a)}
-      for(const link of [...(settings.navigation||[]),{label:'Bài viết mới',url:'/bai-viet'}]){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;document.querySelector('.desktop-nav')?.append(a)}
+      for(const link of (settings.navigation||[])){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;document.querySelector('.desktop-nav')?.append(a)}
       enrich();const news=await fetch('/api/articles?limit=6&sort=-updatedAt');if(news.ok){articles=(await news.json()).docs||[];enrich()}
     }catch{}
   });

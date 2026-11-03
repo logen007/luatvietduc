@@ -7,3 +7,6 @@ node_modules/
 public/assets/
 public/frontend.html
 private-media/
+
+# Payload may generate a JS sibling; tracked importMap.ts owns the source map.
+src/app/(payload)/admin/importMap.js
