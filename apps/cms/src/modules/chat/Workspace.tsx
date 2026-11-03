@@ -364,7 +364,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                 <small>
                   {me?.user
                     ? "Xem không gian cá nhân"
-                    : "Đăng nhập để giữ lịch sử"}
+                    : "Đăng nhập"}
                 </small>
               </span>
               <span aria-hidden="true">↗</span>
@@ -387,7 +387,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
                 ></span>
                 {conversation
                   ? `${conversation.jurisdiction} · ${stateLabel(conversation.state)}`
-                  : "Chuyên viên hỗ trợ · AI chưa bật cho khách"}
+                  : "Chuyên viên hỗ trợ"}
               </p>
             </div>
             <div className="chat-top-actions">
@@ -665,7 +665,7 @@ export function Workspace({ staff = false }: { staff?: boolean }) {
             <p className="chat-compose-help">
               {staff
                 ? "Chỉ trả lời trong hội thoại đã nhận xử lý."
-                : "Giữ trình duyệt này để xem phản hồi. Đăng nhập để giữ lịch sử trên nhiều thiết bị."}
+                : "Xem lại phản hồi bằng trình duyệt này."}
             </p>
           </div>
         </section>
