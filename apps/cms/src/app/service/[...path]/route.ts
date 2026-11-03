@@ -8,6 +8,7 @@ import * as chat from "../../../modules/chat/service";
 import { testSource } from "../../../modules/knowledge/test-source";
 import {replyToMessage} from '../../../modules/assistant/reply';
 import {activeValues} from '../../../modules/integrations/store';
+import {sendContact} from '../../../modules/contact/service';
 import {
   siteSettings,
   connectionStatus,
@@ -99,7 +100,9 @@ async function route(
       for (const name of ["lvd-session", "payload-token"])
         response.cookies.delete(name);
       return response;
-    } else if (path === "conversations" && method === "GET")
+    } else if (path === "contact" && method === "POST")
+      result = await sendContact(data);
+    else if (path === "conversations" && method === "GET")
       result = await chat.chatList(actor);
     else if (path === "conversations" && method === "POST") {
       if ((await settings()).chatEnabled === false)

@@ -22,6 +22,7 @@ export const integrationCatalog = {
     { key: 'apiKey', label: 'API key', secret: true, placeholder: '' },
     { key: 'fromAddress', label: 'Địa chỉ gửi đã xác minh', secret: false, placeholder: 'lienhe@luatvietduc.com' },
     { key: 'fromName', label: 'Tên người gửi', secret: false, placeholder: 'Luật Việt Đức' },
+    { key: 'contactTo', label: 'Hộp thư nhận form Liên hệ (để trống: email chủ hệ thống)', secret: false, optional: true, placeholder: 'Email nhận liên hệ' },
   ] },
 } as const;
 export type Provider = keyof typeof integrationCatalog;

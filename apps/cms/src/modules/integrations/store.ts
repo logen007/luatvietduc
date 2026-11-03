@@ -19,7 +19,7 @@ export async function activeValues(provider: Provider): Promise<Values | null> {
   const row = await readRow(provider);
   if (row) return row.enabled ? unseal(provider, row.encrypted_values) : null;
   const values = envValues(provider);
-  return integrationCatalog[provider].fields.every(f => values[f.key]) ? values : null;
+  return integrationCatalog[provider].fields.every(f => ('optional' in f && f.optional) || values[f.key]) ? values : null;
 }
 export async function safeConnection(provider: Provider) {
   const row = await readRow(provider), values = row ? unseal(provider, row.encrypted_values) : envValues(provider);

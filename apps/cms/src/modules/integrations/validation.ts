@@ -20,7 +20,7 @@ export function mergeValues(provider: Provider, previous: Values, input: unknown
 }
 export function validateValues(provider: Provider, v: Values) {
   const invalid = (message: string): never => { throw new IntegrationError(400, message); };
-  for (const field of integrationCatalog[provider].fields) if (!v[field.key]) invalid('Vui lòng điền ' + field.label + '.');
+  for (const field of integrationCatalog[provider].fields) if (!v[field.key] && !('optional' in field && field.optional)) invalid('Vui lòng điền ' + field.label + '.');
   if (['google','drive'].includes(provider) && !/^[\w.-]+\.apps\.googleusercontent\.com$/.test(v.clientId)) invalid('Client ID Google không đúng định dạng.');
   if (provider === 'drive' && !/^age1[0-9a-z]{58}$/.test(v.ageRecipient)) invalid('Nhập khóa age công khai hợp lệ; không nhập khóa khôi phục bí mật ở đây.');
   if (provider === 'ai' && !/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,99}$/.test(v.model)) invalid('Tên model không hợp lệ; chỉ nhập tên, không nhập URL.');
@@ -30,4 +30,5 @@ export function validateValues(provider: Provider, v: Values) {
     if (!/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/.test(v.bucket)) invalid('Tên bucket R2 không hợp lệ.');
   }
   if (provider === 'email' && !/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(v.fromAddress)) invalid('Địa chỉ gửi không hợp lệ.');
+  if (provider === 'email' && v.contactTo && !/^[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+$/.test(v.contactTo)) invalid('Nhập một email nhận liên hệ hợp lệ.');
 }

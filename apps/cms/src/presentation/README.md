@@ -37,6 +37,8 @@ Batch related requests into one push. Do not interrupt an already running releas
 | Chat transport | src/modules/chat/useWorkspace.ts; src/modules/shared/polling.ts |
 | FAQ / AI answering | src/modules/assistant/faq.ts; format.ts; reply.ts |
 | Public settings request | src/modules/settings/client.ts; view.ts |
+| Contact form and submit interaction | src/presentation/legal-runtime-js/00-contact-form.js; src/presentation/editorial-ui-css/07-contact-form.css |
+| Contact email validation and sending | src/modules/contact/; recipient in Resend connection settings |
 
 Suggested completion: “Đã đẩy bản sửa [phần thay đổi]. Hệ thống đang tự cập nhật; anh kiểm tra giao diện giúp em.” If publishing fails, report the actual failure. Never claim the website is updated based only on a push.
 

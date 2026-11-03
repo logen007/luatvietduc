@@ -6,7 +6,8 @@
     "editorial-ui-css/03-countries.css",
     "editorial-ui-css/04-topics.css",
     "editorial-ui-css/05-news-footer-responsive.css",
-    "editorial-ui-css/06-application-menu.css"
+    "editorial-ui-css/06-application-menu.css",
+    "editorial-ui-css/07-contact-form.css"
   ],
   "live.css": [
     "live-css/00-shared-shell.css",
@@ -26,5 +27,9 @@
     "editorial-ui-js/03-homepage.js",
     "editorial-ui-js/04-video-counts.js",
     "editorial-ui-js/05-navigation-lifecycle.js"
+  ],
+  "legal-runtime.js": [
+    "legal-runtime-js/00-contact-form.js",
+    "legal-runtime-js/01-information-pages.js"
   ]
 }
