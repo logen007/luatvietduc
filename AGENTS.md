@@ -33,3 +33,5 @@
 - Footer release version lives in apps/cms/src/modules/shared/site-version.json, exactly xx.xx.xx. Publish through ops/deploy/publish.sh: default patch for small fixes, second argument minor for feature groups or major for a major redesign/platform change. The script bumps and stages the version automatically; do not manually double-bump. Documentation-only commits do not need a version bump.
 
 - Owner requests pre-created social icon slots in the footer even before accounts exist. Unconfigured slots are non-clickable; configured HTTPS links come from existing SiteSettings.socialLinks. Do not fabricate social URLs.
+
+- Runtime connections (01.02.00, deployed 8070aff): owner manages Google/Gemini/R2/Resend at /quan-tri via encrypted SQL vault. Do not put credentials in settings globals or public responses. New configuration is inactive until tested and explicitly enabled. Preserve installed auto-release policy; reviewed migration release is complete, routine code updates remain automatic.

@@ -4,7 +4,7 @@ For the prepared GitHub-to-VPS automatic path, see [AUTO_DEPLOY.md](AUTO_DEPLOY.
 
 Only this Compose project is managed here. The existing root_default Traefik network and the verified websecure/mytlschallenge names are reused; never restart or edit shared proxy services. Database has no host port. Web diagnostic port binds loopback only. Domain routing is limited to luatvietduc.com.
 
-Create .env with umask 077. Generate random DB_PASSWORD (hex) and PAYLOAD_SECRET on the server; never commit them. Configure Google/R2 only through server-side environment. Build this image, start this project's database and web, check localhost:3049/health/ready and then the public HTTPS domain. No provider is activated by filling a client-side setting.
+Create .env with umask 077. Generate random DB_PASSWORD (hex) and PAYLOAD_SECRET on the server; never commit them. As of 01.02.00, Google/R2/AI/Resend can be configured by the owner at /quan-tri; see docs/product/ADMIN_CONNECTIONS.md. Existing server-side environment remains a fallback only until an admin record is saved. Build this image, start this project's database and web, check localhost:3049/health/ready and then the public HTTPS domain. No provider is activated by filling a client-side setting.
 
 Before updates, run backup.sh, record current RELEASE and image ID, build the new image and run migrations. Migrations must be backward compatible. Rollback code by selecting the previous immutable image tag; do not run database down migrations on real data. Run a restore drill into a separate temporary database, never the live database. Backups on the same VPS are provisional until off-VPS storage is configured.
 

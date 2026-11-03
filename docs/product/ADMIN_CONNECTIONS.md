@@ -31,3 +31,7 @@ Bản này có migration cộng thêm hai bảng kết nối/nhật ký và hai 
 Sau khi bản này được đưa lên và ghi nhận làm mốc, các lần đổi khóa trong admin có hiệu lực khi bấm bật, không cần VPS hay phát hành lại. Các lần sửa code giao diện tiếp tục GitHub → luồng tự cập nhật cũ.
 
 Nguồn tài liệu: [Payload email](https://payloadcms.com/docs/email/overview), [R2 authentication](https://developers.cloudflare.com/r2/api/tokens/), [R2 jurisdiction](https://developers.cloudflare.com/r2/reference/data-location/). Phiên bản thư viện lấy đúng từ lockfile dự án.
+
+## Đã triển khai
+
+Bản 01.02.00, commit 8070affbc1240b0468350fd7396ccfa6c7851ca2, đã được triển khai bằng lượt bảo trì riêng. GitHub push/PR đều đạt; nâng cấp dữ liệu, candidate và kiểm tra công khai thành công. Trang /quan-tri đã mở được trong phiên owner; truy cập API cấu hình không đăng nhập nhận HTTP 403. Chưa nhập khóa hay bật dịch vụ bên ngoài; chưa thử Google/R2/email/AI bằng tài khoản thực. Không đổi chính sách tự cập nhật đã cài.
