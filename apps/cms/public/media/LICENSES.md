@@ -15,3 +15,16 @@ The original is 1920 × 1080, 25 fps, 30.08 seconds. The hero uses seconds 2–1
 | --- | ---: | --- |
 | berlin-hero.mp4 | 870846 | 578c294d238380084adf0d7f2ec316a6fcbcfb909d0c4de12ec79d45ec49d119 |
 | berlin-hero-poster.webp | 71380 | 05afbf3d100fdea01598e6c4f8fc6b63f138a13a3f37b6b6161f22a2343cd905 |
+
+## Multi-scene hero montage (2026-11-03)
+
+`legal-hero-montage-v1.mp4` is a25-second, six-scene illustrative montage: executive discussion, document close-up, boardroom review, signing, client discussion, and Berlin skyline. Each source contributes4.5seconds with0.4-second crossfades. Sources are licensed under https://www.pexels.com/license/ (checked2026-11-03); depicted people are stock models, not presented as our staff or endorsers.
+
+- Kampus Production: https://www.pexels.com/video/men-in-a-business-meeting-8425706/
+- Gustavo Fring: https://www.pexels.com/video/close-up-of-documents-6285657/
+- Mikhail Nilov: https://www.pexels.com/video/professionals-looking-carefully-on-documents-8847933/
+- Sururi Ballıdağ Director: https://www.pexels.com/video/business-meeting-in-modern-office-setting-34375045/
+- RDNE Stock project: https://www.pexels.com/video/business-people-having-a-meeting-8123986/
+- Giang: Berlin source7197894 documented above.
+
+Output: H.264720p25fps, silent, fast-start,3,049,532bytes. Mild saturation/contrast grading unifies scenes. Poster is an exported frame of the montage. Source downloads and render intermediates remain outside the public repository.
