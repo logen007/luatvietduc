@@ -1,6 +1,6 @@
 /* 80px source header; transparent over the hero, white after scrolling. */
 .lvd-announcement{display:none}
-.lvd-redesign .site-header{position:sticky;z-index:50;top:0;width:100%;height:80px;background:rgba(255,255,255,.94);color:#0b0b0b;border-bottom:1px solid rgba(0,0,0,.06);backdrop-filter:blur(10px)}
+.lvd-redesign .site-header{position:sticky;z-index:50;top:0;width:100%;height:80px;background:rgba(255,255,255,.94);color:#0b0b0b;border-bottom:1px solid rgba(0,0,0,.06);-webkit-backdrop-filter:saturate(1.1) blur(10px);backdrop-filter:saturate(1.1) blur(10px);transition:background-color .35s ease,color .35s ease,box-shadow .35s ease,border-color .35s ease,backdrop-filter .35s ease,-webkit-backdrop-filter .35s ease}
 .lvd-redesign .header-inner{height:100%;display:flex;align-items:center;gap:32px}
 .lvd-redesign .brand{display:inline-flex;align-items:center;gap:9px;flex-shrink:0;color:inherit;text-decoration:none}
 .lvd-redesign .brand-mark{display:none}
@@ -17,7 +17,7 @@
 .lvd-redesign .icon-button{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:5px;border:0;background:none;color:inherit}
 .lvd-redesign .icon-button svg{width:20px;height:20px}
 .lvd-redesign .menu-button,.lvd-redesign .search-open{display:none}
-.lvd-redesign.pm-home:not(.pm-scrolled) .site-header{background:transparent;color:#fff;border-color:transparent;backdrop-filter:none}
+.lvd-redesign.pm-home:not(.pm-scrolled) .site-header{background:rgba(255,255,255,0);color:#fff;border-color:transparent;-webkit-backdrop-filter:saturate(1.1) blur(0px);backdrop-filter:saturate(1.1) blur(0px)}
 .lvd-redesign.pm-home:not(.pm-scrolled) .desktop-nav a:hover{background:rgba(255,255,255,.1)}
 .lvd-redesign.pm-home:not(.pm-scrolled) .header-login{color:#fff;background:#0b0b0b;border-color:rgba(255,255,255,.12)}
 .lvd-redesign #main{min-height:50vh}
@@ -44,3 +44,5 @@
 .pm-hero-links { margin-top:24px; }
 .pm-hero-links a { display:inline-flex; align-items:center; gap:10px; color:rgba(255,255,255,.85); text-decoration:none; font:400 14px/20px var(--lvd-font); }
 .pm-hero-links a:hover { color:#fff; }
+
+@media(prefers-reduced-motion:reduce){.lvd-redesign .site-header{transition:none}}
