@@ -13,6 +13,7 @@
     });
     topicCounts();
     syncVideo();
+    initTopicNetwork();
   }
   function shellLanguage() {
     const de = window.LVD_I18N?.get() === 'de';
@@ -23,7 +24,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     decorate(); scrollState(); shellLanguage();
     const main = document.getElementById('main');
-    if (main) new MutationObserver(() => { topicCounts(); syncVideo(); }).observe(main, {childList:true});
+    if (main) new MutationObserver(() => { topicCounts(); syncVideo(); initTopicNetwork(); }).observe(main, {childList:true});
   });
   window.addEventListener('hashchange', () => queueMicrotask(() => { decorate(); scrollState(); shellLanguage(); }));
   document.addEventListener('lvd:languagechange', shellLanguage);
