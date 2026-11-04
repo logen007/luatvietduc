@@ -18,6 +18,10 @@ This assembles and commits the tracked public bundles and pushes the current pro
 
 ## Fast edits — owner workflow
 
+An explicit small correction interrupts a broad review. Keep it to the responsible component and one release; leave unrelated chat/admin/refactoring work for a later release. Aim to edit and submit in about one minute. CSS can use the existing presentation lane; React/TypeScript needs an application build, so activation time also depends on GitHub and the server. Do not promise one-minute activation for every change.
+
+Do not introduce test frameworks, release tooling or adjacent cleanup during a small correction. If an existing check blocks release, read the exact failure and verify the whole affected interaction before pushing the repair. Retry a failed push without running publish.sh again or bumping the version again.
+
 For routine UI and copy requests: edit the responsible source module, stage intended files, run the publish command once, and finish after the push succeeds. The owner checks the interface. Do not run local checks/build/preview, browser review, screenshots, CI polling or deployment polling. The existing automatic checks and release protection remain in place. A successful push means sent for automatic update, not verified live.
 
 Batch related requests into one push. Do not interrupt an already running release with a second push for cosmetic follow-up work; combine changes before publishing where possible. No Termius or VPS steps are needed.

@@ -21,6 +21,10 @@
 - Production database ports stay private. Never use `docker system prune`, `down -v`, blanket upgrades or a new proxy on existing ports without a reviewed plan.
 
 ## Delivery
+- Owner correction (2026-11-05): a specific small fix takes priority over an ongoing broad review. Freeze its scope, edit only the responsible component, publish it independently, and stop. Do not bundle unrelated chat, admin or architecture work into it.
+- For a routine small fix, do not add testing infrastructure, refactor adjacent code, research alternative designs or create new release tooling. Use the existing source map and delivery path. Aim to edit and submit within about one minute; this is not a guarantee that an application build or GitHub queue finishes in one minute.
+- Choose the existing presentation lane for changes that CSS/assets can correctly express. React/TypeScript behavior still uses the application lane. Never reclassify code to bypass required checks. If a release fails, diagnose its exact failing step and verify the complete affected interaction before another push; do not publish successive guessed fixes.
+- Keep one small request to one patch/version/push. If push fails after the commit succeeds, retry only the push, not publish.sh. Resume broad review only after the requested correction has been sent; put its independent fixes in a later release.
 - Owner fast-edit workflow (2026-11-03): for routine UI/copy changes, locate the responsible module, make the focused edit, stage only intended files, assemble tracked bundles and push once. User checks the interface.
 - Do not run local tests/build/preview, open a browser, take screenshots, poll CI/release status, wait for deployment, or request approval for routine authorized edits. Existing GitHub checks and server-owned backup/validation/rollback continue automatically. Do not use Termius/VPS interaction for routine releases.
 - Finish after a successful push with one short Vietnamese status: changes sent, automatic update pending. Never call a pushed change live without observing deployment. Report an observed push failure directly.
