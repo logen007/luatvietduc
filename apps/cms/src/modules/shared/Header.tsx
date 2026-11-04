@@ -30,7 +30,7 @@ export function Header() {
             {publicLinks.map((link) => <a key={link.href} href={link.href}>{language==='de'?(labels[link.label]||link.label):link.label}</a>)}
           </nav>
           <div className="live-header-actions">
-            <div className="lvd-language-switch" role="group" aria-label="Ngôn ngữ / Sprache">{(['vi','de'] as const).map(lang=><button key={lang} type="button" aria-label={lang==='vi'?'Tiếng Việt':'Deutsch'} aria-pressed={language===lang} onClick={()=>switchLanguage(lang)}><img src={'/assets/flags/'+(lang==='vi'?'vn':'de')+'.svg'} width="20" height="14" alt=""/>{lang.toUpperCase()}</button>)}</div>
+            <div className="lvd-language-switch"><button type="button" aria-label={text('Chuyển sang tiếng Đức','Zu Vietnamesisch wechseln')} onClick={()=>switchLanguage(language==='vi'?'de':'vi')}><img src={'/assets/flags/'+(language==='vi'?'vn':'de')+'.svg'} width="20" height="14" alt=""/>{language.toUpperCase()}</button></div>
             <a className="live-header-login-button button" href="/tai-khoan" aria-current={pathname === "/tai-khoan" ? "page" : undefined}>{text('Đăng nhập','Anmelden')} {arrow}</a>
             <button className="live-menu-button" type="button" aria-label="Mở menu" aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="live-menu-dialog" onClick={() => { dialog.current?.showModal(); setMenuOpen(true); }}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>

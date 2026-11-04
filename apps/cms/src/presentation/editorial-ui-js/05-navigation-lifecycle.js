@@ -17,6 +17,12 @@
   }
   function shellLanguage() {
     const de = window.LVD_I18N?.get() === 'de';
+    document.querySelectorAll('[data-language-toggle]').forEach(button => {
+      button.setAttribute('aria-label', de ? 'Zu Vietnamesisch wechseln' : 'Chuyển sang tiếng Đức');
+      button.querySelector('img').src = '/assets/flags/' + (de ? 'de' : 'vn') + '.svg';
+      const label = button.querySelector('span');
+      if (label.textContent !== (de ? 'DE' : 'VI')) label.textContent = de ? 'DE' : 'VI';
+    });
     document.querySelectorAll('[data-shell-vi]').forEach(el => { el.textContent = de ? el.dataset.shellDe : el.dataset.shellVi; });
   }
   let scrolled=null;
@@ -27,6 +33,9 @@
     if (main) new MutationObserver(() => { topicCounts(); syncVideo(); initTopicNetwork(); }).observe(main, {childList:true});
   });
   window.addEventListener('hashchange', () => queueMicrotask(() => { decorate(); scrollState(); shellLanguage(); }));
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-language-toggle]')) window.LVD_I18N?.set(window.LVD_I18N.get() === 'de' ? 'vi' : 'de');
+  });
   document.addEventListener('lvd:languagechange', shellLanguage);
   document.addEventListener('visibilitychange', syncVideo);
   reducedMotion.addEventListener('change', syncVideo);

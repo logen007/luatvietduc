@@ -13,7 +13,7 @@ const primaryNavigation = navigation.primary.map(link => `<a data-nav="${htmlEsc
 const primaryMenuNavigation = navigation.primary.map(link => `<a href="${htmlEscape(link.href)}">${htmlEscape(link.label)}</a>`).join('');
 const footerNavigation = navigation.footer.map(column => `<nav class="lvd-footer-nav" aria-label="${htmlEscape(column.title)}"><h3>${htmlEscape(column.title)}</h3>${column.links.map(([label,href]) => `<a href="${htmlEscape(href)}">${htmlEscape(label)}</a>`).join('')}</nav>`).join('');
 const arrow='<svg class="lvd-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>'
-const languageSwitch='<div class="lvd-language-switch" role="group" aria-label="Ngôn ngữ / Sprache" data-no-translation><button type="button" data-language="vi" aria-label="Tiếng Việt" aria-pressed="true"><img src="/assets/flags/vn.svg" width="20" height="14" alt="">VI</button><span aria-hidden="true">/</span><button type="button" data-language="de" aria-label="Deutsch" aria-pressed="false"><img src="/assets/flags/de.svg" width="20" height="14" alt="">DE</button></div>';
+const languageSwitch='<div class="lvd-language-switch" data-no-translation><button type="button" data-language-toggle aria-label="Chuyển sang tiếng Đức"><img src="/assets/flags/vn.svg" width="20" height="14" alt=""><span>VI</span></button></div>';
 const brand='<a class="brand" href="/#/" aria-label="Luật Việt Đức — Trang chủ"><span class="brand-mark" aria-hidden="true">L</span><span class="brand-name">Luật Việt Đức</span></a>'
 export function transformFrontend(source){
  let html=source.replace(/<meta http-equiv="Content-Security-Policy"[^>]+>/,'')
