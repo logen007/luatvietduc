@@ -24,6 +24,7 @@ export function CustomerWorkspace(){
    </header>
    <div className="chat-log" ref={state.log} role="log" aria-live="polite">{empty?<div className="chat-welcome"><span className="chat-welcome-mark" aria-hidden="true"><ChatIcon name="spark"/></span><h2>Bạn cần giải đáp điều gì?</h2></div>:<ChatMessages state={state}/>}</div>
    {(state.error||state.connectionError)&&<p role="alert" className="chat-error">{state.error||state.connectionError}</p>}
+   {!state.me?.user&&state.conversation?.state==='queued'&&state.conversation.aiEnabled===false&&<div className="chat-login-priority" role="status"><div><strong>Đăng nhập để chuyên viên ưu tiên hỗ trợ</strong><p>Lưu cuộc trò chuyện và tài liệu vào tài khoản. Yêu cầu chưa đăng nhập được xếp sau nhóm đã đăng nhập.</p></div><a href={'/auth/google?conversation='+encodeURIComponent(state.selected)}>Đăng nhập bằng Google <ChatIcon name="arrow"/></a></div>}
    <ChatComposer state={state}/>
    {empty&&questions.length>0&&<div className="chat-suggestions" aria-label="Câu hỏi trong kho kiến thức">{questions.slice(0,4).map(question=><button type="button" key={question.id} onClick={()=>state.setText(question.title)}>{question.title}<ChatIcon name="arrow"/></button>)}</div>}
   </section>

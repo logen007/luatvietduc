@@ -118,7 +118,7 @@ export function StaffWorkspace({embedded=false}:{embedded?:boolean}){
                         ? specialtyLabel(r.specialty || "general")
                         : r.title}
                     </span>
-                    <small>{stateLabel(r.state)}</small>
+                    <small>{stateLabel(r.state)}{r.state==='queued'?(r.registered?' · Đã đăng nhập — ưu tiên':' · Khách vãng lai — ưu tiên thấp'):''}</small>
                   </span>
                 </button>
               ))
@@ -221,7 +221,7 @@ export function StaffWorkspace({embedded=false}:{embedded?:boolean}){
                         ? `${r.jurisdiction} · ${specialtyLabel(r.specialty || "general")}`
                         : r.title}
                     </span>
-                    <small>{stateLabel(r.state)}</small>
+                    <small>{stateLabel(r.state)}{r.state==='queued'?(r.registered?' · Đã đăng nhập — ưu tiên':' · Khách vãng lai — ưu tiên thấp'):''}</small>
                   </button>
                 ))
               ) : (

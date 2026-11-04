@@ -79,7 +79,7 @@ export function useWorkspace(staff=false){
         setRows(list);
         // A question from the homepage starts its own intake, even with saved history.
         if (staff){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&/^[a-f0-9-]{36}$/i.test(requested))setSelected(requested);}
-        else if (active && !draft && list[0]) setSelected(list[0].id);
+        else if(active&&!draft){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&list.some((item:any)=>item.id===requested))setSelected(requested);else if(list[0])setSelected(list[0].id);}
       } catch (e) {
         if (active) setError((e as Error).message);
       } finally {

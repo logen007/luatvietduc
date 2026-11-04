@@ -1,3 +1,4 @@
+import {linkGuestConversations} from '../../../../modules/chat/guest-account';
 import { activeValues } from "../../../../modules/integrations/store";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
@@ -5,7 +6,7 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { randomBytes } from "node:crypto";
 import { getPayload } from "payload";
 import config from "@payload-config";
-import { pool, hash, transaction } from "../../../../modules/shared/db";
+import { pool, hash } from "../../../../modules/shared/db";
 const keys = createRemoteJWKSet(
   new URL("https://www.googleapis.com/oauth2/v3/certs"),
 );
@@ -97,14 +98,10 @@ export async function GET(req: Request) {
       [await hash(token), userId],
     );
     const guest = jar.get("lvd-guest")?.value;
-    if (guest)
-      await transaction(async (client) => {
-        await client.query(
-          "UPDATE lvd_conversations SET user_id=$1, guest_hash=NULL WHERE guest_hash=$2 AND user_id IS NULL",
-          [userId, await hash(guest)],
-        );
-      });
-    const result = NextResponse.redirect(origin + "/tai-khoan");
+    if (guest&&/^[\w-]{43}$/.test(guest))await linkGuestConversations(Number(userId),await hash(guest));
+    const requested=typeof flow.conversationId==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(flow.conversationId)?flow.conversationId:null;
+    const ownsRequested=requested&&(await pool.query('SELECT id FROM lvd_conversations WHERE id=$1 AND user_id=$2',[requested,userId])).rowCount===1;
+    const result = NextResponse.redirect(origin+(ownsRequested?'/tro-chuyen?conversation='+encodeURIComponent(requested!):'/tai-khoan'));
     result.cookies.set("lvd-session", token, {
       httpOnly: true,
       secure: origin.startsWith("https:"),

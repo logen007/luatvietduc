@@ -2,7 +2,9 @@ import { activeValues } from "../../../modules/integrations/store";
 import { NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 import { SignJWT } from "jose";
-export async function GET() {
+export async function GET(request:Request) {
+  const requested=new URL(request.url).searchParams.get("conversation");
+  const conversationId=requested&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(requested)?requested:undefined;
   const google = await activeValues("google");
   if (!google)
     return NextResponse.redirect(
@@ -16,7 +18,7 @@ export async function GET() {
     nonce = randomBytes(32).toString("base64url"),
     verifier = randomBytes(32).toString("base64url");
   const { createHash } = await import("node:crypto");
-  const token = await new SignJWT({ state, nonce, verifier, clientId: google.clientId })
+  const token = await new SignJWT({ state, nonce, verifier, clientId: google.clientId,conversationId })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("10m")
     .sign(new TextEncoder().encode(process.env.PAYLOAD_SECRET));
