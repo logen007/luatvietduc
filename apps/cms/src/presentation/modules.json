@@ -7,7 +7,8 @@
     "editorial-ui-css/04-topics.css",
     "editorial-ui-css/05-news-footer-responsive.css",
     "editorial-ui-css/06-application-menu.css",
-    "editorial-ui-css/07-contact-form.css"
+    "editorial-ui-css/07-contact-form.css",
+    "editorial-ui-css/08-home-insights.css"
   ],
   "live.css": [
     "live-css/00-shared-shell.css",
@@ -24,6 +25,7 @@
     "editorial-ui-js/00-bootstrap.js",
     "editorial-ui-js/01-partners.js",
     "editorial-ui-js/02-content-helpers.js",
+    "editorial-ui-js/02-home-insights.js",
     "editorial-ui-js/03-homepage.js",
     "editorial-ui-js/04-video-counts.js",
     "editorial-ui-js/05-navigation-lifecycle.js"
