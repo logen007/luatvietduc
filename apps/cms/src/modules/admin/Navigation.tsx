@@ -1,9 +1,8 @@
 import React from 'react';
+import {NavigationLinks} from './NavigationLinks';
 export function AdminNavigation({user}:{user?:{role?:string}|null}){
  const role=user?.role||'';
- return <nav className="lvd-admin-navigation" aria-label="Công cụ quản trị">
-  {role==='owner'&&<><h3>Hệ thống</h3><a href="/admin/settings">Tổng quan cài đặt</a><a href="/admin/settings/connections">Kết nối dịch vụ</a><a href="/admin/settings/backups">Sao lưu & khôi phục</a></>}
-  {['owner','support','operations'].includes(role)&&<a href="/admin/inbox">Hộp thư chuyên viên</a>}
-  {['owner','knowledge','reviewer','support'].includes(role)&&<a href="/admin/knowledge">Kho kiến thức AI</a>}
- </nav>;
+ const edit=['owner','editor','reviewer'].includes(role),knowledge=['owner','knowledge','reviewer','support'].includes(role),support=['owner','support','operations'].includes(role);
+ const items=[{label:'Tổng quan',href:'/admin',icon:'home'},...(edit?[{label:'Bài viết',href:'/admin/collections/articles',icon:'post',children:[{label:'Viết bài mới',href:'/admin/collections/articles/create'}]},{label:'Thư viện tệp',href:'/admin/collections/media',icon:'media'}]:[]),...(knowledge?[{label:'Kiến thức AI',href:'/admin/knowledge',icon:'knowledge'}]:[]),...(support?[{label:'Hộp thư',href:'/admin/inbox',icon:'chat'}]:[]),...(role==='owner'?[{label:'Tài khoản & phân quyền',href:'/admin/collections/users',icon:'users'},{label:'Cài đặt',href:'/admin/settings',icon:'settings',children:[{label:'Website & giao diện',href:'/admin/globals/site-settings'},{label:'Kết nối dịch vụ',href:'/admin/settings/connections'},{label:'Sao lưu & khôi phục',href:'/admin/settings/backups'},{label:'Nhật ký hoạt động',href:'/admin/collections/audit-events'}]}]:[])];
+ return <NavigationLinks items={items}/>;
 }

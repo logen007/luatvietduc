@@ -24,10 +24,10 @@ export async function AdminWelcome({ user }: WelcomeProps) {
   const canKnowledge = ["owner", "knowledge", "reviewer", "support"].includes(role);
   const connections = await connectionStatus();
   const destinations = [
-    ...(canEdit ? [{ href: "/admin/collections/articles", title: "Nội dung & xuất bản", text: "Soạn bài, xem phiên bản và duyệt nội dung theo quốc gia.", icon: "article" as const }] : []),
+    ...(canEdit ? [{ href: "/admin/collections/articles/create", title: "Viết bài mới", text: "Soạn bài, xem phiên bản và duyệt nội dung theo quốc gia.", icon: "article" as const }] : []),
     ...(canSupport ? [{ href: "/admin/inbox", title: "Hộp thư chuyên viên", text: "Tiếp nhận yêu cầu, trao đổi và theo dõi hội thoại được giao.", icon: "chat" as const }] : []),
-    ...(canKnowledge ? [{ href: "/admin/knowledge", title: "Kho kiến thức", text: "Biên soạn nguồn công khai, kiểm duyệt và theo dõi hạn rà soát.", icon: "knowledge" as const }] : []),
-    ...(role === "owner" ? [{ href: "/admin/settings/connections", title: "Kết nối", text: "Thiết lập Google, AI, R2 và email; kiểm tra, bật hoặc tắt ngay tại đây.", icon: "settings" as const }, { href: "/admin/settings", title: "Cài đặt hệ thống", text: "Quản lý nhận diện, điều hướng và chính sách vận hành.", icon: "settings" as const }] : []),
+    ...(canKnowledge ? [{ href: "/admin/knowledge", title: "Kiến thức AI", text: "Nhập tiêu đề, nội dung và xuất bản bài viết cho trợ lý.", icon: "knowledge" as const }] : []),
+    ...(role === "owner" ? [{ href: "/admin/collections/users", title: "Tài khoản & phân quyền", text: "Quản lý nhân sự, vai trò và quốc gia được giao.", icon: "settings" as const }, { href: "/admin/settings", title: "Cài đặt hệ thống", text: "Quản lý nhận diện, điều hướng và chính sách vận hành.", icon: "settings" as const }] : []),
   ];
   return (
     <section className="lvd-admin-welcome" aria-labelledby="lvd-admin-welcome-title">

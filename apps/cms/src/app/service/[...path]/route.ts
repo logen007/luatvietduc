@@ -8,6 +8,7 @@ import * as chat from "../../../modules/chat/service";
 import { testSource } from "../../../modules/knowledge/test-source";
 import {replyToMessage} from '../../../modules/assistant/reply';
 import {activeValues} from '../../../modules/integrations/store';
+import {knowledgeArticles,writeKnowledgeArticle} from '../../../modules/knowledge/articles';
 import {sendContact} from '../../../modules/contact/service';
 import {
   siteSettings,
@@ -139,6 +140,10 @@ async function route(
       } else if (segments[2] === "transition" && method === "POST")
         result = await chat.transition(actor, id, data);
       else throw new chat.HttpError(404, "Không tìm thấy chức năng.");
+    } else if(path === "knowledge-articles" && method === "GET") {
+      result=await knowledgeArticles(payload,user,url.searchParams.get("id"));
+    } else if(path === "knowledge-articles" && method === "POST") {
+      result=await writeKnowledgeArticle(payload,user,data);
     } else if (path === "knowledge-sources" && method === "GET") {
       if (!user || !["owner", "reviewer", "knowledge", "support"].includes(user.role))
         throw new chat.HttpError(403, "Chỉ dành cho nhân sự kiến thức.");

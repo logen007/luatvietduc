@@ -1,138 +1,33 @@
-"use client";
-import { useEffect, useState } from "react";
-import { api } from "../shared/client-api";
-export function KnowledgePanel() {
-  const [sources, setSources] = useState<any[]>([]),
-    [id, setId] = useState(""),
-    [result, setResult] = useState<any>(null),
-    [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
-  useEffect(() => {
-    api("knowledge-sources")
-      .then(setSources)
-      .catch((e) => setError(e.message));
-  }, []);
-  return (
-    <>
-      <div className="live-knowledge-page">
-        <div className="live-page-heading">
-          <div>
-            <p className="live-eyebrow">KHO FAQ / DÀNH CHO CHUYÊN VIÊN</p>
-            <h1>
-              Quản lý câu trả lời.
-              <br />
-              <span>Biên tập trong phạm vi được giao.</span>
-            </h1>
-            <p className="live-lead">
-              Biên soạn và tự xuất bản FAQ trong quốc gia được giao. Mỗi câu trả lời đi cùng căn cứ và thời hạn rà soát.
-            </p>
-          </div>
-          <a className="button secondary" href="/admin/collections/knowledge">
-            Quản lý FAQ <span aria-hidden="true">↗</span>
-          </a>
-        </div>
-        <section className="live-card" aria-label="Quy trình FAQ" style={{ marginBottom: 32 }}>
-          <h2>Từ FAQ đến câu trả lời</h2>
-          <ol>
-            <li><strong>Soạn FAQ:</strong> câu hỏi chuẩn, câu trả lời, điều kiện áp dụng và các trường hợp phải chuyển chuyên viên.</li>
-            <li><strong>Kiểm tra căn cứ:</strong> quốc gia, liên kết nguồn, ngày hiệu lực và hạn rà soát.</li>
-            <li><strong>Xuất bản:</strong> chuyên viên tự xác nhận nội dung; hệ thống lưu người xuất bản và phiên bản. Bản nháp không được dùng.</li>
-            <li><strong>Rà soát:</strong> sửa hoặc thu hồi khi căn cứ thay đổi. Không đưa hội thoại khách vào kho FAQ.</li>
-          </ol>
-          <a className="button secondary" href="/admin/collections/knowledge/create">Thêm FAQ <span aria-hidden="true">↗</span></a>
-          <p>Thêm từng cách hỏi tương đương vào “Cách hỏi khác đã được chuyên viên xác nhận”. Trợ lý chỉ trả lời câu hỏi chuẩn hoặc những cách hỏi này; nội dung khác chuyển chuyên viên. Cần bật Gemini và AI & FAQ trong cài đặt để trả lời tự động.</p>
-        </section>
-        <div className="live-knowledge-grid">
-          <form
-            className="live-card live-source-form"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setBusy(true);
-              setError("");
-              setResult(null);
-              try {
-                setResult(await api("knowledge-test", { id: Number(id) }));
-              } catch (e) {
-                setError((e as Error).message);
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            <span className="live-step-index">01 / CHỌN NGUỒN</span>
-            <h2>Bắt đầu từ căn cứ.</h2>
-            <p>
-              Nguồn đã duyệt trong phạm vi được phân quyền sẽ xuất hiện ở đây.
-            </p>
-            <label htmlFor="knowledge-source">
-              Nguồn kiểm thử
-              <select
-                id="knowledge-source"
-                required
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-              >
-                <option value="">Chọn nguồn đã duyệt</option>
-                {sources.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.jurisdiction} · {s.title}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button className="button" disabled={busy || !id}>
-              {busy ? (
-                <>
-                  <span className="live-spinner"></span>Đang kiểm thử…
-                </>
-              ) : (
-                <>
-                  Tóm tắt & kiểm tra nguồn <span aria-hidden="true">↗</span>
-                </>
-              )}
-            </button>
-            <p className="live-form-note">
-              Chỉ dùng dữ liệu công khai. Không nhập câu hỏi hoặc hồ sơ riêng
-              của khách hàng.
-            </p>
-          </form>
-          <section className="live-knowledge-output" aria-live="polite">
-            {error ? (
-              <div className="live-error" role="alert">
-                {error}
-              </div>
-            ) : result ? (
-              <article className="live-card live-source-result">
-                <span className="live-step-index">02 / KẾT QUẢ NỘI BỘ</span>
-                <h2>Nội dung cần rà soát.</h2>
-                <div className="live-body">{result.text}</div>
-                <div className="live-source-reference">
-                  <a href={result.source.url} rel="noopener noreferrer">
-                    Nguồn: {result.source.title} ↗
-                  </a>
-                  <small>Phiên bản: {result.source.revision}</small>
-                </div>
-              </article>
-            ) : (
-              <div className="live-output-empty">
-                <span className="live-document-icon" aria-hidden="true">
-                  ≡
-                </span>
-                <p className="live-eyebrow">KẾT QUẢ KIỂM THỬ</p>
-                <h2>
-                  Nguồn rõ ràng.
-                  <br />
-                  Câu trả lời có giới hạn.
-                </h2>
-                <p>
-                  Chọn một nguồn để xem kết quả thử nghiệm nội bộ. Nhân sự phụ
-                  trách kiểm tra nội dung trước khi sử dụng.
-                </p>
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
-    </>
-  );
+'use client';
+import {useEffect,useState} from 'react';
+import {api} from '../shared/client-api';
+const empty={title:'',body:'',jurisdiction:'',sourceUrl:'',questionAliases:'',effectiveFrom:'',reviewDueAt:'',expiresAt:''};
+export function KnowledgePanel(){
+ const [articles,setArticles]=useState<any[]>([]),[countries,setCountries]=useState<string[]>([]),[form,setForm]=useState<any>(empty),[editing,setEditing]=useState<any>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[search,setSearch]=useState(''),[total,setTotal]=useState(0);
+ async function refresh(){const value=await api('knowledge-articles');setArticles(value.articles);setTotal(value.total);setCountries(value.countries);return value;}
+ useEffect(()=>{let active=true;api('knowledge-articles').then(value=>{if(!active)return;setArticles(value.articles);setTotal(value.total);setCountries(value.countries);setForm({...empty,jurisdiction:value.countries.length===1?value.countries[0]:''});}).catch(error=>{if(active)setError(error.message);});return()=>{active=false;};},[]);
+ const change=(key:string,value:string)=>{setForm((previous:any)=>({...previous,[key]:value}));setNotice('');};
+ const start=()=>{setEditing(null);setForm({...empty,jurisdiction:countries.length===1?countries[0]:''});setError('');setNotice('');};
+ async function edit(id:number){setBusy(true);setError('');try{const doc=await api('knowledge-articles?id='+id);setEditing(doc);setForm(Object.fromEntries(Object.keys(empty).map(key=>[key,doc[key]||''])));setNotice('');}catch(error){setError((error as Error).message);}finally{setBusy(false);}}
+ async function save(publish:boolean){setBusy(true);setError('');setNotice('');try{const doc=await api('knowledge-articles',{...form,...(editing?{id:editing.id,updatedAt:editing.updatedAt}:{}),publish});setEditing(doc);setForm(Object.fromEntries(Object.keys(empty).map(key=>[key,doc[key]||''])));await refresh();setNotice(publish?'Đã xuất bản vào kho kiến thức AI.':'Đã lưu bản nháp.');}catch(error){setError((error as Error).message);}finally{setBusy(false);}}
+ const filtered=articles.filter(article=>article.title.toLocaleLowerCase('vi').includes(search.toLocaleLowerCase('vi')));
+ return <div className="lvd-knowledge-workspace">
+  <div className="lvd-knowledge-toolbar"><p>Nhập bài viết để xây dựng kiến thức cho trợ lý.</p><button type="button" className="button" onClick={start} disabled={busy}>Thêm bài viết</button></div>
+  <div className="lvd-knowledge-columns"><section className="lvd-knowledge-list"><label htmlFor="knowledge-search">Bài viết ({total})</label><input id="knowledge-search" type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Tìm bài viết…"/>
+   <div className="lvd-knowledge-items">{filtered.length?filtered.map(article=><button type="button" disabled={busy} className={editing?.id===article.id?'is-selected':''} key={article.id} onClick={()=>void edit(article.id)}><strong>{article.title}</strong><span>{article.jurisdiction==='DE'?'Đức':'Việt Nam'} · {article._status==='published'&&article.approved?'Đã xuất bản':'Bản nháp'}</span></button>):<p>Chưa có bài viết phù hợp.</p>}</div>{total>100&&<a href="/admin/collections/knowledge">Xem toàn bộ bài viết ↗</a>}
+  </section><form className="lvd-knowledge-editor" onSubmit={event=>{event.preventDefault();void save(true);}} aria-busy={busy}>
+   <header><h2>{editing?'Chỉnh sửa bài viết':'Bài viết mới'}</h2>{editing&&<span>{editing._status==='published'&&editing.approved?'Đã xuất bản':'Bản nháp'}</span>}</header>
+   <label htmlFor="knowledge-title">Tiêu đề<input id="knowledge-title" value={form.title} onChange={event=>change('title',event.target.value)} maxLength={240} required disabled={busy} placeholder="Tiêu đề hoặc câu hỏi bài viết giải đáp"/></label>
+   {countries.length!==1&&<label htmlFor="knowledge-country">Pháp luật áp dụng<select id="knowledge-country" value={form.jurisdiction} onChange={event=>change('jurisdiction',event.target.value)} required disabled={busy}><option value="">Chọn quốc gia</option>{countries.map(country=><option key={country} value={country}>{country==='DE'?'Đức':'Việt Nam'}</option>)}</select></label>}
+   <label htmlFor="knowledge-body">Nội dung bài viết<textarea id="knowledge-body" rows={16} value={form.body} onChange={event=>change('body',event.target.value)} maxLength={16000} required disabled={busy} placeholder="Dán hoặc viết nội dung chuyên viên đã kiểm chứng…"/></label>
+   <details className="lvd-knowledge-options"><summary>Tùy chọn bổ sung</summary>
+    <label htmlFor="knowledge-source">Nguồn tham khảo<input id="knowledge-source" type="url" value={form.sourceUrl} onChange={event=>change('sourceUrl',event.target.value)} disabled={busy} placeholder="Để trống để dùng bài viết này làm nguồn"/></label>
+    <label htmlFor="knowledge-aliases">Các cách hỏi tương đương<textarea id="knowledge-aliases" rows={3} value={form.questionAliases} onChange={event=>change('questionAliases',event.target.value)} disabled={busy} maxLength={4000} placeholder="Mỗi dòng một cách hỏi có cùng phạm vi với tiêu đề"/></label>
+    <label htmlFor="knowledge-review">Ngày rà soát<input id="knowledge-review" type="date" value={form.reviewDueAt.slice(0,10)} onChange={event=>change('reviewDueAt',event.target.value)} disabled={busy}/></label><p>Mặc định rà soát sau 90 ngày. Có thể chỉnh chi tiết trong <a href={editing?'/admin/collections/knowledge/'+editing.id:'/admin/collections/knowledge'}>trình quản lý nâng cao</a>.</p>
+   </details>
+   <p className="lvd-knowledge-publish-note">Xuất bản xác nhận nội dung đã được chuyên viên kiểm chứng và cho phép dùng làm nguồn công khai cho AI. Nội dung ngoài phạm vi bài viết vẫn được chuyển chuyên viên.</p>
+   <div className="integration-actions"><button className="button" type="submit" disabled={busy||!form.title.trim()||!form.body.trim()}>{busy?'Đang lưu…':editing? 'Cập nhật & xuất bản':'Xuất bản cho AI'}</button><button className="button secondary" type="button" disabled={busy||!form.title.trim()||!form.body.trim()} onClick={()=>void save(false)}>{editing? 'Lưu nháp / thu hồi':'Lưu nháp'}</button></div>
+   {error&&<p className="live-error" role="alert">{error}</p>}{notice&&<p className="integration-message" role="status">{notice}</p>}
+  </form></div>
+ </div>;
 }
