@@ -34,7 +34,11 @@ def main():
   new=load('new_release',candidate)
   new.ci_success(a.approved_sha,e.get,require_full=True)
   # Keep the old installed engine/policy intact until candidate and public health pass.
-  new.Engine(config).activate(a.approved_sha,current)
+  app_paths=[path for path in paths if path.startswith(('apps/cms/','assets/')) or path=='index.html']
+  if current.get('backend_sha') and new.presentation_only(app_paths):
+   new.Engine(config).activate_presentation(a.approved_sha,current)
+  else:
+   new.Engine(config).activate(a.approved_sha,current)
   config['policy_hashes'].update(hashes)
   temporary=installed.with_suffix('.next');temporary.write_bytes(contents['ops/deploy/auto-release.py']);temporary.chmod(0o700);temporary.replace(installed)
   new.atomic_json(config_path,config);new.atomic_json(e.retry_path,{})
