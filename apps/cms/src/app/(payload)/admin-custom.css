@@ -234,3 +234,38 @@ html.lvd-admin .lvd-admin-google-link:hover { background: var(--theme-elevation-
 .lvd-admin-page .chat-shell{padding:0;color:#141414;background:#fff}.lvd-admin-page .chat-internal-toggle input{width:16px;height:16px;min-height:0;display:inline-block;margin:0;padding:0}
 .lvd-admin-page :is(.live-output-empty,.live-source-result,.live-source-form){background:var(--theme-elevation-0);color:var(--theme-text)}
 .lvd-admin-page .live-output-empty :is(p,h2),.lvd-admin-page .live-source-form :is(p,h2){color:inherit}
+
+/* Internal tools inherit Payload's selected theme instead of public-page ink. */
+html.lvd-admin .lvd-admin-page {
+  --lvd-ink:var(--theme-text); --lvd-muted:var(--theme-elevation-650);
+  --lvd-font:var(--font-body); --lvd-display:var(--lvd-admin-display);
+  min-width:0; color:var(--theme-text);
+}
+html.lvd-admin .lvd-admin-page :is(h1,h2,h3,h4,.live-lead,.live-eyebrow,.integration-intro,.integration-card>p,.live-form-note,.live-source-reference,.live-body,.live-step-index) {color:var(--theme-text)}
+html.lvd-admin .lvd-admin-page :is(.integration-intro,.integration-card>p,.live-lead,.live-form-note,.live-eyebrow,.live-step-index,.integration-check) {color:var(--theme-elevation-650)}
+html.lvd-admin .lvd-admin-page :is(.live-card,.live-output-empty,.live-source-result,.live-source-form) {background:var(--theme-elevation-0);color:var(--theme-text);border-color:var(--theme-border-color)}
+html.lvd-admin .lvd-admin-page :is(.live-status,.live-status.is-pending) {background:var(--theme-elevation-100);color:var(--theme-text);border-color:var(--theme-border-color)}
+html.lvd-admin .lvd-admin-page .live-status.is-ready {background:var(--theme-success-100);color:var(--theme-success-700)}
+html.lvd-admin .lvd-admin-page input[readonly] {background:var(--theme-elevation-100);color:var(--theme-text)}
+html.lvd-admin .lvd-admin-page :is(input,textarea)::placeholder {color:var(--theme-elevation-600);opacity:1}
+html.lvd-admin .lvd-admin-page :is(.live-error,.lvd-admin-error) {background:var(--theme-error-100);color:var(--theme-error-700);border-color:var(--theme-error-300)}
+html.lvd-admin .lvd-admin-page .integration-message {color:var(--theme-success-700)}
+html.lvd-admin .lvd-admin-page :is(form,section,header,.integration-grid,.live-knowledge-grid,.backup-panel) {min-width:0}
+html.lvd-admin .lvd-admin-page :is(h1,h2,h3,p,a,summary,code) {overflow-wrap:anywhere}
+html.lvd-admin .lvd-admin-page .integration-instructions {max-width:100%;color:var(--theme-text)}
+html.lvd-admin .lvd-admin-page .integration-instructions ol {padding-inline-start:24px}
+html.lvd-admin .lvd-admin-page .integration-instructions li+li {margin-top:8px}
+/* The embedded specialist transcript deliberately has its own light paper surface. */
+html.lvd-admin .lvd-admin-page .chat-shell {--lvd-ink:#141414;--lvd-muted:#666;color:#141414}
+html.lvd-admin .lvd-admin-page .chat-shell :is(h1,h2,h3,p) {color:inherit}
+@media(max-width:760px){
+ html.lvd-admin .lvd-admin-page :is(.integration-grid,.live-knowledge-grid,.lvd-admin-settings-grid){grid-template-columns:minmax(0,1fr)}
+ html.lvd-admin .lvd-admin-page .integration-title h2{font-size:20px;flex:1 1 180px}
+ html.lvd-admin .lvd-admin-page :is(input:not([type=checkbox]):not([type=radio]),select,textarea){font-size:16px}
+ html.lvd-admin .lvd-admin-page .integration-actions>*{flex:1 1 160px;min-height:44px}
+}
+@media(max-width:420px){
+ html.lvd-admin .lvd-admin-page.live-page{padding:20px 12px}
+ html.lvd-admin .lvd-admin-page .integration-actions{flex-direction:column}
+ html.lvd-admin .lvd-admin-page .integration-actions>*{flex:auto;width:100%}
+}
