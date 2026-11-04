@@ -11,5 +11,6 @@ export function visiblePoll(task:()=>Promise<unknown>,interval:number|(()=>numbe
  const wake=()=>{clearTimeout(timer);if(!document.hidden)void tick();};
  document.addEventListener('visibilitychange',wake);window.addEventListener('focus',wake);
  if(initial)void tick();else schedule();
- return ()=>{stopped=true;clearTimeout(timer);document.removeEventListener('visibilitychange',wake);window.removeEventListener('focus',wake);};
+ const stop=()=>{stopped=true;clearTimeout(timer);document.removeEventListener('visibilitychange',wake);window.removeEventListener('focus',wake);};
+ return Object.assign(stop,{refresh:wake});
 }

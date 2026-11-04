@@ -31,8 +31,9 @@ test('polling never overlaps, sleeps when hidden, and stops on cleanup',async()=
  let stop;
  try{
   stop=visiblePoll(()=>{calls++;return new Promise(resolve=>{release=resolve;});},100);
-  assert.equal(calls,1);assert.equal(timers.size,0);win.dispatchEvent(new Event('focus'));assert.equal(calls,1);
+  assert.equal(calls,1);assert.equal(timers.size,0);stop.refresh();win.dispatchEvent(new Event('focus'));assert.equal(calls,1);
   doc.hidden=true;doc.dispatchEvent(new Event('visibilitychange'));release();await Promise.resolve();await Promise.resolve();assert.equal(timers.size,0);
-  doc.hidden=false;doc.dispatchEvent(new Event('visibilitychange'));assert.equal(calls,2);stop();release();await Promise.resolve();await Promise.resolve();assert.equal(timers.size,0);win.dispatchEvent(new Event('focus'));assert.equal(calls,2);
+  stop.refresh();assert.equal(calls,1);
+  doc.hidden=false;doc.dispatchEvent(new Event('visibilitychange'));assert.equal(calls,2);stop();release();await Promise.resolve();await Promise.resolve();assert.equal(timers.size,0);stop.refresh();win.dispatchEvent(new Event('focus'));assert.equal(calls,2);
  }finally{stop?.();Object.assign(globalThis,original);}
 });

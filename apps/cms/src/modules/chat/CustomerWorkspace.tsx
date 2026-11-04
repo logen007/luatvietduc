@@ -12,8 +12,8 @@ export function CustomerWorkspace(){
  const {t,language}=useLocale();
  const state=useWorkspace(),dialog=useRef<HTMLDialogElement>(null),[historyOpen,setHistoryOpen]=useState(false),[questions,setQuestions]=useState<{id:number;title:string}[]>([]);
  const close=()=>dialog.current?.close();
- const choose=(id:string)=>{state.setSelected(id);state.setError('');close();};
- const startNew=()=>{state.startNew();close();};
+ const choose=(id:string)=>{if(state.setSelected(id))close();};
+ const startNew=()=>{if(state.startNew())close();};
  const empty=!state.selected;
  useEffect(()=>{let active=true;setQuestions([]);void api('assistant/questions').then(value=>{if(active)setQuestions(value.questions||[]);}).catch(()=>{});return()=>{active=false;};},[]);
  const human=state.preferHuman||Boolean(state.conversation&&!state.conversation.aiEnabled);
@@ -22,7 +22,7 @@ export function CustomerWorkspace(){
   <aside className="chat-sidebar"><ChatHistory state={state} onSelect={choose} onNew={startNew}/></aside>
   <section className="chat-main" aria-label={t("Nội dung trò chuyện")}>
    <header className="chat-top"><div className="chat-top-title"><button type="button" className="chat-history-toggle" aria-label={t("Mở lịch sử hội thoại")} aria-expanded={historyOpen} onClick={()=>{dialog.current?.showModal();setHistoryOpen(true);}}><ChatIcon name="history"/></button><h1>{t(mode)}</h1></div>
-    <div className="chat-top-actions">{state.conversation?.state==='closed'&&<button type="button" onClick={()=>void state.act('reopen')} disabled={state.busy}>{t("Mở lại")}</button>}<button type="button" className="chat-new-mobile" aria-label={t("Cuộc trò chuyện mới")} onClick={startNew} disabled={state.busy}><ChatIcon name="new"/></button></div>
+    <div className="chat-top-actions">{state.conversation?.state==='closed'&&<button type="button" onClick={()=>void state.act('reopen')} disabled={state.busy||state.uploading||!state.loaded}>{t("Mở lại")}</button>}<button type="button" className="chat-new-mobile" aria-label={t("Cuộc trò chuyện mới")} onClick={startNew} disabled={state.busy||state.uploading||!state.loaded}><ChatIcon name="new"/></button></div>
    </header>
    <div className="chat-log" ref={state.log} role="log" aria-live="polite">{empty?<div className="chat-welcome"><span className="chat-welcome-mark" aria-hidden="true"><ChatIcon name="spark"/></span><h2>{t("Bạn cần giải đáp điều gì?")}</h2></div>:<ChatMessages state={state}/>}</div>
    {(state.error||state.connectionError)&&<p role="alert" className="chat-error">{t(state.error||state.connectionError)}</p>}

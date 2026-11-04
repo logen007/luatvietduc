@@ -39,6 +39,11 @@ hoặc câu hỏi mới hủy hiệu lực kết quả AI cũ. Pipeline hiện c
 hạn mức, điều kiện sử dụng, phiên bản và trạng thái hội thoại trước khi ghi phản hồi.
 
 Frontend đọc nhanh khi chờ AI, giãn nhịp khi không thay đổi và ngủ khi tab ẩn.
+Gửi/tải tệp/chuyển trạng thái dùng khóa thao tác đồng bộ ở client. Mã gửi được giữ
+để thử lại khi chưa có xác nhận lưu; sau xác nhận, khung nhập mở lại ngay và vòng
+đọc transcript hiện có được đánh thức, không tải lại toàn bộ lịch sử sau mỗi tin.
+Kiểm tra nhóm tệp ở client diễn ra trước lượt tải đầu tiên; kiểm tra nội dung và
+quyền tại server vẫn là bắt buộc. Helper client ở `modules/chat/client-operations.ts`.
 Đây là polling thích nghi, chưa phải WebSocket/SSE. Worker chỉ bật ở production,
 được tắt trong build/CI/candidate; không mở thêm cổng hay bật dịch vụ trả phí.
 

@@ -11,7 +11,7 @@ function CopyAnswer({text}:{text:string}){
 function sourceHref(url:unknown){try{const value=new URL(String(url));return value.protocol==='https:'?value.href:null;}catch{return null;}}
 export function ChatMessages({state}:{state:WorkspaceState}){
  const {t,language}=useLocale();
- const pending=state.busy&&state.sendingBody&&!state.messages.some(message=>message.client_key===state.pendingKey);
+ const pending=state.busy&&state.sendingBody&&(!state.pendingKey||!state.messages.some(message=>message.client_key===state.pendingKey));
  return <div className="chat-transcript">
   {state.messages.map(message=><article className={'chat-message '+(message.role==='user'?'user':'assistant')} key={message.id}>
    {message.role!=='user'&&<div className="chat-answer-label"><ChatIcon name={message.role==='staff'?'person':'spark'}/><strong>{t(message.role==='staff'?'Chuyên viên':['ai','clarify'].includes(message.metadata?.kind||'')?'Trợ lý AI':'Luật Việt Đức')}</strong></div>}
