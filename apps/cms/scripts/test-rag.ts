@@ -63,8 +63,9 @@ export async function testRag(payload:Payload,owner:User,support:User){
   assert.equal((await retrieve('Synthetic paraphrase','BOTH',connection)).sources.length,0,'Stale vectors cannot expose withdrawn sources');
   await indexSource();assert.equal(points.size,0,'Withdrawal removes retired vectors');
   await payload.update({collection:'knowledge',id:source.id,user:support,overrideAccess:false,data:{_status:'published',approved:true}});
-  failIndex=true;await indexSource();assert.equal((await pool.query('SELECT status,error_code FROM lvd_rag_jobs WHERE source_id=$1',[source.id])).rows[0].error_code,'provider-quota');failIndex=false;
+  await pool.query('DELETE FROM lvd_rag_embeddings WHERE source_id=$1',[source.id]);failIndex=true;await indexSource();assert.equal((await pool.query('SELECT status,error_code FROM lvd_rag_jobs WHERE source_id=$1',[source.id])).rows[0].error_code,'provider-quota');failIndex=false;
   await indexSource();assert.equal((await pool.query('SELECT status FROM lvd_rag_jobs WHERE source_id=$1',[source.id])).rows[0].status,'ready','A failed embedding retries safely');
+  const embeddingCalls=requests.filter(r=>r.task==='RETRIEVAL_DOCUMENT').length;await indexSource();assert.equal(requests.filter(r=>r.task==='RETRIEVAL_DOCUMENT').length,embeddingCalls,'Reindex reuses checkpointed public embeddings');
   await payload.delete({collection:'knowledge',id:source.id,user:owner,overrideAccess:false});await indexSource();assert.equal(points.size,0);assert.equal((await pool.query('SELECT count(*)::int AS n FROM lvd_rag_chunks WHERE source_id=$1',[source.id])).rows[0].n,0);
   console.log('Semantic RAG pipeline checks passed: durable indexing, semantic route, consent boundary, exact citations, no invented claims, withdrawal race, retry and delete cleanup (mocked providers, not a semantic-quality benchmark)');
  }finally{globalThis.fetch=originalFetch;await pool.query("DELETE FROM lvd_integration_events WHERE provider='ai'");await pool.query("DELETE FROM lvd_integrations WHERE provider='ai'");}

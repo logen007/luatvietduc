@@ -5,6 +5,8 @@ export async function up({db}:MigrateUpArgs){
  CREATE INDEX lvd_rag_jobs_pending ON lvd_rag_jobs(available_at,source_id) WHERE status IN ('pending','waiting','processing');
  CREATE TABLE lvd_rag_chunks(id uuid PRIMARY KEY,source_id integer NOT NULL REFERENCES knowledge(id) ON DELETE CASCADE,revision text NOT NULL,ordinal integer NOT NULL,body text NOT NULL,UNIQUE(source_id,revision,ordinal));
  CREATE INDEX lvd_rag_chunks_source ON lvd_rag_chunks(source_id);
+ CREATE TABLE lvd_rag_embeddings(id uuid PRIMARY KEY,source_id integer NOT NULL REFERENCES knowledge(id) ON DELETE CASCADE,revision text NOT NULL,embedding jsonb NOT NULL);
+ CREATE INDEX lvd_rag_embeddings_source ON lvd_rag_embeddings(source_id);
  CREATE TABLE lvd_rag_usage(day date PRIMARY KEY,count integer NOT NULL DEFAULT 0);
  CREATE TABLE lvd_rag_worker(id boolean PRIMARY KEY DEFAULT true CHECK(id),heartbeat_at timestamptz NOT NULL DEFAULT now(),state text NOT NULL);
  CREATE FUNCTION lvd_enqueue_knowledge() RETURNS trigger LANGUAGE plpgsql AS $$

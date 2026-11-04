@@ -37,6 +37,10 @@ export function validateSelection(value:unknown,evidence:Evidence[]):Selection{
   if(!paragraphs.includes(p.quote.trim()))throw new Error('Incomplete paragraph');
   seen.add(p.key+'\n'+p.quote);passages.push({key:p.key,quote:p.quote.trim()});
  }
+ for(const source of evidence.filter(e=>passages.some(p=>p.key===e.key))){
+  const required=source.text.split(/\n\s*\n/).map(p=>p.trim()).filter(p=>/điều kiện|ngoại lệ|trừ khi|chỉ áp dụng|không áp dụng|lưu ý|hạn chế|cần chuyên viên|mandatory|exception/i.test(p));
+  if(required.some(quote=>!passages.some(p=>p.key===source.key&&p.quote===quote)))throw new Error('Missing source conditions');
+ }
  if(passages.reduce((sum,p)=>sum+p.quote.length,0)>7000)throw new Error('Answer too long');
  return {kind:'answer',passages};
 }

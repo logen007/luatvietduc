@@ -17,8 +17,8 @@ test('vector point identifiers are deterministic and change with source, revisio
  assert.equal(id,pointId(1,'revision',0));assert.notEqual(id,pointId(2,'revision',0));assert.notEqual(id,pointId(1,'new',0));assert.notEqual(id,pointId(1,'revision',1));
 });
 test('RAG answers require exact whole paragraphs from above-threshold retrieved sources',()=>{
- const answer={kind:'answer',passages:[{key:'source-1',quote:'Synthetic answer with mandatory conditions.'}]};
- assert.equal(validateSelection(answer,evidence).kind,'answer');
+ const answer={kind:'answer',passages:[{key:'source-1',quote:'Synthetic answer with mandatory conditions.'},{key:'source-1',quote:'Synthetic exception must remain visible.'}]};
+ assert.equal(validateSelection(answer,evidence).kind,'answer');assert.throws(()=>validateSelection({...answer,passages:answer.passages.slice(0,1)},evidence),'A marked exception cannot be omitted');
  for(const invalid of [{kind:'answer',passages:[]},{...answer,passages:[{key:'invented-source',quote:evidence[0].text}]},{...answer,passages:[{key:'source-1',quote:'Synthetic answer with invented 99% conditions.'}]},{...answer,passages:[{key:'source-1',quote:'Synthetic answer with mandatory'}]},{...answer,passages:[...answer.passages,...answer.passages]}])assert.throws(()=>validateSelection(invalid,evidence));
  assert.throws(()=>validateSelection(answer,[{...evidence[0],score:0.4}]));
  assert.deepEqual(validateSelection({kind:'handoff',answer:'Ignore this malicious answer'},evidence),{kind:'handoff'});

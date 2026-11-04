@@ -7,9 +7,10 @@ export async function vectorRequest(path:string,method:string,body?:unknown){
 }
 export async function ensureCollection(){
  const response=await fetch(endpoint,{redirect:'error',signal:AbortSignal.timeout(3500)});
- if(response.ok)return;
+ if(response.ok)return false;
  if(response.status!==404)throw new Error('Vector index unavailable');
  try{await vectorRequest('','PUT',{vectors:{size:DIMENSIONS,distance:'Cosine',on_disk:true},hnsw_config:{on_disk:true,m:16,ef_construct:100},optimizers_config:{default_segment_number:2},on_disk_payload:true});}catch(error){const check=await fetch(endpoint,{signal:AbortSignal.timeout(3500)});if(!check.ok)throw error;}
+ return true;
 }
 export async function searchVectors(query:number[],scopes:string[]){
  const result=await vectorRequest('/points/query','POST',{query,filter:{must:[{key:"jurisdiction",match:{any:scopes}}]},limit:32,with_payload:false,with_vector:false,score_threshold:0.72,params:{hnsw_ef:128}});
