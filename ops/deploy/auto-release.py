@@ -97,7 +97,17 @@ def run(args, env=None):
 
 
 def fetch(url):
-    request = urllib.request.Request(url, headers={"User-Agent": "luatvietduc-release/1", "Accept": "application/vnd.github+json", "Cache-Control": "no-cache"})
+    headers = {"User-Agent": "luatvietduc-release/1", "Accept": "application/vnd.github+json", "Cache-Control": "no-cache"}
+    # Root-only, repository-scoped read token. Never stored in Git or public config.
+    if urllib.parse.urlsplit(url).hostname == 'api.github.com':
+        token_file = Path('/etc/luatvietduc-deploy/github-read-token')
+        if token_file.exists():
+            trusted_file(token_file)
+            require(token_file.stat().st_mode & 0o077 == 0, 'GitHub token file must be private')
+            token = token_file.read_text().strip()
+            require(re.fullmatch(r'github_pat_[A-Za-z0-9_]{30,240}',token), 'Invalid GitHub read token format')
+            headers['Authorization'] = 'Bearer ' + token
+    request = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(request, timeout=15) as response:
             body = response.read(8 * 1024 * 1024 + 1)

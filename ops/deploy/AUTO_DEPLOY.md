@@ -82,3 +82,9 @@ release can restore that package if it needs to roll back to the previous image.
 an exact SHA and policy manifest. The previous engine/config are saved privately
 for recovery. No new HTTP deployment endpoint, CI credential, schedule or external
 service is introduced.
+
+Authenticated CI reads use `/etc/luatvietduc-deploy/github-read-token`, owned by
+root with mode 0600. Its fine-grained token is limited to this repository and
+Actions: Read / Contents: Read. The token is sent only to api.github.com, never to
+public asset requests, logs, the repository or deployment configuration responses.
+Anonymous rate-limit backoff remains enabled if no token has been installed.
