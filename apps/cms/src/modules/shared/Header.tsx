@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import navigation from "./navigation.json";
@@ -8,6 +8,11 @@ const publicLinks=navigation.primary;
 const arrow = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6" /></svg>;
 
 export function Header() {
+  const [language,setLanguage]=useState('vi');
+  useEffect(()=>{try{setLanguage(sessionStorage.getItem('lvd-lang')==='de'?'de':'vi');}catch{}},[]);
+  const switchLanguage=(next:string)=>{setLanguage(next);try{sessionStorage.setItem('lvd-lang',next);}catch{}document.documentElement.lang=next;document.dispatchEvent(new CustomEvent('lvd:languagechange',{detail:{lang:next}}));};
+  const text=(vi:string,de:string)=>language==='de'?de:vi;
+  const labels:Record<string,string>={'Thư viện pháp luật':'Rechtsbibliothek','Tin tức':'Nachrichten','Giới thiệu':'Über uns'};
   const settings=usePublicSettings();
   const name=settings?.siteName||"Luật Việt Đức";
   const [menuOpen, setMenuOpen] = useState(false);
@@ -22,10 +27,11 @@ export function Header() {
             <span className="brand-name">{name}</span>
           </a>
           <nav className="live-nav" aria-label="Điều hướng chính">
-            {publicLinks.map((link) => <a key={link.href} href={link.href}>{link.label}</a>)}
+            {publicLinks.map((link) => <a key={link.href} href={link.href}>{language==='de'?(labels[link.label]||link.label):link.label}</a>)}
           </nav>
           <div className="live-header-actions">
-            <a className="live-header-login-button button" href="/tai-khoan" aria-current={pathname === "/tai-khoan" ? "page" : undefined}>Đăng nhập {arrow}</a>
+            <div className="lvd-language-switch" role="group" aria-label="Ngôn ngữ / Sprache">{(['vi','de'] as const).map(lang=><button key={lang} type="button" aria-label={lang==='vi'?'Tiếng Việt':'Deutsch'} aria-pressed={language===lang} onClick={()=>switchLanguage(lang)}><img src={'/assets/flags/'+(lang==='vi'?'vn':'de')+'.svg'} width="20" height="14" alt=""/>{lang.toUpperCase()}</button>)}</div>
+            <a className="live-header-login-button button" href="/tai-khoan" aria-current={pathname === "/tai-khoan" ? "page" : undefined}>{text('Đăng nhập','Anmelden')} {arrow}</a>
             <button className="live-menu-button" type="button" aria-label="Mở menu" aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="live-menu-dialog" onClick={() => { dialog.current?.showModal(); setMenuOpen(true); }}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </button>
@@ -39,10 +45,10 @@ export function Header() {
         </div>
         <nav aria-label="Menu">
           <a href="/" onClick={closeMenu}>Trang chủ {arrow}</a>
-          {publicLinks.map((link) => <a key={link.href} href={link.href} onClick={closeMenu}>{link.label}{arrow}</a>)}
+          {publicLinks.map((link) => <a key={link.href} href={link.href} onClick={closeMenu}>{language==='de'?(labels[link.label]||link.label):link.label}{arrow}</a>)}
           <a href="/#/lien-he" onClick={closeMenu}>Liên hệ {arrow}</a>
           <a href="/tro-chuyen" onClick={closeMenu} aria-current={pathname === "/tro-chuyen" ? "page" : undefined}>Hỏi chuyên viên {arrow}</a>
-          <a href="/tai-khoan" onClick={closeMenu}>Đăng nhập {arrow}</a>
+          <a href="/tai-khoan" onClick={closeMenu}>{text('Đăng nhập','Anmelden')} {arrow}</a>
         </nav>
       </dialog>
     </>
