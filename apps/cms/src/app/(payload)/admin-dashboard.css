@@ -1,8 +1,8 @@
 /* Admin design system. Owns the final visual layer; public pages are unaffected. */
 html.lvd-admin[data-theme='dark']{
- --admin-canvas:#10131b;--admin-sidebar:#111722;--admin-panel:#161c27;--admin-raised:#1d2532;--admin-line:#2e3849;--admin-text:#edf1f7;--admin-muted:#a5b0c1;--admin-accent:#80a7ff;--admin-selected:#1d2d49;
+ --admin-canvas:#0a0a0a;--admin-sidebar:#0d0d0d;--admin-panel:#141414;--admin-raised:#1c1c1c;--admin-line:#303030;--admin-text:#f5f5f5;--admin-muted:#a3a3a3;--admin-accent:#fafafa;--admin-selected:#242424;
  --theme-bg:var(--admin-canvas);--theme-text:var(--admin-text);--theme-input-bg:var(--admin-panel);--theme-border-color:var(--admin-line);
- --theme-elevation-0:#10131b;--theme-elevation-50:#161c27;--theme-elevation-100:#1d2532;--theme-elevation-150:#252f3e;--theme-elevation-200:#2e3849;--theme-elevation-250:#394558;--theme-elevation-300:#47546b;--theme-elevation-350:#55647c;--theme-elevation-400:#65758e;--theme-elevation-450:#75859c;--theme-elevation-500:#8594aa;--theme-elevation-550:#95a3b7;--theme-elevation-600:#a5b0c1;--theme-elevation-650:#b5bfce;--theme-elevation-700:#c5cdda;--theme-elevation-750:#d1d8e3;--theme-elevation-800:#dde3ec;--theme-elevation-850:#e5eaf1;--theme-elevation-900:#edf1f7;--theme-elevation-950:#f5f7fb;--theme-elevation-1000:#fff;
+ --theme-elevation-0:#0a0a0a;--theme-elevation-50:#141414;--theme-elevation-100:#1c1c1c;--theme-elevation-150:#262626;--theme-elevation-200:#303030;--theme-elevation-250:#3b3b3b;--theme-elevation-300:#4a4a4a;--theme-elevation-350:#595959;--theme-elevation-400:#686868;--theme-elevation-450:#777777;--theme-elevation-500:#858585;--theme-elevation-550:#949494;--theme-elevation-600:#a3a3a3;--theme-elevation-650:#b3b3b3;--theme-elevation-700:#c2c2c2;--theme-elevation-750:#d1d1d1;--theme-elevation-800:#dedede;--theme-elevation-850:#e8e8e8;--theme-elevation-900:#f5f5f5;--theme-elevation-950:#fafafa;--theme-elevation-1000:#fff;
  --lvd-admin-muted:var(--admin-muted);--lvd-admin-display:var(--font-body);--lvd-ink:var(--admin-text);--lvd-muted:var(--admin-muted);--lvd-paper:var(--admin-panel);--lvd-line:var(--admin-line);--nav-width:264px;--app-header-height:64px;color-scheme:dark;
 }
 html.lvd-admin body{background:var(--admin-canvas);color:var(--admin-text);font-size:14px;line-height:1.55}
@@ -16,7 +16,7 @@ html.lvd-admin .nav__header{width:100%}
 html.lvd-admin .nav__scroll{padding-inline:14px;--nav-padding-block-end:16px;scrollbar-width:thin;scrollbar-color:var(--admin-line) transparent}
 html.lvd-admin .lvd-admin-sidebar{display:flex;flex-direction:column;width:100%;min-width:0;flex:1}
 html.lvd-admin .lvd-sidebar-brand{display:flex;align-items:center;gap:11px;color:var(--admin-text);text-decoration:none;padding:5px 10px 22px;border-bottom:1px solid var(--admin-line);margin-bottom:10px}
-html.lvd-admin .lvd-sidebar-mark{width:36px;height:36px;display:grid;place-items:center;border:1px solid #42649a;border-radius:10px;background:var(--admin-selected);color:var(--admin-accent);font-size:12px;font-weight:650;letter-spacing:-.05em;flex-shrink:0}
+html.lvd-admin .lvd-sidebar-mark{width:36px;height:36px;display:grid;place-items:center;border:1px solid #404040;border-radius:10px;background:var(--admin-selected);color:var(--admin-accent);font-size:12px;font-weight:650;letter-spacing:-.05em;flex-shrink:0}
 html.lvd-admin .lvd-sidebar-brand strong{display:block;font-size:14px;font-weight:600;line-height:1.4}html.lvd-admin .lvd-sidebar-brand small{display:block;font-size:11px;color:var(--admin-muted);margin-top:2px}
 html.lvd-admin .lvd-admin-menu{display:flex;flex-direction:column;gap:3px;padding:0 0 20px;width:100%}
 html.lvd-admin .lvd-menu-section{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--admin-muted);margin:20px 12px 9px;font-weight:600}
@@ -24,7 +24,7 @@ html.lvd-admin .lvd-menu-main{display:flex;align-items:center;min-height:42px;bo
 html.lvd-admin .lvd-menu-main>a{display:flex;align-items:center;gap:11px;color:var(--admin-muted);text-decoration:none;min-width:0;min-height:40px;flex:1;padding:9px 11px;font-size:13px;font-weight:450}
 html.lvd-admin .lvd-menu-main>a>svg{width:18px;height:18px;flex-shrink:0;opacity:.85}
 html.lvd-admin .lvd-menu-main:hover{background:var(--admin-raised)}html.lvd-admin .lvd-menu-main:hover>a{color:var(--admin-text)}
-html.lvd-admin .lvd-menu-item.is-current>.lvd-menu-main{background:var(--admin-selected);border-color:#344d73;box-shadow:inset 3px 0 var(--admin-accent)}
+html.lvd-admin .lvd-menu-item.is-current>.lvd-menu-main{background:var(--admin-selected);border-color:#454545;box-shadow:inset 3px 0 var(--admin-accent)}
 html.lvd-admin .lvd-menu-item.is-current>.lvd-menu-main>a{color:var(--admin-text);font-weight:600}
 html.lvd-admin .lvd-menu-main>button{border:0;background:transparent;color:var(--admin-muted);width:38px;height:40px;display:grid;place-items:center;border-radius:7px;cursor:pointer;flex-shrink:0}
 html.lvd-admin .lvd-menu-main>button:hover{color:var(--admin-text);background:#ffffff08}
@@ -33,7 +33,7 @@ html.lvd-admin .lvd-menu-main>button[aria-expanded='true'] svg{transform:rotate(
 html.lvd-admin .lvd-menu-children{border-left:1px solid var(--admin-line);margin:5px 10px 8px 20px;padding:3px 0 3px 14px;gap:2px}
 html.lvd-admin .lvd-menu-children>a{padding:8px 10px;border-radius:6px;color:var(--admin-muted);font-size:12px;min-height:36px;text-decoration:none;line-height:1.5}
 html.lvd-admin .lvd-menu-children>a:hover{color:var(--admin-text);background:var(--admin-raised)}
-html.lvd-admin .lvd-menu-children>a[aria-current='page']{color:var(--admin-accent);background:#80a7ff0a;font-weight:550}
+html.lvd-admin .lvd-menu-children>a[aria-current='page']{color:var(--admin-accent);background:#fafafa0a;font-weight:550}
 html.lvd-admin .lvd-menu-settings{margin:0;padding:0;border:0}
 html.lvd-admin .lvd-sidebar-account{border-top:1px solid var(--admin-line);display:flex;align-items:center;gap:10px;padding:18px 8px 8px;margin-top:auto}
 html.lvd-admin .lvd-sidebar-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--admin-raised);border:1px solid var(--admin-line);font-size:13px;flex-shrink:0}
@@ -50,13 +50,13 @@ html.lvd-admin .lvd-admin-welcome__intro{font-size:13px;line-height:1.7;color:va
 html.lvd-admin .lvd-admin-website-link{border:1px solid var(--admin-line);background:var(--admin-panel);color:var(--admin-text);border-radius:8px;min-height:40px;padding:9px 13px;white-space:nowrap}
 html.lvd-admin .lvd-dashboard-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:32px}
 html.lvd-admin .lvd-dashboard-stats>a{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:21px 22px;background:var(--admin-panel);border:1px solid var(--admin-line);border-radius:12px;color:var(--admin-text);text-decoration:none;min-width:0}
-html.lvd-admin .lvd-dashboard-stats>a:hover{border-color:#526b93;background:var(--admin-raised)}
+html.lvd-admin .lvd-dashboard-stats>a:hover{border-color:#555555;background:var(--admin-raised)}
 html.lvd-admin .lvd-dashboard-stats span{font-size:12px;color:var(--admin-muted);font-weight:500}.lvd-dashboard-stats strong{font-size:32px;line-height:1.2;letter-spacing:-.05em;font-weight:600;font-variant-numeric:tabular-nums}
 html.lvd-admin .lvd-dashboard-stats small{font-size:10px;line-height:1.6;color:var(--admin-muted)}
 html.lvd-admin .lvd-dashboard-section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 14px}.lvd-dashboard-section-title h2{font-size:16px;margin:0}.lvd-dashboard-section-title>span{font-size:11px;color:var(--admin-muted)}
 html.lvd-admin .lvd-admin-destinations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 html.lvd-admin .lvd-admin-destination{display:flex;align-items:center;gap:14px;min-height:100px;padding:20px;border:1px solid var(--admin-line);border-radius:10px;background:var(--admin-panel);text-decoration:none;color:var(--admin-text);box-shadow:none}
-html.lvd-admin .lvd-admin-destination:hover{background:var(--admin-raised);border-color:#526b93;transform:none}
+html.lvd-admin .lvd-admin-destination:hover{background:var(--admin-raised);border-color:#555555;transform:none}
 html.lvd-admin .lvd-admin-destination__icon{width:40px;height:40px;border-radius:9px;border:1px solid var(--admin-line);background:var(--admin-raised);display:grid;place-items:center;flex-shrink:0;color:var(--admin-accent)}
 html.lvd-admin .lvd-admin-destination__icon svg{width:19px;height:19px}.lvd-admin-destination__body{min-width:0;flex:1}
 html.lvd-admin .lvd-admin-destination__body strong{display:block;font-family:var(--font-body);font-size:14px;font-weight:550;margin:0 0 5px;color:var(--admin-text)}
@@ -69,25 +69,25 @@ html.lvd-admin .lvd-admin-connections__heading{margin-bottom:20px}.lvd-admin-con
 html.lvd-admin .lvd-admin-connection-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 html.lvd-admin .lvd-admin-connection{background:var(--admin-canvas);border:1px solid var(--admin-line);border-radius:8px;padding:16px;display:flex;align-items:flex-start;flex-direction:column;gap:12px;font-size:12px}
 html.lvd-admin :is(.lvd-admin-status,.live-status){font-size:10px;padding:3px 8px;border:1px solid var(--admin-line);border-radius:20px;background:transparent;color:var(--admin-muted)}
-html.lvd-admin :is(.lvd-admin-status--configured,.live-status.is-ready){background:#42bc9110;border-color:#42bc9140;color:#83d6b6}
+html.lvd-admin :is(.lvd-admin-status--configured,.live-status.is-ready){background:#a3a3a310;border-color:#a3a3a340;color:#dedede}
 /* Native tables, fields and custom operation panels share these foundations. */
 html.lvd-admin :is(.card,.lvd-admin-card,.lvd-admin-settings-grid>section,.lvd-admin-page .live-card,.integration-card){background:var(--admin-panel);border:1px solid var(--admin-line);border-radius:12px;box-shadow:none;color:var(--admin-text)}
 html.lvd-admin .card__title{font-family:var(--font-body);font-size:15px;font-weight:550}.card:hover{box-shadow:none}
 html.lvd-admin .table{border:1px solid var(--admin-line);border-radius:10px;overflow-x:auto;background:var(--admin-panel)}
 html.lvd-admin .table th{font-size:11px;font-weight:600;letter-spacing:.025em;background:var(--admin-raised);color:var(--admin-muted);border-color:var(--admin-line);padding-block:12px}
 html.lvd-admin .table td{font-size:13px;border-color:var(--admin-line);padding-block:13px;color:var(--admin-text)}
-html.lvd-admin .table tr:hover td{background:#80a7ff05}html.lvd-admin .table a{color:inherit}
+html.lvd-admin .table tr:hover td{background:#fafafa05}html.lvd-admin .table a{color:inherit}
 html.lvd-admin .field-label{font-size:12px;font-weight:550;margin-bottom:8px;color:var(--admin-text)}
 html.lvd-admin .field-description{font-size:11px;line-height:1.65;color:var(--admin-muted)}
 html.lvd-admin :is(.field-type,.lvd-admin-page) :is(input:not([type='checkbox']):not([type='radio']):not([type='file']),textarea,select){background:var(--admin-canvas);color:var(--admin-text);border:1px solid var(--admin-line);border-radius:8px;box-shadow:none;min-height:42px;font-size:13px}
-html.lvd-admin :is(.field-type,.lvd-admin-page) :is(input,textarea)::placeholder{color:#8594aa}
+html.lvd-admin :is(.field-type,.lvd-admin-page) :is(input,textarea)::placeholder{color:#858585}
 html.lvd-admin :is(.field-type,.lvd-admin-page) :is(input,textarea,select):focus-visible{outline:2px solid var(--admin-accent);border-color:var(--admin-accent)}
 html.lvd-admin .checkbox-input__input{accent-color:var(--admin-accent)}
 html.lvd-admin :is(.popup__content,.rs__menu,.drawer__content){background:var(--admin-panel);color:var(--admin-text);border-color:var(--admin-line)}
 html.lvd-admin .rs__control{background:var(--admin-canvas);border-color:var(--admin-line);border-radius:8px;min-height:42px}
 html.lvd-admin .btn:not(.btn--style-none){border-radius:8px;min-height:40px;font-size:12px;letter-spacing:normal;font-weight:550}
-html.lvd-admin .btn--style-primary:not(.btn--disabled){--bg-color:var(--admin-accent);--hover-bg:#9ab9ff;--color:#10131b;border-color:transparent}
-html.lvd-admin .btn--style-secondary{--bg-color:var(--admin-raised);--hover-bg:#283548;--color:var(--admin-text);border-color:var(--admin-line)}
+html.lvd-admin .btn--style-primary:not(.btn--disabled){--bg-color:var(--admin-accent);--hover-bg:#dedede;--color:#0a0a0a;border-color:transparent}
+html.lvd-admin .btn--style-secondary{--bg-color:var(--admin-raised);--hover-bg:#292929;--color:var(--admin-text);border-color:var(--admin-line)}
 html.lvd-admin .lvd-admin-page{max-width:1440px;padding-top:24px}
 html.lvd-admin .lvd-admin-page-heading{border-bottom:1px solid var(--admin-line);padding-bottom:20px;margin-bottom:24px}
 html.lvd-admin .lvd-admin-page-heading>a{font-size:11px;color:var(--admin-muted)}
@@ -109,7 +109,7 @@ html.lvd-admin .operator-eyebrow{letter-spacing:.08em}
  html.lvd-admin .nav__header{width:100%;height:52px;background:var(--admin-sidebar);border-bottom:1px solid var(--admin-line)}
  html.lvd-admin .nav__mobile-close{display:flex;padding:8px 0;min-height:42px}
  html.lvd-admin .nav__scroll{padding:62px 12px 18px}
- html.lvd-admin .template-default__nav-overlay{position:fixed;inset:0;width:100vw;height:100dvh;z-index:1000;background:#05080f99;backdrop-filter:blur(3px);opacity:0;pointer-events:none}
+ html.lvd-admin .template-default__nav-overlay{position:fixed;inset:0;width:100vw;height:100dvh;z-index:1000;background:#00000099;backdrop-filter:blur(3px);opacity:0;pointer-events:none}
  html.lvd-admin .template-default--nav-open .template-default__nav-overlay{display:block;visibility:visible;opacity:1;pointer-events:auto}
  html.lvd-admin .template-default__wrap{min-width:0;max-width:100%;grid-column:1}
  html.lvd-admin .lvd-sidebar-brand{padding:8px 10px 18px}.lvd-menu-section{margin-top:16px}
@@ -131,3 +131,19 @@ html.lvd-admin .operator-eyebrow{letter-spacing:.08em}
  html.lvd-admin .lvd-social-settings-row{padding:14px 12px}
 }
 @media(prefers-reduced-motion:reduce){html.lvd-admin .nav,html.lvd-admin .lvd-menu-main>button svg{transition:none}}
+
+/* Monochrome feedback remains explicit in labels, borders and note headings. */
+html.lvd-admin .lvd-admin-workflow__dot{background:var(--admin-muted)}
+html.lvd-admin .lvd-admin-page :is(.live-status,.live-status.is-ready,.live-status.is-pending){background:var(--admin-raised);border-color:var(--admin-line);color:var(--admin-text)}
+html.lvd-admin :is(.operator-status.human,.operator-status.queued,.operator-welcome>span,.operator-files>div>small){color:var(--admin-muted)}
+html.lvd-admin :is(.operator-message.is-note,.operator-composer.is-note){background:#202020;border-color:#484848}
+html.lvd-admin .operator-thread.is-selected{box-shadow:inset 3px 0 #fafafa}
+html.lvd-admin :is(.operator-error,.live-error,.field-error){color:#e5e5e5;border-color:#777}
+html.lvd-admin .lvd-admin-page :is(.live-success,.live-status-dot){color:var(--admin-text)}
+html.lvd-admin .lvd-admin-status--configured{background:#262626;border-color:#555;color:#fafafa}
+
+html.lvd-admin[data-theme='dark']{
+ --theme-error-50:#141414; --theme-error-100:#1c1c1c; --theme-error-150:#262626; --theme-error-200:#303030; --theme-error-250:#3b3b3b; --theme-error-300:#4a4a4a; --theme-error-400:#686868; --theme-error-500:#a3a3a3; --theme-error-600:#b3b3b3; --theme-error-700:#c2c2c2; --theme-error-800:#dedede; --theme-error-900:#f5f5f5; --theme-error-950:#fafafa; --theme-error-1000:#ffffff;
+ --theme-success-50:#141414; --theme-success-100:#1c1c1c; --theme-success-150:#262626; --theme-success-200:#303030; --theme-success-250:#3b3b3b; --theme-success-300:#4a4a4a; --theme-success-400:#686868; --theme-success-500:#a3a3a3; --theme-success-600:#b3b3b3; --theme-success-700:#c2c2c2; --theme-success-800:#dedede; --theme-success-900:#f5f5f5; --theme-success-950:#fafafa; --theme-success-1000:#ffffff;
+ --theme-warning-50:#141414; --theme-warning-100:#1c1c1c; --theme-warning-150:#262626; --theme-warning-200:#303030; --theme-warning-250:#3b3b3b; --theme-warning-300:#4a4a4a; --theme-warning-400:#686868; --theme-warning-500:#a3a3a3; --theme-warning-600:#b3b3b3; --theme-warning-700:#c2c2c2; --theme-warning-800:#dedede; --theme-warning-900:#f5f5f5; --theme-warning-950:#fafafa; --theme-warning-1000:#ffffff;
+}
