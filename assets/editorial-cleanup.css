@@ -40,3 +40,63 @@
  .catalog-page .catalog-groups {margin-top:17px;}
  .lvd-partner-section {padding-bottom:0;}
 }
+
+/* Footer social links: free-standing monochrome marks, no boxed buttons.
+   Keep a 44px invisible tap area for mobile and keyboard accessibility. */
+.lvd-footer .lvd-footer-social {
+  display:flex;
+  align-items:center;
+  column-gap:18px;
+  row-gap:7px;
+  flex-wrap:wrap;
+}
+.lvd-footer .lvd-footer-social .lvd-footer-minilabel {
+  margin-right:2px;
+}
+.lvd-footer .lvd-footer-social a.lvd-social-icon {
+  display:inline-grid;
+  place-items:center;
+  flex:0 0 44px;
+  width:44px;
+  height:44px;
+  margin:0;
+  padding:8px;
+  border:0;
+  border-radius:0;
+  outline:0;
+  background:transparent;
+  box-shadow:none;
+  color:#677589;
+  font-size:0;
+  line-height:0;
+  text-decoration:none;
+  transition:color .18s ease,transform .18s ease;
+}
+.lvd-footer .lvd-footer-social a.lvd-social-icon svg {
+  display:block;
+  width:28px;
+  height:28px;
+  fill:currentColor;
+  stroke:none;
+  pointer-events:none;
+}
+.lvd-footer .lvd-footer-social a.lvd-social-icon:hover {
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  color:#176fff;
+  transform:translateY(-2px);
+}
+.lvd-footer .lvd-footer-social a.lvd-social-icon:focus-visible {
+  outline:2px solid #176fff;
+  outline-offset:1px;
+  border-radius:6px;
+}
+@media(max-width:680px) {
+  .lvd-footer .lvd-footer-social {gap:6px 14px;}
+  .lvd-footer .lvd-footer-social .lvd-footer-minilabel {width:100%;margin:0 0 3px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .lvd-footer .lvd-footer-social a.lvd-social-icon {transition:none;}
+  .lvd-footer .lvd-footer-social a.lvd-social-icon:hover {transform:none;}
+}
