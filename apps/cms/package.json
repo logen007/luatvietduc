@@ -21,7 +21,9 @@
     "prebuild": "node scripts/prepare-frontend.mjs",
     "predev": "node scripts/prepare-frontend.mjs",
     "test:system": "payload run scripts/test-system.ts",
-    "test:http": "payload run scripts/test-http.ts"
+    "test:http": "payload run scripts/test-http.ts",
+    "postbuild": "node scripts/check-browser-ci.mjs",
+    "test:browser": "node --import tsx scripts/test-browser.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1161.0",
@@ -43,6 +45,7 @@
     "@types/pg": "8.15.6",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
+    "playwright": "1.55.1",
     "tsx": "4.20.6",
     "typescript": "5.9.3"
   },

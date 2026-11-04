@@ -30,7 +30,7 @@ const model=cache(async(pathname:string,queryString:string)=>{
  }
  const newsGroup=query.get('nhom')||'';
  const filter=query.get('linh-vuc')||'',topicGroup=route.group||groupAliases[filter]||filter;
- const articleList=route.kind==='home'?await publicNewsList({limit:3}):route.kind==='news'?await publicNewsList({page,query:keyword,group:newsGroup,editorialType:query.get('loai')||''}):route.kind==='library'?await publicArticleList({group:topicGroup,country:route.country,query:keyword,page,limit:12}):null;
+ const articleList=route.kind==='home'?await publicNewsList({limit:3}):route.kind==='news'?await publicNewsList({page,query:keyword,group:newsGroup,editorialType:query.get('loai')||''}):route.kind==='library'?await publicArticleList({group:topicGroup,country:route.country,query:keyword,order:query.get('sap-xep')||'source',page,limit:12}):null;
  const topics=route.kind==='library'&&route.country!=='DE'?catalogueTopics(content.groups,keyword,topicGroup,query.get('sap-xep')||'source'):[];
  if(['library','news'].includes(route.kind)){
   const showTopics=Boolean(route.group||keyword||filter||query.get('xem')==='tat-ca')&&route.country!=='DE';

@@ -883,6 +883,9 @@ body.lvd-redesign{--font:var(--lvd-font);margin:0;background:#fff;color:#0b0b0b;
 @media(max-width:760px){
  .lvd-redesign .site-header .header-login,.live-header .live-header-login-button{display:none}
 }
+
+/* Compact visual, comfortable hit area on touch screens. */
+.lvd-language-switch button{min-width:44px;min-height:44px}
 /* Contact email owns its form and responsive layout; the prototype remains a reference. */
 .lvd-redesign .contact-email-heading{max-width:920px;margin:20px 0 64px}
 .lvd-redesign .contact-email-heading h1{margin:20px 0 24px;font:500 clamp(48px,5.5vw,80px)/1.05 var(--lvd-display);letter-spacing:-.025em}

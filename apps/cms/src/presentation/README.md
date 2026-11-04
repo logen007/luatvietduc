@@ -3,7 +3,7 @@
 Edit these small source files rather than the generated public bundles.
 `modules.json` defines concatenation order; fragments retain their surrounding JS scope.
 
-- `editorial-ui-js/00-native-routing.js`: bookmark compatibility for the native public pages. Remaining legacy fragments are retained references, inactive on native pages.
+- `editorial-ui-js/00-native-routing.js`: bookmark compatibility for the native public pages. Only this compatibility fragment is assembled into editorial-ui.js. Legacy fragments remain as references.
 - `editorial-ui-css`: base, hero/header, partners, country links, topic cards, news/footer/responsive and application menu.
 - `live-css`: shared shell, footer, account, connections, articles, responsive rules and chat.
 - Chat entry is `modules/chat/Workspace.tsx`; customer and staff screens are separate. `useWorkspace.ts` owns transport, retry and polling; `chat/ui/` owns composer, history and transcript. `modules/assistant/` owns FAQ scope, provider formatting and transactional delivery.
@@ -64,3 +64,9 @@ CSS files and the two exact admin CSS source paths. React/TypeScript changes sti
 require a full application build. See docs/07-current-structure.md for backend ownership.
 
 Public pages use native React/SSR routes. Edit `modules/public-site/`, not the retained prototype renderers. Root prototype assets and old renderer fragments remain for reference and rollback. `content.json` is reproducibly extracted source content, not a new approved knowledge store. Database articles remain the authority for published content and AI eligibility.
+
+## CMS interface regression checks
+
+The existing required CMS workflow runs browser checks through npm postbuild on CI. It uses the built CMS on localhost:3047, the isolated lvd_test database, synthetic admin credentials, and intercepted provider requests. No production target or external provider is allowed. Ordinary local builds and container builds do not install/run browsers. Scenarios cover public VI/DE, phone layout, session loading, signed-in menus, recovery from connection failures, unsaved edits, and native admin destinations. This is a focused regression gate, not a visual or accessibility certification.
+
+Project copy guidance is .agents/skills/luat-viet-duc-copy/SKILL.md. Keep approved navigation labels and write idiomatic Vietnamese/German without invented legal guarantees or delivery promises.

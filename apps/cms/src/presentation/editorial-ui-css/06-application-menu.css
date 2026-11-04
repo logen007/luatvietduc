@@ -49,3 +49,6 @@
 @media(max-width:760px){
  .lvd-redesign .site-header .header-login,.live-header .live-header-login-button{display:none}
 }
+
+/* Compact visual, comfortable hit area on touch screens. */
+.lvd-language-switch button{min-width:44px;min-height:44px}

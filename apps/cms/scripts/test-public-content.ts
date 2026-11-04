@@ -33,6 +33,12 @@ export async function testPublicContent(payload:Payload,owner:User){
   const legal=await publicArticleList({query:suffix,group:category.slug});assert.deepEqual(legal.docs.map(doc=>doc.id),[visible.id]);
   assert.deepEqual((await publicArticleList({kind:'news',query:suffix})).docs.map(doc=>doc.id),[news.id]);
   assert.equal((await publicArticleList({query:suffix,country:'DE'})).totalDocs,0);
+  const zebra=await create('zebra-sort',true),alpha=await create('alpha-sort',true);
+  const sorted=await publicArticleList({query:suffix,group:category.slug,order:'a-z',limit:1,page:1});
+  const next=await publicArticleList({query:suffix,group:category.slug,order:'a-z',limit:1,page:2});
+  assert.equal(sorted.docs[0].id,alpha.id);assert.equal(next.docs[0].id,visible.id);
+  assert.ok(zebra.id!==alpha.id);
+
   for(const enabled of [false,true]){
    await payload.updateGlobal({slug:'site-settings',overrideAccess:false,user:owner,data:{publicIndexingEnabled:enabled}});
    assert.equal((await publicSiteSettings()).publicIndexingEnabled,enabled);

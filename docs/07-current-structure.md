@@ -127,3 +127,9 @@ email hay đọc dữ liệu khách trong quá trình kiểm tra. Đây không p
 
 Nguồn kiến thức nhập mới là Bài viết + “Cho phép dùng cho AI”; trình sửa nguồn cũ
 chỉ giữ để bảo trì dữ liệu đã có. Không loại bỏ nguồn cũ hoặc xóa dữ liệu trong đợt này.
+
+## Review UX — bản sửa sau 01.18.00
+
+Biểu mẫu nguồn kiến thức cũ và kết nối dùng cảnh báo thay đổi chưa lưu; khóa kết nối không được đưa vào lưu nháp trên trình duyệt. Trang kết nối phân biệt hết phiên, thiếu quyền và lỗi có thể thử lại. Chat có trạng thái khởi tạo và thử lại, giữ nguyên giới hạn phiên, lưu tin và chuyển chuyên viên. Lựa chọn sắp xếp thư viện áp dụng cả truy vấn bài CMS, trước phân trang.
+
+Bundle editorial-ui.js chỉ còn adapter bookmark native; giữ tên tệp/version để tương thích kiểm tra triển khai. Các fragment renderer cũ vẫn nằm trong nguồn tham chiếu. Kiểm tra giao diện CMS chạy trong postbuild của workflow hiện hữu ở CI, không sửa policy phát hành và không yêu cầu vào VPS.

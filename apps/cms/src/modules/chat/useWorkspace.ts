@@ -2,12 +2,12 @@
 import {useEffect,useRef,useState} from "react";
 import {api} from "../shared/client-api";
 import {visiblePoll} from "../shared/polling";
-import {isPublicSessionCurrent,usePublicSession} from '../shared/session-client';
+import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
 import {createMessageOutbox,createOperationGate,mergeMessages,validateAttachmentBatch,type MessageReceipt} from './client-operations';
 import type {Conversation,Message,Transcript,Attachment} from './contracts';
 export function useWorkspace(staff=false,manageList=true){
   const session=usePublicSession(),me=session.status==='ready'?session.data:null;
-  const [ownerRevision,setOwnerRevision]=useState(-1);
+  const [ownerRevision,setOwnerRevision]=useState(-1),[intakeAttempt,setIntakeAttempt]=useState(0),[initializationFailed,setInitializationFailed]=useState(false);
   const visible=session.status==='ready'&&ownerRevision===session.revision;
   const current=()=>isPublicSessionCurrent(session.revision);
   const [rows, setRows] = useState<Conversation[]>([]),
@@ -71,7 +71,7 @@ export function useWorkspace(staff=false,manageList=true){
     operations.current.reset();outbox.current.reset();selection.current='';
     setRows([]);setSelected('');setConversation(null);setMessages([]);
     setAttachments([]);setUploading(false);setBusy(false);setSendingBody('');
-    setError('');setConnectionError('');setText('');setInternal(false);setCountry('');setPreferHuman(false);setLoaded(false);
+    setError('');setConnectionError('');setText('');setInternal(false);setCountry('');setPreferHuman(false);setLoaded(false);setInitializationFailed(false);
     setOwnerRevision(session.revision);
     if(session.status!=='ready')return;
     let active = true;
@@ -99,7 +99,7 @@ export function useWorkspace(staff=false,manageList=true){
         else if(!draft){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&list.some(item=>item.id===requested))changeSelection(requested);else if(list[0])changeSelection(list[0].id);}
         if(draft&&sessionStorage.getItem('lvd-question')===draft)sessionStorage.removeItem('lvd-question');
       } catch (e) {
-        if (valid()) setError((e as Error).message);
+        if (valid()){setError((e as Error).message);setInitializationFailed(true);}
       } finally {
         if (valid()) setLoaded(true);
       }
@@ -108,7 +108,7 @@ export function useWorkspace(staff=false,manageList=true){
       active = false;
       operations.current.reset();outbox.current.reset();
     };
-  }, [staff,manageList,session.revision,session.status]);
+  }, [staff,manageList,session.revision,session.status,intakeAttempt]);
   useEffect(() => {
     stickToBottom.current=true;revision.current++;setConversation(null);
     if (!visible || !selected) {
@@ -268,6 +268,7 @@ export function useWorkspace(staff=false,manageList=true){
   const requestHuman=async()=>{if(selected)await act('handoff');else setPreferHuman(true);};
   // Mask private state during the render that observes a new session, before
   // effects have a chance to clear the previous workspace.
-  return {attachments:visible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>{if(!operations.current.busy())setAttachments(previous=>previous.filter(file=>file.id!==id));},me,rows:visible?rows:[],selected:visible?selected:'',setSelected:selectConversation,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:visible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',pendingKey:visible?outbox.current.pendingKey():undefined,sessionRevision:session.revision,sessionStatus:session.status};
+  function retry(){if(busy||uploading)return;if(session.status==='error'){void loadPublicSession().catch(()=>{});}else if(initializationFailed){setIntakeAttempt(value=>value+1);}else{wakeTranscript.current();}}
+  return {initializationFailed:session.status==='error'||visible&&initializationFailed,retry,attachments:visible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>{if(!operations.current.busy())setAttachments(previous=>previous.filter(file=>file.id!==id));},me,rows:visible?rows:[],selected:visible?selected:'',setSelected:selectConversation,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:visible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded&&!initializationFailed,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',pendingKey:visible?outbox.current.pendingKey():undefined,sessionRevision:session.revision,sessionStatus:session.status};
 }
 export type WorkspaceState=ReturnType<typeof useWorkspace>;

@@ -1679,6 +1679,9 @@
 @media(max-width:760px){
  .lvd-redesign .site-header .header-login,.live-header .live-header-login-button{display:none}
 }
+
+/* Compact visual, comfortable hit area on touch screens. */
+.lvd-language-switch button{min-width:44px;min-height:44px}
 /* Shared public identity; the header owns the logo in both renderers. */
 .public-brand-logo{display:block;width:36px;height:36px;object-fit:contain;flex-shrink:0}
 @media(max-width:600px){.public-brand-logo{width:28px;height:28px}}

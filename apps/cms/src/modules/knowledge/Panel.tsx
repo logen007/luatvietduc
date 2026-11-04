@@ -1,14 +1,17 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {api} from '../shared/client-api';
+import {useUnsavedChanges} from '../shared/unsaved-changes';
 const indexLabel=(article:any)=>article._status!=='published'||!article.approved?'Bản nháp':new Date(article.reviewDueAt).getTime()<=Date.now()?'Đến hạn rà soát':article.index?.status==='ready'&&article.index?.indexed_revision?'AI đã sẵn sàng':article.index?.error_code==='daily-quota'?'Chờ hạn mức ngày mới':article.index?.error_code==='provider-quota'?'Chờ hạn mức Gemini':article.index?.status==='waiting'?'Đang chờ thử lại':'Đang lập chỉ mục';
 const empty={title:'',body:'',sourceUrl:'',questionAliases:'',effectiveFrom:'',reviewDueAt:'',expiresAt:''};
+const editable=(doc:any)=>Object.fromEntries(Object.keys(empty).map(key=>[key,doc[key]||'']));
 export function KnowledgePanel(){
  const [loaded,setLoaded]=useState(false),[articles,setArticles]=useState<any[]>([]),[form,setForm]=useState<any>(empty),[editing,setEditing]=useState<any>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[search,setSearch]=useState(''),[total,setTotal]=useState(0),[page,setPage]=useState(1),[pages,setPages]=useState(1),[worker,setWorker]=useState<any>(null),[gaps,setGaps]=useState<any[]>([]);
+ const canDiscard=useUnsavedChanges(Boolean(editing)&&JSON.stringify(form)!==JSON.stringify(editable(editing)));
  async function refresh(){const value=await api('knowledge-articles?page='+page+'&q='+encodeURIComponent(search));setArticles(value.articles);setTotal(value.total);setPages(value.totalPages);setWorker(value.indexWorker);setLoaded(true);return value;}
  useEffect(()=>{let active=true;const timer=setTimeout(()=>{api('knowledge-articles?page='+page+'&q='+encodeURIComponent(search)).then(value=>{if(!active)return;setArticles(value.articles);setTotal(value.total);setPages(value.totalPages);setWorker(value.indexWorker);setLoaded(true);}).catch(error=>{if(active)setError(error.message);});},200);return()=>{active=false;clearTimeout(timer);};},[search,page]);
  const change=(key:string,value:string)=>{setForm((previous:any)=>({...previous,[key]:value}));setNotice('');};
- async function edit(id:number){setBusy(true);setError('');try{const doc=await api('knowledge-articles?id='+id);setEditing(doc);setForm(Object.fromEntries(Object.keys(empty).map(key=>[key,doc[key]||''])));setNotice('');}catch(error){setError((error as Error).message);}finally{setBusy(false);}}
+ async function edit(id:number){if(id===editing?.id||!canDiscard())return;setBusy(true);setError('');try{const doc=await api('knowledge-articles?id='+id);setEditing(doc);setForm(editable(doc));setNotice('');}catch(error){setError((error as Error).message);}finally{setBusy(false);}}
  async function save(publish:boolean){setBusy(true);setError('');setNotice('');try{const doc=await api('knowledge-articles',{...form,...(editing?{id:editing.id,updatedAt:editing.updatedAt}:{}),publish});setEditing(doc);setForm(Object.fromEntries(Object.keys(empty).map(key=>[key,doc[key]||''])));await refresh();setNotice(publish?'Đã xuất bản. Hệ thống đang cập nhật chỉ mục cho AI.':'Đã lưu bản nháp và ngừng dùng bài cho AI.');}catch(error){setError((error as Error).message);}finally{setBusy(false);}}
  useEffect(()=>{const timer=setInterval(()=>{if(document.visibilityState==='visible')void refresh().catch(()=>{});},10000);return()=>clearInterval(timer);},[page,search]);
  useEffect(()=>{api('knowledge-gaps').then(value=>setGaps(value.conversations)).catch(()=>{});},[]);
