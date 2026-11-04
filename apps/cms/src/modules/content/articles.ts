@@ -26,7 +26,7 @@ export const Articles: CollectionConfig = {
   },
   fields: [
     {name:'title',label:'Tiêu đề',type:'text',required:true,maxLength:240,admin:{className:'lvd-post-title'}},
-    {name:'slug',label:'Permalink',type:'text',required:true,unique:true,admin:{description:'Địa chỉ bài viết: https://luatvietduc.com/bai-viet/ + permalink. Để trống để tự tạo từ tiêu đề.'}},
+    {name:'slug',label:'Permalink',type:'text',required:true,unique:true,admin:{components:{Field:'./modules/content/PermalinkField#PermalinkField'},description:'Địa chỉ bài viết: https://luatvietduc.com/bai-viet/ + permalink. Để trống để tự tạo từ tiêu đề.'}},
     {name:'body',label:'Nội dung',type:'textarea',required:true,maxLength:16000,admin:{rows:28,className:'lvd-post-body'}},
     {name:'categories',label:'Danh mục',type:'relationship',relationTo:'categories',hasMany:true,admin:{position:'sidebar',allowCreate:true,description:'Chọn một hoặc nhiều danh mục. Quản lý danh mục cha–con trong Bài viết → Danh mục.'}},
     {name:'tags',label:'Tag',type:'relationship',relationTo:'tags',hasMany:true,admin:{position:'sidebar',allowCreate:true,description:'Vietnam, Germany hoặc tag do anh tạo thêm.'}},

@@ -6,7 +6,7 @@ export const storageReady = async () => Boolean(await activeValues("r2"));
 export const Media: CollectionConfig = {
   slug: "media",
   labels: { singular: "Tệp nội dung", plural: "Tệp nội dung" },
-  admin: { group: "Nội dung" },
+  admin: { group: "Nội dung",components:{beforeList:["./modules/legacy/Library#BundledLibrary"]} },
   access: {
     create: async ({ req }) =>
       (await storageReady()) &&
