@@ -181,7 +181,7 @@ export interface Article {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Nhập FAQ công khai, kiểm tra căn cứ và xuất bản trong quốc gia được giao. Không nhập hồ sơ hay hội thoại riêng. Xuất bản là xác nhận chuyên viên chịu trách nhiệm nội dung.
+ * Nhập FAQ công khai, kiểm tra căn cứ và xuất bản vào kho kiến thức chung. Không nhập hồ sơ hay hội thoại riêng. Xuất bản là xác nhận chuyên viên chịu trách nhiệm nội dung.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "knowledge".
@@ -197,7 +197,7 @@ export interface Knowledge {
    * FAQ gồm: câu trả lời; điều kiện áp dụng; trường hợp loại trừ; khi nào chuyển chuyên viên. Chỉ dùng nội dung công khai đã kiểm chứng.
    */
   body: string;
-  jurisdiction: 'VN' | 'DE';
+  jurisdiction: 'VN' | 'DE' | 'BOTH';
   sourceUrl: string;
   effectiveFrom: string;
   expiresAt?: string | null;

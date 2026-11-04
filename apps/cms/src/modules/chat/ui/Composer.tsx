@@ -11,8 +11,6 @@ export function ChatComposer({state}:{state:WorkspaceState}){
    <label className="sr-only" htmlFor={id}>Câu hỏi của bạn</label>
    <textarea ref={input} id={id} rows={1} maxLength={state.maxLength} value={state.text} onChange={e=>state.setText(e.target.value)} disabled={disabled} placeholder={state.conversation?.state==='closed'?'Mở lại hội thoại để tiếp tục.':'Nhập câu hỏi của bạn…'} required onKeyDown={event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent.isComposing&&!disabled){event.preventDefault();event.currentTarget.form?.requestSubmit();}}}/>
    <div className="chat-compose-tools">
-    <label className="sr-only" htmlFor={id+'-country'}>Pháp luật áp dụng</label>
-    <select id={id+'-country'} value={state.conversation?.jurisdiction||state.country} onChange={e=>state.setCountry(e.target.value)} disabled={Boolean(state.selected)||state.busy} required aria-label="Pháp luật áp dụng"><option value="">Chọn pháp luật</option><option value="VN">🇻🇳 Việt Nam</option><option value="DE">🇩🇪 Đức</option></select>
     <button className="chat-submit" type="submit" aria-label="Gửi câu hỏi" disabled={disabled||!state.text.trim()}>{state.busy?<span className="live-spinner"/>:<ChatIcon name="send"/>}</button>
    </div>
   </form>

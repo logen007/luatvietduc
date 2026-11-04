@@ -188,13 +188,11 @@ export function useWorkspace(staff=false){
     try {
       let id = selected;
       if (!id) {
-        if (!country) throw new Error("Chọn pháp luật Việt Nam hoặc Đức để chuyển đúng chuyên viên.");
         const c = await api("conversations", {
-          jurisdiction: country,
           specialty: "general",
           consent:true,
           privacyNoticeVersion:"chat-v2",
-          mode:preferHuman?"human":"assistant",
+          mode:"assistant",
         });
         id = c.id;
         setSelected(id);

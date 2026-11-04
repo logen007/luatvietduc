@@ -18,6 +18,7 @@ export const isStaff = (user: User | null) =>
 function countryAllowed(a: Actor, country: string) {
   return (
     a.user?.role === "owner" ||
+    (country==='BOTH'&&Boolean(a.user?.jurisdictions?.length)) ||
     Boolean(a.user?.jurisdictions?.includes(country as "VN" | "DE"))
   );
 }
@@ -46,7 +47,7 @@ export async function chatList(a: Actor) {
 export async function queue(a: Actor) {
   if (!isStaff(a.user)) deny();
   const countries =
-    a.user?.role === "owner" ? ["VN", "DE"] : a.user?.jurisdictions || [];
+    a.user?.role === "owner" ? ["VN", "DE", "BOTH"] : a.user?.jurisdictions?.length ? [...a.user.jurisdictions,"BOTH"] : [];
   return (
     await pool.query(
       "SELECT id,jurisdiction,specialty,state,version,created_at,assigned_to FROM lvd_conversations WHERE jurisdiction=ANY($1) AND ((state='queued' AND (NOT ai_enabled OR (COALESCE(ai_started_at,updated_at)<now()-interval '45 seconds' AND EXISTS(SELECT 1 FROM lvd_messages question WHERE question.id=(SELECT max(id) FROM lvd_messages WHERE conversation_id=lvd_conversations.id AND role='user') AND NOT EXISTS(SELECT 1 FROM lvd_messages reply WHERE reply.conversation_id=lvd_conversations.id AND reply.client_key='assistant:'||question.id::text))))) OR assigned_to=$2) ORDER BY created_at LIMIT 100",
@@ -55,10 +56,11 @@ export async function queue(a: Actor) {
   ).rows;
 }
 export async function createConversation(a: Actor, data: any,options:{assistantEnabled?:boolean}={}) {
-  if (!["VN", "DE"].includes(data.jurisdiction) || data.consent !== true)
+  const jurisdiction=data.jurisdiction||"BOTH";
+  if (!["VN", "DE", "BOTH"].includes(jurisdiction) || data.consent !== true)
     throw new HttpError(
       400,
-      "Chọn quốc gia và đồng ý chuyển thông tin cho chuyên viên.",
+      "Thông tin tiếp nhận hội thoại chưa hợp lệ.",
     );
   const id = randomUUID();
   const result = await pool.query(
@@ -67,7 +69,7 @@ export async function createConversation(a: Actor, data: any,options:{assistantE
       id,
       a.user?.id || null,
       a.user ? null : a.guestHash,
-      data.jurisdiction,
+      jurisdiction,
       String(data.specialty || "general").slice(0, 100),
       Boolean(options.assistantEnabled&&data.mode!=='human'),
       data.privacyNoticeVersion==='chat-v2'?'chat-v2':'checkbox-v1',

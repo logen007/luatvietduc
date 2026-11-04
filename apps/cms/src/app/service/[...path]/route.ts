@@ -141,7 +141,7 @@ async function route(
         result = await chat.transition(actor, id, data);
       else throw new chat.HttpError(404, "Không tìm thấy chức năng.");
     } else if(path === "knowledge-articles" && method === "GET") {
-      result=await knowledgeArticles(payload,user,url.searchParams.get("id"));
+      result=await knowledgeArticles(payload,user,url.searchParams.get("id"),{query:url.searchParams.get("q")||"",page:Number(url.searchParams.get("page")||1)});
     } else if(path === "knowledge-articles" && method === "POST") {
       result=await writeKnowledgeArticle(payload,user,data);
     } else if (path === "knowledge-sources" && method === "GET") {

@@ -8,6 +8,7 @@ import {seal} from '../src/modules/integrations/crypto';
 import {mediaWriteGuard} from '../src/modules/backup/media-lock';
 import {GET as readKnowledgeSource} from '../src/app/service/knowledge-source/[token]/route';
 import {writeKnowledgeArticle,knowledgeArticles} from '../src/modules/knowledge/articles';
+import {testSharedKnowledge} from './test-shared-knowledge';
 import {testAssistant} from './test-assistant';
 const url = new URL(process.env.DATABASE_URL || "");
 if (
@@ -184,14 +185,15 @@ try {
     "System database checks passed: guest isolation, country scope, idempotent send, concurrent claim, assignment privacy, internal notes, close and reopen",
   );
   const imported=await writeKnowledgeArticle(payload,staff,{title:'Synthetic simple article',body:'Synthetic public content only.',publish:true});
-  assert.equal(imported.approved,true);assert.equal(imported.jurisdiction,'VN');assert.ok(imported.sourceUrl.includes('/service/knowledge-source/'));assert.ok(new Date(imported.reviewDueAt)>new Date());
+  assert.equal(imported.approved,true);assert.equal(imported.jurisdiction,'BOTH');assert.ok(imported.sourceUrl.includes('/service/knowledge-source/'));assert.ok(new Date(imported.reviewDueAt)>new Date());
   const token=imported.sourceUrl.split('/').at(-1)!;
   const publicSource=await readKnowledgeSource(new Request(imported.sourceUrl),{params:Promise.resolve({token})});assert.equal(publicSource.status,200);assert.equal((await publicSource.json()).body,imported.body);
-  await assert.rejects(()=>knowledgeArticles(payload,foreign,String(imported.id)));
+  const sharedDocument=await knowledgeArticles(payload,foreign,String(imported.id));assert.ok('id' in sharedDocument);assert.equal(sharedDocument.id,imported.id,'Shared knowledge is available to both assigned country teams');
   await assert.rejects(()=>writeKnowledgeArticle(payload,staff,{id:imported.id,updatedAt:'2000-01-01',title:'Stale edit',body:'Synthetic',publish:true}),/đã thay đổi/);
   const draft=await writeKnowledgeArticle(payload,staff,{id:imported.id,updatedAt:imported.updatedAt,title:imported.title,body:imported.body,publish:false});assert.equal(draft._status,'draft');assert.equal(draft.approved,false);
   assert.equal((await readKnowledgeSource(new Request(imported.sourceUrl),{params:Promise.resolve({token})})).status,404,'Draft or withdrawn article cannot remain a public source');
   await testAssistant(payload,owner,staff);
+  await testSharedKnowledge(staff,foreign);
 } finally {
   await payload.destroy();
   await pool.end();

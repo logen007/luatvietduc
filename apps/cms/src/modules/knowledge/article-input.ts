@@ -5,8 +5,8 @@ export function knowledgeArticleInput(input:any,user:User,original?:any){
  const title=typeof input.title==='string'?input.title.trim():'',body=typeof input.body==='string'?input.body.trim():'';
  if(!title||title.length>240||!body||body.length>16000)throw new HttpError(400,'Nhập tiêu đề và nội dung bài viết (tối đa 16.000 ký tự).');
  const countries=(user.jurisdictions||[]).filter(x=>['VN','DE'].includes(x));
- const jurisdiction=input.jurisdiction||(countries.length===1?countries[0]:original?.jurisdiction);
- if(!['VN','DE'].includes(jurisdiction)||(user.role!=='owner'&&!countries.includes(jurisdiction)))throw new HttpError(403,'Chọn quốc gia trong phạm vi được giao.');
+ if(user.role!=='owner'&&!countries.length)throw new HttpError(403,'Tài khoản chưa được giao phạm vi công việc.');
+ const jurisdiction='BOTH' as const;
  let sourceUrl=typeof input.sourceUrl==='string'?input.sourceUrl.trim():'';
  if(!sourceUrl)sourceUrl=original?.sourceUrl||(process.env.APP_URL||'https://luatvietduc.com')+'/service/knowledge-source/'+crypto.randomUUID();
  try{const url=new URL(sourceUrl);if(url.protocol!=='https:'||url.username||url.password)throw 0;}catch{throw new HttpError(400,'Nguồn tham khảo cần là liên kết HTTPS.');}

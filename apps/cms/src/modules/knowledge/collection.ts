@@ -6,7 +6,7 @@ const knowledgeScope: Access = ({ req }) => {
   if (req.user?.role === "owner") return true;
   if (!req.user || !knowledgeRoles.includes(req.user.role)) return false;
   const countries = (req.user.jurisdictions || []).filter(j => j === "VN" || j === "DE");
-  return countries.length ? { jurisdiction: { in: countries } } : false;
+  return countries.length ? { jurisdiction: { in: [...countries,"BOTH"] } } : false;
 };
 export const Knowledge: CollectionConfig = {
   slug: "knowledge",
@@ -15,7 +15,7 @@ export const Knowledge: CollectionConfig = {
     group: "Kiến thức",
     useAsTitle: "title",
     description:
-      "Nhập FAQ công khai, kiểm tra căn cứ và xuất bản trong quốc gia được giao. Không nhập hồ sơ hay hội thoại riêng. Xuất bản là xác nhận chuyên viên chịu trách nhiệm nội dung.",
+      "Nhập FAQ công khai, kiểm tra căn cứ và xuất bản vào kho kiến thức chung. Không nhập hồ sơ hay hội thoại riêng. Xuất bản là xác nhận chuyên viên chịu trách nhiệm nội dung.",
   },
   versions: { drafts: true },
   access: {
@@ -34,6 +34,7 @@ export const Knowledge: CollectionConfig = {
       ({ data, originalDoc, req }) => {
         if (
           req.user?.role !== "owner" &&
+          (data.jurisdiction ?? originalDoc?.jurisdiction) !== "BOTH" &&
           !req.user?.jurisdictions?.includes(
             data.jurisdiction ?? originalDoc?.jurisdiction,
           )
@@ -67,6 +68,7 @@ export const Knowledge: CollectionConfig = {
             throw new Error("Knowledge publisher required");
           if (
             req.user?.role !== "owner" &&
+            (data.jurisdiction ?? originalDoc?.jurisdiction) !== "BOTH" &&
             !req.user?.jurisdictions?.includes(
               data.jurisdiction ?? originalDoc?.jurisdiction,
             )
@@ -102,7 +104,9 @@ export const Knowledge: CollectionConfig = {
       label: "Quốc gia",
       type: "select",
       required: true,
-      options: ["VN", "DE"],
+      options: ["VN", "DE", {label:"Kiến thức chung Việt Nam và Đức",value:"BOTH"}],
+      defaultValue:"BOTH",
+      admin:{hidden:true},
     },
     {
       name: "sourceUrl",

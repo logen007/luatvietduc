@@ -110,7 +110,7 @@ export function StaffWorkspace({embedded=false}:{embedded?:boolean}){
                   aria-current={selected === r.id ? "true" : undefined}
                 >
                   <span className="chat-thread-country">
-                    {r.jurisdiction || "VN"}
+                    {r.jurisdiction === "BOTH" ? "Chung" : r.jurisdiction || "Chung"}
                   </span>
                   <span className="chat-thread-copy">
                     <span>

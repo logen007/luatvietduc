@@ -4,11 +4,13 @@ import type {User} from '../../payload-types';
 import {HttpError} from '../chat/service';
 import {knowledgeArticleInput} from './article-input';
 export function requireKnowledge(user:User|null):asserts user is User{if(!user||!['owner','knowledge','support','reviewer'].includes(user.role))throw new HttpError(403,'Tài khoản chưa được giao quản lý kiến thức AI.');}
-export async function knowledgeArticles(payload:Payload,user:User|null,id?:string|null){
+export async function knowledgeArticles(payload:Payload,user:User|null,id?:string|null,options:{query?:string;page?:number}={}){
  requireKnowledge(user);
  if(id){if(!/^\d+$/.test(id))throw new HttpError(400,'Bài viết không hợp lệ.');return payload.findByID({collection:'knowledge',id:Number(id),user,overrideAccess:false,draft:true});}
- const result=await payload.find({collection:'knowledge',user,overrideAccess:false,draft:true,limit:100,sort:'-updatedAt',select:{title:true,jurisdiction:true,_status:true,approved:true,updatedAt:true,reviewDueAt:true}});
- return {articles:result.docs,total:result.totalDocs,countries:user.role==='owner'?['VN','DE']:user.jurisdictions||[]};
+ const query=(options.query||'').trim().slice(0,160),page=options.page||1;
+ if(!Number.isSafeInteger(page)||page<1||page>100000)throw new HttpError(400,'Trang không hợp lệ.');
+ const result=await payload.find({collection:'knowledge',user,overrideAccess:false,draft:true,limit:25,page,where:query?{title:{contains:query}}:undefined,sort:'-updatedAt',select:{title:true,jurisdiction:true,_status:true,approved:true,updatedAt:true,reviewDueAt:true}});
+ return {articles:result.docs,total:result.totalDocs,page:result.page,totalPages:result.totalPages};
 }
 export async function writeKnowledgeArticle(payload:Payload,user:User|null,input:any){
  requireKnowledge(user);
