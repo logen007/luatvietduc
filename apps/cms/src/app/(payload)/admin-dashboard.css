@@ -35,11 +35,11 @@ html.lvd-admin .lvd-menu-children>a{padding:8px 10px;border-radius:6px;color:var
 html.lvd-admin .lvd-menu-children>a:hover{color:var(--admin-text);background:var(--admin-raised)}
 html.lvd-admin .lvd-menu-children>a[aria-current='page']{color:var(--admin-accent);background:#fafafa0a;font-weight:550}
 html.lvd-admin .lvd-menu-settings{margin:0;padding:0;border:0}
-html.lvd-admin .lvd-sidebar-account{border-top:1px solid var(--admin-line);display:flex;align-items:center;gap:10px;padding:18px 8px 8px;margin-top:auto}
+html.lvd-admin .lvd-sidebar-account{display:flex;align-items:center;gap:10px;margin:0;border:0;padding:8px 10px 12px}
 html.lvd-admin .lvd-sidebar-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--admin-raised);border:1px solid var(--admin-line);font-size:13px;flex-shrink:0}
 html.lvd-admin .lvd-sidebar-account>span:nth-child(2){min-width:0;flex:1}html.lvd-admin .lvd-sidebar-account strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:550}
-html.lvd-admin .lvd-sidebar-account small{font-size:10px;color:var(--admin-muted)}html.lvd-admin .lvd-sidebar-account>a{color:var(--admin-muted);text-decoration:none;display:grid;place-items:center;width:32px;height:36px;border:1px solid var(--admin-line);border-radius:7px}
-html.lvd-admin .nav__controls{padding:12px 8px 0;gap:12px}
+html.lvd-admin .lvd-sidebar-account small{font-size:10px;color:var(--admin-muted)}
+html.lvd-admin .nav__controls{width:100%;margin:0;padding:0;gap:0;flex-shrink:0}
 /* Dashboard */
 html.lvd-admin .dashboard{padding-top:28px}
 html.lvd-admin .lvd-admin-welcome{max-width:1440px;margin-bottom:32px}
@@ -147,3 +147,11 @@ html.lvd-admin[data-theme='dark']{
  --theme-success-50:#141414; --theme-success-100:#1c1c1c; --theme-success-150:#262626; --theme-success-200:#303030; --theme-success-250:#3b3b3b; --theme-success-300:#4a4a4a; --theme-success-400:#686868; --theme-success-500:#a3a3a3; --theme-success-600:#b3b3b3; --theme-success-700:#c2c2c2; --theme-success-800:#dedede; --theme-success-900:#f5f5f5; --theme-success-950:#fafafa; --theme-success-1000:#ffffff;
  --theme-warning-50:#141414; --theme-warning-100:#1c1c1c; --theme-warning-150:#262626; --theme-warning-200:#303030; --theme-warning-250:#3b3b3b; --theme-warning-300:#4a4a4a; --theme-warning-400:#686868; --theme-warning-500:#a3a3a3; --theme-warning-600:#b3b3b3; --theme-warning-700:#c2c2c2; --theme-warning-800:#dedede; --theme-warning-900:#f5f5f5; --theme-warning-950:#fafafa; --theme-warning-1000:#ffffff;
 }
+
+/* One sidebar footer: account identity, labelled website action, native logout. */
+html.lvd-admin .lvd-sidebar-footer{margin-top:auto;border-top:1px solid var(--admin-line);padding-top:12px}
+html.lvd-admin .lvd-sidebar-site-link,html.lvd-admin .nav__log-out{display:flex;align-items:center;justify-content:flex-start;gap:11px;width:100%;min-height:42px;margin:0;padding:10px 11px;border:0;border-radius:8px;background:transparent;color:var(--admin-muted);font-size:12px;font-weight:450;text-decoration:none;line-height:1.5}
+html.lvd-admin .lvd-sidebar-site-link>svg,html.lvd-admin .nav__log-out>svg{width:18px;height:18px;flex-shrink:0}
+html.lvd-admin .lvd-sidebar-site-link:hover,html.lvd-admin .nav__log-out:hover{background:var(--admin-raised);color:var(--admin-text)}
+html.lvd-admin .nav__log-out::after{content:attr(aria-label)}
+html.lvd-admin .nav__controls>:first-child{margin-top:0}

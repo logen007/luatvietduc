@@ -41,12 +41,12 @@
       const r=await fetch('/service/settings');if(!r.ok)return;settings=await r.json();
       const social=document.getElementById('live-social');
       if(social){
-        const icons=await fetch('/social-icons.json?v=1').then(r=>r.ok?r.json():[]).catch(()=>[]);
+        const icons=await fetch('/social-icons.json?v=2').then(r=>r.ok?r.json():[]).catch(()=>[]);
         if(icons.length){
           const links=(settings.socialLinks||[]).filter(link=>{try{return new URL(link.url).protocol==='https:'&&!new URL(link.url).username&&!new URL(link.url).password}catch{return false}});
           const used=new Set();social.replaceChildren();
-          const match=(icon,link)=>{const host=new URL(link.url).hostname.toLowerCase();return icon.hosts.some(h=>host===h||host.endsWith('.'+h))||String(link.label).toLowerCase()===icon.name.toLowerCase()};
-          for(const icon of icons){const link=links.find(l=>match(icon,l));if(!link)continue;used.add(link);const el=document.createElement('a');el.className='lvd-social-icon';el.setAttribute('aria-label',icon.name);el.title=icon.name;el.href=link.url.trim();el.target='_blank';el.rel='noopener noreferrer';const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');for(const d of icon.paths){const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);path.setAttribute('fill-rule','evenodd');svg.append(path)}el.append(svg);social.append(el)}
+          const match=(icon,link)=>{const named=icons.find(i=>i.name.toLowerCase()===String(link.label).trim().toLowerCase());if(named)return named.name===icon.name;const host=new URL(link.url).hostname.toLowerCase();return icon.hosts.some(h=>host===h||host.endsWith('.'+h))};
+          for(const icon of icons){const link=links.find(l=>match(icon,l));if(!link)continue;used.add(link);const el=document.createElement('a');el.className='lvd-social-icon';el.setAttribute('aria-label',icon.name);el.title=icon.name;el.href=link.url.trim();el.target='_blank';el.rel='noopener noreferrer';const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',icon.viewBox||'0 0 24 24');svg.setAttribute('aria-hidden','true');for(const d of icon.paths){const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);path.setAttribute('fill-rule','evenodd');svg.append(path)}el.append(svg);social.append(el)}
           for(const link of links.filter(l=>!used.has(l))){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;a.target='_blank';a.rel='noopener noreferrer';social.append(a)}
         }
       }

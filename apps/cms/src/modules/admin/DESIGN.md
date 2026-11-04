@@ -18,6 +18,12 @@ Desktop: 264px sidebar with identity, grouped destinations and active child link
 
 At 1024px and below: a fixed 280px drawer, capped at viewport width minus 40px, inset 10px from the edges. Its header is the width of the drawer, never 100vw. A backdrop retains visible context and the native close/keyboard behavior. Choosing a destination closes the drawer. The page must not shift horizontally.
 
+## Shared action rules
+
+The sidebar has one footer region: account identity, a labelled “Mở website” action, then the native logout action with its accessible label also visible. Do not add a separate unlabeled arrow button beside the avatar. Identity is not a navigation action. Keep action rows aligned with the menu and never use a lone logout glyph.
+
+For each shared component change, review the default, selected, expanded, disabled and narrow-screen states together. Styling needs one responsible component rather than unrelated fixes on each page.
+
 ## Pages and states
 
 Dashboard: real counts, role-appropriate shortcuts, truthful connection status. Missing counts show a dash; never invent chart data or activity.
