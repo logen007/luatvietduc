@@ -1,5 +1,5 @@
+import { UserRoleTabs as UserRoleTabs_842fe956bf5458a0fb52b9687afb590b } from '../../../modules/identity/UserRoleTabs'
 import { PermalinkField as PermalinkField_21b75de27a8941a2176c8e747a598968 } from '../../../modules/content/PermalinkField'
-import { BundledLibrary as BundledLibrary_1deec8d410f93f0074a4660b50c78300 } from '../../../modules/legacy/Library'
 import { AdminNavigation as AdminNavigation_d194ed008eff6dd40a335f677eb3ea54 } from '../../../modules/admin/Navigation'
 import { AdminWelcome as AdminWelcome_434d19f5a159509b02e65df12eae47e1 } from '../../../modules/settings/AdminWelcome'
 import { GoogleLogin as GoogleLogin_434d19f5a159509b02e65df12eae47e1 } from '../../../modules/settings/AdminWelcome'
@@ -12,8 +12,8 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "./modules/identity/UserRoleTabs#UserRoleTabs": UserRoleTabs_842fe956bf5458a0fb52b9687afb590b,
   "./modules/content/PermalinkField#PermalinkField": PermalinkField_21b75de27a8941a2176c8e747a598968,
-  "./modules/legacy/Library#BundledLibrary": BundledLibrary_1deec8d410f93f0074a4660b50c78300,
   "./modules/admin/Navigation#AdminNavigation": AdminNavigation_d194ed008eff6dd40a335f677eb3ea54,
   "./modules/settings/AdminWelcome#AdminWelcome": AdminWelcome_434d19f5a159509b02e65df12eae47e1,
   "./modules/settings/AdminWelcome#GoogleLogin": GoogleLogin_434d19f5a159509b02e65df12eae47e1,

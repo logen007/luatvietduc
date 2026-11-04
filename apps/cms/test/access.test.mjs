@@ -48,3 +48,23 @@ test('support can see the create action without an unfinished form payload',()=>
 test('specialist cannot publish outside assigned jurisdiction',()=>assert.throws(()=>sourceHook({req:req('support'),data:{jurisdiction:'DE',_status:'published'},originalDoc:approvedSource}),/Country scope/));
 test('members cannot create or read internal knowledge',()=>{assert.equal(knowledge.access.create({req:req('member')}),false);assert.equal(knowledge.access.read({req:req('member')}),false);});
 test('reviewer cannot move source to another country',()=>assert.throws(()=>sourceHook({req:req('reviewer'),data:{jurisdiction:'DE'},originalDoc:approvedSource}),/Country scope/));
+
+test('account form offers exactly Admin, Chuyên viên and User',()=>{
+ const role=users.fields.find(field=>field.name==='role');
+ assert.deepEqual(role.options,[{label:'Admin',value:'owner'},{label:'Chuyên viên',value:'support'},{label:'User',value:'member'}]);
+});
+test('only Admin and Chuyên viên can enter admin',()=>{
+ for(const role of ['owner','support'])assert.equal(users.access.admin({req:req(role)}),true);
+ for(const role of ['member','editor','reviewer','operations','publisher','knowledge'])assert.equal(users.access.admin({req:req(role)}),false);
+});
+test('Admin cannot assign retired roles and Google registration stays User',()=>{
+ const hook=users.hooks.beforeChange[0];
+ assert.throws(()=>hook({req:req('owner'),operation:'update',data:{role:'editor'}}),/Chỉ hỗ trợ/);
+ assert.equal(hook({req:{...req(),context:{googleMember:true}},operation:'create',data:{role:'owner'}}).role,'member');
+});
+test('specialists cannot change roles or administer other accounts',()=>{
+ assert.equal(users.access.update({req:req('support')}),false);
+ assert.equal(users.access.delete({req:req('support')}),false);
+ const role=users.fields.find(field=>field.name==='role');assert.equal(role.access.update({req:req('support')}),false);
+ assert.deepEqual(users.access.read({req:req('support')}),{id:{equals:1}});
+});

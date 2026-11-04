@@ -10,9 +10,9 @@ export const Media: CollectionConfig = {
   access: {
     create: async ({ req }) =>
       (await storageReady()) &&
-      ["owner", "editor", "reviewer"].includes(req.user?.role || ""),
+      ["owner", "support", "editor", "reviewer"].includes(req.user?.role || ""),
     read: ({ req }) =>
-      req.user && ["owner", "editor", "reviewer"].includes(req.user.role)
+      req.user && ["owner", "support", "editor", "reviewer"].includes(req.user.role)
         ? true
         : { visibility: { equals: "public" } },
     update: ({req})=>req.user?.role==="owner"?{filename:{not_in:bundledNames}}:false,

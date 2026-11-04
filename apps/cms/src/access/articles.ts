@@ -57,7 +57,8 @@ export const articleWorkflow: CollectionBeforeChangeHook = ({
   originalDoc,
   req,
 }) => {
-  const role = req.user?.role;
+  // Retain compatibility checks while older releases/sessions roll forward.
+  const role = req.user?.role as string | undefined;
   const isOwner = role === "owner";
   const jurisdiction = data.jurisdiction ?? originalDoc?.jurisdiction;
   if (

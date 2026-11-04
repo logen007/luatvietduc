@@ -19,7 +19,7 @@ function WorkIcon({ name }: { name: IconName }) {
 
 export async function AdminWelcome({ user }: WelcomeProps) {
   const role = user?.role || "";
-  const canEdit = ["owner", "editor", "reviewer"].includes(role);
+  const canEdit = ["owner", "support", "editor", "reviewer"].includes(role);
   const canSupport = ["owner", "support", "operations"].includes(role);
   const canKnowledge = ["owner", "knowledge", "reviewer", "support"].includes(role);
   const connections = await connectionStatus();
@@ -27,7 +27,7 @@ export async function AdminWelcome({ user }: WelcomeProps) {
     ...(canEdit ? [{ href: "/admin/collections/articles/create", title: "Viết bài mới", text: "Soạn bài, xem phiên bản và duyệt nội dung theo quốc gia.", icon: "article" as const }] : []),
     ...(canSupport ? [{ href: "/admin/inbox", title: "Hộp thư chuyên viên", text: "Tiếp nhận yêu cầu, trao đổi và theo dõi hội thoại được giao.", icon: "chat" as const }] : []),
     ...(canKnowledge ? [{ href: "/admin/knowledge", title: "Kiến thức AI", text: "Nhập tiêu đề, nội dung và xuất bản bài viết cho trợ lý.", icon: "knowledge" as const }] : []),
-    ...(role === "owner" ? [{ href: "/admin/collections/users", title: "Tài khoản & phân quyền", text: "Quản lý nhân sự, vai trò và quốc gia được giao.", icon: "settings" as const }, { href: "/admin/settings", title: "Cài đặt hệ thống", text: "Quản lý nhận diện, điều hướng và chính sách vận hành.", icon: "settings" as const }] : []),
+    ...(role === "owner" ? [{ href: "/admin/collections/users", title: "Người dùng", text: "Quản lý nhân sự, vai trò và quốc gia được giao.", icon: "settings" as const }, { href: "/admin/settings", title: "Cài đặt hệ thống", text: "Quản lý nhận diện, điều hướng và chính sách vận hành.", icon: "settings" as const }] : []),
   ];
   return (
     <section className="lvd-admin-welcome" aria-labelledby="lvd-admin-welcome-title">

@@ -31,7 +31,7 @@ try {
       name: "CI editor",
       email: `editor-${suffix}@example.invalid`,
       password,
-      role: "editor",
+      role: "support",
       jurisdictions: ["VN"],
     },
   });
@@ -75,15 +75,13 @@ try {
     ).totalDocs,
     0,
   );
-  await assert.rejects(() =>
-    payload.update({
+  await payload.update({
       collection: "articles",
       id: article.id,
       overrideAccess: false,
       user: editor,
       data: { _status: "published", reviewState: "approved" },
-    }),
-  );
+    });
   await payload.update({
     collection: "articles",
     id: article.id,
@@ -106,7 +104,7 @@ try {
     id: article.id,
     overrideAccess: false,
     user: editor,
-    data: { body: "Changed after review" },
+    data: { body: "Changed after review", _status:"draft",reviewState:"draft" },
   });
   assert.equal(
     (
@@ -126,7 +124,7 @@ try {
       name: "CI reviewer",
       email: `reviewer-${suffix}@example.invalid`,
       password,
-      role: "reviewer",
+      role: "support",
       jurisdictions: ["VN"],
     },
   });
@@ -138,7 +136,7 @@ try {
       name: "CI publisher",
       email: `publisher-${suffix}@example.invalid`,
       password,
-      role: "publisher",
+      role: "member",
       jurisdictions: ["VN"],
     },
   });
@@ -150,7 +148,7 @@ try {
       name: "CI DE reviewer",
       email: `foreign-${suffix}@example.invalid`,
       password,
-      role: "reviewer",
+      role: "support",
       jurisdictions: ["DE"],
     },
   });

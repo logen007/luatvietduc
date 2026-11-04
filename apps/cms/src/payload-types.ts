@@ -132,13 +132,21 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Admin quản lý hệ thống. Chuyên viên quản lý nội dung và trả lời khách. User sử dụng website và hội thoại cá nhân.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
   name: string;
-  role: 'owner' | 'operations' | 'editor' | 'reviewer' | 'publisher' | 'knowledge' | 'support' | 'member';
+  /**
+   * Chỉ Admin được thay đổi vai trò.
+   */
+  role: 'owner' | 'support' | 'member';
+  /**
+   * Chuyên viên làm việc trong phạm vi được giao.
+   */
   jurisdictions?: ('VN' | 'DE')[] | null;
   updatedAt: string;
   createdAt: string;
