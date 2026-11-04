@@ -1,4 +1,5 @@
 import {testAnswerQueue} from './test-answer-queue';
+import {testPublicContent} from './test-public-content';
 import {testThreeRoles} from './test-three-roles';
 import {testSpecialistInbox} from './test-specialist-inbox';
 import {testGuestPriority} from './test-guest-priority';
@@ -39,6 +40,7 @@ try {
     },
   });
   await testThreeRoles(payload,owner);
+  await testPublicContent(payload,owner);
   // Vault tests run only in the isolated CI database; no provider request is made.
   await integrations.saveConnection('ai', {apiKey:'synthetic-secret-not-a-real-key',model:'test-model'}, 0, owner.id);
   const safe = await integrations.safeConnection('ai');

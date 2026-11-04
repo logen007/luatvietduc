@@ -58,6 +58,6 @@ test('custom view breadcrumb labels agree with navigation and retain the setting
 });
 
 test('article navigation separates legal knowledge from news without forcing a country selection',()=>{
- assert.deepEqual(articleParent('news'),{href:'/#/tin-tuc',label:'Tin tức & đời sống'});
- for(const kind of ['article','question',null,undefined])assert.deepEqual(articleParent(kind),{href:'/#/tra-cuu',label:'Thư viện'});
+ assert.deepEqual(articleParent('news'),{href:'/tin-tuc',label:'Tin tức & đời sống'});
+ for(const kind of ['article','question',null,undefined])assert.deepEqual(articleParent(kind),{href:'/thu-vien',label:'Thư viện'});
 });

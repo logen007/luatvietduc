@@ -3,7 +3,7 @@
 Edit these small source files rather than the generated public bundles.
 `modules.json` defines concatenation order; fragments retain their surrounding JS scope.
 
-- `editorial-ui-js`: partner strip, content helpers, homepage, video/counts and navigation lifecycle.
+- `editorial-ui-js/00-native-routing.js`: bookmark compatibility for the native public pages. Remaining legacy fragments are retained references, inactive on native pages.
 - `editorial-ui-css`: base, hero/header, partners, country links, topic cards, news/footer/responsive and application menu.
 - `live-css`: shared shell, footer, account, connections, articles, responsive rules and chat.
 - Chat entry is `modules/chat/Workspace.tsx`; customer and staff screens are separate. `useWorkspace.ts` owns transport, retry and polling; `chat/ui/` owns composer, history and transcript. `modules/assistant/` owns FAQ scope, provider formatting and transactional delivery.
@@ -24,10 +24,10 @@ Batch related requests into one push. Do not interrupt an already running releas
 
 | Requested area | Edit here (relative to apps/cms) |
 | --- | --- |
-| Hero text / video source / section order | src/presentation/editorial-ui-js/03-homepage.js |
+| Hero text / video source / section order | src/modules/public-site/Home.tsx |
 | Hero and public header style | src/presentation/editorial-ui-css/01-header-hero.css |
-| Partner logos / display | src/presentation/editorial-ui-js/01-partners.js; src/presentation/editorial-ui-css/02-partners.css |
-| Topic cards and counts | src/presentation/editorial-ui-css/04-topics.css; src/presentation/editorial-ui-js/04-video-counts.js |
+| Partner logos / display | src/modules/public-site/Home.tsx; src/presentation/editorial-ui-css/02-partners.css |
+| Topic cards and counts | src/modules/public-site/ui.tsx; src/presentation/editorial-ui-css/04-topics.css |
 | Shared header/footer links | src/modules/shared/navigation.json |
 | Application header/footer markup | src/modules/shared/Header.tsx; src/modules/shared/Footer.tsx |
 | Public footer / responsive layout | src/presentation/editorial-ui-css/05-news-footer-responsive.css |
@@ -37,7 +37,10 @@ Batch related requests into one push. Do not interrupt an already running releas
 | Chat transport | src/modules/chat/useWorkspace.ts; src/modules/shared/polling.ts |
 | FAQ / AI answering | src/modules/assistant/faq.ts; format.ts; reply.ts |
 | Public settings request | src/modules/settings/client.ts; view.ts |
-| Contact form and submit interaction | src/presentation/legal-runtime-js/00-contact-form.js; src/presentation/editorial-ui-css/07-contact-form.css |
+| Contact form and submit interaction | src/modules/public-site/Contact.tsx; src/presentation/editorial-ui-css/07-contact-form.css |
+| Library / news / information pages | src/modules/public-site/Library.tsx; News.tsx; Information.tsx |
+| Public reads / routes / metadata | src/modules/public-site/server.ts; routes.ts; seo.ts |
+| Native public page layout | src/presentation/editorial-ui-css/09-native-pages.css |
 | Contact email validation and sending | src/modules/contact/; recipient in Resend connection settings |
 
 Suggested completion: “Đã đẩy bản sửa [phần thay đổi]. Hệ thống đang tự cập nhật; anh kiểm tra giao diện giúp em.” If publishing fails, report the actual failure. Never claim the website is updated based only on a push.
@@ -59,3 +62,5 @@ CSS sources remain in modules.json. `live.css` owns the public shell;
 `admin-theme.css` load in the admin layout. The reviewed fast lane includes these
 CSS files and the two exact admin CSS source paths. React/TypeScript changes still
 require a full application build. See docs/07-current-structure.md for backend ownership.
+
+Public pages use native React/SSR routes. Edit `modules/public-site/`, not the retained prototype renderers. Root prototype assets and old renderer fragments remain for reference and rollback. `content.json` is reproducibly extracted source content, not a new approved knowledge store. Database articles remain the authority for published content and AI eligibility.

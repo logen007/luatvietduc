@@ -9,7 +9,7 @@ export const metadata = {
 export default function Layout({ children }: { children: React.ReactNode }) {
   const revision = getPresentationVersion(path.join(process.cwd(), 'public'));
   return (
-    <html lang="vi">
+    <html lang="vi" data-lvd-native="true">
       <head>
         <link rel="stylesheet" href={`/design-system.css?v=${revision}`} />
         <link rel="stylesheet" href={`/live.css?v=${revision}`} />

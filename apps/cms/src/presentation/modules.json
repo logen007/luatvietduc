@@ -8,7 +8,8 @@
     "editorial-ui-css/05-news-footer-responsive.css",
     "editorial-ui-css/06-application-menu.css",
     "editorial-ui-css/07-contact-form.css",
-    "editorial-ui-css/08-home-insights.css"
+    "editorial-ui-css/08-home-insights.css",
+    "editorial-ui-css/09-native-pages.css"
   ],
   "live.css": [
     "live-css/00-shared-shell.css",
@@ -21,6 +22,7 @@
     "live-css/09-public-shell.css"
   ],
   "editorial-ui.js": [
+    "editorial-ui-js/00-native-routing.js",
     "editorial-ui-js/00-bootstrap.js",
     "editorial-ui-js/01-partners.js",
     "editorial-ui-js/02-content-helpers.js",

@@ -2,17 +2,17 @@
   "primary": [
     {
       "key": "lookup",
-      "href": "/#/tra-cuu",
+      "href": "/thu-vien",
       "label": "Thư viện"
     },
     {
       "key": "news",
-      "href": "/#/tin-tuc",
+      "href": "/tin-tuc",
       "label": "Tin tức"
     },
     {
       "key": "about",
-      "href": "/#/ve-chuyen-trang",
+      "href": "/gioi-thieu",
       "label": "Giới thiệu"
     }
   ],
@@ -22,15 +22,15 @@
       "links": [
         [
           "Thư viện",
-          "/#/tra-cuu"
+          "/thu-vien"
         ],
         [
           "Pháp luật Việt Nam",
-          "/#/phap-luat/viet-nam"
+          "/phap-luat/viet-nam"
         ],
         [
           "Pháp luật Đức",
-          "/#/phap-luat/duc"
+          "/phap-luat/duc"
         ]
       ]
     },
@@ -39,19 +39,19 @@
       "links": [
         [
           "Quốc tịch",
-          "/#/chu-de/quoc-tich"
+          "/chu-de/quoc-tich"
         ],
         [
           "Hôn nhân & gia đình",
-          "/#/chu-de/hon-nhan-gia-dinh"
+          "/chu-de/hon-nhan-gia-dinh"
         ],
         [
           "Thừa kế",
-          "/#/chu-de/thua-ke"
+          "/chu-de/thua-ke"
         ],
         [
           "Giấy tờ tùy thân",
-          "/#/chu-de/giay-to-tuy-than"
+          "/chu-de/giay-to-tuy-than"
         ]
       ]
     },
@@ -60,19 +60,19 @@
       "links": [
         [
           "Về Luật Việt Đức",
-          "/#/ve-chuyen-trang"
+          "/gioi-thieu"
         ],
         [
           "Đội ngũ chuyên gia",
-          "/#/ve-chuyen-trang?muc=doi-ngu"
+          "/gioi-thieu?muc=doi-ngu"
         ],
         [
           "Tin tức & đời sống",
-          "/#/tin-tuc"
+          "/tin-tuc"
         ],
         [
           "Liên hệ",
-          "/#/lien-he"
+          "/lien-he"
         ]
       ]
     },
@@ -89,11 +89,11 @@
         ],
         [
           "Quyền riêng tư",
-          "/#/chinh-sach-thong-tin"
+          "/quyen-rieng-tu"
         ],
         [
           "Điều khoản sử dụng",
-          "/#/dieu-khoan"
+          "/dieu-khoan"
         ]
       ]
     }

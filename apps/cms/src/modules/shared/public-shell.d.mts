@@ -4,3 +4,6 @@ export type ShellNavigation={primary:ShellLink[];footer:{title:string;links:stri
 export type PublicShell={name:string;tagline:string;logo:string|null;accent:string|null;footerText:string;primary:{key:string;href:string;label:string}[];footer:ShellNavigation['footer']};
 export function publicShell(settings?:ShellSettings,navigation?:ShellNavigation):PublicShell;
 export function copyright(shell:PublicShell,version?:string):string;
+export function publicHref(value:unknown):string;
+export function legacyTarget(hash:string):string|null;
+export const legacyGroupAliases:Record<string,string>;

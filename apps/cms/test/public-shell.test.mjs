@@ -6,7 +6,7 @@ test('one shell contract applies configured identity, copyright and navigation t
  const settings={siteName:'Synthetic portal',tagline:'Synthetic tagline',logo:'/assets/logo.svg',accentColor:'#123456',footerText:'Synthetic footer',navigation:[{label:'Duplicate',url:'/#/tra-cuu'},{label:'Contact',url:'/#/lien-he'}],apiKey:'never public'};
  const shell=publicShell(settings,navigation);
  assert.equal(shell.name,settings.siteName);assert.equal(shell.tagline,settings.tagline);assert.equal(shell.logo,settings.logo);assert.equal(shell.accent,settings.accentColor);
- assert.deepEqual(shell.primary.map(link=>link.href),['/#/tra-cuu','/#/lien-he']);
+ assert.deepEqual(shell.primary.map(link=>link.href),['/thu-vien','/lien-he']);
  assert.equal(copyright(shell,'01.17.00'),'© Synthetic portal. · v01.17.00 Synthetic footer');
  assert.ok(!JSON.stringify(shell).includes('never public'));
 });
@@ -16,6 +16,6 @@ test('shell rejects unsafe links and preserves intentionally empty copy',()=>{
 });
 test('valid hash links saved in admin work on every page and deduplicate against root-qualified links',()=>{
  const shell=publicShell({navigation:[{label:'News again',url:'#/tin-tuc'},{label:'Contact',url:'  #/lien-he  '},{label:'Contact again',url:'/#/lien-he'}]}, {primary:[{key:'news',label:'Tin tức',href:'/#/tin-tuc'}],footer:[]});
- assert.deepEqual(shell.primary.map(link=>link.href),['/#/tin-tuc','/#/lien-he']);
+ assert.deepEqual(shell.primary.map(link=>link.href),['/tin-tuc','/lien-he']);
  assert.equal(shell.primary[0].label,'Tin tức');
 });

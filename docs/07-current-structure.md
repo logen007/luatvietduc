@@ -8,7 +8,7 @@ giao dịch và API thực tế nằm trong CMS.
 
 | Phần | Module |
 |---|---|
-| Danh tính, logo, menu, footer công khai | `modules/shared/public-shell.mjs`, cùng hợp đồng cho React và adapter trang cũ |
+| Danh tính, logo, menu, footer công khai | `modules/shared/public-shell.mjs`, `Header.tsx`, `Footer.tsx` |
 | Phiên đăng nhập | `modules/shared/account-state.mjs`, hợp đồng `identity/contracts.ts`, React qua `session-client.ts` |
 | Ngôn ngữ | `modules/shared/locale/de.json`, dùng chung cả hai bộ dựng |
 | Cấu hình công khai | `modules/settings/view.ts`, client cache ở `client-store.ts` và `client.ts`, tách khỏi vault bí mật |
@@ -54,7 +54,7 @@ quyền tại server vẫn là bắt buộc. Helper client ở `modules/chat/cli
 `presentation/modules.json` quản lý nguồn bundle; không sửa bundle riêng.
 `live.css` là khung dùng chung; `customer-chat.css` chỉ trang chat tải;
 `specialist-inbox.css` phục vụ hộp thư; `admin-theme.css` sinh từ CSS admin;
-`editorial-ui.css` phục vụ nội dung trang chủ/các trang cũ.
+`editorial-ui.css` phục vụ các trang công khai; `09-native-pages.css` chỉ bổ sung bố cục trong `.lvd-public-site`.
 
 CSS admin/công khai đi qua snapshot có checksum, đổi con trỏ nguyên tử và tự
 phục hồi nếu kiểm tra phục vụ thất bại. Sửa React/logic cần build. Sửa schema dùng
@@ -67,10 +67,10 @@ cùng giao dịch qua trigger PostgreSQL, được quản lý bằng migration m
 
 ## Giới hạn
 
-Các trang nội dung cũ còn adapter JavaScript; tài khoản/chat/bài viết dùng React.
-Hai bộ dựng đã dùng chung hợp đồng cấu hình và phiên, chưa chuyển mọi trang sang
-React. Nhập nguồn kiến thức cũ còn để sửa dữ liệu đã có; viết mới dùng bài viết +
-checkbox AI. Kiểm tra cấu trúc không thay thế đo tải, đánh giá chất lượng pháp lý
+Trang chủ, thư viện, tin tức và các trang thông tin đã dùng React/SSR như tài
+khoản, chat và bài viết. Bộ dựng cũ được giữ làm nguồn tham chiếu và quay lại bản
+cũ, không tải trong các trang mới. Nhập nguồn kiến thức cũ còn để sửa dữ liệu đã
+có; viết mới dùng bài viết + checkbox AI. Kiểm tra cấu trúc không thay thế đo tải, đánh giá chất lượng pháp lý
 hay đợt khôi phục Drive thật.
 
 ## Rà soát cấu trúc 2026-11-04
@@ -82,16 +82,48 @@ Website có ba khu vực: nội dung công khai, tài khoản/chat và quản tr
 Menu, lối tắt dashboard và các nhóm cài đặt admin dùng chung một mô hình. Quyền
 truy cập/ghi dữ liệu vẫn nằm ở collection và service. Chỉ Admin và Chuyên viên
 được hiển thị điều hướng admin; nút viết mới cần quyền tạo tương ứng. Admin nhìn
-thấy Người dùng trước Cài đặt; Cài đặt luôn ở cuối. Menu công khai chuẩn hóa `#/...`
-thành `/#/...` để liên kết bổ sung hoạt động từ cả trang chủ và trang React.
+thấy Người dùng trước Cài đặt; Cài đặt luôn ở cuối. Menu công khai chuẩn hóa `#/...` sang URL riêng. Adapter nhỏ chuyển các bookmark
+hash cũ, giữ từ khóa, bộ lọc và ngữ cảnh hội thoại.
 
-Hai điểm còn cần một đợt riêng:
+## Trang công khai — 01.18.00
 
-- Thư viện, tin tức và các trang thông tin còn dùng hash router. Chuyển từng nhóm
-  sang trang riêng, giữ adapter cho hash cũ và bộ so sánh dữ liệu, rồi mới bỏ mã cũ.
-- `publicIndexingEnabled` đang điều khiển robots.txt và HTML trang gốc, trong khi
-  layout React vẫn đặt noindex. Chưa có sitemap cho các trang công khai. Cần thống
-  nhất metadata theo từng loại trang; tài khoản, chat, admin và API luôn riêng tư.
+`modules/public-site/` chia theo trách nhiệm:
+
+| Phần | Nguồn |
+|---|---|
+| Dữ liệu công khai, truy vấn có phân trang | `server.ts` |
+| Phân loại URL, truy vấn, tương thích đường cũ | `routes.ts`, `shared/public-shell.mjs` |
+| Trang chủ, video, logo, thứ tự khối | `Home.tsx` |
+| Thư viện, danh mục, chủ đề | `Library.tsx`, `search.ts` |
+| Tin tức và bài công khai cũ | `News.tsx`, `legacy-news.ts` |
+| Giới thiệu, đội ngũ, chính sách, trợ giúp | `Information.tsx` |
+| Form liên hệ | `Contact.tsx`; gửi email ở `modules/contact/` |
+| Khung trang và thành phần nhỏ | `Frame.tsx`, `ui.tsx` |
+| Metadata và sitemap | `seo.ts`, `app/robots.ts`, `app/sitemap.xml/`, `app/sitemaps/` |
+| Bản sao nội dung nguyên mẫu | `content.json`; tái tạo bằng `scripts/import-public-content.mjs` |
+
+URL chính: `/thu-vien`, `/phap-luat/viet-nam`, `/phap-luat/duc`,
+`/chu-de/{nhom}`, `/tin-tuc`, `/tin/{bai-cu}`, `/bai-viet/{slug}`,
+`/gioi-thieu`, `/lien-he`, `/quyen-rieng-tu`, `/dieu-khoan`, `/tro-giup`.
+303 tiêu đề Việt Nam vẫn chỉ là danh mục chủ đề. Khi bài tương ứng được xuất bản
+và duyệt, URL chủ đề chuyển sang bài CMS. Không tạo nội dung trả lời cho nhánh Đức.
+
+Truy vấn công khai áp dụng quyền collection, trạng thái published + approved và
+phân trang; cache React chỉ dùng trong cùng lượt dựng trang. Trang chủ chỉ nhận
+thông tin nhóm gọn, không gửi cả 303 tiêu đề xuống trình duyệt. Tin công khai cũ
+được giữ từ bản sao nguồn khi bản nhập nháp còn nguyên. Sửa nháp, thu hồi, đã duyệt
+hoặc xóa bản nhập sẽ chặn bản sao; nội dung nháp riêng không được dùng làm fallback.
+Đây không phải việc duyệt bài hoặc cấp quyền AI cho dữ liệu cũ.
+
+`publicIndexingEnabled` điều khiển đồng nhất robots.txt, metadata trang công khai
+và sitemap. Tắt thì không cho lập chỉ mục, sitemap rỗng; bật thì chỉ URL công khai
+đủ điều kiện mới xuất hiện. Sitemap chia 1.000 bài mỗi tệp. Trang tìm kiếm/bộ lọc,
+chủ đề chưa có bài, nhánh trống, tài khoản, chat, admin và API không được lập chỉ mục.
+Không thay giá trị cài đặt đang lưu, schema hay luật phân quyền trong đợt chuyển này.
+
+Kiểm tra: unit, build, truy vấn trên DB thử riêng, HTTP với hai trạng thái lập chỉ
+mục, bài nháp/thu hồi, bookmark cũ, mobile và đổi ngôn ngữ giao diện. Không gửi AI,
+email hay đọc dữ liệu khách trong quá trình kiểm tra. Đây không phải đo tải thực tế.
 
 Nguồn kiến thức nhập mới là Bài viết + “Cho phép dùng cho AI”; trình sửa nguồn cũ
 chỉ giữ để bảo trì dữ liệu đã có. Không loại bỏ nguồn cũ hoặc xóa dữ liệu trong đợt này.

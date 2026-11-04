@@ -1,31 +1,32 @@
 import {LocaleText,LocaleDate,LocaleNav} from "../../../../modules/shared/locale";
-import { getPayload } from "payload";
-import config from "@payload-config";
-import { notFound } from "next/navigation";
-import { Header } from "../../../../modules/shared/Header";
-import { Footer } from "../../../../modules/shared/Footer";
+import {notFound,permanentRedirect} from "next/navigation";
 import {articleParent} from '../../../../modules/content/navigation';
+import {content,publicArticle,publicSiteSettings} from '../../../../modules/public-site/server';
+import {publicMetadata} from '../../../../modules/public-site/seo';
+import {PublicFrame} from '../../../../modules/public-site/Frame';
+import {getPresentationVersion} from '../../../../modules/shared/presentation-version.mjs';
+import path from 'node:path';
 export const dynamic = "force-dynamic";
+async function articleForPage(slug:string){
+ const article=await publicArticle(slug);if(article)return article;
+ const alias=(content.articleAliases as Record<string,string>)[slug];if(alias){const match=/^(.*)-(\d+)$/.exec(alias);if(match)permanentRedirect('/chu-de/'+match[1]+'/'+match[2]);}
+ notFound();
+}
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}){
+ const slug=(await params).slug,a=await articleForPage(slug);
+ const settings=await publicSiteSettings();
+ return publicMetadata({title:a.title,path:'/bai-viet/'+encodeURIComponent(a.slug),description:String(a.body||'').replace(/\s+/g,' ').slice(0,180),enabled:settings.publicIndexingEnabled===true,indexable:Boolean(a.body?.trim())});
+}
 export default async function Page({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params,
-    payload = await getPayload({ config });
-  const result = await payload.find({
-    collection: "articles",
-    overrideAccess: false,
-    where: { slug: { equals: slug } },
-    limit: 1,depth:1,
-  });
-  const a = result.docs[0];
-  if (!a) notFound();
-  const parent=articleParent(a.kind);
+  const { slug } = await params,a=await articleForPage(slug);
+  const news=a.kind==='news'||content.newsSlugs.includes(a.slug),parent=articleParent(news?'news':a.kind),revision=getPresentationVersion(path.join(process.cwd(),'public'));
   return (
-    <>
-      <Header />
-      <main className="live-reading-page">
+    <PublicFrame revision={revision} section={news?'news':'lookup'}>
+      <div className="live-reading-page">
         <div className="container">
           <LocaleNav className="live-breadcrumb" label="Đường dẫn">
             <a href="/"> <LocaleText text="Trang chủ"/></a>
@@ -77,8 +78,7 @@ export default async function Page({
             </article>
           </div>
         </div>
-      </main>
-      <Footer />
-    </>
+      </div>
+    </PublicFrame>
   );
 }
