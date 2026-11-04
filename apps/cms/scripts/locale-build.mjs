@@ -13,3 +13,10 @@ export function augmentBilingual(source,dictionary){
       });
       document.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{`);
 }
+
+export async function writeInterfaceLocale(publicDirectory){
+ const {readFile,writeFile}=await import('node:fs/promises');const path=await import('node:path');
+ const dictionary=JSON.parse(await readFile(new URL('../src/modules/shared/locale/de.json',import.meta.url),'utf8'));
+ const file=path.join(publicDirectory,'assets/bilingual.js');
+ await writeFile(file,augmentBilingual(await readFile(file,'utf8'),dictionary));
+}

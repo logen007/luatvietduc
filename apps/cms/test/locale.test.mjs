@@ -33,3 +33,7 @@ test('legacy build uses shared dictionary, translates dynamic counts and switche
  win.LVD_I18N.set('vi');while(queue.length)queue.shift()();assert.deepEqual(nodes.map(n=>n.nodeValue),['Hội thoại của tôi','12 bài viết','Trang 2 / 4']);
  assert.equal(storage.get('lvd-lang'),'vi');assert.throws(()=>augmentBilingual('unexpected source',dictionary),/marker changed/);
 });
+
+test('both deployment and development prepare the shared legacy locale',()=>{
+ for(const file of ['prepare-container.mjs','prepare-frontend.mjs'])assert.match(fs.readFileSync(new URL('../scripts/'+file,import.meta.url),'utf8'),/await writeInterfaceLocale\(pub\)/);
+});
