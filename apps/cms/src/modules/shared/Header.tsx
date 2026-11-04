@@ -12,7 +12,7 @@ const arrow = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6
 export function Header() {
  const {t,language}=useLocale();
   const text=(vi:string,de:string)=>language==='de'?de:vi;
-  const labels:Record<string,string>={'Thư viện pháp luật':'Rechtsbibliothek','Tin tức':'Nachrichten','Giới thiệu':'Über uns'};
+  const labels:Record<string,string>={'Thư viện':'Bibliothek','Tin tức':'Nachrichten','Giới thiệu':'Über uns'};
   const settings=usePublicSettings();
   const name=settings?.siteName||"Luật Việt Đức";
   const [menuOpen, setMenuOpen] = useState(false);

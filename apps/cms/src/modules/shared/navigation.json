@@ -3,7 +3,7 @@
     {
       "key": "lookup",
       "href": "/#/tra-cuu",
-      "label": "Thư viện pháp luật"
+      "label": "Thư viện"
     },
     {
       "key": "news",
@@ -21,7 +21,7 @@
       "title": "Thư viện",
       "links": [
         [
-          "Thư viện pháp luật",
+          "Thư viện",
           "/#/tra-cuu"
         ],
         [

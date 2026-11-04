@@ -5,10 +5,10 @@
       <h1 id="pm-title">${l('Giải đáp pháp luật <br>Việt Nam và Đức.','Recht in Vietnam <br>und Deutschland.')}</h1>
       <p class="pm-hero-description">${l('Từ cư trú, quốc tịch đến các vấn đề về gia đình, tài&nbsp;sản và công việc.','Von Aufenthalt und Staatsangehörigkeit bis zu Familie, Eigentum und Arbeit.')}</p>
       <form id="home-ask" class="pm-ask ask-box"><label class="sr-only" for="home-question">${l('Bạn cần làm rõ vấn đề gì?','Was möchten Sie klären?')}</label><div class="pm-ask-row"><textarea id="home-question" name="question" maxlength="2000" required placeholder="${l('Bạn cần làm rõ vấn đề gì?','Was möchten Sie klären?')}" rows="1"></textarea><button class="button" type="submit" aria-label="${l('Gửi câu hỏi','Frage senden')}">${l('Gửi câu hỏi','Frage senden')} ${arrow}</button></div></form>
-      <div class="pm-hero-links"><a href="#/tra-cuu">${l('Thư viện pháp luật','Rechtsbibliothek')} ${arrow}</a></div>
+      <div class="pm-hero-links"><a href="#/tra-cuu">${l('Thư viện','Rechtsbibliothek')} ${arrow}</a></div>
     </div></div>${partnerStrip()}
   </section>
-  <section class="pm-countries container" aria-label="${l('Thư viện pháp luật','Rechtsbibliotheken')}">
+  <section class="pm-countries container" aria-label="${l('Thư viện','Rechtsbibliotheken')}">
     ${country('vn','viet-nam','Pháp luật Việt Nam','Vietnamesisches Recht','16 lĩnh vực · 303 chủ đề','16 Rechtsgebiete · 303 Themen')}
     ${country('de','duc','Pháp luật Đức','Deutsches Recht','16 lĩnh vực','16 Rechtsgebiete')}
   </section>
