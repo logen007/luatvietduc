@@ -88,7 +88,7 @@ config = dict(repo_url='https://github.com/logen007/luatvietduc.git', repo_full_
     state_dir=str(state), compose_file=str(conf / 'compose.yml'), env_file=str(env_file),
     backup_script=str(conf / 'backup.sh'), font_file=str(conf / 'Articulat-web.woff2'),
     font_sha256=font_hash, app_url='https://luatvietduc.com', initial_sha=initial_sha,
-    initial_release=initial_release, poll_seconds=180,
+    initial_release=initial_release, poll_seconds=15,
     policy_hashes={p: hashlib.sha256(data).hexdigest() for p, data in sources.items()})
 (conf / 'config.json').write_text(json.dumps(config, indent=2) + '\n')
 subprocess.run(['docker', 'compose', '-f', str(conf / 'compose.yml'), '--env-file', str(env_file), 'config', '--quiet'], check=True)
@@ -123,12 +123,12 @@ TimeoutStartSec=20min
 UNIT
 cat > /etc/systemd/system/luatvietduc-release.timer <<'UNIT'
 [Unit]
-Description=Check for verified Luat Viet Duc updates every minute
+Description=Check for verified Luat Viet Duc updates every 15 seconds
 
 [Timer]
 OnBootSec=90s
-OnUnitInactiveSec=60s
-AccuracySec=10s
+OnUnitInactiveSec=15s
+AccuracySec=1s
 Unit=luatvietduc-release.service
 
 [Install]

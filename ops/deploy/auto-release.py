@@ -34,9 +34,9 @@ class ReleaseError(Exception):
 
 
 class APIBackoff(ReleaseError):
-    def __init__(self, message, seconds=180):
+    def __init__(self, message, seconds=30):
         super().__init__(message)
-        self.seconds = max(180, seconds)
+        self.seconds = max(15, seconds)
 
 
 def require(condition, message):
@@ -68,7 +68,7 @@ def config_checked(data):
     require(all(p in policies for p in [WORKFLOW, "ops/deploy/compose.yml", "ops/deploy/auto-release.py", "ops/deploy/Dockerfile"]), "Approved policy hashes required")
     for path, value in policies.items():
         require(not Path(path).is_absolute() and ".." not in Path(path).parts and re.fullmatch(r"[0-9a-f]{64}", value), "Invalid policy hash")
-    data["poll_seconds"] = max(180, int(data.get("poll_seconds", 180)))
+    data["poll_seconds"] = max(15, int(data.get("poll_seconds", 15)))
     return data
 
 
