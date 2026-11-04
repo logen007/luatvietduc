@@ -50,7 +50,7 @@ export async function queue(a: Actor) {
     a.user?.role === "owner" ? ["VN", "DE", "BOTH"] : a.user?.jurisdictions?.length ? [...a.user.jurisdictions,"BOTH"] : [];
   return (
     await pool.query(
-      "SELECT id,jurisdiction,specialty,state,version,created_at,assigned_to,(user_id IS NOT NULL) AS registered FROM lvd_conversations WHERE jurisdiction=ANY($1) AND ((state='queued' AND (NOT ai_enabled OR (COALESCE(ai_started_at,updated_at)<now()-interval '45 seconds' AND EXISTS(SELECT 1 FROM lvd_messages question WHERE question.id=(SELECT max(id) FROM lvd_messages WHERE conversation_id=lvd_conversations.id AND role='user') AND NOT EXISTS(SELECT 1 FROM lvd_messages reply WHERE reply.conversation_id=lvd_conversations.id AND reply.client_key='assistant:'||question.id::text))))) OR assigned_to=$2) ORDER BY CASE WHEN assigned_to=$2 THEN 0 WHEN user_id IS NOT NULL THEN 1 ELSE 2 END,created_at LIMIT 100",
+      "SELECT id,jurisdiction,specialty,state,version,created_at,assigned_to,(user_id IS NOT NULL) AS registered FROM lvd_conversations WHERE jurisdiction=ANY($1) AND ((state='queued' AND (NOT ai_enabled OR (COALESCE(ai_started_at,updated_at)<now()-interval '45 seconds' AND EXISTS(SELECT 1 FROM lvd_messages question WHERE question.id=(SELECT max(id) FROM lvd_messages WHERE conversation_id=lvd_conversations.id AND role='user') AND NOT EXISTS(SELECT 1 FROM lvd_messages reply WHERE reply.conversation_id=lvd_conversations.id AND reply.client_key='assistant:'||question.id::text))))) OR assigned_to=$2) ORDER BY CASE WHEN assigned_to=$2 AND state='human' THEN 0 WHEN state='queued' AND user_id IS NOT NULL THEN 1 WHEN state='queued' THEN 2 ELSE 3 END,created_at LIMIT 100",
       [countries, a.user!.id],
     )
   ).rows;

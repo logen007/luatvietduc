@@ -16,8 +16,10 @@ export async function testGuestPriority(owner:User,otherUser:User){
  const linked=await transcript(member,saved.id);assert.equal(linked.conversation.registered,true);assert.equal(linked.messages[0].body,'Synthetic saved conversation');
  assert.equal((await pool.query('SELECT actor_key FROM lvd_chat_files WHERE id=$1',[fileId])).rows[0].actor_key,'user:'+owner.id);
  await assert.rejects(()=>transcript(anon,saved.id));assert.equal((await transcript({user:otherUser,guestHash:anon.guestHash},saved.id)).messages.length,0,'Unassigned staff gets only queue preview, never saved contents');
- const q=await queue(member);assert.ok(q.findIndex(row=>row.id===saved.id)>=0);assert.ok(q.findIndex(row=>row.id===olderGuest.id)===-1||q.findIndex(row=>row.id===saved.id)<q.findIndex(row=>row.id===olderGuest.id),'Registered request outranks older anonymous request, including the queue limit');if(q.some(row=>row.id===olderGuest.id))assert.equal(q.find(row=>row.id===olderGuest.id)?.registered,false);
+ const active=await createConversation(other,{consent:true}),closed=await createConversation(other,{consent:true});
+ await pool.query("UPDATE lvd_conversations SET assigned_to=$1,state=CASE WHEN id=$2 THEN 'human' ELSE 'closed' END WHERE id=ANY($3::uuid[])",[owner.id,active.id,[active.id,closed.id]]);
+ const q=await queue(member);assert.ok(q.findIndex(row=>row.id===active.id)<q.findIndex(row=>row.id===saved.id),'Active assigned work stays first');if(q.some(row=>row.id===closed.id))assert.ok(q.findIndex(row=>row.id===closed.id)>q.findIndex(row=>row.id===saved.id),'Closed history cannot displace waiting registered customers');assert.ok(q.findIndex(row=>row.id===saved.id)>=0);assert.ok(q.findIndex(row=>row.id===olderGuest.id)===-1||q.findIndex(row=>row.id===saved.id)<q.findIndex(row=>row.id===olderGuest.id),'Registered request outranks older anonymous request, including the queue limit');if(q.some(row=>row.id===olderGuest.id))assert.equal(q.find(row=>row.id===olderGuest.id)?.registered,false);
  assert.equal((await transcript(other,olderGuest.id)).conversation.registered,false,'Other browser stays anonymous');
- await pool.query('DELETE FROM lvd_conversations WHERE id=ANY($1::uuid[])',[[saved.id,olderGuest.id]]);
+ await pool.query('DELETE FROM lvd_conversations WHERE id=ANY($1::uuid[])',[[saved.id,olderGuest.id,active.id,closed.id]]);
  console.log('Guest priority checks passed: registered queue priority, cookie-bound linking, preserved messages/files, old-guest revocation, wrong-cookie and cross-account isolation');
 }
