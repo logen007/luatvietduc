@@ -10,7 +10,7 @@ export const integrationCatalog = {
   ] },
   ai: { title: 'AI · Google Gemini', help: 'Chỉ nhận FAQ công khai; không nhận câu hỏi hay hồ sơ riêng của khách. Sau khi kiểm tra và bật kết nối, quản lý trợ lý cho khách trong Cài đặt website → AI & kho FAQ.', fields: [
     { key: 'apiKey', label: 'API key', secret: true, placeholder: '' },
-    { key: 'model', label: 'Tên model', secret: false, placeholder: 'Tên model trong tài khoản Google AI của anh' },
+    { key: 'model', label: 'Model (để trống để tự chọn)', secret: false, placeholder: 'Tự chọn model Flash phù hợp từ Google' },
   ] },
   r2: { title: 'Lưu tệp · Cloudflare R2', help: 'Dùng bucket riêng tư và khóa S3 chỉ có quyền trên bucket này.', fields: [
     { key: 'endpoint', label: 'S3 endpoint', secret: false, placeholder: 'https://<account-id>.r2.cloudflarestorage.com' },

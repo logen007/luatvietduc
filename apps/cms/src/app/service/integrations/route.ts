@@ -20,7 +20,21 @@ async function handle(req: Request) {
     let data;try{data=JSON.parse(body);}catch{throw new IntegrationError(400,'Dữ liệu không hợp lệ.');}
     if (!isProvider(data.provider) || !Number.isInteger(data.version)) throw new IntegrationError(400,'Kết nối hoặc phiên bản không hợp lệ.');
     await rateLimit('integration-owner:'+user!.id,12);
-    if(data.action==='save') await saveConnection(data.provider,data.values,data.version,user!.id);
+    if(data.action==='save') {
+      if(data.provider==='ai' && data.values && typeof data.values==='object' && !String(data.values.model||'').trim()) {
+        const previous=data.version?await storedValues('ai',data.version):null;
+        const key=String(data.values.apiKey||previous?.values.apiKey||'').trim();
+        if(!key)throw new IntegrationError(400,'Vui lòng nhập API key Gemini.');
+        const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000',{headers:{'x-goog-api-key':key},redirect:'error',signal:AbortSignal.timeout(10000)});
+        if(!response.ok)throw new IntegrationError(400,'Chưa đọc được danh sách model. Kiểm tra API key hoặc thử lại.');
+        const listing=await response.json();
+        const models=(listing.models||[]).filter((model:any)=>model.supportedGenerationMethods?.includes('generateContent')&&/^models\/gemini-[a-zA-Z0-9.-]+$/.test(model.name)&&!/(preview|experimental|exp-|image|audio|robotics|computer-use)/i.test(model.name));
+        models.sort((a:any,b:any)=>{const rank=(name:string)=>name.includes('flash-lite')?0:name.includes('flash')?1:2;return rank(a.name)-rank(b.name)||b.name.localeCompare(a.name,undefined,{numeric:true});});
+        if(!models[0])throw new IntegrationError(400,'Chưa tìm thấy model văn bản phù hợp với khóa này.');
+        data.values.model=models[0].name.replace('models/','');
+      }
+      await saveConnection(data.provider,data.values,data.version,user!.id);
+    }
     else if(data.action==='test') {
       const {values}=await storedValues(data.provider,data.version);let result;
       try { result=await checkConnection(data.provider,values,user!.email); }
