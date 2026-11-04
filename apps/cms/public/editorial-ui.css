@@ -745,7 +745,7 @@ body.lvd-redesign{--font:var(--lvd-font);margin:0;background:#fff;color:#0b0b0b;
 .lvd-redesign .lvd-footer-nav h3{margin:0 0 12px;color:#fff;font:500 14px/20px var(--lvd-font);letter-spacing:0}
 .lvd-redesign .lvd-footer-nav>a{display:block;margin-bottom:8px;color:rgba(255,255,255,.65);font:400 13px/24px var(--lvd-font);text-decoration:none}
 .lvd-redesign .lvd-footer-nav>a:hover{color:#fff}
-.lvd-redesign .lvd-footer-social{display:flex;gap:12px}
+.lvd-redesign .lvd-footer-social{display:flex;gap:8px}
 .lvd-redesign .lvd-footer-social a.lvd-social-icon{color:#ccc;background:transparent}
 .lvd-redesign .lvd-footer-social a.lvd-social-icon:hover{color:#fff;background:transparent}
 .lvd-redesign .lvd-footer-bottom{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-top:80px;padding-top:24px;border-top:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.65);font:400 12px/20px var(--lvd-font)}
