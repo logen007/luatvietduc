@@ -17,12 +17,14 @@ export function useWorkspace(staff=false){
     [loaded, setLoaded] = useState(false),
     [notice, setNotice] = useState("");
   const [preferHuman,setPreferHuman]=useState(false),[sendingBody,setSendingBody]=useState("");
+  const [attachments,setAttachments]=useState<any[]>([]),[uploading,setUploading]=useState(false);
   const [maxLength, setMaxLength] = useState(2000);
   const stickToBottom=useRef(true);
   const pending = useRef<{
       key: string;
       body: string;
       internal: boolean;
+      fileIds: string[];
     } | null>(null),
     log = useRef<HTMLDivElement>(null),
     shell = useRef<HTMLElement>(null);
@@ -181,9 +183,9 @@ export function useWorkspace(staff=false){
   };
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim() || busy || !loaded) return;
+    if ((!text.trim()&&!attachments.length) || busy || uploading || !loaded) return;
     setBusy(true);
-    setSendingBody(text.trim());
+    setSendingBody(text.trim()||"Tệp đính kèm");
     stickToBottom.current=true;
     setError("");
     try {
@@ -201,15 +203,17 @@ export function useWorkspace(staff=false){
       if (
         !pending.current ||
         pending.current.body !== text.trim() ||
-        pending.current.internal !== internal
+        pending.current.internal !== internal ||
+        JSON.stringify(pending.current.fileIds)!==JSON.stringify(attachments.map(file=>file.id))
       )
         pending.current = {
           key: crypto.randomUUID(),
           body: text.trim(),
           internal,
+          fileIds:attachments.map(file=>file.id),
         };
       await api(`conversations/${id}/messages`, {...pending.current,...(!staff?{aiConsentVersion:"gemini-rag-v1"}:{})});
-      setText("");
+      setText("");setAttachments([]);
       const latest=await api(`conversations/${id}`);
       setMessages(latest.messages);setConversation(latest.conversation);
       pending.current = null;
@@ -220,10 +224,26 @@ export function useWorkspace(staff=false){
       setBusy(false);setSendingBody("");
     }
   };
+  async function attachFiles(files:File[]){
+    if(uploading||busy||!loaded)return;
+    if(files.length+attachments.length>4){setError('Mỗi tin nhắn tối đa 4 tệp.');return;}
+    setUploading(true);setError('');
+    try{
+      let id=selected;
+      if(!id){const c=await api('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});id=c.id;setSelected(id);}
+      for(const file of files){
+        if(file.size>10*1024*1024)throw new Error('Mỗi tệp tối đa 10 MB.');
+        const response=await fetch(`/service/conversations/${id}/files`,{method:'POST',headers:{'content-type':'application/octet-stream','x-file-name':encodeURIComponent(file.name)},body:file});
+        const value=await response.json();if(!response.ok)throw new Error(value.error||'Chưa tải được tệp.');
+        setAttachments(previous=>[...previous,value]);
+      }
+    }catch(error){setError((error as Error).message);}finally{setUploading(false);}
+  }
+  useEffect(()=>{setAttachments([]);},[selected]);
   const staffAllowed =
     me?.user && ["owner", "support", "operations"].includes(me.user.role);
   const startNew=()=>{setSelected("");setConversation(null);setMessages([]);setError("");setText("");setPreferHuman(false);};
   const requestHuman=async()=>{if(selected)await act('handoff');else setPreferHuman(true);};
-  return {me,rows,selected,setSelected,conversation,messages,error,setError,connectionError,text,setText,country,setCountry,internal,setInternal,busy,loaded,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman,sendingBody,pendingKey:pending.current?.key};
+  return {attachments,uploading,attachFiles,removeAttachment:(id:string)=>setAttachments(previous=>previous.filter(file=>file.id!==id)),me,rows,selected,setSelected,conversation,messages,error,setError,connectionError,text,setText,country,setCountry,internal,setInternal,busy,loaded,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman,sendingBody,pendingKey:pending.current?.key};
 }
 export type WorkspaceState=ReturnType<typeof useWorkspace>;

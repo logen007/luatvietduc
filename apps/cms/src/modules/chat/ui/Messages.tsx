@@ -12,6 +12,7 @@ export function ChatMessages({state}:{state:WorkspaceState}){
  return <div className="chat-transcript">
   {state.messages.map(message=><article className={'chat-message '+(message.role==='user'?'user':'assistant')} key={message.id}>
    {message.role!=='user'&&<div className="chat-answer-label"><ChatIcon name={message.role==='staff'?'person':'spark'}/><strong>{message.role==='staff'?'Chuyên viên':['ai','clarify'].includes(message.metadata?.kind)?'Trợ lý AI':'Luật Việt Đức'}</strong></div>}
+   {message.attachments?.length>0&&<div className="chat-message-files">{message.attachments.map((file:any)=><a className="chat-file-chip" key={file.id} href={file.url} download><span aria-hidden="true">▤</span><span><strong>{file.name}</strong><small>{Math.ceil(file.size/1024)} KB</small></span><span aria-hidden="true">↓</span></a>)}</div>}
    <div className="chat-answer-text">{String(message.body).split(/\n\n+/).map((paragraph,index)=><p key={index}>{paragraph}</p>)}</div>
    {message.metadata?.sources?.length>0&&<div className="chat-sources">{message.metadata.sources.map((source:any)=>{const href=sourceHref(source.url);return href?<a key={source.id} href={href} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><ChatIcon name="arrow"/>{source.title}</a>:null;})}</div>}
    {message.role!=='user'&&<CopyAnswer text={message.body}/>}

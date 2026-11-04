@@ -5,6 +5,7 @@ import {unseal} from '../../src/modules/integrations/crypto';
 import {readFile} from 'node:fs/promises';
 let input='';for await(const chunk of process.stdin){input+=chunk;if(input.length>16000)throw new Error('Too much input');}
 const d=JSON.parse(input||'{}');
+const inventorySQL="SELECT filename,prefix,COALESCE(_objectkey,_object_key) AS _object_key,mime_type FROM media WHERE filename NOT LIKE 'lvd-bundled-%' UNION ALL SELECT split_part(object_key,'/',3) AS filename,regexp_replace(object_key,'/[^/]+$','') AS prefix,NULL AS _object_key,mime_type FROM lvd_chat_files WHERE ready=true";
 async function main(){
  if(d.action==='claim')return transaction(async db=>{
   await db.query('UPDATE lvd_backup_runtime SET heartbeat=now() WHERE id=1');
@@ -19,11 +20,11 @@ async function main(){
   const release=JSON.parse(await readFile('public/release.json','utf8'));
   return {job:{id:job.id,kind:job.kind},drive,r2:await activeValues('r2'),identity,snapshot,release,
     history:(await db.query('SELECT * FROM lvd_backup_snapshots WHERE trashed_at IS NULL ORDER BY created_at DESC')).rows,
-    inventory:(await db.query('SELECT filename,prefix,_object_key,mime_type FROM media')).rows};
+    inventory:(await db.query(inventorySQL)).rows};
  });
  if(d.action==='lock')return transaction(async db=>{await db.query('SELECT pg_advisory_xact_lock(73041104)');await db.query("UPDATE lvd_backup_runtime SET media_locked_until=now()+interval '3 minutes' WHERE id=1");return true;});
  if(d.action==='pulse'){await pool.query("UPDATE lvd_backup_runtime SET heartbeat=now(),media_locked_until=CASE WHEN media_locked_until IS NOT NULL THEN now()+interval '3 minutes' ELSE NULL END WHERE id=1");return true;}
- if(d.action==='inventory')return (await pool.query('SELECT filename,prefix,_object_key,mime_type FROM media')).rows;
+ if(d.action==='inventory')return (await pool.query(inventorySQL)).rows;
  if(d.action==='unlock'){await pool.query('UPDATE lvd_backup_runtime SET media_locked_until=NULL WHERE id=1');return true;}
  if(d.action==='finish')return transaction(async db=>{
   if(d.snapshot){const s=d.snapshot;await db.query('INSERT INTO lvd_backup_snapshots(id,remote_path,monthly_path,sha256,bytes,commit_sha,media_included,verified_at) VALUES($1,$2,$3,$4,$5,$6,$7,now())',[d.id,s.path,s.monthly||null,s.sha256,s.bytes,s.commit,s.media]);}

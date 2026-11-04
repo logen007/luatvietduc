@@ -1,3 +1,4 @@
+import {testChatFiles} from './test-chat-files';
 import assert from "node:assert/strict";
 import { getPayload, type PayloadRequest } from "payload";
 import config from "../src/payload.config";
@@ -194,6 +195,7 @@ try {
   await assert.rejects(()=>writeKnowledgeArticle(payload,staff,{id:imported.id,updatedAt:'2000-01-01',title:'Stale edit',body:'Synthetic',publish:true}),/đã thay đổi/);
   const draft=await writeKnowledgeArticle(payload,staff,{id:imported.id,updatedAt:imported.updatedAt,title:imported.title,body:imported.body,publish:false});assert.equal(draft._status,'draft');assert.equal(draft.approved,false);
   assert.equal((await readKnowledgeSource(new Request(imported.sourceUrl),{params:Promise.resolve({token})})).status,404,'Draft or withdrawn article cannot remain a public source');
+  await testChatFiles(owner);
   await testEditorial(payload,owner,staff);
   await testAssistant(payload,owner,staff);
   await testRag(payload,owner,staff);

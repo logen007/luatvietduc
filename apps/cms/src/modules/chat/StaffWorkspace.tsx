@@ -286,6 +286,7 @@ export function StaffWorkspace({embedded=false}:{embedded?:boolean}){
                           {new Date(m.created_at).toLocaleString("vi-VN")}
                         </time>
                       </div>
+                      {m.attachments?.length>0&&<div className="chat-message-files">{m.attachments.map((file:any)=><a className="chat-file-chip" key={file.id} href={file.url} download><span aria-hidden="true">▤</span><span><strong>{file.name}</strong><small>{Math.ceil(file.size/1024)} KB</small></span>↓</a>)}</div>}
                       <p>{m.body}</p>
                     </div>
                   </div>

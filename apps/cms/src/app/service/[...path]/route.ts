@@ -1,3 +1,4 @@
+import {uploadChatFile,downloadChatFile,MAX_CHAT_FILE} from '../../../modules/chat/files';
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 import config from "@payload-config";
@@ -45,6 +46,19 @@ async function route(
     // Private polling needs only authentication and its own scoped query.
     let settingsPromise:ReturnType<typeof siteSettings>|null=null;
     const settings = () => settingsPromise??=siteSettings(payload);
+    if(segments[0]==='chat-files'&&segments.length===2&&method==='GET'&&/^[a-f0-9-]{36}$/i.test(segments[1]))return await downloadChatFile(actor,segments[1]);
+    if(segments[0]==='conversations'&&segments[2]==='files'&&segments.length===3&&method==='POST'&&/^[a-f0-9-]{36}$/i.test(segments[1])){
+      if(req.headers.get('origin')!==(process.env.APP_URL||'http://localhost:3000'))throw new chat.HttpError(403,'Nguồn yêu cầu không hợp lệ.');
+      if((await settings()).chatEnabled===false)throw new chat.HttpError(503,'Tiếp nhận chat đang tạm dừng.');
+      await chat.rateLimit('file:'+(user?.id||actor.guestHash),15);await chat.rateLimit('global-chat-file',100);
+      if(Number(req.headers.get('content-length'))>MAX_CHAT_FILE)throw new chat.HttpError(413,'Tệp vượt quá 10 MB.');
+      const reader=req.body?.getReader();if(!reader)throw new chat.HttpError(400,'Chưa chọn tệp.');
+      const chunks:Buffer[]=[];let size=0;
+      for(;;){const part=await reader.read();if(part.done)break;size+=part.value.length;if(size>MAX_CHAT_FILE){await reader.cancel();throw new chat.HttpError(413,'Tệp vượt quá 10 MB.');}chunks.push(Buffer.from(part.value));}
+      let name='';try{name=decodeURIComponent(req.headers.get('x-file-name')||'');}catch{throw new chat.HttpError(400,'Tên tệp không hợp lệ.');}
+      if(!name||name.length>180)throw new chat.HttpError(400,'Tên tệp tối đa 180 ký tự.');
+      return json(await uploadChatFile(actor,segments[1],name,Buffer.concat(chunks)));
+    }
     let data: any = {};
     if (method === "POST") {
       const origin = process.env.APP_URL || "http://localhost:3000";

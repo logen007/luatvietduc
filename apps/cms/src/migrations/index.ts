@@ -1,3 +1,4 @@
+import * as chatFiles from './20261104_090000_chat_files';
 import * as bundledMedia from './20261104_080000_bundled_media';
 import * as legacyDrafts from './20261104_070000_legacy_drafts';
 import * as migration_20261103_035530 from './20261103_035530';
@@ -30,4 +31,5 @@ export const migrations = [
  {up:editorialTaxonomies.up,down:editorialTaxonomies.down,name:'20261104_060000_editorial_taxonomies'},
  {up:legacyDrafts.up,down:legacyDrafts.down,name:'20261104_070000_legacy_drafts'},
  {up:bundledMedia.up,down:bundledMedia.down,name:'20261104_080000_bundled_media'},
+ {up:chatFiles.up,down:chatFiles.down,name:'20261104_090000_chat_files'},
 ];

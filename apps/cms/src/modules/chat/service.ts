@@ -27,7 +27,7 @@ export function isCustomer(a: Actor, c: any) {
     a.user?.id === c.user_id || (!c.user_id && a.guestHash === c.guest_hash)
   );
 }
-function allowed(a: Actor, c: any) {
+export function allowed(a: Actor, c: any) {
   return (
     isCustomer(a, c) ||
     (isStaff(a.user) &&
@@ -105,7 +105,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
   }
   const staff = isStaff(a.user) && !isCustomer(a, c);
   const messages = await pool.query(
-    "SELECT id,role,body,internal,created_at,client_key,metadata FROM lvd_messages WHERE conversation_id=$1 AND id>$2 " +
+    "SELECT id,role,body,internal,created_at,client_key,metadata,COALESCE((SELECT json_agg(json_build_object('id',f.id,'name',f.name,'size',f.size,'mimeType',f.mime_type,'url','/service/chat-files/'||f.id)) FROM lvd_chat_files f WHERE f.message_id=lvd_messages.id AND f.ready=true),'[]'::json) AS attachments FROM lvd_messages WHERE conversation_id=$1 AND id>$2 " +
       (staff ? "" : "AND internal=false ") +
       "ORDER BY id LIMIT 200",
     [id, after],
@@ -131,9 +131,11 @@ export async function message(
   data: any,
   maxLength: number,
 ) {
+  const fileIds = Array.isArray(data.fileIds)?data.fileIds:[];
+  if(fileIds.length>4||new Set(fileIds).size!==fileIds.length||fileIds.some((v:unknown)=>typeof v!=="string"||!/^[a-f0-9-]{36}$/i.test(v)))throw new HttpError(400,"Tệp đính kèm không hợp lệ.");
   const body = String(data.body || "").trim(),
     key = String(data.key || "");
-  if (!body || body.length > maxLength || !/^[\w-]{16,80}$/.test(key))
+  if ((!body&&!fileIds.length) || body.length > maxLength || !/^[\w-]{16,80}$/.test(key))
     throw new HttpError(400, "Tin nhắn hoặc mã gửi không hợp lệ.");
   return transaction(async (db) => {
     const c = (
@@ -160,7 +162,7 @@ export async function message(
       if (
         prior.actor_key !== actorKey ||
         prior.body !== body ||
-        prior.internal !== internal
+        prior.internal !== internal || JSON.stringify(prior.metadata?.fileIds||[])!==JSON.stringify(fileIds)
       )
         throw new HttpError(409, "Mã gửi đã dùng cho nội dung khác.");
       return { id: prior.id, duplicate: true,role:prior.role };
@@ -173,14 +175,23 @@ export async function message(
         (c.assigned_to !== a.user?.id && a.user?.role !== "owner"))
     )
       throw new HttpError(409, "Cần nhận xử lý hội thoại trước khi trả lời.");
+    if(fileIds.length){
+      const files=await db.query("SELECT id FROM lvd_chat_files WHERE id=ANY($1::uuid[]) AND conversation_id=$2 AND actor_key=$3 AND message_id IS NULL AND ready=true FOR UPDATE",[fileIds,id,actorKey]);
+      if(files.rowCount!==fileIds.length)throw new HttpError(403,"Không thể gửi tệp này trong hội thoại.");
+    }
+    const metadata:any={...(own&&!fileIds.length&&data.aiConsentVersion==='gemini-rag-v1'?{aiConsent:{version:'gemini-rag-v1',provider:'google-gemini',at:new Date().toISOString()}}:{}),...(fileIds.length?{fileIds}:{})};
     const result = await db.query(
       "INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",
-      [id, own ? "user" : "staff", body, internal, actorKey, key, own&&data.aiConsentVersion==='gemini-rag-v1'?JSON.stringify({aiConsent:{version:'gemini-rag-v1',provider:'google-gemini',at:new Date().toISOString()}}):null],
+      [id, own ? "user" : "staff", body, internal, actorKey, key, Object.keys(metadata).length?JSON.stringify(metadata):null],
     );
     await db.query(
       "UPDATE lvd_conversations SET updated_at=clock_timestamp(),title=CASE WHEN title='Cuộc trò chuyện mới' THEN $2 ELSE title END,ai_generation=CASE WHEN $3 THEN NULL ELSE ai_generation END,ai_started_at=CASE WHEN $3 THEN NULL ELSE ai_started_at END,ai_message_id=CASE WHEN $3 THEN NULL ELSE ai_message_id END WHERE id=$1",
-      [id, body.slice(0, 75),own],
+      [id, (body||"Tài liệu đính kèm").slice(0, 75),own],
     );
+    if(fileIds.length){
+      await db.query("UPDATE lvd_chat_files SET message_id=$1,internal=$2 WHERE id=ANY($3::uuid[])",[result.rows[0].id,internal,fileIds]);
+      if(own)await db.query("UPDATE lvd_conversations SET ai_enabled=false,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,state=CASE WHEN state='human' THEN state ELSE 'queued' END,version=version+1 WHERE id=$1",[id]);
+    }
     return {...result.rows[0],role:own?'user':'staff'};
   });
 }
