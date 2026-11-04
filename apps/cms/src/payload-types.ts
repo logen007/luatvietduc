@@ -190,7 +190,7 @@ export interface Knowledge {
   id: number;
   title: string;
   /**
-   * Mỗi dòng một câu hỏi có cùng phạm vi và điều kiện với câu hỏi chuẩn. Nội dung ngoài các câu này được chuyển chuyên viên.
+   * Mỗi dòng một câu hỏi có cùng phạm vi và điều kiện với câu hỏi chuẩn. Không bắt buộc. AI còn tìm theo ý nghĩa trong nội dung bài viết.
    */
   questionAliases?: string | null;
   /**
@@ -511,7 +511,7 @@ export interface SiteSetting {
   retentionDays?: number | null;
   maxMessageLength?: number | null;
   /**
-   * Chỉ dùng FAQ đúng quốc gia, còn hiệu lực và đã xác nhận. Không gửi câu hỏi hoặc hồ sơ riêng của khách cho Gemini. Thiếu căn cứ hoặc lỗi dịch vụ sẽ chuyển chuyên viên.
+   * AI tìm theo ý nghĩa trong bài viết đã xuất bản và còn hiệu lực. Khách được thông báo trước khi gửi câu hỏi sang Gemini; hồ sơ nhạy cảm chuyển chuyên viên. Thiếu căn cứ hoặc lỗi dịch vụ sẽ chuyển chuyên viên.
    */
   customerAIEnabled?: boolean | null;
   aiMode?: ('off' | 'internal-only') | null;

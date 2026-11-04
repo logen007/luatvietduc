@@ -2,6 +2,7 @@ import {createLocalReq,type Payload} from 'payload';
 import {sql} from '@payloadcms/db-postgres';
 import type {User} from '../../payload-types';
 import {HttpError} from '../chat/service';
+import {indexStatus} from '../rag/admin';
 import {knowledgeArticleInput} from './article-input';
 export function requireKnowledge(user:User|null):asserts user is User{if(!user||!['owner','knowledge','support','reviewer'].includes(user.role))throw new HttpError(403,'Tài khoản chưa được giao quản lý kiến thức AI.');}
 export async function knowledgeArticles(payload:Payload,user:User|null,id?:string|null,options:{query?:string;page?:number}={}){
@@ -10,7 +11,8 @@ export async function knowledgeArticles(payload:Payload,user:User|null,id?:strin
  const query=(options.query||'').trim().slice(0,160),page=options.page||1;
  if(!Number.isSafeInteger(page)||page<1||page>100000)throw new HttpError(400,'Trang không hợp lệ.');
  const result=await payload.find({collection:'knowledge',user,overrideAccess:false,draft:true,limit:25,page,where:query?{title:{contains:query}}:undefined,sort:'-updatedAt',select:{title:true,jurisdiction:true,_status:true,approved:true,updatedAt:true,reviewDueAt:true}});
- return {articles:result.docs,total:result.totalDocs,page:result.page,totalPages:result.totalPages};
+ const index=await indexStatus(user,result.docs.map(doc=>doc.id));
+ return {articles:result.docs.map(doc=>({...doc,index:index.rows.find(row=>row.source_id===doc.id)||null})),indexWorker:index.worker,total:result.totalDocs,page:result.page,totalPages:result.totalPages};
 }
 export async function writeKnowledgeArticle(payload:Payload,user:User|null,input:any){
  requireKnowledge(user);

@@ -104,7 +104,7 @@ export const SiteSettings: GlobalConfig = {
     }]},
 {label:"AI & kho FAQ",fields:[{
       name:'customerAIEnabled',label:'Ưu tiên trợ lý AI từ FAQ đã xuất bản',type:'checkbox',defaultValue:true,
-      admin:{description:'Chỉ dùng FAQ đúng quốc gia, còn hiệu lực và đã xác nhận. Không gửi câu hỏi hoặc hồ sơ riêng của khách cho Gemini. Thiếu căn cứ hoặc lỗi dịch vụ sẽ chuyển chuyên viên.'},
+      admin:{description:'AI tìm theo ý nghĩa trong bài viết đã xuất bản và còn hiệu lực. Khách được thông báo trước khi gửi câu hỏi sang Gemini; hồ sơ nhạy cảm chuyển chuyên viên. Thiếu căn cứ hoặc lỗi dịch vụ sẽ chuyển chuyên viên.'},
     },{
       name: "aiMode",
       label: "Thử AI nội bộ",

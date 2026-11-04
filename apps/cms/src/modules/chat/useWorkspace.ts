@@ -76,7 +76,8 @@ export function useWorkspace(staff=false){
         if (!active) return;
         setRows(list);
         // A question from the homepage starts its own intake, even with saved history.
-        if (active && !staff && !draft && list[0]) setSelected(list[0].id);
+        if (staff){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&/^[a-f0-9-]{36}$/i.test(requested))setSelected(requested);}
+        else if (active && !draft && list[0]) setSelected(list[0].id);
       } catch (e) {
         if (active) setError((e as Error).message);
       } finally {
@@ -207,7 +208,7 @@ export function useWorkspace(staff=false){
           body: text.trim(),
           internal,
         };
-      await api(`conversations/${id}/messages`, pending.current);
+      await api(`conversations/${id}/messages`, {...pending.current,...(!staff?{aiConsentVersion:"gemini-rag-v1"}:{})});
       setText("");
       const latest=await api(`conversations/${id}`);
       setMessages(latest.messages);setConversation(latest.conversation);

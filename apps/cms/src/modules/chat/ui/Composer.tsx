@@ -14,6 +14,6 @@ export function ChatComposer({state}:{state:WorkspaceState}){
     <button className="chat-submit" type="submit" aria-label="Gửi câu hỏi" disabled={disabled||!state.text.trim()}>{state.busy?<span className="live-spinner"/>:<ChatIcon name="send"/>}</button>
    </div>
   </form>
-  <a className="chat-privacy" href="/#/chinh-sach-thong-tin">Quyền riêng tư</a>
+  <p className="chat-ai-notice">Khi gửi, bạn đồng ý để Google Gemini xử lý câu hỏi. Bản miễn phí có thể dùng nội dung để cải thiện AI. Không gửi giấy tờ hoặc thông tin nhạy cảm. <a href="/#/chinh-sach-thong-tin">Quyền riêng tư</a></p>
  </div>;
 }

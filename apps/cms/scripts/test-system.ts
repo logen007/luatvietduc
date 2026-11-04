@@ -9,6 +9,7 @@ import {mediaWriteGuard} from '../src/modules/backup/media-lock';
 import {GET as readKnowledgeSource} from '../src/app/service/knowledge-source/[token]/route';
 import {writeKnowledgeArticle,knowledgeArticles} from '../src/modules/knowledge/articles';
 import {testSharedKnowledge} from './test-shared-knowledge';
+import {testRag} from './test-rag';
 import {testAssistant} from './test-assistant';
 const url = new URL(process.env.DATABASE_URL || "");
 if (
@@ -193,6 +194,7 @@ try {
   const draft=await writeKnowledgeArticle(payload,staff,{id:imported.id,updatedAt:imported.updatedAt,title:imported.title,body:imported.body,publish:false});assert.equal(draft._status,'draft');assert.equal(draft.approved,false);
   assert.equal((await readKnowledgeSource(new Request(imported.sourceUrl),{params:Promise.resolve({token})})).status,404,'Draft or withdrawn article cannot remain a public source');
   await testAssistant(payload,owner,staff);
+  await testRag(payload,owner,staff);
   await testSharedKnowledge(staff,foreign);
 } finally {
   await payload.destroy();

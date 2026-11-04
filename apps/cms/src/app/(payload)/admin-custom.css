@@ -300,3 +300,5 @@ html.lvd-admin .lvd-knowledge-editor .button.secondary{background:var(--theme-el
 @media(max-width:600px){.lvd-knowledge-editor{padding:16px}.lvd-knowledge-editor .integration-actions{display:flex;flex-direction:column}.lvd-knowledge-editor .integration-actions>*{width:100%}.lvd-knowledge-toolbar .button{width:100%}}
 .lvd-knowledge-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;font-size:12px}
 .lvd-knowledge-pagination button{min-height:44px;padding:8px 12px;background:var(--theme-elevation-100);color:var(--theme-text);border:1px solid var(--theme-border-color);border-radius:4px;cursor:pointer}
+
+.lvd-knowledge-index-status{color:var(--theme-text);font-size:13px;line-height:1.6;margin:0 0 20px}.lvd-knowledge-gaps{border-top:1px solid var(--theme-border-color);margin-top:28px;padding-top:20px}.lvd-knowledge-gaps a{display:block;max-width:100%;overflow-wrap:anywhere;color:var(--theme-text);padding:12px 0;border-bottom:1px solid var(--theme-border-color)}

@@ -174,8 +174,8 @@ export async function message(
     )
       throw new HttpError(409, "Cần nhận xử lý hội thoại trước khi trả lời.");
     const result = await db.query(
-      "INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key) VALUES($1,$2,$3,$4,$5,$6) RETURNING id",
-      [id, own ? "user" : "staff", body, internal, actorKey, key],
+      "INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",
+      [id, own ? "user" : "staff", body, internal, actorKey, key, own&&data.aiConsentVersion==='gemini-rag-v1'?JSON.stringify({aiConsent:{version:'gemini-rag-v1',provider:'google-gemini',at:new Date().toISOString()}}):null],
     );
     await db.query(
       "UPDATE lvd_conversations SET updated_at=clock_timestamp(),title=CASE WHEN title='Cuộc trò chuyện mới' THEN $2 ELSE title END,ai_generation=CASE WHEN $3 THEN NULL ELSE ai_generation END,ai_started_at=CASE WHEN $3 THEN NULL ELSE ai_started_at END,ai_message_id=CASE WHEN $3 THEN NULL ELSE ai_message_id END WHERE id=$1",

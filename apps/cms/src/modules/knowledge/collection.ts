@@ -91,7 +91,7 @@ export const Knowledge: CollectionConfig = {
   },
   fields: [
     { name: "title", label: "Câu hỏi chuẩn / tên nguồn", type: "text", required: true },
-    {name:'questionAliases',label:'Cách hỏi khác đã được chuyên viên xác nhận',type:'textarea',maxLength:4000,admin:{description:'Mỗi dòng một câu hỏi có cùng phạm vi và điều kiện với câu hỏi chuẩn. Nội dung ngoài các câu này được chuyển chuyên viên.'}},
+    {name:'questionAliases',label:'Cách hỏi khác đã được chuyên viên xác nhận',type:'textarea',maxLength:4000,admin:{description:'Mỗi dòng một câu hỏi có cùng phạm vi và điều kiện với câu hỏi chuẩn. Không bắt buộc. AI còn tìm theo ý nghĩa trong nội dung bài viết.'}},
     {
       name: "body",
       label: "Câu trả lời chuẩn và phạm vi áp dụng",

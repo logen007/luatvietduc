@@ -6,6 +6,7 @@ import * as integrations from './20261103_150000_integrations';
 import * as backupAdmin from './20261104_010000_backup_admin';
 import * as faqAssistant from './20261104_030000_faq_assistant';
 import * as sharedKnowledge from './20261104_040000_shared_knowledge_search';
+import * as semanticKnowledge from './20261104_050000_semantic_knowledge';
 export const migrations = [
   {
     up: migration_20261103_035530.up,
@@ -22,4 +23,5 @@ export const migrations = [
  {up:backupAdmin.up,down:backupAdmin.down,name:'20261104_010000_backup_admin'},
  {up:faqAssistant.up,down:faqAssistant.down,name:'20261104_030000_faq_assistant'},
  {up:sharedKnowledge.up,down:sharedKnowledge.down,name:'20261104_040000_shared_knowledge_search'},
+ {up:semanticKnowledge.up,down:semanticKnowledge.down,name:'20261104_050000_semantic_knowledge'},
 ];

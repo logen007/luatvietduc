@@ -74,3 +74,5 @@
 @media(prefers-reduced-motion:reduce){.lvd-chat .chat-thinking span{animation:none}.lvd-chat .chat-log{scroll-behavior:auto}}
 
 .lvd-chat .chat-compose-tools{justify-content:flex-end}
+
+.lvd-chat .chat-ai-notice{margin:10px auto 0;max-width:720px;text-align:center;color:#77746c;font:400 11px/1.6 var(--lvd-font);overflow-wrap:anywhere}.lvd-chat .chat-ai-notice a{color:inherit;text-underline-offset:3px}

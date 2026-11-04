@@ -9,6 +9,7 @@ import { testSource } from "../../../modules/knowledge/test-source";
 import {replyToMessage} from '../../../modules/assistant/reply';
 import {activeValues} from '../../../modules/integrations/store';
 import {knowledgeArticles,writeKnowledgeArticle} from '../../../modules/knowledge/articles';
+import {retryIndex,knowledgeGaps} from '../../../modules/rag/admin';
 import {sendContact} from '../../../modules/contact/service';
 import {
   siteSettings,
@@ -60,7 +61,7 @@ async function route(
           const item = await reader.read();
           if (item.done) break;
           size += item.value.length;
-          if (size > 16000) {
+          if (size > (path === "knowledge-articles" ? 96000 : 16000)) {
             await reader.cancel();
             throw new chat.HttpError(413, "Nội dung quá lớn.");
           }
@@ -140,6 +141,12 @@ async function route(
       } else if (segments[2] === "transition" && method === "POST")
         result = await chat.transition(actor, id, data);
       else throw new chat.HttpError(404, "Không tìm thấy chức năng.");
+    } else if(path === "knowledge-gaps" && method === "GET") {
+      result={conversations:await knowledgeGaps(user)};
+    } else if(path === "knowledge-reindex" && method === "POST") {
+      if(!Number.isSafeInteger(data.id)||data.id<1)throw new chat.HttpError(400,'Bài viết không hợp lệ.');
+      const article=await knowledgeArticles(payload,user,String(data.id));
+      result=await retryIndex(user,data.id,Number((article as any).id));
     } else if(path === "knowledge-articles" && method === "GET") {
       result=await knowledgeArticles(payload,user,url.searchParams.get("id"),{query:url.searchParams.get("q")||"",page:Number(url.searchParams.get("page")||1)});
     } else if(path === "knowledge-articles" && method === "POST") {
