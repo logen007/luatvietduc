@@ -1,3 +1,4 @@
+import {testSpecialistInbox} from './test-specialist-inbox';
 import {testGuestPriority} from './test-guest-priority';
 import {testChatFiles} from './test-chat-files';
 import assert from "node:assert/strict";
@@ -197,6 +198,7 @@ try {
   const draft=await writeKnowledgeArticle(payload,staff,{id:imported.id,updatedAt:imported.updatedAt,title:imported.title,body:imported.body,publish:false});assert.equal(draft._status,'draft');assert.equal(draft.approved,false);
   assert.equal((await readKnowledgeSource(new Request(imported.sourceUrl),{params:Promise.resolve({token})})).status,404,'Draft or withdrawn article cannot remain a public source');
   await testGuestPriority(owner,staff);
+  await testSpecialistInbox(owner,staff,other,foreign);
   await testChatFiles(owner);
   await testEditorial(payload,owner,staff);
   await testAssistant(payload,owner,staff);

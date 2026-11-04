@@ -1,3 +1,4 @@
+import {specialistInbox} from '../../../modules/chat/inbox';
 import {uploadChatFile,downloadChatFile,MAX_CHAT_FILE} from '../../../modules/chat/files';
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
@@ -124,7 +125,9 @@ async function route(
       if ((await settings()).chatEnabled === false)
         throw new chat.HttpError(503, "Tiếp nhận chat đang tạm dừng.");
       result = await chat.createConversation(actor, data,{assistantEnabled:(await settings()).customerAIEnabled!==false&&Boolean(await activeValues('ai'))});
-    } else if (path === "queue" && method === "GET")
+    } else if(path === "inbox" && method === "GET")
+      result=await specialistInbox(actor,{view:url.searchParams.get("view")||undefined,query:url.searchParams.get("q")||undefined,page:Number(url.searchParams.get("page")||1)});
+    else if (path === "queue" && method === "GET")
       result = await chat.queue(actor);
     else if (
       segments[0] === "conversations" &&

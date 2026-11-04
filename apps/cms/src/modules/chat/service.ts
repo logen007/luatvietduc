@@ -79,7 +79,7 @@ export async function createConversation(a: Actor, data: any,options:{assistantE
 }
 export async function transcript(a: Actor, id: string, after = 0) {
   const { rows } = await pool.query(
-    "SELECT * FROM lvd_conversations WHERE id=$1",
+    "SELECT c.*,u.name AS customer_name,u.email AS customer_email,agent.name AS assigned_name FROM lvd_conversations c LEFT JOIN users u ON u.id=c.user_id LEFT JOIN users agent ON agent.id=c.assigned_to WHERE c.id=$1",
     [id],
   );
   const c = rows[0];
@@ -98,6 +98,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
           state: c.state,
           version: c.version,
           assignedTo: null,
+          restricted:true,registered:Boolean(c.user_id),createdAt:c.created_at,
         },
         messages: [],
       };
@@ -105,7 +106,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
   }
   const staff = isStaff(a.user) && !isCustomer(a, c);
   const messages = await pool.query(
-    "SELECT id,role,body,internal,created_at,client_key,metadata,COALESCE((SELECT json_agg(json_build_object('id',f.id,'name',f.name,'size',f.size,'mimeType',f.mime_type,'url','/service/chat-files/'||f.id)) FROM lvd_chat_files f WHERE f.message_id=lvd_messages.id AND f.ready=true),'[]'::json) AS attachments FROM lvd_messages WHERE conversation_id=$1 AND id>$2 " +
+    "SELECT id,role,body,internal,created_at,client_key,metadata,CASE WHEN role='staff' THEN (SELECT name FROM users WHERE 'staff:'||users.id::text=lvd_messages.actor_key) END AS author_name,COALESCE((SELECT json_agg(json_build_object('id',f.id,'name',f.name,'size',f.size,'mimeType',f.mime_type,'url','/service/chat-files/'||f.id)) FROM lvd_chat_files f WHERE f.message_id=lvd_messages.id AND f.ready=true),'[]'::json) AS attachments FROM lvd_messages WHERE conversation_id=$1 AND id>$2 " +
       (staff ? "" : "AND internal=false ") +
       "ORDER BY id LIMIT 200",
     [id, after],
@@ -119,6 +120,8 @@ export async function transcript(a: Actor, id: string, after = 0) {
       version: c.version,
       assignedTo: c.assigned_to,
       registered:Boolean(c.user_id),
+      createdAt:c.created_at,updatedAt:c.updated_at,assignedName:staff?c.assigned_name:undefined,
+      customer:staff?{name:c.customer_name||"Khách vãng lai",email:c.customer_email||null}:undefined,
       aiEnabled:c.ai_enabled,
       aiStartedAt:c.ai_started_at,
       aiMessageId:c.ai_message_id,
@@ -221,6 +224,9 @@ export async function transition(a: Actor, id: string, data: any) {
       }
       state = "human";
       assigned = a.user!.id;
+    } else if(data.action==='release'){
+      if(!staff||(c.assigned_to!==a.user?.id&&a.user?.role!=='owner')||c.state!=='human')throw new HttpError(403,'Chỉ người phụ trách hoặc quản trị viên được trả hội thoại về hàng chờ.');
+      state='queued';assigned=null;
     } else if (data.action === "close") {
       if (!staff || (assigned !== a.user?.id && a.user?.role !== "owner"))
         deny();

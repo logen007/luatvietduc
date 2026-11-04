@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from "react";
 import {api} from "../shared/client-api";
 import {visiblePoll} from "../shared/polling";
-export function useWorkspace(staff=false){
+export function useWorkspace(staff=false,manageList=true){
   const [me, setMe] = useState<any>(null),
     [rows, setRows] = useState<any[]>([]),
     [selected, setSelected] = useState(""),
@@ -19,7 +19,7 @@ export function useWorkspace(staff=false){
   const [preferHuman,setPreferHuman]=useState(false),[sendingBody,setSendingBody]=useState("");
   const [attachments,setAttachments]=useState<any[]>([]),[uploading,setUploading]=useState(false);
   const [maxLength, setMaxLength] = useState(2000);
-  const stickToBottom=useRef(true);
+  const stickToBottom=useRef(true),revision=useRef(0);
   const pending = useRef<{
       key: string;
       body: string;
@@ -50,6 +50,7 @@ export function useWorkspace(staff=false){
     };
   }, []);
   const refreshList = async () => {
+    if(staff&&!manageList)return [];
     const v = await api(staff ? "queue" : "conversations");
     setRows(v);
     return v;
@@ -63,7 +64,7 @@ export function useWorkspace(staff=false){
         const user = await api("me");
         if (!active) return;
         setMe(user);
-        const [s,list]=await Promise.all([api('settings'),api(staff?'queue':'conversations')]);
+        const [s,list]=await Promise.all([api('settings'),staff&&!manageList?Promise.resolve([]):api(staff?'queue':'conversations')]);
         if (active) {
           setNotice(
             [
@@ -95,7 +96,7 @@ export function useWorkspace(staff=false){
     };
   }, [staff]);
   useEffect(() => {
-    stickToBottom.current=true;
+    stickToBottom.current=true;revision.current++;setConversation(null);
     if (!selected) {
       setMessages([]);
       setConversation(null);
@@ -106,9 +107,10 @@ export function useWorkspace(staff=false){
       cursor = 0;
     let latestUser=0,latestAnswered=0,recovering=false;
     const load = async () => {
+      const ticket=revision.current;
       try {
         const v = await api(`conversations/${selected}?after=${cursor}`);
-        if (!active) return;
+        if (!active||ticket!==revision.current) return;
         for(const message of v.messages){
           if(message.role==='user')latestUser=Math.max(latestUser,Number(message.id));
           if(message.role==='assistant'&&String(message.client_key).startsWith('assistant:'))latestAnswered=Math.max(latestAnswered,Number(String(message.client_key).slice(10))||0);
@@ -117,6 +119,7 @@ export function useWorkspace(staff=false){
         if(!staff&&v.conversation.aiEnabled&&latestUser>latestAnswered&&!recovering&&(!v.conversation.aiStartedAt||Date.now()-new Date(v.conversation.aiStartedAt).getTime()>35000)){
           recovering=true;void api(`conversations/${selected}/answer`,{messageId:String(latestUser)}).catch(()=>{}).finally(()=>{recovering=false;});
         }
+        if(v.conversation.restricted){setMessages([]);cursor=0;}
         setConversation(v.conversation);
         setRows((current) =>
           current.map((row) =>
@@ -138,7 +141,7 @@ export function useWorkspace(staff=false){
         }
         setConnectionError("");
       } catch (e) {
-        if (active) setConnectionError((e as Error).message);
+        if (active&&ticket===revision.current) {setConnectionError((e as Error).message);if(staff){setConversation(null);setMessages([]);cursor=0;}}
       }
     };
     setMessages([]);
@@ -161,22 +164,22 @@ export function useWorkspace(staff=false){
     });
   }, [messages.length, selected]);
   useEffect(() => {
-    if (!staff || !me?.user) return;
+    if (!staff || !manageList || !me?.user) return;
     return visiblePoll(()=>refreshList(),5000,{initial:false});
-  }, [staff, me]);
+  }, [staff, me,manageList]);
   const act = async (action: string) => {
     if (!conversation) return;
-    setBusy(true);
+    setBusy(true);revision.current++;
     try {
       await api(`conversations/${selected}/transition`, {
         action,
         version: conversation.version,
       });
-      setConversation((await api(`conversations/${selected}`)).conversation);
+      revision.current++;const latest=await api(`conversations/${selected}`);setConversation(latest.conversation);setMessages(old=>latest.conversation.restricted?[]:[...old,...latest.messages.filter((m:any)=>!old.some(previous=>previous.id===m.id))].sort((a,b)=>Number(a.id)-Number(b.id)));
       await refreshList();
-      setError("");
+      setError("");return true;
     } catch (e) {
-      setError((e as Error).message);
+      setError((e as Error).message);return false;
     } finally {
       setBusy(false);
     }
@@ -184,7 +187,7 @@ export function useWorkspace(staff=false){
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!text.trim()&&!attachments.length) || busy || uploading || !loaded) return;
-    setBusy(true);
+    setBusy(true);revision.current++;
     setSendingBody(text.trim()||"Tệp đính kèm");
     stickToBottom.current=true;
     setError("");
@@ -214,12 +217,12 @@ export function useWorkspace(staff=false){
         };
       await api(`conversations/${id}/messages`, {...pending.current,...(!staff?{aiConsentVersion:"gemini-rag-v1"}:{})});
       setText("");setAttachments([]);
-      const latest=await api(`conversations/${id}`);
-      setMessages(latest.messages);setConversation(latest.conversation);
+      revision.current++;const latest=await api(`conversations/${id}`);
+      setMessages(old=>[...old,...latest.messages.filter((m:any)=>!old.some(previous=>previous.id===m.id))].sort((a,b)=>Number(a.id)-Number(b.id)));setConversation(latest.conversation);
       pending.current = null;
-      await refreshList();
+      await refreshList();return true;
     } catch (e) {
-      setError((e as Error).message);
+      setError((e as Error).message);return false;
     } finally {
       setBusy(false);setSendingBody("");
     }
