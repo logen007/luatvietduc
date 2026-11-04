@@ -1,12 +1,14 @@
 "use client";
 import {useLocale} from "./locale";
+import {useEffect,useState} from 'react';
 import siteVersion from "./site-version.json";
 import {LanguageSwitch} from './LanguageSwitch';
 import {SocialLinks} from "./SocialLinks";
 import navigation from "./navigation.json";
 const footerColumns=navigation.footer;
 export function Footer() {
- const {t,language}=useLocale();
+ const {t,language}=useLocale(),[version,setVersion]=useState(siteVersion.version);
+ useEffect(()=>{let active=true;fetch('/release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(value=>{if(active&&/^\d{2}\.\d{2}\.\d{2}$/.test(value?.version||''))setVersion(value.version);}).catch(()=>{});return()=>{active=false;};},[]);
   return (
     <footer className="live-footer">
       <div className="live-footer-inner">
@@ -35,7 +37,7 @@ export function Footer() {
         ))}
       </div>
       <div className="live-footer-meta">
-        <div className="live-footer-version-row"><small>© Luật Việt Đức. · v{siteVersion.version}</small><LanguageSwitch/></div>
+        <div className="live-footer-version-row"><small>© Luật Việt Đức. · v{version}</small><LanguageSwitch/></div>
         <nav aria-label={t("Chính sách")}>
           <a href="/#/chinh-sach-thong-tin">{t("Quyền riêng tư")}</a>
           <a href="/#/dieu-khoan">{t("Điều khoản sử dụng")}</a>

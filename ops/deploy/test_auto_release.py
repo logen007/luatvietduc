@@ -2,6 +2,7 @@
 import hashlib
 import importlib.util
 import json
+import io
 from pathlib import Path
 import subprocess
 import tarfile
@@ -84,6 +85,20 @@ class Gates(unittest.TestCase):
             self.assertEqual(engine.revision(NEW), expected)
 
 
+
+    def test_presentation_scope_rejects_backend_schema_policy_and_mixed_edits(self):
+        allowed=['apps/cms/src/presentation/live-css/01-footer.css','apps/cms/public/live.css','apps/cms/src/modules/shared/site-version.json']
+        self.assertTrue(release.presentation_only(allowed))
+        for path in ['apps/cms/src/modules/chat/reply.ts','apps/cms/src/payload.config.ts','ops/deploy/auto-release.py','.github/workflows/platform-foundation.yml','apps/cms/public/new-script.js','apps/cms/scripts/prepare-fast-release.mjs']:
+            self.assertFalse(release.presentation_only(allowed+[path]))
+        self.assertFalse(release.presentation_only(['docs/README.md']))
+
+    def test_full_release_rejects_skipped_backend_checks(self):
+        for conclusion in ['skipped','failure',None]:
+            get=Mock(side_effect=[json.dumps({'workflow_runs':[workflow()]}),json.dumps(workflow()),json.dumps({'jobs':[{'name':'cms-checks','conclusion':conclusion}]})])
+            with self.assertRaises(release.ReleaseError):release.ci_success(NEW,get,require_full=True)
+
+
 class Deployment(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -116,8 +131,10 @@ class Deployment(unittest.TestCase):
     def git(self, *args):
         if args[0] == "archive":
             output = next(arg.split("=", 1)[1] for arg in args if arg.startswith("--output="))
-            with tarfile.open(output, "w"):
-                pass
+            with tarfile.open(output, "w") as archive:
+                data=b'{"version":"01.15.00"}'
+                member=tarfile.TarInfo('apps/cms/src/modules/shared/site-version.json');member.size=len(data)
+                archive.addfile(member,io.BytesIO(data))
         return "apps/cms/public/editorial-ui.css" if args[0] == "diff" else ""
 
     def compose(self, tag, *args):
@@ -209,6 +226,33 @@ class Deployment(unittest.TestCase):
         self.assertEqual(self.engine.once(), "no application changes")
         self.engine.activate.assert_not_called()
 
+
+
+class Presentation(unittest.TestCase):
+    def test_no_build_or_restart_and_failed_public_probe_rolls_back(self):
+        for fail in [False,True]:
+            with self.subTest(fail=fail),tempfile.TemporaryDirectory() as directory:
+                root=Path(directory);e=release.Engine(configuration(root));events=[]
+                e.web_container=Mock(return_value='web');e.head=Mock(return_value=NEW);e.revision=Mock(return_value='123456789abc')
+                e.install_presentation=Mock(return_value='base')
+                e.git=Mock(side_effect=lambda *args:tarfile.open(next(a.split('=',1)[1] for a in args if a.startswith('--output=')),'w').close())
+                def command(args,**kwargs):
+                    events.append(args)
+                    if args[:2]==['docker','run']:
+                        stage=Path(args[args.index('--volume')+1].split(':')[0]);public=stage/'apps/cms/public';public.mkdir(parents=True)
+                        shared=stage/'apps/cms/src/modules/shared';shared.mkdir(parents=True);(shared/'site-version.json').write_text('{"version":"01.15.01"}')
+                        for name in release.FAST_SOURCE_PUBLIC+['frontend.html']:(public/name).write_text('updated')
+                    return ''
+                e.run=command;e.probe=Mock(side_effect=[None,release.ReleaseError('bad public probe'),None] if fail else None)
+                current={'current_sha':OLD,'current_release':OLD,'backend_sha':OLD,'revision':'old'}
+                release.atomic_json(e.state_path,current)
+                with patch.object(release,'ci_success',return_value=(1,1)):
+                    if fail:
+                        with self.assertRaises(release.ReleaseError):e.activate_presentation(NEW,current)
+                    else:e.activate_presentation(NEW,current)
+                self.assertFalse(any(args[:2]==['docker','build'] or 'compose' in args for args in events))
+                self.assertEqual(json.loads(e.state_path.read_text())['current_sha'],OLD if fail else NEW)
+                self.assertEqual(any('rollback' in args for args in events),fail)
 
 if __name__ == "__main__":
     unittest.main()

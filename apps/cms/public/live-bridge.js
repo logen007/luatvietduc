@@ -41,7 +41,7 @@
       const r=await fetch('/service/settings');if(!r.ok)return;settings=await r.json();
       const social=document.getElementById('live-social');
       if(social){
-        const icons=await fetch('/social-icons.json?v=2').then(r=>r.ok?r.json():[]).catch(()=>[]);
+        const icons=await fetch('/social-icons.json?v=3',{cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[]);
         if(icons.length){
           const links=(settings.socialLinks||[]).filter(link=>{try{return new URL(link.url).protocol==='https:'&&!new URL(link.url).username&&!new URL(link.url).password}catch{return false}});
           const used=new Set();social.replaceChildren();

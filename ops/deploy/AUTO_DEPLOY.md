@@ -55,3 +55,28 @@ systemctl disable --now luatvietduc-release.timer
 Stopping the timer does not interrupt an in-progress promotion. Let the service finish its checks or rollback before maintenance. The service has its own lock and a deployment timeout. Never use `docker compose down`, database down migrations, `--remove-orphans` or Docker pruning in this release flow. The shared proxy, n8n and other applications are outside its scope.
 
 For a schema change or a change to the approved workflow/Compose/engine policy, disable the timer and review a separate release and policy update. Retain the existing configuration and state for rollback. This service intentionally cannot update its own installed policy from a repository push.
+
+## Presentation lane (01.15)
+
+The same `publish.sh` detects changes automatically. Allowlisted public CSS/JS,
+existing social icon assets and site version take the presentation lane. They use
+short CI syntax/bundle/deployment tests, then switch a complete public snapshot
+inside the current app container. No Docker build, database migration, application
+restart or manual VPS access is needed for these later updates. React components,
+admin bundled CSS, navigation config and any mixed backend changes use full CI and
+an application build. Unknown/new paths fail closed to the full lane.
+
+Both lanes pin the repository, branch, workflow and policy hashes; validate the
+exact commit and successful push run; share the deployment lock; probe localhost
+and public HTTPS; retain the old snapshot during the switch and restore it on
+failure. Full builds additionally require the `cms-checks` job to have succeeded.
+The installed full release image remains the backend anchor; `/release.json` and
+state record the current presentation commit separately. Files are hard linked
+before replacing only the allowlisted paths, avoiding duplicate media storage.
+Only the current successful UI package is retained after validation. A later full
+release can restore that package if it needs to roll back to the previous image.
+
+`install-presentation-lane.py` is a one-time reviewed bootstrap, validated against
+an exact SHA and policy manifest. The previous engine/config are saved privately
+for recovery. No new HTTP deployment endpoint, CI credential, schedule or external
+service is introduced.

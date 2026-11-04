@@ -28,6 +28,14 @@ NEXT_START = ["npx", "next", "start", "--hostname", "0.0.0.0"]
 REVISION_FILES = ["design-system.css", "live.css", "editorial-ui.css", "live-bridge.js", "editorial-ui.js", "legal-runtime.js"]
 SCHEMA_FILES = {"apps/cms/src/payload.config.ts", "apps/cms/src/modules/identity/users.ts", "apps/cms/src/modules/content/articles.ts", "apps/cms/src/modules/content/audit.ts", "apps/cms/src/modules/settings/config.ts"}
 
+FAST_PUBLIC = REVISION_FILES + ['social-icons.json','frontend.html','release.json']
+FAST_SOURCE_PUBLIC = REVISION_FILES + ['social-icons.json']
+FAST_INPUTS = ['index.html','apps/cms/src/presentation','apps/cms/src/modules/shared/site-version.json','apps/cms/src/modules/shared/navigation.json','apps/cms/src/modules/shared/locale/de.json','apps/cms/src/modules/shared/presentation-version.mjs'] + ['apps/cms/scripts/' + name for name in ['prepare-fast-release.mjs','frontend-shell.mjs','assemble-presentation.mjs','locale-build.mjs']] + ['apps/cms/public/' + name for name in FAST_SOURCE_PUBLIC]
+
+def presentation_only(paths):
+    changed = [p for p in paths if not p.endswith('.md')]
+    return bool(changed) and all(p.startswith(('apps/cms/src/presentation/editorial-ui-css/','apps/cms/src/presentation/editorial-ui-js/','apps/cms/src/presentation/live-css/','apps/cms/src/presentation/legal-runtime-js/')) or p=='apps/cms/src/modules/shared/site-version.json' or p in {'apps/cms/public/'+name for name in FAST_SOURCE_PUBLIC} for p in changed)
+
 
 class ReleaseError(Exception):
     pass
@@ -108,7 +116,7 @@ def ci_identity(item, sha):
             and item.get("head_sha") == sha and item.get("head_branch") == BRANCH and item.get("event") == "push" and item.get("path") == WORKFLOW)
 
 
-def ci_success(sha, get=fetch):
+def ci_success(sha, get=fetch, require_full=False):
     base = f"https://api.github.com/repos/{REPO}/actions"
     query = urllib.parse.urlencode({"branch": BRANCH, "event": "push", "head_sha": sha, "per_page": 100})
     listing = json.loads(get(f"{base}/workflows/platform-foundation.yml/runs?{query}"))
@@ -122,6 +130,9 @@ def ci_success(sha, get=fetch):
     if latest.get("status") != "completed":
         raise APIBackoff("Latest CI attempt is pending")
     require(latest.get("conclusion") == "success", "Latest CI attempt did not succeed")
+    if require_full:
+        jobs = json.loads(get(f"{base}/runs/{int(selected['id'])}/jobs?per_page=100")).get('jobs',[])
+        require(any(job.get('name')=='cms-checks' and job.get('conclusion')=='success' for job in jobs),'Full application checks required')
     return latest["id"], latest["run_attempt"]
 
 
@@ -229,6 +240,67 @@ class Engine:
                 self.pause(3)
         raise ReleaseError(f"Health verification failed at {origin}: {last}")
 
+    def web_container(self, current):
+        self.inspect_web(current['current_release'])
+        container = self.compose(current['current_release'], 'ps', '--quiet', 'web')
+        require(bool(container) and '\n' not in container, 'Expected one application container')
+        return container
+
+    def install_presentation(self, container, public, sha):
+        target = '/tmp/lvd-presentation'
+        self.run(['docker','exec','--user','0',container,'mkdir','-p',target], env=self.env)
+        self.run(['docker','cp',str(public) + '/.',container + ':' + target], env=self.env)
+        return self.run(['docker','exec','--user','0',container,'node','scripts/activate-presentation.mjs','activate',target,sha], env=self.env)
+
+    def activate_presentation(self, sha, current):
+        container = self.web_container(current)
+        backend = current.get('backend_sha',current['current_sha'])
+        # Only images with the reviewed pointer-switch helper can take the fast path.
+        self.run(['docker','exec',container,'test','-L','/app/public'], env=self.env)
+        previous = None
+        package = self.state_dir / 'presentation-packages' / sha
+        try:
+            with tempfile.TemporaryDirectory(prefix='presentation-',dir=self.state_dir) as directory:
+                staging = Path(directory)
+                archive = staging / 'source.tar'
+                self.git('archive','--format=tar','--output=' + str(archive),sha,*FAST_INPUTS)
+                with tarfile.open(archive) as source:
+                    for member in source.getmembers():
+                        require(not Path(member.name).is_absolute() and '..' not in Path(member.name).parts and (member.isfile() or member.isdir()),'Unsafe presentation archive')
+                    source.extractall(staging)
+                archive.unlink()
+                self.run(['docker','run','--rm','--network','none','--user','0','--entrypoint','node','--volume',str(staging)+':/stage:rw',IMAGE+current['current_release'],'/stage/apps/cms/scripts/prepare-fast-release.mjs'],env=self.env)
+                public = staging / 'apps/cms/public'
+                version = json.loads((staging/'apps/cms/src/modules/shared/site-version.json').read_text())['version']
+                require(re.fullmatch(r'\d{2}\.\d{2}\.\d{2}',version),'Invalid release version')
+                (public/'release.json').write_text(json.dumps({'commit':sha,'backend_commit':backend,'version':version,'lane':'presentation'}))
+                package.mkdir(parents=True,exist_ok=True)
+                for name in FAST_PUBLIC:
+                    shutil.copyfile(public/name,package/name)
+                require(self.head()==sha,'Branch advanced during presentation preparation')
+                ci_success(sha,self.get)
+                previous = self.install_presentation(container,package,sha)
+                revision = self.revision(sha)
+                self.probe('http://127.0.0.1:3049',sha,revision)
+                self.probe(self.c['app_url'],sha,revision)
+                atomic_json(self.state_path,dict(current,current_sha=sha,backend_sha=backend,revision=revision,lane='presentation'))
+        except Exception:
+            if previous:
+                self.run(['docker','exec','--user','0',container,'node','scripts/activate-presentation.mjs','rollback',previous],env=self.env)
+                self.probe('http://127.0.0.1:3049',current['current_sha'],current['revision'])
+            if package.exists():
+                shutil.rmtree(package)
+            raise
+        self.run(['docker','exec','--user','0',container,'node','scripts/activate-presentation.mjs','cleanup'],env=self.env)
+        self.cleanup_presentations(sha)
+
+    def cleanup_presentations(self, keep=None):
+        parent = self.state_dir/'presentation-packages'
+        if parent.exists():
+            for child in parent.iterdir():
+                if valid_sha(child.name) and child.name!=keep and child.is_dir() and not child.is_symlink():
+                    shutil.rmtree(child)
+
     def activate(self, sha, current):
         old, old_sha = current["current_release"], current["current_sha"]
         old_image = self.inspect_web(old)
@@ -251,7 +323,8 @@ class Engine:
                 public = staging / "apps/cms/public"
                 (public / "fonts").mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(self.c["font_file"], public / "fonts/Articulat-web.woff2")
-                (public / "release.json").write_text(json.dumps({"commit": sha, "built_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}))
+                version = json.loads((staging/'apps/cms/src/modules/shared/site-version.json').read_text())['version']
+                (public / "release.json").write_text(json.dumps({"commit": sha, "backend_commit":sha,"version":version,"lane":"application", "built_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}))
                 self.run(["docker", "build", "--file", str(staging / "ops/deploy/Dockerfile"), "--tag", IMAGE + sha, str(staging)], env=self.env)
             self.run(["bash", self.c["backup_script"]], env=dict(self.env, RELEASE=old))
             self.compose(sha, "run", "--detach", "--no-deps", "--pull", "never", "--label", "traefik.enable=false", "--label", "lvd.auto-release=true", "--name", CANDIDATE, "--publish", "127.0.0.1:3050:3000", "web", *NEXT_START)
@@ -264,11 +337,13 @@ class Engine:
             self.inspect_web(sha)
             self.probe("http://127.0.0.1:3049", sha, revision)
             self.probe(self.c["app_url"], sha, revision)
-            next_state = {"current_sha": sha, "current_release": sha, "previous_sha": old_sha, "previous_release": old, "revision": revision}
+            next_state = {"current_sha": sha, "current_release": sha, "previous_sha": old_sha, "previous_release": old, "revision": revision,"backend_sha":sha,"lane":"application"}
         except Exception:
             if activated:
                 self.compose(old, "up", "--detach", "--no-deps", "--no-build", "--pull", "never", "web")
                 require(self.inspect_web(old) == old_image, "Rollback image changed")
+                if current.get('backend_sha',old_sha)!=old_sha:
+                    self.install_presentation(self.web_container(current),self.state_dir/'presentation-packages'/old_sha,old_sha)
                 # Initial manually deployed releases predate release.json.
                 for origin in ["http://127.0.0.1:3049", self.c["app_url"]]:
                     self.probe(origin, old_sha, "", full=False, require_commit="revision" in current)
@@ -276,6 +351,7 @@ class Engine:
         finally:
             self.cleanup_candidate()
         atomic_json(self.state_path, next_state)
+        self.cleanup_presentations()
 
     def once(self, check=False):
         bootstrap = not self.state_path.exists()
@@ -296,10 +372,14 @@ class Engine:
             paths = self.git("diff", "--name-only", "--no-renames", current["current_sha"], sha).splitlines()
             if not classify(paths) and not bootstrap:
                 return "no application changes"
-            ci_success(sha, self.get)
+            fast = not bootstrap and presentation_only(paths) and current.get('backend_sha')
+            ci_success(sha, self.get, require_full=not fast)
             if check:
                 return f"approved candidate {sha}; no Docker/state changes performed"
-            self.activate(sha, current)
+            if fast:
+                self.activate_presentation(sha,current)
+            else:
+                self.activate(sha, current)
             atomic_json(self.retry_path, {})
             return f"activated {sha}"
         except APIBackoff as error:

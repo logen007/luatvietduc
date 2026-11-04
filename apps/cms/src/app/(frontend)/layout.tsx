@@ -1,11 +1,11 @@
 import path from 'node:path';
 import { getPresentationVersion } from '../../modules/shared/presentation-version.mjs';
-const revision = getPresentationVersion(path.join(process.cwd(), 'public'));
 export const metadata = {
   title: "Luật Việt Đức",
   robots: { index: false, follow: false },
 };
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const revision = getPresentationVersion(path.join(process.cwd(), 'public'));
   return (
     <html lang="vi">
       <head>
