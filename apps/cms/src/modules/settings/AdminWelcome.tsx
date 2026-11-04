@@ -1,9 +1,12 @@
 import React from "react";
+import {Gutter} from "@payloadcms/ui";
+import {getPayload} from "payload";
+import config from "../../payload.config";
+import type {User} from "../../payload-types";
+import {specialistInbox} from "../chat/inbox";
 import { connectionStatus } from "./public";
 
-type WelcomeProps = {
-  user?: { name?: string; role?: string } | null;
-};
+type WelcomeProps = {user?:User|null};
 type IconName = "article" | "chat" | "knowledge" | "settings" | "arrow";
 
 function WorkIcon({ name }: { name: IconName }) {
@@ -17,28 +20,41 @@ function WorkIcon({ name }: { name: IconName }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 
+export function AdminDashboard({user}:WelcomeProps){return <Gutter className="dashboard"><AdminWelcome user={user}/></Gutter>;}
+
 export async function AdminWelcome({ user }: WelcomeProps) {
   const role = user?.role || "";
   const canEdit = ["owner", "support", "editor", "reviewer"].includes(role);
   const canSupport = ["owner", "support", "operations"].includes(role);
   const canKnowledge = ["owner", "knowledge", "reviewer", "support"].includes(role);
   const connections = await connectionStatus();
+  const payload=await getPayload({config});
+  const results=user?await Promise.allSettled([
+    payload.count({collection:'articles',overrideAccess:false,user}),
+    canSupport?specialistInbox({user,guestHash:''}):Promise.resolve(null),
+    payload.count({collection:'articles',overrideAccess:false,user,where:{and:[{aiAllowed:{equals:true}},{_status:{equals:'published'}},{reviewState:{equals:'approved'}}]}}),
+  ]):[];
+  const result=(index:number)=>results[index]?.status==='fulfilled'?results[index].value:null;
+  const articles=result(0) as {totalDocs:number}|null,inbox=result(1) as {counts:{queue:number;active:number}}|null,knowledge=result(2) as {totalDocs:number}|null;
+  const stats=[{label:'Bài viết',value:articles?.totalDocs,href:'/admin/collections/articles',note:'Nội dung bạn có quyền xem'},...(canSupport?[{label:'Chờ tiếp nhận',value:inbox?.counts.queue,href:'/admin/inbox',note:'Yêu cầu trong hàng chờ'},{label:'Đang xử lý',value:inbox?.counts.active,href:'/admin/inbox',note:'Hội thoại đã được tiếp nhận'}]:[]),{label:'Kiến thức cho AI',value:knowledge?.totalDocs,href:'/admin/knowledge',note:'Bài đã xuất bản và bật dùng cho AI'}];
   const destinations = [
-    ...(canEdit ? [{ href: "/admin/collections/articles/create", title: "Viết bài mới", text: "Soạn bài, xem phiên bản và duyệt nội dung theo quốc gia.", icon: "article" as const }] : []),
+    ...(canEdit ? [{ href: "/admin/collections/articles/create", title: "Viết bài mới", text: "Soạn nội dung, chọn danh mục và xuất bản.", icon: "article" as const }] : []),
     ...(canSupport ? [{ href: "/admin/inbox", title: "Hộp thư chuyên viên", text: "Tiếp nhận yêu cầu, trao đổi và theo dõi hội thoại được giao.", icon: "chat" as const }] : []),
-    ...(canKnowledge ? [{ href: "/admin/knowledge", title: "Kiến thức AI", text: "Nhập tiêu đề, nội dung và xuất bản bài viết cho trợ lý.", icon: "knowledge" as const }] : []),
-    ...(role === "owner" ? [{ href: "/admin/collections/users", title: "Người dùng", text: "Quản lý nhân sự, vai trò và quốc gia được giao.", icon: "settings" as const }, { href: "/admin/settings", title: "Cài đặt hệ thống", text: "Quản lý nhận diện, điều hướng và chính sách vận hành.", icon: "settings" as const }] : []),
+    ...(canKnowledge ? [{ href: "/admin/knowledge", title: "Kiến thức AI", text: "Quản lý nội dung được phép dùng để trả lời khách.", icon: "knowledge" as const }] : []),
+    ...(role === "owner" ? [{ href: "/admin/collections/users", title: "Người dùng", text: "Quản lý Admin, Chuyên viên và User.", icon: "settings" as const }, { href: "/admin/settings", title: "Cài đặt hệ thống", text: "Quản lý nhận diện, điều hướng và chính sách vận hành.", icon: "settings" as const }] : []),
   ];
   return (
     <section className="lvd-admin-welcome" aria-labelledby="lvd-admin-welcome-title">
       <header className="lvd-admin-welcome__header">
         <div>
           <p className="lvd-admin-eyebrow">LUẬT VIỆT ĐỨC / QUẢN TRỊ</p>
-          <h1 id="lvd-admin-welcome-title">Không gian làm việc.</h1>
-          <p className="lvd-admin-welcome__intro">{user?.name ? `Chào ${user.name}. ` : ""}Quản lý nội dung, hỗ trợ bạn đọc và xây dựng kiến thức từ một nơi.</p>
+          <h1 id="lvd-admin-welcome-title">Tổng quan</h1>
+          <p className="lvd-admin-welcome__intro">{user?.name ? `Chào ${user.name}. ` : ""}Theo dõi công việc và mở nhanh mục cần xử lý.</p>
         </div>
         <a className="lvd-admin-website-link" href="/">Mở website <WorkIcon name="arrow" /></a>
       </header>
+      <div className="lvd-dashboard-stats">{stats.map(stat=><a href={stat.href} key={stat.label}><span>{stat.label}</span><strong>{stat.value===undefined?'—':stat.value.toLocaleString('vi-VN')}</strong><small>{stat.note}</small></a>)}</div>
+      <div className="lvd-dashboard-section-title"><h2>Thao tác nhanh</h2><span>Chọn công việc để bắt đầu</span></div>
       {destinations.length > 0 && <nav className="lvd-admin-destinations" aria-label="Khu vực làm việc">
         {destinations.map((item) => <a href={item.href} key={item.href} className="lvd-admin-destination">
           <span className="lvd-admin-destination__icon"><WorkIcon name={item.icon} /></span>
@@ -47,8 +63,8 @@ export async function AdminWelcome({ user }: WelcomeProps) {
         </a>)}
       </nav>}
       <div className="lvd-admin-workflow">
-        <p><span className="lvd-admin-workflow__dot" aria-hidden="true" />Nội dung được kiểm duyệt trước khi xuất bản.</p>
-        <span>Phân quyền theo Việt Nam / Đức</span>
+        <p><span className="lvd-admin-workflow__dot" aria-hidden="true" />Chỉ bài đã xuất bản và bật dùng cho AI mới được đưa vào kho trả lời.</p>
+        <span></span>
       </div>
       {role === "owner" && <section className="lvd-admin-connections" aria-labelledby="lvd-admin-connections-title">
         <div className="lvd-admin-connections__heading"><h2 id="lvd-admin-connections-title">Kết nối hệ thống</h2><a href="/admin/settings/connections">Thiết lập kết nối <WorkIcon name="arrow" /></a></div>

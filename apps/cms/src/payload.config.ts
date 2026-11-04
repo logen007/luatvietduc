@@ -20,16 +20,17 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || "",
   serverURL: process.env.APP_URL || "http://localhost:3000",
   admin: {
+    theme: "dark",
     components: {
       afterNavLinks: ["./modules/admin/Navigation#AdminNavigation"],
       views: {
+        dashboard: {Component:"./modules/settings/AdminWelcome#AdminDashboard"},
         settings: { Component: "./modules/admin/Views#SettingsView", path: "/settings", exact: true },
         connections: { Component: "./modules/admin/Views#ConnectionsView", path: "/settings/connections", exact: true },
         backups: { Component: "./modules/admin/Views#BackupsView", path: "/settings/backups", exact: true },
         knowledge: { Component: "./modules/admin/Views#KnowledgeView", path: "/knowledge", exact: true },
         inbox: { Component: "./modules/admin/Views#InboxView", path: "/inbox", exact: true },
       },
-      beforeDashboard: ["./modules/settings/AdminWelcome#AdminWelcome"],
       beforeLogin: ["./modules/settings/AdminWelcome#GoogleLogin"],
     },
     user: "users",

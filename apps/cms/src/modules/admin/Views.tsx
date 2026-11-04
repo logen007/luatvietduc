@@ -14,7 +14,7 @@ function guard(props:AdminViewServerProps,roles=['owner']){
 }
 function Page({props,title,children,compact=false}:{props:AdminViewServerProps;title:string;children:React.ReactNode;compact?:boolean}){
  const {req,permissions,visibleEntities}=props.initPageResult;
- return <DefaultTemplate {...props} req={req} permissions={permissions} visibleEntities={{collections:visibleEntities.collections,globals:visibleEntities.globals}}><div className={compact?"lvd-admin-inbox-page":"lvd-admin-page live-page"}>{!compact&&<header className="lvd-admin-page-heading"><a href="/admin/settings">Cài đặt hệ thống</a><h1>{title}</h1></header>}{children}</div></DefaultTemplate>;
+ return <DefaultTemplate {...props} req={req} permissions={permissions} visibleEntities={{collections:visibleEntities.collections,globals:visibleEntities.globals}}><div className={compact?"lvd-admin-inbox-page":"lvd-admin-page live-page"}>{!compact&&<header className="lvd-admin-page-heading"><a href="/admin">Tổng quan</a><h1>{title}</h1></header>}{children}</div></DefaultTemplate>;
 }
 const denied=<p role="alert">Tài khoản chưa được phân quyền cho mục này.</p>;
 export function ConnectionsView(props:AdminViewServerProps){return <Page props={props} title="Kết nối dịch vụ">{guard(props)?<IntegrationPanel/>:denied}</Page>}
