@@ -154,3 +154,13 @@ Các lượt đọc phiên, cài đặt, API giao diện và kết nối có gi�
 Lệnh làm mới trong lúc đang đọc được gộp thành một lượt đọc ngay sau đó, thay vì bị bỏ qua hoặc chờ nhịp polling dài. Vòng đọc vẫn không chạy chồng và dừng khi ẩn/đóng trang. Kết quả tiếp nhận/hoàn tất/trả hàng chờ được áp dụng ngay từ xác nhận ghi, tách khỏi lỗi đọc tiếp theo; không tải hai transcript song song sau mỗi thao tác.
 
 `chat/transition-receipt.ts` giữ trạng thái đã xác nhận và che dữ liệu ngay khi chuyên viên trả/mở lại hội thoại vào hàng chờ. Tiếp nhận không tự mở nội dung trước khi transcript đã kiểm tra quyền trả về. Lỗi mạng tạm thời giữ trạng thái gần nhất và bản nháp; lỗi mất quyền xóa transcript, tệp đang soạn và nội dung soạn khỏi màn hình. Hộp thư có nút thử lại, làm mới sau ghi vô hiệu kết quả cũ, và tự đưa phân trang về phạm vi còn hợp lệ. Server vẫn kiểm tra quyền, phiên bản và lưu chuyển trạng thái trong giao dịch.
+
+## Cập nhật bảo mật 2026-11-05
+
+Next.js được khóa ở16.4.5 theo [bản phát hành bảo mật chính thức](https://github.com/vercel/next.js/releases/tag/v16.4.5), nằm trong peer range của Payload3.92.1. Không suy ra website bị khai thác hoặc áp dụng mọi điều kiện của các advisory. Không thay schema, quyền người dùng, khóa dịch vụ hay chính sách triển khai.
+
+`http/security-headers.mjs` cung cấp chính sách phản hồi cho Next: chống MIME sniffing, giới hạn nhúng trang cùng origin và referrer mặc định; admin/API/service/OAuth/tài khoản/chat dùng private,no-store và no-referrer. CSP chỉ giới hạn frame-ancestors, giữ bootstrap script và giao diện CMS hoạt động; đây không phải CSP chống XSS đầy đủ. Cache của tài nguyên công khai/immutable vẫn do Next và handler quản lý. Quyền tài nguyên tiếp tục kiểm tra trong service/collection.
+
+Kiểm tra mới gồm unit cho chính sách và HTTP trong browser CI trên trang công khai, tài khoản và callback OAuth thiếu code (không gọi nhà cung cấp). Chỉ kiểm tra metadata thư viện và mã nguồn ở máy trong đợt này; không kiểm thử xâm nhập website thật. Kết quả CI/build mới chỉ được công bố khi đã quan sát.
+
+Đối chiếu npm lock sau cập nhật:0high/critical,5moderate+8low là13 mục package chịu ảnh hưởng từ hai advisory gốc. [deepmerge4.3.1](https://github.com/advisories/GHSA-gcqx-w48m-w2h4) chưa có bản vá được công bố; khả năng đi từ dữ liệu không tin cậy của website tới merge cần xác minh riêng. [esbuild0.18.20](https://github.com/advisories/GHSA-67mh-4wv8-2f99) nằm dưới loader của drizzle-kit; advisory áp dụng chế độ serve, chưa thấy lệnh khởi chạy chế độ đó trong mã ứng dụng/scripts đã rà. Không coi thống kê package là số lỗ hổng khai thác được trên website, và không dùng audit fix --force để hạ Payload về phiên bản không tương thích.

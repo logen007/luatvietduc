@@ -28,7 +28,13 @@ try{
  page.on('pageerror',error=>console.error('CMS browser page error:',error.message));
  const fits=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Page overflows horizontally');
  const visible=async selector=>{await page.locator(selector).waitFor({state:'visible'});};
- await page.goto(base);await visible('#pm-title');await fits();
+ const homeResponse=await page.goto(base);await visible('#pm-title');await fits();
+ assert.equal(homeResponse.headers()['x-content-type-options'],'nosniff');
+ assert.equal(homeResponse.headers()['x-frame-options'],'SAMEORIGIN');
+ assert.match(homeResponse.headers()['content-security-policy'],/frame-ancestors 'self'/);
+ // Missing OAuth code returns locally; no provider request or real identity.
+ const failedLogin=await context.request.get(base+'/auth/google/callback',{maxRedirects:0});
+ assert.equal(failedLogin.status(),307);assert.match(failedLogin.headers()['cache-control'],/no-store/);assert.equal(failedLogin.headers()['referrer-policy'],'no-referrer');
  await page.emulateMedia({reducedMotion:'no-preference'});
  await page.evaluate(()=>{window.__asciiSeen=false;window.__asciiHidden=true;const observer=new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)if(node instanceof HTMLElement&&node.hasAttribute('data-lvd-ascii')){window.__asciiSeen=true;window.__asciiHidden=window.__asciiHidden&&node.getAttribute('aria-hidden')==='true';}});observer.observe(document.body,{childList:true});window.__stopAsciiObservation=()=>observer.disconnect();});
  const language=page.getByRole('button',{name:'Chuyển sang tiếng Đức'}).first();
@@ -50,7 +56,8 @@ try{
  assert.equal(await page.getByRole('button',{name:'Choose Files',exact:true}).count(),0,'Hidden file input must not duplicate the accessible attachment action');
  await page.screenshot({path:'test-results/cms-browser/chat-mobile.png'});
  const logged=await context.request.post(base+'/api/users/login',{data:{email:owner.email,password}});assert.equal(logged.status(),200);
- await page.goto(base+'/tai-khoan');await page.getByText('Browser test admin',{exact:false}).first().waitFor();
+ const accountResponse=await page.goto(base+'/tai-khoan');await page.getByText('Browser test admin',{exact:false}).first().waitFor();
+ assert.match(accountResponse.headers()['cache-control'],/no-store/);assert.equal(accountResponse.headers()['referrer-policy'],'no-referrer');
  const nav=page.locator('.live-menu-dialog');await page.getByRole('button',{name:'Mở menu',exact:true}).click();await nav.waitFor({state:'visible'});
  assert.equal(await nav.getByRole('link',{name:'Đăng nhập',exact:true}).count(),0);await page.getByRole('button',{name:'Đóng menu',exact:true}).click();
  await page.setViewportSize({width:1280,height:900});

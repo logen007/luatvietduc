@@ -34,7 +34,7 @@
     "@payloadcms/translations": "3.92.1",
     "graphql": "16.11.0",
     "jose": "5.10.0",
-    "next": "16.4.4",
+    "next": "16.4.5",
     "payload": "3.92.1",
     "pg": "8.20.0",
     "react": "19.3.1",
