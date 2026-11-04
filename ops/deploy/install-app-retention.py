@@ -19,7 +19,10 @@ def main():
   for name in FILES:
    target=pathlib.Path('/usr/local/lib/luatvietduc-deploy' if name.endswith('.py') else '/etc/systemd/system')/pathlib.Path(name).name
    m.require(not target.is_symlink(),'Unsafe retention path')
-   if target.exists():m.require(target.read_bytes()==read(name),'Existing retention file differs')
+   if target.exists():
+    if target.read_bytes()!=read(name):
+     m.require(target.name=='luatvietduc-retention.service' and hashlib.sha256(target.read_bytes()).hexdigest()=='e079a9060818c653bbe969c2c7fbfdc074939f0ea9cad86cac7cdef8d92451ad','Existing retention file differs')
+     target.write_bytes(read(name))
    else:target.write_bytes(read(name));target.chmod(0o600 if name.endswith('.py') else 0o644)
   e.run(['systemctl','daemon-reload'],env=e.env);e.run(['systemctl','enable','--now','luatvietduc-retention.timer'],env=e.env)
   print('One-current-image retention installed; release lock protects updates and temporary rollback')

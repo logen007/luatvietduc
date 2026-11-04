@@ -3,6 +3,7 @@ Description=Luật Việt Đức current-image retention
 After=docker.service
 [Service]
 Type=oneshot
+Environment=DOCKER_CONFIG=/var/lib/luatvietduc-deploy/retention-docker-cli
 ExecStart=/usr/bin/python3 /usr/local/lib/luatvietduc-deploy/app-retention.py
 TimeoutStartSec=240
 NoNewPrivileges=true

@@ -10,4 +10,7 @@ class Retention(unittest.TestCase):
  def test_cleanup_is_project_scoped(self):
   source=pathlib.Path(m.__file__).read_text()
   self.assertIn("'deploy.lock'",source);self.assertNotIn("'system','prune'",source);self.assertNotIn("'volume','rm'",source);self.assertNotIn("'--force',tag",source)
+ def test_buildx_writes_only_inside_existing_state_boundary(self):
+  unit=pathlib.Path(__file__).with_name('luatvietduc-retention.service').read_text()
+  self.assertIn('Environment=DOCKER_CONFIG=/var/lib/luatvietduc-deploy/retention-docker-cli',unit);self.assertIn('ProtectHome=true',unit);self.assertIn('ProtectSystem=strict',unit)
 if __name__=='__main__':unittest.main()
