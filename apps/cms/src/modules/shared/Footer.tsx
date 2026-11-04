@@ -38,10 +38,6 @@ export function Footer() {
       </div>
       <div className="live-footer-meta">
         <div className="live-footer-version-row"><small>{copyright(shell,version)}</small><LanguageSwitch/></div>
-        <nav aria-label={t("Chính sách")}>
-          <a href="/#/chinh-sach-thong-tin">{t("Quyền riêng tư")}</a>
-          <a href="/#/dieu-khoan">{t("Điều khoản sử dụng")}</a>
-        </nav>
       </div>
     </footer>
   );

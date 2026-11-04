@@ -2,6 +2,7 @@ import React from 'react';
 import type { AdminViewServerProps } from 'payload';
 import {Gutter,SetStepNav} from '@payloadcms/ui';
 import {adminPages,type AdminPage} from './pages';
+import {adminSettingsSections} from './navigation-model';
 import {DefaultTemplate} from '@payloadcms/next/templates';
 import { redirect } from 'next/navigation';
 import { IntegrationPanel } from '../integrations/Panel';
@@ -27,10 +28,5 @@ export function KnowledgeView(props:AdminViewServerProps){return <Page props={pr
 export function InboxView(props:AdminViewServerProps){return <Page props={props} page="inbox" compact>{guard(props,['owner','support','operations'])?<Workspace staff embedded/>:denied}</Page>}
 export function SettingsView(props:AdminViewServerProps){
  if(!guard(props))return <Page props={props} page="settings">{denied}</Page>;
- const sections=[
-  {title:'Website',items:[['Nhận diện, giao diện & mạng xã hội','/admin/globals/site-settings']]},
-  {title:'Kết nối',items:[['Google, Gemini, email & lưu tệp','/admin/settings/connections']]},
-  {title:'Bảo trì',items:[['Sao lưu & khôi phục','/admin/settings/backups'],['Nhật ký hoạt động','/admin/collections/audit-events']]},
- ];
- return <Page props={props} page="settings"><div className="lvd-admin-settings-grid">{sections.map(section=><section key={section.title}><h2>{section.title}</h2>{section.items.map(([label,href])=><a key={href} href={href}>{label}<span aria-hidden="true">↗</span></a>)}</section>)}</div></Page>;
+ return <Page props={props} page="settings"><div className="lvd-admin-settings-grid">{adminSettingsSections.map(section=><section key={section.title}><h2>{section.title}</h2>{section.items.map(({label,href})=><a key={href} href={href}>{label}<span aria-hidden="true">↗</span></a>)}</section>)}</div></Page>;
 }

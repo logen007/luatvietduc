@@ -14,3 +14,8 @@ test('shell rejects unsafe links and preserves intentionally empty copy',()=>{
  const shell=publicShell({tagline:'',logo:'javascript:alert(1)',accentColor:'url(https://example.invalid)',navigation:[{label:'Bad',url:'//example.invalid'},{label:'Bad',url:'https://name:secret@example.invalid'},{label:'Bad',url:'/admin'},{label:'Removed page',url:'/bai-viet'}]});
  assert.equal(shell.tagline,'');assert.equal(shell.logo,null);assert.equal(shell.accent,null);assert.deepEqual(shell.primary,[]);
 });
+test('valid hash links saved in admin work on every page and deduplicate against root-qualified links',()=>{
+ const shell=publicShell({navigation:[{label:'News again',url:'#/tin-tuc'},{label:'Contact',url:'  #/lien-he  '},{label:'Contact again',url:'/#/lien-he'}]}, {primary:[{key:'news',label:'Tin tức',href:'/#/tin-tuc'}],footer:[]});
+ assert.deepEqual(shell.primary.map(link=>link.href),['/#/tin-tuc','/#/lien-he']);
+ assert.equal(shell.primary[0].label,'Tin tức');
+});

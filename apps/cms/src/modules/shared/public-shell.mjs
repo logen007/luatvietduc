@@ -1,7 +1,7 @@
 // One public presentation contract for the retained pages and React pages.
 // No session, provider credentials or private settings belong here.
 const safeURL=value=>{
- const url=String(value||'').trim();
+ const raw=String(value||'').trim(),url=raw.startsWith('#/')?'/'+raw:raw;
  if(url.startsWith('/')&&!url.startsWith('//')&&!/^\/admin(?:\/|$)/.test(url))return url;
  try{const parsed=new URL(url);return parsed.protocol==='https:'&&!parsed.username&&!parsed.password?url:null;}catch{return null;}
 };

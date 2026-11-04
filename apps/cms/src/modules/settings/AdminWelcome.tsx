@@ -5,6 +5,7 @@ import config from "../../payload.config";
 import type {User} from "../../payload-types";
 import {specialistInbox} from "../chat/inbox";
 import { connectionStatus } from "./public";
+import {adminCapabilities,adminLinks,adminShortcuts} from '../admin/navigation-model';
 
 type WelcomeProps = {user?:User|null};
 type IconName = "article" | "chat" | "knowledge" | "settings" | "arrow";
@@ -23,26 +24,18 @@ function WorkIcon({ name }: { name: IconName }) {
 export function AdminDashboard({user}:WelcomeProps){return <Gutter className="dashboard"><SetStepNav nav={[]}/><AdminWelcome user={user}/></Gutter>;}
 
 export async function AdminWelcome({ user }: WelcomeProps) {
-  const role = user?.role || "";
-  const canEdit = ["owner", "support", "editor", "reviewer"].includes(role);
-  const canSupport = ["owner", "support", "operations"].includes(role);
-  const canKnowledge = ["owner", "knowledge", "reviewer", "support"].includes(role);
-  const connections = await connectionStatus();
+  const can=adminCapabilities(user),canSupport=can.inbox;
+  const connections = can.owner ? await connectionStatus() : null;
   const payload=await getPayload({config});
   const results=user?await Promise.allSettled([
-    payload.count({collection:'articles',overrideAccess:false,user}),
+    can.content?payload.count({collection:'articles',overrideAccess:false,user}):Promise.resolve(null),
     canSupport?specialistInbox({user,guestHash:''}):Promise.resolve(null),
-    payload.count({collection:'articles',overrideAccess:false,user,where:{and:[{aiAllowed:{equals:true}},{_status:{equals:'published'}},{reviewState:{equals:'approved'}}]}}),
+    can.knowledge?payload.count({collection:'articles',overrideAccess:false,user,where:{and:[{aiAllowed:{equals:true}},{_status:{equals:'published'}},{reviewState:{equals:'approved'}}]}}):Promise.resolve(null),
   ]):[];
   const result=(index:number)=>results[index]?.status==='fulfilled'?results[index].value:null;
   const articles=result(0) as {totalDocs:number}|null,inbox=result(1) as {counts:{queue:number;active:number}}|null,knowledge=result(2) as {totalDocs:number}|null;
-  const stats=[{label:'Bài viết',value:articles?.totalDocs,href:'/admin/collections/articles',note:'Nội dung bạn có quyền xem'},...(canSupport?[{label:'Chờ tiếp nhận',value:inbox?.counts.queue,href:'/admin/inbox',note:'Yêu cầu trong hàng chờ'},{label:'Đang xử lý',value:inbox?.counts.active,href:'/admin/inbox',note:'Hội thoại đã được tiếp nhận'}]:[]),{label:'Kiến thức cho AI',value:knowledge?.totalDocs,href:'/admin/knowledge',note:'Bài đã xuất bản và bật dùng cho AI'}];
-  const destinations = [
-    ...(canEdit ? [{ href: "/admin/collections/articles/create", title: "Viết bài mới", text: "Soạn nội dung, chọn danh mục và xuất bản.", icon: "article" as const }] : []),
-    ...(canSupport ? [{ href: "/admin/inbox", title: "Hộp thư chuyên viên", text: "Tiếp nhận yêu cầu, trao đổi và theo dõi hội thoại được giao.", icon: "chat" as const }] : []),
-    ...(canKnowledge ? [{ href: "/admin/knowledge", title: "Kiến thức AI", text: "Quản lý nội dung được phép dùng để trả lời khách.", icon: "knowledge" as const }] : []),
-    ...(role === "owner" ? [{ href: "/admin/collections/users", title: "Người dùng", text: "Quản lý Admin, Chuyên viên và User.", icon: "settings" as const }, { href: "/admin/settings", title: "Cài đặt hệ thống", text: "Quản lý nhận diện, điều hướng và chính sách vận hành.", icon: "settings" as const }] : []),
-  ];
+  const stats=[...(can.content?[{label:adminLinks.articles.label,value:articles?.totalDocs,href:adminLinks.articles.href,note:'Nội dung bạn có quyền xem'}]:[]),...(canSupport?[{label:'Chờ tiếp nhận',value:inbox?.counts.queue,href:adminLinks.inbox.href,note:'Yêu cầu trong hàng chờ'},{label:'Đang xử lý',value:inbox?.counts.active,href:adminLinks.inbox.href,note:'Hội thoại đã được tiếp nhận'}]:[]),...(can.knowledge?[{label:adminLinks.knowledge.label,value:knowledge?.totalDocs,href:adminLinks.knowledge.href,note:'Bài đã xuất bản và bật dùng cho AI'}]:[])];
+  const destinations = adminShortcuts(user);
   return (
     <section className="lvd-admin-welcome" aria-labelledby="lvd-admin-welcome-title">
       <header className="lvd-admin-welcome__header">
@@ -64,8 +57,8 @@ export async function AdminWelcome({ user }: WelcomeProps) {
         <p><span className="lvd-admin-workflow__dot" aria-hidden="true" />Chỉ bài đã xuất bản và bật dùng cho AI mới được đưa vào kho trả lời.</p>
         <span></span>
       </div>
-      {role === "owner" && <section className="lvd-admin-connections" aria-labelledby="lvd-admin-connections-title">
-        <div className="lvd-admin-connections__heading"><h2 id="lvd-admin-connections-title">Kết nối hệ thống</h2><a href="/admin/settings/connections">Thiết lập kết nối <WorkIcon name="arrow" /></a></div>
+      {can.owner && connections && <section className="lvd-admin-connections" aria-labelledby="lvd-admin-connections-title">
+        <div className="lvd-admin-connections__heading"><h2 id="lvd-admin-connections-title">Kết nối hệ thống</h2><a href={adminLinks.connections.href}>Thiết lập kết nối <WorkIcon name="arrow" /></a></div>
         <div className="lvd-admin-connection-list">
           {[{ label: "Google", ready: connections.google }, { label: "Lưu tệp R2", ready: connections.storage }, { label: "Email", ready: connections.email }, { label: "Gemini / FAQ", ready: connections.ai }].map((item) => <div key={item.label} className="lvd-admin-connection"><span>{item.label}</span><span className={item.ready ? "lvd-admin-status lvd-admin-status--configured" : "lvd-admin-status"}>{item.ready ? "Đã cấu hình" : "Chưa kết nối"}</span></div>)}
         </div>

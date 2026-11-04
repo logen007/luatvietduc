@@ -13,6 +13,8 @@ giao dịch và API thực tế nằm trong CMS.
 | Ngôn ngữ | `modules/shared/locale/de.json`, dùng chung cả hai bộ dựng |
 | Cấu hình công khai | `modules/settings/view.ts`, client cache ở `client-store.ts` và `client.ts`, tách khỏi vault bí mật |
 | Nhãn/mô tả admin | `modules/admin/presentation.ts`, `i18n.ts`, `pages.ts` |
+| Menu, lối tắt, nhóm cài đặt admin | `modules/admin/navigation-model.ts`; chỉ gợi ý hiển thị, không thay quyền server |
+| Điều hướng từ bài viết công khai | `modules/content/navigation.ts`; kiến thức về Thư viện, tin tức về Tin tức |
 | Giao thức HTTP | `modules/http/`, giữ đường dẫn cũ |
 | API kiến thức | `modules/knowledge/http.ts`, nghiệp vụ trong `articles.ts` |
 | Dữ liệu chat client/server | `modules/chat/contracts.ts` |
@@ -70,3 +72,26 @@ Hai bộ dựng đã dùng chung hợp đồng cấu hình và phiên, chưa chu
 React. Nhập nguồn kiến thức cũ còn để sửa dữ liệu đã có; viết mới dùng bài viết +
 checkbox AI. Kiểm tra cấu trúc không thay thế đo tải, đánh giá chất lượng pháp lý
 hay đợt khôi phục Drive thật.
+
+## Rà soát cấu trúc 2026-11-04
+
+Website có ba khu vực: nội dung công khai, tài khoản/chat và quản trị dưới `/admin`.
+`/quan-tri`, `/kien-thuc`, `/chuyen-vien` là chuyển tiếp tương thích tới admin;
+`/bai-viet` chuyển tới danh sách tin. Không tạo thêm màn hình quản trị ở các địa chỉ cũ.
+
+Menu, lối tắt dashboard và các nhóm cài đặt admin dùng chung một mô hình. Quyền
+truy cập/ghi dữ liệu vẫn nằm ở collection và service. Chỉ Admin và Chuyên viên
+được hiển thị điều hướng admin; nút viết mới cần quyền tạo tương ứng. Admin nhìn
+thấy Người dùng trước Cài đặt; Cài đặt luôn ở cuối. Menu công khai chuẩn hóa `#/...`
+thành `/#/...` để liên kết bổ sung hoạt động từ cả trang chủ và trang React.
+
+Hai điểm còn cần một đợt riêng:
+
+- Thư viện, tin tức và các trang thông tin còn dùng hash router. Chuyển từng nhóm
+  sang trang riêng, giữ adapter cho hash cũ và bộ so sánh dữ liệu, rồi mới bỏ mã cũ.
+- `publicIndexingEnabled` đang điều khiển robots.txt và HTML trang gốc, trong khi
+  layout React vẫn đặt noindex. Chưa có sitemap cho các trang công khai. Cần thống
+  nhất metadata theo từng loại trang; tài khoản, chat, admin và API luôn riêng tư.
+
+Nguồn kiến thức nhập mới là Bài viết + “Cho phép dùng cho AI”; trình sửa nguồn cũ
+chỉ giữ để bảo trì dữ liệu đã có. Không loại bỏ nguồn cũ hoặc xóa dữ liệu trong đợt này.

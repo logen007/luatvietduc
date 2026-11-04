@@ -4,6 +4,7 @@ import config from "@payload-config";
 import { notFound } from "next/navigation";
 import { Header } from "../../../../modules/shared/Header";
 import { Footer } from "../../../../modules/shared/Footer";
+import {articleParent} from '../../../../modules/content/navigation';
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,
@@ -20,6 +21,7 @@ export default async function Page({
   });
   const a = result.docs[0];
   if (!a) notFound();
+  const parent=articleParent(a.kind);
   return (
     <>
       <Header />
@@ -28,9 +30,9 @@ export default async function Page({
           <LocaleNav className="live-breadcrumb" label="Đường dẫn">
             <a href="/"> <LocaleText text="Trang chủ"/></a>
             <span>/</span>
-            <a href="/#/tin-tuc"> <LocaleText text="Tin tức & đời sống"/></a>
+            <a href={parent.href}> <LocaleText text={parent.label}/></a>
             <span>/</span>
-            <span><LocaleText text={a.jurisdiction === "VN" ? "Việt Nam" : a.jurisdiction === "DE" ? "Đức" : "Luật Việt Đức"}/></span>
+            <span aria-current="page">{a.title}</span>
           </LocaleNav>
           <header className="live-reading-heading">
             <p className="live-eyebrow">
