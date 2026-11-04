@@ -1,7 +1,8 @@
 'use client';
 import {useEffect,useSyncExternalStore} from 'react';
 import {createSessionStore} from './account-state.mjs';
-const store=createSessionStore(async()=>{
+import type {PublicSession} from '../identity/contracts';
+const store=createSessionStore<PublicSession>(async()=>{
  const response=await fetch('/service/me',{cache:'no-store',credentials:'same-origin'});
  if(!response.ok)throw new Error('Không thể kiểm tra phiên đăng nhập.');
  return response.json();
@@ -9,12 +10,14 @@ const store=createSessionStore(async()=>{
 const initial=store.getSnapshot();
 const refresh=()=>{void store.refresh(true).catch(()=>{});};
 export const loadPublicSession=()=>store.refresh();
+// Guards client state updates only. Server authorization remains authoritative.
+export const isPublicSessionCurrent=(revision:number)=>store.isCurrent(revision);
 export function invalidatePublicSession(){
  store.invalidate();
  try{localStorage.setItem('lvd-session-revision',String(Date.now()));}catch{}
  document.dispatchEvent(new Event('lvd:sessionchange'));
 }
-function onStorage(event:StorageEvent){if(event.key==='lvd-session-revision')refresh();}
+function onStorage(event:StorageEvent){if(event.key==='lvd-session-revision'){store.invalidate();refresh();}}
 function onVisibility(){if(!document.hidden)refresh();}
 let subscribers=0;
 function subscribe(listener:()=>void){

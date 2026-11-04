@@ -51,7 +51,7 @@ export default function Page() {
             <a className="live-back-link" href="/"> {t("← Trở về website")} </a>
             <p className="live-eyebrow">LUẬT VIỆT ĐỨC</p>
             <h1>
-              {data?.user ? t("Xin chào, {name}",{name:data.user.name}) : t("Cuộc trò chuyện của bạn.")}
+              {data?.user ? t("Xin chào, {name}",{name:data.user.name||t('Tài khoản')}) : t("Cuộc trò chuyện của bạn.")}
             </h1>
             {error && (
               <p className="live-error" role="alert">

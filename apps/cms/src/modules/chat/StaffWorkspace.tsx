@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import {Header} from '../shared/Header';
 import {useWorkspace} from './useWorkspace';
 import {useInbox} from './staff/useInbox';
@@ -8,7 +8,8 @@ import {Transcript} from './staff/Transcript';
 import {Composer} from './staff/Composer';
 import {Details} from './staff/Details';
 export function StaffWorkspace({embedded=false}:{embedded?:boolean}){
- const state=useWorkspace(true,false),inbox=useInbox(state.staffAllowed?state.me?.user?.id:undefined),[pane,setPane]=useState('list'),[details,setDetails]=useState(false);
+ const state=useWorkspace(true,false),inbox=useInbox(state.staffAllowed?state.me?.user?.id:undefined,state.sessionRevision),[pane,setPane]=useState('list'),[details,setDetails]=useState(false);
+ useEffect(()=>{setPane('list');setDetails(false);},[state.sessionRevision]);
  const c=state.conversation,canReply=c?.state==='human'&&!c.restricted&&(c.assignedTo===state.me?.user?.id||state.me?.user?.role==='owner');
  async function action(value:string){if(await state.act(value)){await inbox.refresh();if(value==='claim')inbox.setView('active');if(value==='release')inbox.setView('queue');}}
  if(state.loaded&&!state.staffAllowed)return <>{!embedded&&<Header/>}<main className="live-page container"><h1>Hộp thư chuyên viên</h1><p>Đăng nhập bằng tài khoản được phân quyền để tiếp nhận hội thoại.</p><a href="/tai-khoan">Đăng nhập →</a></main></>;

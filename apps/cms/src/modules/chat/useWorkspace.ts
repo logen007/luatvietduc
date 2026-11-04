@@ -2,10 +2,14 @@
 import {useEffect,useRef,useState} from "react";
 import {api} from "../shared/client-api";
 import {visiblePoll} from "../shared/polling";
-import type {Me,Conversation,Message,Transcript,Attachment} from './contracts';
+import {isPublicSessionCurrent,usePublicSession} from '../shared/session-client';
+import type {Conversation,Message,Transcript,Attachment} from './contracts';
 export function useWorkspace(staff=false,manageList=true){
-  const [me, setMe] = useState<Me|null>(null),
-    [rows, setRows] = useState<Conversation[]>([]),
+  const session=usePublicSession(),me=session.status==='ready'?session.data:null;
+  const [ownerRevision,setOwnerRevision]=useState(-1);
+  const visible=session.status==='ready'&&ownerRevision===session.revision;
+  const current=()=>isPublicSessionCurrent(session.revision);
+  const [rows, setRows] = useState<Conversation[]>([]),
     [selected, setSelected] = useState(""),
     [conversation, setConversation] = useState<Conversation|null>(null),
     [messages, setMessages] = useState<Message[]>([]),
@@ -51,22 +55,27 @@ export function useWorkspace(staff=false,manageList=true){
     };
   }, []);
   const refreshList = async () => {
-    if(staff&&!manageList)return [];
+    if(!current()||(staff&&!manageList))return [];
     const v = await api<Conversation[]>(staff ? "queue" : "conversations");
-    setRows(v);
+    if(current())setRows(v);
     return v;
   };
   useEffect(() => {
+    revision.current++;
+    pending.current=null;
+    setRows([]);setSelected('');setConversation(null);setMessages([]);
+    setAttachments([]);setUploading(false);setBusy(false);setSendingBody('');
+    setError('');setConnectionError('');setText('');setInternal(false);setCountry('');setPreferHuman(false);setLoaded(false);
+    setOwnerRevision(session.revision);
+    if(session.status!=='ready')return;
     let active = true;
+    const valid=()=>active&&current();
     const draft = staff ? null : sessionStorage.getItem("lvd-question");
     if (draft) setText(draft);
     (async () => {
       try {
-        const user = await api<Me>("me");
-        if (!active) return;
-        setMe(user);
         const [s,list]=await Promise.all([api<import('../settings/view').PublicSettings>('settings'),staff&&!manageList?Promise.resolve([]):api<Conversation[]>(staff?'queue':'conversations')]);
-        if (active) {
+        if (valid()) {
           setNotice(
             [
               s.supportNotice,
@@ -77,28 +86,25 @@ export function useWorkspace(staff=false,manageList=true){
           );
           setMaxLength(s.maxMessageLength || 2000);
         }
-        if (!active) return;
+        if (!valid()) return;
         setRows(list);
         // A question from the homepage starts its own intake, even with saved history.
         if (staff){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&/^[a-f0-9-]{36}$/i.test(requested))setSelected(requested);}
-        else if(active&&!draft){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&list.some(item=>item.id===requested))setSelected(requested);else if(list[0])setSelected(list[0].id);}
+        else if(!draft){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&list.some(item=>item.id===requested))setSelected(requested);else if(list[0])setSelected(list[0].id);}
+        if(draft&&sessionStorage.getItem('lvd-question')===draft)sessionStorage.removeItem('lvd-question');
       } catch (e) {
-        if (active) setError((e as Error).message);
+        if (valid()) setError((e as Error).message);
       } finally {
-        if (active) {
-          setLoaded(true);
-          if (draft && sessionStorage.getItem("lvd-question") === draft)
-            sessionStorage.removeItem("lvd-question");
-        }
+        if (valid()) setLoaded(true);
       }
     })();
     return () => {
       active = false;
     };
-  }, [staff]);
+  }, [staff,manageList,session.revision,session.status]);
   useEffect(() => {
     stickToBottom.current=true;revision.current++;setConversation(null);
-    if (!selected) {
+    if (!visible || !selected) {
       setMessages([]);
       setConversation(null);
       setConnectionError("");
@@ -111,7 +117,7 @@ export function useWorkspace(staff=false,manageList=true){
       const ticket=revision.current;
       try {
         const v = await api<Transcript>(`conversations/${selected}?after=${cursor}`);
-        if (!active||ticket!==revision.current) return;
+        if (!active||!current()||ticket!==revision.current) return;
         for(const message of v.messages){
           if(message.role==='user')latestUser=Math.max(latestUser,Number(message.id));
           if(message.role==='assistant'&&String(message.client_key).startsWith('assistant:'))latestAnswered=Math.max(latestAnswered,Number(String(message.client_key).slice(10))||0);
@@ -143,7 +149,7 @@ export function useWorkspace(staff=false,manageList=true){
         waiting=Boolean(v.conversation.aiEnabled&&latestUser>latestAnswered);
         setConnectionError("");
       } catch (e) {
-        if (active&&ticket===revision.current) {setConnectionError((e as Error).message);if(staff){setConversation(null);setMessages([]);cursor=0;}}
+        if (active&&current()&&ticket===revision.current) {setConnectionError((e as Error).message);if(staff){setConversation(null);setMessages([]);cursor=0;}}
       }
     };
     setMessages([]);
@@ -154,7 +160,7 @@ export function useWorkspace(staff=false,manageList=true){
       active = false;
       stop();
     };
-  }, [selected]);
+  }, [selected,visible,session.revision,staff]);
   useEffect(()=>{const element=log.current;if(!element)return;const track=()=>{stickToBottom.current=element.scrollHeight-element.scrollTop-element.clientHeight<120;};element.addEventListener('scroll',track,{passive:true});return()=>element.removeEventListener('scroll',track);},[selected]);
   useEffect(() => {
     if (!log.current) return;
@@ -167,29 +173,33 @@ export function useWorkspace(staff=false,manageList=true){
     });
   }, [messages.length, selected]);
   useEffect(() => {
-    if (!staff || !manageList || !me?.user) return;
+    if (!visible || !staff || !manageList || !me?.user) return;
     return visiblePoll(()=>refreshList(),5000,{initial:false});
-  }, [staff, me,manageList]);
+  }, [staff,visible,session.revision,manageList]);
   const act = async (action: string) => {
-    if (!conversation) return;
+    if (!visible || !current() || !conversation || busy || uploading) return;
     setBusy(true);revision.current++;
     try {
       await api(`conversations/${selected}/transition`, {
         action,
         version: conversation.version,
       });
-      revision.current++;const latest=await api<Transcript>(`conversations/${selected}`);setConversation(latest.conversation);setMessages(old=>latest.conversation.restricted?[]:[...old,...latest.messages.filter(m=>!old.some(previous=>previous.id===m.id))].sort((a,b)=>Number(a.id)-Number(b.id)));
+      if(!current())return false;
+      revision.current++;const latest=await api<Transcript>(`conversations/${selected}`);
+      if(!current())return false;
+      setConversation(latest.conversation);setMessages(old=>latest.conversation.restricted?[]:[...old,...latest.messages.filter(m=>!old.some(previous=>previous.id===m.id))].sort((a,b)=>Number(a.id)-Number(b.id)));
       await refreshList();
+      if(!current())return false;
       setError("");return true;
     } catch (e) {
-      setError((e as Error).message);return false;
+      if(current())setError((e as Error).message);return false;
     } finally {
-      setBusy(false);
+      if(current())setBusy(false);
     }
   };
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!text.trim()&&!attachments.length) || busy || uploading || !loaded) return;
+    if (!visible || !current() || (!text.trim()&&!attachments.length) || busy || uploading || !loaded) return;
     setBusy(true);revision.current++;
     setSendingBody(text.trim()||"Tệp đính kèm");
     stickToBottom.current=true;
@@ -203,6 +213,7 @@ export function useWorkspace(staff=false,manageList=true){
           privacyNoticeVersion:"chat-v2",
           mode:"assistant",
         });
+        if(!current())return false;
         id = c.id;
         setSelected(id);
       }
@@ -219,37 +230,43 @@ export function useWorkspace(staff=false,manageList=true){
           fileIds:attachments.map(file=>file.id),
         };
       await api(`conversations/${id}/messages`, {...pending.current,...(!staff?{aiConsentVersion:"gemini-rag-v1"}:{})});
+      if(!current())return false;
       setText("");setAttachments([]);
       revision.current++;const latest=await api<Transcript>(`conversations/${id}`);
+      if(!current())return false;
       setMessages(old=>[...old,...latest.messages.filter(m=>!old.some(previous=>previous.id===m.id))].sort((a,b)=>Number(a.id)-Number(b.id)));setConversation(latest.conversation);
       pending.current = null;
-      await refreshList();return true;
+      await refreshList();return current();
     } catch (e) {
-      setError((e as Error).message);return false;
+      if(current())setError((e as Error).message);return false;
     } finally {
-      setBusy(false);setSendingBody("");
+      if(current()){setBusy(false);setSendingBody("");}
     }
   };
   async function attachFiles(files:File[]){
-    if(uploading||busy||!loaded)return;
+    if(!visible||!current()||uploading||busy||!loaded)return;
     if(files.length+attachments.length>4){setError('Mỗi tin nhắn tối đa 4 tệp.');return;}
     setUploading(true);setError('');
     try{
       let id=selected;
-      if(!id){const c=await api<{id:string}>('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});id=c.id;setSelected(id);}
+      if(!id){const c=await api<{id:string}>('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});if(!current())return;id=c.id;setSelected(id);}
       for(const file of files){
+        if(!current())return;
         if(file.size>10*1024*1024)throw new Error('Mỗi tệp tối đa 10 MB.');
         const response=await fetch(`/service/conversations/${id}/files`,{method:'POST',headers:{'content-type':'application/octet-stream','x-file-name':encodeURIComponent(file.name)},body:file});
         const value=await response.json();if(!response.ok)throw new Error(value.error||'Chưa tải được tệp.');
+        if(!current())return;
         setAttachments(previous=>[...previous,value]);
       }
-    }catch(error){setError((error as Error).message);}finally{setUploading(false);}
+    }catch(error){if(current())setError((error as Error).message);}finally{if(current())setUploading(false);}
   }
   useEffect(()=>{setAttachments([]);},[selected]);
   const staffAllowed =
     me?.user && ["owner", "support", "operations"].includes(me.user.role);
-  const startNew=()=>{setSelected("");setConversation(null);setMessages([]);setError("");setText("");setPreferHuman(false);};
+  const startNew=()=>{if(!visible||!current()||busy||uploading)return;pending.current=null;setSelected("");setConversation(null);setMessages([]);setError("");setText("");setPreferHuman(false);};
   const requestHuman=async()=>{if(selected)await act('handoff');else setPreferHuman(true);};
-  return {attachments,uploading,attachFiles,removeAttachment:(id:string)=>setAttachments(previous=>previous.filter(file=>file.id!==id)),me,rows,selected,setSelected,conversation,messages,error,setError,connectionError,text,setText,country,setCountry,internal,setInternal,busy,loaded,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman,sendingBody,pendingKey:pending.current?.key};
+  // Mask private state during the render that observes a new session, before
+  // effects have a chance to clear the previous workspace.
+  return {attachments:visible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>setAttachments(previous=>previous.filter(file=>file.id!==id)),me,rows:visible?rows:[],selected:visible?selected:'',setSelected,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:visible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',pendingKey:visible?pending.current?.key:undefined,sessionRevision:session.revision,sessionStatus:session.status};
 }
 export type WorkspaceState=ReturnType<typeof useWorkspace>;

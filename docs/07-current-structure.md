@@ -9,9 +9,9 @@ giao dịch và API thực tế nằm trong CMS.
 | Phần | Module |
 |---|---|
 | Danh tính, logo, menu, footer công khai | `modules/shared/public-shell.mjs`, cùng hợp đồng cho React và adapter trang cũ |
-| Phiên đăng nhập | `modules/shared/account-state.mjs`, React qua `session-client.ts` |
+| Phiên đăng nhập | `modules/shared/account-state.mjs`, hợp đồng `identity/contracts.ts`, React qua `session-client.ts` |
 | Ngôn ngữ | `modules/shared/locale/de.json`, dùng chung cả hai bộ dựng |
-| Cấu hình công khai | `modules/settings/view.ts`, tách khỏi vault bí mật |
+| Cấu hình công khai | `modules/settings/view.ts`, client cache ở `client-store.ts` và `client.ts`, tách khỏi vault bí mật |
 | Nhãn/mô tả admin | `modules/admin/presentation.ts`, `i18n.ts`, `pages.ts` |
 | Giao thức HTTP | `modules/http/`, giữ đường dẫn cũ |
 | API kiến thức | `modules/knowledge/http.ts`, nghiệp vụ trong `articles.ts` |
@@ -24,6 +24,13 @@ giao dịch và API thực tế nằm trong CMS.
 | Sao lưu/khôi phục thử | `modules/backup/`, `ops/backup/` |
 
 ## Gửi tin và trả lời
+
+Header, tài khoản, chat và hộp thư dùng chung phiên React. Các lượt kiểm tra phiên
+đồng thời chia sẻ một yêu cầu; thay tài khoản, vai trò, phạm vi hoặc mất phiên đổi
+revision. Nội dung riêng tư được che ngay trong render và kết quả tải của revision
+cũ bị bỏ qua. Quyền thực tế vẫn do server kiểm tra, không dựa vào cache client.
+Cài đặt công khai dùng cache 30 giây, chia sẻ yêu cầu và cập nhật khi quay lại tab;
+lỗi mạng giữ cấu hình công khai gần nhất, còn lỗi phiên xóa dữ liệu tài khoản.
 
 Tin nhắn và job được lưu trong cùng giao dịch. Khách nhận xác nhận lưu trước khi
 Gemini xử lý. Hai consumer có giới hạn dùng khóa/lease, nhận lại việc sau khi lease

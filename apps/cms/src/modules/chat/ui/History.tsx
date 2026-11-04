@@ -13,6 +13,6 @@ export function ChatHistory({state,onSelect,onNew}:{state:WorkspaceState;onSelec
   <div className="chat-history-list" aria-label={t("Lịch sử hội thoại")}>
    {!state.loaded?<p role="status">{t("Đang tải…")}</p>:rows.length?rows.map(row=><button type="button" key={row.id} className={state.selected===row.id?'is-selected':''} aria-current={state.selected===row.id?'page':undefined} disabled={state.busy} onClick={()=>onSelect(row.id)}><span>{row.title==='Cuộc trò chuyện mới'?t(row.title):row.title}</span><small>{t(row.state==='closed'?'Đã hoàn tất':row.state==='human'?'Chuyên viên đang hỗ trợ':'Cuộc trò chuyện')}</small></button>):<p>{t(search?'Chưa tìm thấy hội thoại.':'Hội thoại của bạn sẽ ở đây.')}</p>}
   </div>
-  <a className="chat-account" href="/tai-khoan"><span aria-hidden="true">{state.me?.user?.name?.charAt(0)||'L'}</span><strong>{state.me?.user?.name||t('Đăng nhập')}</strong><ChatIcon name="arrow"/></a>
+  <a className="chat-account" href="/tai-khoan"><span aria-hidden="true">{state.me?.user?.name?.charAt(0)||'L'}</span><strong>{state.me?.user?.name||t(state.sessionStatus==='ready'&&!state.me?.user?'Đăng nhập':'Tài khoản')}</strong><ChatIcon name="arrow"/></a>
  </>;
 }
