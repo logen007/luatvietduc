@@ -1,10 +1,12 @@
 /* The legacy and container builds use the same shell and ordering. */
 import './assemble-presentation.mjs';
+import {createHash} from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 const { version: siteVersion } = JSON.parse(readFileSync(new URL('../src/modules/shared/site-version.json', import.meta.url), 'utf8'));
 import { getPresentationVersion } from '../src/modules/shared/presentation-version.mjs';
 const revision = getPresentationVersion(fileURLToPath(new URL('../public/', import.meta.url)));
+const localeRevision=createHash('sha256').update(readFileSync(new URL('../src/modules/shared/locale/de.json',import.meta.url))).update(readFileSync(new URL('./locale-build.mjs',import.meta.url))).digest('hex').slice(0,12);
 const socialIcons = JSON.parse(readFileSync(new URL('../public/social-icons.json', import.meta.url), 'utf8'));
 const socialPlaceholders = socialIcons.map(icon => `<span class="lvd-social-icon is-unset" role="img" aria-label="${icon.name}" title="${icon.name}"><svg viewBox="0 0 24 24" aria-hidden="true">${icon.paths.map(d => `<path d="${d}" fill-rule="evenodd"/>`).join('')}</svg></span>`).join('');
 const navigation = JSON.parse(readFileSync(new URL('../src/modules/shared/navigation.json', import.meta.url), 'utf8'));
@@ -16,7 +18,7 @@ const arrow='<svg class="lvd-arrow" viewBox="0 0 24 24" aria-hidden="true"><path
 const languageSwitch='<div class="lvd-language-switch" data-no-translation><button type="button" data-language-toggle aria-label="Chuyển sang tiếng Đức"><img src="/assets/flags/vn.svg" width="20" height="14" alt=""><span>VI</span></button></div>';
 const brand='<a class="brand" href="/#/" aria-label="Luật Việt Đức — Trang chủ"><span class="brand-mark" aria-hidden="true">L</span><span class="brand-name">Luật Việt Đức</span></a>'
 export function transformFrontend(source){
- let html=source.replace(/<meta http-equiv="Content-Security-Policy"[^>]+>/,'')
+ let html=source.replace(/assets\/bilingual\.js\?v=[^"']+/g,'assets/bilingual.js?v='+localeRevision).replace(/<meta http-equiv="Content-Security-Policy"[^>]+>/,'')
  html=html.replace(/<link[^>]+href="assets\/(?:steel-ui|color-theme|typography|editorial-cleanup|terms-alignment|interior-design|ui-details|footer-editorial|spacing-footer|topic-navigation|germany-details)\.css[^"]*"[^>]*>/g,'')
  html=html.replace(/<link[^>]+href="assets\/fonts\/[^"]+"[^>]*>/g,'')
  html=html.replace('<body>','<body class="lvd-redesign">')

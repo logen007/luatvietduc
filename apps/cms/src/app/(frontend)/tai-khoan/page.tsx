@@ -1,4 +1,5 @@
 "use client";
+import {useLocale} from "../../../modules/shared/locale";
 import { useEffect, useState } from "react";
 import { api } from "../../../modules/shared/client-api";
 import { Header } from "../../../modules/shared/Header";
@@ -26,6 +27,7 @@ function GoogleMark() {
   );
 }
 export default function Page() {
+ const {t,language}=useLocale();
   const [data, setData] = useState<any>(null),
     [error, setError] = useState("");
   useEffect(() => {
@@ -40,86 +42,63 @@ export default function Page() {
         <div className="live-auth-layout">
           <section className="live-auth-intro">
             <div className="live-auth-intro-copy">
-              <span className="live-eyebrow">KHÔNG GIAN CÁ NHÂN</span>
-              <h2>
-                Những câu hỏi quan trọng.
-                <br />
-                <span>Một nơi để tiếp nối.</span>
+              <span className="live-eyebrow">{t("KHÔNG GIAN CÁ NHÂN")}</span>
+              <h2> {t("Những câu hỏi quan trọng.")} <br />
+                <span>{t("Một nơi để tiếp nối.")}</span>
               </h2>
-              <p>
-                Theo dõi trao đổi pháp luật Việt Nam và Đức, từ câu hỏi đầu tiên
-                đến phản hồi của chuyên viên.
-              </p>
+              <p> {t("Theo dõi trao đổi pháp luật Việt Nam và Đức, từ câu hỏi đầu tiên đến phản hồi của chuyên viên.")} </p>
             </div>
             <div className="live-auth-caption">
-              <span className="live-small-rule"></span>Rõ ràng trong thông tin.
-              Riêng tư trong trao đổi.
-            </div>
+              <span className="live-small-rule"></span>{t("Rõ ràng trong thông tin. Riêng tư trong trao đổi.")} </div>
           </section>
           <section className="live-auth-panel">
-            <a className="live-back-link" href="/">
-              ← Trở về website
-            </a>
+            <a className="live-back-link" href="/"> {t("← Trở về website")} </a>
             <p className="live-eyebrow">LUẬT VIỆT ĐỨC</p>
             <h1>
-              {data?.user ? `Xin chào, ${data.user.name}` : "Chào mừng bạn."}
+              {data?.user ? t("Xin chào, {name}",{name:data.user.name}) : t("Chào mừng bạn.")}
             </h1>
             {error && (
               <p className="live-error" role="alert">
-                {error}
+                {t(error)}
               </p>
             )}
             {!data ? (
               error ? (
                 <div className="live-actions">
-                  <button className="button" onClick={() => location.reload()}>
-                    Thử lại
-                  </button>
-                  <a className="live-text-action" href="/tro-chuyen">
-                    Tiếp tục với tư cách khách ↗
-                  </a>
+                  <button className="button" onClick={() => location.reload()}> {t("Thử lại")} </button>
+                  <a className="live-text-action" href="/tro-chuyen"> {t("Tiếp tục với tư cách khách ↗")} </a>
                 </div>
               ) : (
                 <div className="live-loading" role="status">
                   <span className="live-spinner"></span>
-                  <p>Đang kiểm tra phiên đăng nhập…</p>
+                  <p>{t("Đang kiểm tra phiên đăng nhập…")}</p>
                 </div>
               )
             ) : data.user ? (
               <>
-                <p className="live-lead">
-                  Lịch sử hội thoại chỉ hiển thị cho bạn và chuyên viên được
-                  phân công.
-                </p>
+                <p className="live-lead"> {t("Lịch sử hội thoại chỉ hiển thị cho bạn và chuyên viên được phân công.")} </p>
                 <div className="live-account-links">
-                  <a className="button" href="/tro-chuyen">
-                    Hội thoại của tôi <span aria-hidden="true">↗</span>
+                  <a className="button" href="/tro-chuyen"> {t("Hội thoại của tôi")} <span aria-hidden="true">↗</span>
                   </a>
                   {["owner", "support", "operations"].includes(
                     data.user.role,
                   ) && (
                     <a className="live-account-link" href="/admin/inbox">
-                      <span>
-                        Hộp thư chuyên viên
-                        <small>Tiếp nhận và phản hồi yêu cầu</small>
+                      <span> {t("Hộp thư chuyên viên")} <small>{t("Tiếp nhận và phản hồi yêu cầu")}</small>
                       </span>
                       <span aria-hidden="true">↗</span>
                     </a>
                   )}
                   {data.user.role !== "member" && (
                     <a className="live-account-link" href="/admin">
-                      <span>
-                        Quản trị nội dung
-                        <small>Bài viết, nguồn kiến thức và tài khoản</small>
+                      <span> {t("Quản trị nội dung")} <small>{t("Bài viết, nguồn kiến thức và tài khoản")}</small>
                       </span>
                       <span aria-hidden="true">↗</span>
                     </a>
                   )}
                   {data.user.role === "owner" && (
                     <a className="live-account-link" href="/admin/settings">
-                      <span>
-                        Kết nối hệ thống
-                        <small>Cài đặt và trạng thái dịch vụ</small>
+                      <span> {t("Kết nối hệ thống")} <small>{t("Cài đặt và trạng thái dịch vụ")}</small>
                       </span>
                       <span aria-hidden="true">↗</span>
                     </a>
@@ -135,49 +114,33 @@ export default function Page() {
                       setError((e as Error).message);
                     }
                   }}
-                >
-                  Đăng xuất tài khoản
-                </button>
+                > {t("Đăng xuất tài khoản")} </button>
               </>
             ) : (
               <>
-                <p className="live-lead">
-                  Đăng nhập để lưu hội thoại và xem phản hồi trên nhiều thiết
-                  bị.
-                </p>
+                <p className="live-lead"> {t("Đăng nhập để lưu hội thoại và xem phản hồi trên nhiều thiết bị.")} </p>
                 {data.connections.google ? (
                   <a className="button live-google" href="/auth/google">
-                    <GoogleMark />
-                    Tiếp tục bằng Google
-                  </a>
+                    <GoogleMark /> {t("Tiếp tục bằng Google")} </a>
                 ) : (
                   <>
                     <button className="button live-google" disabled>
-                      <GoogleMark />
-                      Tiếp tục bằng Google
-                    </button>
+                      <GoogleMark /> {t("Tiếp tục bằng Google")} </button>
                     <p className="live-inline-notice">
-                      <span className="live-status-dot"></span>Đăng nhập Google
-                      đang chờ kết nối.
-                    </p>
+                      <span className="live-status-dot"></span>{t("Đăng nhập Google đang chờ kết nối.")} </p>
                   </>
                 )}
                 <div className="live-auth-divider">
-                  <span>hoặc</span>
+                  <span>{t("hoặc")}</span>
                 </div>
                 <a
                   className="button secondary live-guest-link"
                   href="/tro-chuyen"
-                >
-                  Gửi câu hỏi với tư cách khách{" "}
+                > {t("Gửi câu hỏi với tư cách khách")}{" "}
                   <span aria-hidden="true">↗</span>
                 </a>
-                <p className="live-auth-privacy">
-                  Chỉ sử dụng tên và email để đăng nhập. Không yêu cầu quyền đọc
-                  hộp thư Gmail.
-                </p>
-                <a className="live-staff-link" href="/admin/login">
-                  Bạn là nhân sự? <span>Đăng nhập quản trị ↗</span>
+                <p className="live-auth-privacy"> {t("Chỉ sử dụng tên và email để đăng nhập. Không yêu cầu quyền đọc hộp thư Gmail.")} </p>
+                <a className="live-staff-link" href="/admin/login"> {t("Bạn là nhân sự?")} <span>{t("Đăng nhập quản trị ↗")}</span>
                 </a>
               </>
             )}

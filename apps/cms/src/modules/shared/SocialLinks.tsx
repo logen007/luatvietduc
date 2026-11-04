@@ -1,14 +1,16 @@
 "use client";
+import {useLocale} from './locale';
 import {usePublicSettings} from '../settings/client';
 import icons from "../../../public/social-icons.json";
 type Link = { label: string; url: string };
 export function SocialLinks() {
+ const {t}=useLocale();
   const settings=usePublicSettings();
   const links=(settings?.socialLinks||[]).filter((link: Link) => {
         try { return new URL(link.url).protocol === 'https:'; } catch { return false; }
       });
   const used = new Set<Link>();
-  return <div className="lvd-footer-social" aria-label="Mạng xã hội">{icons.map(icon => {
+  return <div className="lvd-footer-social" aria-label={t("Mạng xã hội")}>{icons.map(icon => {
     const link = links.find(l => {
       const host = new URL(l.url).hostname.toLowerCase();
       return icon.hosts.some(h => host === h || host.endsWith('.' + h)) || l.label.toLowerCase() === icon.name.toLowerCase();

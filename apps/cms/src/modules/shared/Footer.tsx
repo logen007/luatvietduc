@@ -1,8 +1,11 @@
+"use client";
+import {useLocale} from "./locale";
 import siteVersion from "./site-version.json";
 import {SocialLinks} from "./SocialLinks";
 import navigation from "./navigation.json";
 const footerColumns=navigation.footer;
 export function Footer() {
+ const {t,language}=useLocale();
   return (
     <footer className="live-footer">
       <div className="live-footer-inner">
@@ -10,20 +13,20 @@ export function Footer() {
           <a className="live-footer-wordmark" href="/">
             Luật Việt Đức
           </a>
-          <p>Thông tin pháp luật Việt Nam & Đức.</p>
+          <p>{t("Thông tin pháp luật Việt Nam & Đức.")}</p>
           <SocialLinks />
         </div>
         {footerColumns.map((column) => (
           <nav
             className="live-footer-column"
-            key={column.title}
-            aria-label={column.title}
+            key={t(column.title)}
+            aria-label={t(column.title)}
           >
-            <h2>{column.title}</h2>
+            <h2>{t(column.title)}</h2>
             <ul>
               {column.links.map(([label, href]) => (
                 <li key={href}>
-                  <a href={href}>{label}</a>
+                  <a href={href}>{t(label)}</a>
                 </li>
               ))}
             </ul>
@@ -32,9 +35,9 @@ export function Footer() {
       </div>
       <div className="live-footer-meta">
         <small>© Luật Việt Đức. · v{siteVersion.version}</small>
-        <nav aria-label="Chính sách">
-          <a href="/#/chinh-sach-thong-tin">Quyền riêng tư</a>
-          <a href="/#/dieu-khoan">Điều khoản sử dụng</a>
+        <nav aria-label={t("Chính sách")}>
+          <a href="/#/chinh-sach-thong-tin">{t("Quyền riêng tư")}</a>
+          <a href="/#/dieu-khoan">{t("Điều khoản sử dụng")}</a>
         </nav>
       </div>
     </footer>
