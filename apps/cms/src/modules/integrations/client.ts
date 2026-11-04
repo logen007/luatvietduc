@@ -3,7 +3,7 @@ export class ConnectionError extends Error{
 }
 export async function requestConnection(data?:unknown){
  let response:Response;
- try{response=await fetch('/service/integrations',{method:data?'POST':'GET',cache:'no-store',headers:data?{'content-type':'application/json'}:undefined,body:data?JSON.stringify(data):undefined});}
+ try{response=await fetch('/service/integrations',{method:data?'POST':'GET',cache:'no-store',signal:data?undefined:AbortSignal.timeout(15000),headers:data?{'content-type':'application/json'}:undefined,body:data?JSON.stringify(data):undefined});}
  catch{throw new ConnectionError('Chưa kết nối được. Kiểm tra mạng rồi thử lại.');}
  const body=await response.json().catch(()=>null);
  if(!response.ok)throw new ConnectionError(response.status===401?'Phiên đăng nhập đã hết. Đăng nhập lại để tiếp tục.':response.status===403?'Tài khoản chưa có quyền quản lý kết nối.':body?.error||'Dịch vụ đang gián đoạn. Vui lòng thử lại.',response.status);

@@ -139,3 +139,9 @@ Bundle editorial-ui.js chỉ còn adapter bookmark native; giữ tên tệp/vers
 `shared/locale/ascii-transition.ts` tạo lớp chữ ASCII trang trí cho các nhãn vừa đổi VI/DE, giữ nguyên DOM bản dịch và accessible name; chỉ các chữ đang nhìn thấy được xử lý. Hiệu ứng 320ms được hủy khi thao tác tiếp, cuộn, đổi kích thước hoặc ẩn tab, và bỏ qua khi bật reduced motion. `ascii.ts` chứa bộ sinh khung chữ có kiểm tra riêng.
 
 Liên kết từ chủ đề đưa tiêu đề công khai vào ô soạn chat qua `chat/intake.ts`, không tự gửi hoặc tạo câu trả lời. Storage không khả dụng không làm treo việc khởi tạo. Browser check phân biệt H1 Thư viện với nhãn cùng tên ở footer.
+
+## Kho kiến thức khi thao tác nhanh
+
+`knowledge/useSources.ts` sở hữu danh sách, bộ lọc và polling khi tab đang mở. `shared/latest-request.ts` gộp lượt đọc cùng truy vấn, bỏ kết quả của lượt cũ và vô hiệu lượt đọc trước khi ghi đã thành công. Lỗi cập nhật danh sách được hiển thị riêng với lỗi ghi; xác nhận lưu không bị đổi thành thất bại vì lượt đọc sau đó. Thao tác chỉnh/lưu/lập chỉ mục dùng chốt đồng bộ để chặn nhấn lặp, và trang vượt phạm vi được đưa về trang còn hợp lệ.
+
+Các lượt đọc phiên, cài đặt, API giao diện và kết nối có giới hạn chờ 15 giây, giữ nguyên các lượt ghi và cơ chế gửi lại hiện có. Nhãn ô nội dung/cách hỏi có phần chữ riêng, không bị lẫn với nội dung textarea.

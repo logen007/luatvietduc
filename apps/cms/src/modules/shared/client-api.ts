@@ -11,6 +11,7 @@ export async function api<T=any>(path: string, data?: unknown):Promise<T> {
       headers: data ? { "content-type": "application/json" } : undefined,
       body: data ? JSON.stringify(data) : undefined,
       cache: "no-store",
+      signal:data?undefined:AbortSignal.timeout(15000),
     });
   } catch {
     throw new Error("Không thể kết nối. Vui lòng kiểm tra mạng và thử lại.");

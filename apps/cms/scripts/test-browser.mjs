@@ -25,6 +25,7 @@ try{
  // Only this local server may receive test traffic. No Google, mail, Drive or R2.
  await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
  const page=await context.newPage();page.setDefaultTimeout(12000);
+ page.on('pageerror',error=>console.error('CMS browser page error:',error.message));
  const fits=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Page overflows horizontally');
  const visible=async selector=>{await page.locator(selector).waitFor({state:'visible'});};
  await page.goto(base);await visible('#pm-title');await fits();
@@ -66,12 +67,22 @@ try{
  await page.locator('.lvd-admin-navigation').getByRole('link',{name:'Bài viết',exact:true}).click();
  assert.equal(new URL(page.url()).pathname,'/admin/settings/connections');assert.equal(await page.getByLabel('Client ID',{exact:true}).inputValue(),'unsaved synthetic edit');
  page.once('dialog',dialog=>dialog.accept());await page.reload();await page.getByLabel('Client ID',{exact:true}).waitFor();
+ let failSourceList=false;
  const sources=[{id:901,title:'Synthetic source A',body:'Synthetic body A',_status:'draft',approved:false,reviewDueAt:'2030-01-01T00:00:00Z'},{id:902,title:'Synthetic source B',body:'Synthetic body B',_status:'draft',approved:false,reviewDueAt:'2030-01-01T00:00:00Z'}];
- await page.route('**/service/knowledge-articles?*',route=>{const id=new URL(route.request().url()).searchParams.get('id');return route.fulfill({json:id?sources.find(source=>source.id===Number(id)):{articles:sources,total:2,totalPages:1,indexWorker:{online:true,state:'ready'}}});});
+ await page.route('**/service/knowledge-articles?*',route=>{const id=new URL(route.request().url()).searchParams.get('id');if(!id&&failSourceList){return route.fulfill({status:503,json:{error:'Synthetic list unavailable'}});}return route.fulfill({json:id?sources.find(source=>source.id===Number(id)):{articles:sources,total:2,totalPages:1,indexWorker:{online:true,state:'ready'}}});});
  await page.route('**/service/knowledge-gaps',route=>route.fulfill({json:{conversations:[]}}));
  await page.goto(base+'/admin/knowledge');await page.getByRole('button',{name:/Synthetic source A/}).click();
  await page.getByLabel('Nội dung bài viết',{exact:true}).fill('Unsaved source content');page.once('dialog',dialog=>dialog.dismiss());await page.getByRole('button',{name:/Synthetic source B/}).click();assert.equal(await page.getByLabel('Nội dung bài viết',{exact:true}).inputValue(),'Unsaved source content');
  page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:/Synthetic source B/}).click();await page.waitForFunction(()=>document.querySelector('#knowledge-title')?.value==='Synthetic source B');
+ // A saved draft remains successful even if the follow-up list request fails.
+ await page.route('**/service/knowledge-articles',async route=>{assert.equal(route.request().method(),'POST');const data=route.request().postDataJSON(),index=sources.findIndex(source=>source.id===data.id);assert.ok(index>=0);sources[index]={...sources[index],...data,updatedAt:new Date().toISOString(),_status:'draft',approved:false};failSourceList=true;await route.fulfill({json:sources[index]});});
+ await page.getByLabel('Nội dung bài viết',{exact:true}).fill('Synthetic saved draft');
+ await page.getByRole('button',{name:'Lưu nháp / thu hồi',exact:true}).click();
+ await page.getByText('Đã lưu bản nháp và ngừng dùng bài cho AI.',{exact:true}).waitFor();
+ await page.locator('.lvd-knowledge-list').getByText('Synthetic list unavailable',{exact:false}).waitFor();
+ assert.equal(await page.locator('.lvd-knowledge-editor .live-error').count(),0);
+ failSourceList=false;await page.locator('.lvd-knowledge-list').getByRole('button',{name:'Thử lại',exact:true}).click();
+ await page.waitForFunction(()=>!document.querySelector('.lvd-knowledge-list [role="alert"]'));
  await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/knowledge-mobile.png'});
  // Native CMS pages, not the old prototype, at desktop and phone widths.
  for(const viewport of [{width:390,height:844},{width:1280,height:900}]){

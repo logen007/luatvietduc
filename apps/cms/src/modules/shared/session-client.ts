@@ -3,7 +3,7 @@ import {useEffect,useSyncExternalStore} from 'react';
 import {createSessionStore} from './account-state.mjs';
 import type {PublicSession} from '../identity/contracts';
 const store=createSessionStore<PublicSession>(async()=>{
- const response=await fetch('/service/me',{cache:'no-store',credentials:'same-origin'});
+ const response=await fetch('/service/me',{cache:'no-store',credentials:'same-origin',signal:AbortSignal.timeout(15000)});
  if(!response.ok)throw new Error('Không thể kiểm tra phiên đăng nhập.');
  return response.json();
 });
