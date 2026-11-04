@@ -35,3 +35,5 @@
 - Owner requests pre-created social icon slots in the footer even before accounts exist. Unconfigured slots are non-clickable; configured HTTPS links come from existing SiteSettings.socialLinks. Do not fabricate social URLs.
 
 - Runtime connections (01.02.00, deployed 8070aff): owner manages Google/Gemini/R2/Resend at /quan-tri via encrypted SQL vault. Do not put credentials in settings globals or public responses. New configuration is inactive until tested and explicitly enabled. Preserve installed auto-release policy; reviewed migration release is complete, routine code updates remain automatic.
+
+- Owner storage policy (2026-11-04): after a successful deployment keep only the currently running Luật Việt Đức application image. Preserve the previous image temporarily while an update is in progress so the existing automatic rollback still works. Cleanup must take the same deployment lock, verify served commit, preserve every container-referenced image, and target only this app's images/recognizable build cache. Data backup retention remains separate (7 daily + 1 long-term); never use global Docker prune or remove volumes.

@@ -8,3 +8,9 @@ test('semantic index deployment stays private, bounded and independent of applic
  const worker=read('ops/rag/worker.py');assert.ok(worker.includes("'--user','node'"));assert.ok(worker.includes("'timeout','150'"));assert.ok(!worker.includes('shell=True'));
  const helper=read('ops/deploy/release-reviewed-rag.py');assert.ok(helper.includes('engine.policies(sha)'));assert.ok(helper.includes('module.ci_success(sha'));assert.ok(helper.includes('engine.activate(sha,current)'));assert.ok(!helper.includes('policy_hashes] ='));assert.ok(!helper.includes('system prune'));
 });
+
+test('current-image retention protects live updates and unrelated services',async()=>{
+ const {spawnSync}=await import('node:child_process');
+ const result=spawnSync('python3',['-m','unittest','discover','-s',new URL('../../../ops/deploy',import.meta.url).pathname,'-p','test_app_retention.py'],{encoding:'utf8'});
+ assert.equal(result.status,0,result.stderr);
+});

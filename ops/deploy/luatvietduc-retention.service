@@ -1,0 +1,12 @@
+[Unit]
+Description=Luật Việt Đức current-image retention
+After=docker.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/luatvietduc-deploy/app-retention.py
+TimeoutStartSec=240
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/luatvietduc-deploy
+ProtectHome=true
