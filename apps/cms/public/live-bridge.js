@@ -10,6 +10,24 @@
     if (e.target.id === 'home-ask') {e.preventDefault();e.stopImmediatePropagation();sessionStorage.setItem('lvd-question', e.target.elements.question.value);location.href='/tro-chuyen';}
   }, true);
   document.addEventListener('click',e=>{const prompt=e.target.closest('[data-ask-example]');if(prompt){e.preventDefault();e.stopImmediatePropagation();sessionStorage.setItem('lvd-question',prompt.dataset.askExample);location.href='/tro-chuyen'}},true);
+  // Public routes and React use the same session state/view contract.
+  import('/account-state.mjs').then(({createSessionStore,accountView})=>{
+    const store=createSessionStore(async()=>{const r=await fetch('/service/me',{cache:'no-store',credentials:'same-origin'});if(!r.ok)throw new Error('Session unavailable');return r.json();});
+    const render=()=>{
+      const account=accountView(store.getSnapshot(),window.LVD_I18N?.get()||'vi');
+      document.querySelectorAll('[data-account-link]').forEach(a=>{a.href=account.href;const label=a.querySelector('[data-account-label]');if(label)label.textContent=account.label;});
+      document.querySelectorAll('[data-account-management]').forEach(a=>a.remove());
+      const menu=document.querySelector('#menu-dialog .dialog-links');
+      if(menu&&account.management){const a=document.createElement('a');a.dataset.accountManagement='';a.dataset.noTranslation='';a.href=account.management.href;a.textContent=account.management.label;menu.append(a);}
+    };
+    const refresh=()=>{void store.refresh(true).catch(()=>{});};
+    store.subscribe(render);render();void store.refresh().catch(()=>{});
+    window.addEventListener('pageshow',refresh);window.addEventListener('focus',refresh);
+    window.addEventListener('storage',e=>{if(e.key==='lvd-session-revision')refresh();});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+    document.addEventListener('lvd:languagechange',render);
+    window.addEventListener('hashchange',()=>queueMicrotask(render));
+  }).catch(()=>{});
   let settings=null,articles=[];
   const enrich=()=>{
     if(!settings)return;

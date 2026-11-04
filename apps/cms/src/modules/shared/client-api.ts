@@ -1,6 +1,8 @@
 "use client";
+import {loadPublicSession,invalidatePublicSession} from './session-client';
 import {loadPublicSettings} from '../settings/client';
 export async function api(path: string, data?: unknown) {
+  if(path==='me'&&data===undefined)return loadPublicSession();
   if(path==='settings'&&data===undefined)return loadPublicSettings();
   let response: Response;
   try {
@@ -20,5 +22,6 @@ export async function api(path: string, data?: unknown) {
     );
   if (result === null)
     throw new Error("Không thể đọc phản hồi của dịch vụ. Vui lòng thử lại.");
+  if(path==='logout')invalidatePublicSession();
   return result;
 }

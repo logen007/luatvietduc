@@ -25,14 +25,13 @@ def main():
   old.require(old.digest(canonical)==a.manifest_sha256,'Review manifest mismatch')
   # No schema or authorization changes are part of this bootstrap.
   paths=e.git('diff','--name-only','--no-renames',current['current_sha'],a.approved_sha).splitlines();old.classify(paths)
-  old.ci_success(a.approved_sha,e.get)
   backup=state_dir/'before-presentation-lane';backup.mkdir(mode=0o700,exist_ok=True)
   for source in [installed,config_path]:
    target=backup/source.name
    if not target.exists():target.write_bytes(source.read_bytes());target.chmod(0o600)
   candidate=state_dir/'reviewed-presentation-engine.py';candidate.write_bytes(contents['ops/deploy/auto-release.py']);candidate.chmod(0o700)
   new=load('new_release',candidate)
-  new.ci_success(a.approved_sha,e.get,require_full=True)
+  new.ci_success(a.approved_sha,new.fetch,require_full=True)
   # Keep the old installed engine/policy intact until candidate and public health pass.
   app_paths=[path for path in paths if path.startswith(('apps/cms/','assets/')) or path=='index.html']
   if current.get('backend_sha') and new.presentation_only(app_paths):

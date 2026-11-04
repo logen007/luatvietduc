@@ -138,7 +138,7 @@ def ci_success(sha, get=fetch, require_full=False, presentation=False):
     require(ci_identity(latest, sha) and latest.get("id") == selected["id"], "CI run identity mismatch")
     require(int(latest.get("run_attempt", 0)) >= int(selected.get("run_attempt", 1)), "CI attempt moved backwards")
     if presentation:
-        require(latest.get('status') not in ('cancelled','failure'),'Cancelled presentation run')
+        require(latest.get('conclusion')!='cancelled','Cancelled presentation run')
         jobs = json.loads(get(f"{base}/runs/{int(selected['id'])}/attempts/{int(latest['run_attempt'])}/jobs?per_page=100")).get('jobs',[])
         for name in ['presentation-checks','deploy-tool-checks']:
             matches=[job for job in jobs if job.get('name')==name]

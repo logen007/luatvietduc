@@ -33,3 +33,18 @@ Forms: readable labels, dark inputs, visible focus, explicit disabled/loading/er
 Tables: compact rows, subtle horizontal rules, header/hover distinction, horizontal scroll on narrow screens. Do not force a wide table into a single phone column.
 
 Settings, AI knowledge, backups, connection panels and specialist inbox share the same surface/text tokens. Security-sensitive actions retain their existing behavior.
+
+## Interaction acceptance matrix
+
+Use one account/session contract for public and React shells. Review guest,
+loading, signed-in user, specialist, admin, expired session and request failure in
+both VI and DE. Unknown/loading/error states must not claim the visitor is signed
+out. Header, mobile menu and account page must agree. Revalidate after returning
+from another page/tab; a late response must not undo logout. Role shortcuts are
+presentation only; server authorization remains authoritative.
+
+Check each shared change in desktop and mobile, open/closed navigation and
+keyboard focus. Account identity is text, navigation actions have visible labels,
+and logout is the native action with a visible accessible name. Avoid adding
+page-specific versions of these controls. Tests of the shared state matrix guard
+against recurrence; no claim of a full visual audit without observing those views.

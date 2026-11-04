@@ -7,3 +7,5 @@ await mkdir(pub,{recursive:true});await cp(path.join(root,'assets'),path.join(pu
 await writeFile(path.join(pub,'frontend.html'),transformFrontend(await readFile(path.join(root,'index.html'),'utf8')))
 
 await writeInterfaceLocale(pub);
+
+await writeFile(path.join(pub,'account-state.mjs'),await readFile(new URL('../src/modules/shared/account-state.mjs',import.meta.url)));

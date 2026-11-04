@@ -1,5 +1,6 @@
 "use client";
 import {useLocale} from "../../../modules/shared/locale";
+import {usePublicSession} from '../../../modules/shared/session-client';
 import { useEffect, useState } from "react";
 import { api } from "../../../modules/shared/client-api";
 import { Header } from "../../../modules/shared/Header";
@@ -28,13 +29,9 @@ function GoogleMark() {
 }
 export default function Page() {
  const {t,language}=useLocale();
-  const [data, setData] = useState<any>(null),
-    [error, setError] = useState("");
-  useEffect(() => {
-    api("me")
-      .then(setData)
-      .catch((e) => setError(e.message));
-  }, []);
+  const session=usePublicSession(),data=session.data;
+  const [error,setError]=useState('');
+  useEffect(()=>{setError(session.status==='error'?'Không thể kiểm tra phiên đăng nhập.':'');},[session.status]);
   return (
     <>
       <Header />
@@ -79,7 +76,7 @@ export default function Page() {
                 <div className="live-account-links">
                   <a className="button" href="/tro-chuyen"> {t("Hội thoại của tôi")} <span aria-hidden="true">↗</span>
                   </a>
-                  {["owner", "support", "operations"].includes(
+                  {["owner", "support"].includes(
                     data.user.role,
                   ) && (
                     <a className="live-account-link" href="/admin/inbox">
@@ -88,7 +85,7 @@ export default function Page() {
                       <span aria-hidden="true">↗</span>
                     </a>
                   )}
-                  {data.user.role !== "member" && (
+                  {["owner","support"].includes(data.user.role) && (
                     <a className="live-account-link" href="/admin">
                       <span> {t("Quản trị nội dung")} <small>{t("Bài viết, nguồn kiến thức và tài khoản")}</small>
                       </span>

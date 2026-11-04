@@ -1,4 +1,6 @@
 "use client";
+import {usePublicSession} from './session-client';
+import {accountView} from './account-state.mjs';
 import {useLocale} from "./locale";
 import { useRef, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -10,8 +12,7 @@ const publicLinks=navigation.primary;
 const arrow = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6" /></svg>;
 
 export function Header() {
- const {t,language}=useLocale();
-  const text=(vi:string,de:string)=>language==='de'?de:vi;
+ const {t,language}=useLocale(),session=usePublicSession(),account=accountView(session,language);
   const labels:Record<string,string>={'Thư viện':'Bibliothek','Tin tức':'Nachrichten','Giới thiệu':'Über uns'};
   const settings=usePublicSettings();
   const name=settings?.siteName||"Luật Việt Đức";
@@ -31,7 +32,7 @@ export function Header() {
           </nav>
           <div className="live-header-actions">
             <LanguageSwitch/>
-            <a className="live-header-login-button button" href="/tai-khoan" aria-current={pathname === "/tai-khoan" ? "page" : undefined}>{text('Đăng nhập','Anmelden')} {arrow}</a>
+            <a className="live-header-login-button button" href="/tai-khoan" aria-current={pathname === "/tai-khoan" ? "page" : undefined}>{account.label} {arrow}</a>
             <button className="live-menu-button" type="button" aria-label={t("Mở menu")} aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="live-menu-dialog" onClick={() => { dialog.current?.showModal(); setMenuOpen(true); }}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </button>
@@ -48,7 +49,8 @@ export function Header() {
           {publicLinks.map((link) => <a key={link.href} href={link.href} onClick={closeMenu}>{language==='de'?(labels[link.label]||link.label):link.label}{arrow}</a>)}
           <a href="/#/lien-he" onClick={closeMenu}>{t("Liên hệ")} {arrow}</a>
           <a href="/tro-chuyen" onClick={closeMenu} aria-current={pathname === "/tro-chuyen" ? "page" : undefined}>{t("Hỏi chuyên viên")} {arrow}</a>
-          <a href="/tai-khoan" onClick={closeMenu}>{text('Đăng nhập','Anmelden')} {arrow}</a>
+          <a href={account.href} onClick={closeMenu}>{account.label} {arrow}</a>
+          {account.management&&<a href={account.management.href} onClick={closeMenu}>{account.management.label} {arrow}</a>}
         </nav>
       </dialog>
     </>
