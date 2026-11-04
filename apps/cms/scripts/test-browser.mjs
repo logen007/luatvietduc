@@ -124,3 +124,7 @@ try{
  for(const id of ids)await payload.delete({collection:'users',id,overrideAccess:true});
  await payload.destroy();await pool.end();
 }
+// Payload keeps a reconnect sentinel socket after destroy(). All assertions and
+// cleanup have completed here; failures throw before reaching this CLI exit.
+await new Promise(resolve=>process.stdout.write('',resolve));
+process.exit(0);
