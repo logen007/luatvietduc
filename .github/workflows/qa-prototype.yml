@@ -41,3 +41,5 @@ jobs:
         run: python3 scripts/test-slider.py
       - name: Check chat homepage and selected text contrast
         run: python3 scripts/test-color-theme.py
+      - name: Check borderless footer social icons on mobile and desktop
+        run: python3 scripts/test-footer-social.py
