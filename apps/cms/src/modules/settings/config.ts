@@ -37,7 +37,8 @@ export const SiteSettings: GlobalConfig = {
     }]},
 {label:"Điều hướng & mạng xã hội",fields:[{
       name: "socialLinks",
-      label: "Mạng xã hội riêng",
+      label: "Mạng xã hội",
+      admin:{components:{Field:"./modules/settings/SocialLinksField#SocialLinksField"}},
       type: "array",
       fields: [
         { name: "label", type: "text", required: true },

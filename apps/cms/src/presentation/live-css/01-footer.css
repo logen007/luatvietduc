@@ -95,3 +95,4 @@
 .lvd-footer-social .lvd-social-icon.is-unset { color:rgba(255,255,255,.45); }
 .lvd-footer-social a.lvd-social-icon:hover { color:#fff; background:rgba(255,255,255,.1); }
 .lvd-footer-social a:focus-visible { outline:2px solid #fff; outline-offset:3px; }
+.lvd-footer-social:empty { display:none; margin:0; }
