@@ -1,7 +1,7 @@
 // One in-flight request per loop; hidden tabs sleep and refresh when focused again.
-export function visiblePoll(task:()=>Promise<unknown>,interval:number,{initial=true}={}){
+export function visiblePoll(task:()=>Promise<unknown>,interval:number|(()=>number),{initial=true}={}){
  let stopped=false,pending=false,timer:ReturnType<typeof setTimeout>|undefined;
- const schedule=()=>{clearTimeout(timer);if(!stopped&&!document.hidden)timer=setTimeout(tick,interval);};
+ const schedule=()=>{clearTimeout(timer);if(!stopped&&!document.hidden)timer=setTimeout(tick,typeof interval==='function'?interval():interval);};
  const tick=async()=>{
   if(stopped||pending||document.hidden)return;
   pending=true;

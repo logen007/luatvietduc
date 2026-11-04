@@ -28,14 +28,20 @@
     document.addEventListener('lvd:languagechange',render);
     window.addEventListener('hashchange',()=>queueMicrotask(render));
   }).catch(()=>{});
-  let settings=null,articles=[];
+  let settings=null,articles=[],shellModel=null;
+  const shellNavigation=JSON.parse(document.getElementById('lvd-public-navigation')?.textContent||'{"primary":[],"footer":[]}');
+  import('/public-shell.mjs').then(model=>{shellModel=model;enrich();}).catch(()=>{});
   const enrich=()=>{
-    if(!settings)return;
-    document.querySelectorAll('.brand-name,.lvd-footer-wordmark').forEach(el=>el.textContent=settings.siteName);
-    const tagline=document.querySelector('.lvd-footer-identity>p');if(tagline)tagline.textContent=settings.tagline||'';
-    const footer=document.querySelector('.lvd-footer-bottom>span');const footerText=(settings.footerText||'').replace(/Thông tin tham khảo; không thay thế việc xem xét hồ sơ cụ thể\.?/gi,'').trim();if(footer){const version=footer.dataset.siteVersion;footer.textContent='© '+settings.siteName+'.'+(version?' · v'+version:'')+(footerText?' '+footerText:'');}
-    if(/^#[\da-fA-F]{6}$/.test(settings.accentColor||''))document.documentElement.style.setProperty('--accent',settings.accentColor);
-    if(settings.logo)document.querySelectorAll('.brand-mark').forEach(el=>{const img=document.createElement('img');img.src=settings.logo;img.alt=settings.siteName;img.style.cssText='width:100%;height:100%;object-fit:contain';el.replaceChildren(img)});
+    if(!settings||!shellModel)return;
+    const shell=shellModel.publicShell(settings,shellNavigation);
+    document.querySelectorAll('.brand-name,.lvd-footer-wordmark').forEach(el=>el.textContent=shell.name);
+    const tagline=document.querySelector('.lvd-footer-identity>p');if(tagline)tagline.textContent=shell.tagline;
+    const footer=document.querySelector('.lvd-footer-bottom>span');if(footer)footer.textContent=shellModel.copyright(shell,footer.dataset.siteVersion);
+    if(shell.accent)document.documentElement.style.setProperty('--accent',shell.accent);
+    document.querySelectorAll('.brand').forEach(brand=>{let image=brand.querySelector('.public-brand-logo');if(shell.logo){if(!image){image=document.createElement('img');image.className='public-brand-logo';image.alt='';image.width=36;image.height=36;brand.prepend(image);}image.src=shell.logo;}else image?.remove();});
+    for(const nav of document.querySelectorAll('.desktop-nav,#menu-dialog .dialog-links')){
+      for(const link of shell.primary){const href=new URL(link.href,location.origin).href;if([...nav.querySelectorAll('a')].some(a=>a.href===href))continue;const a=document.createElement('a');a.textContent=link.label;a.href=link.href;nav.append(a);}
+    }
     if(location.hash.startsWith('#/chinh-sach-thong-tin')&&settings.privacyText&&!document.getElementById('live-privacy')){const p=document.createElement('p');p.id='live-privacy';p.style.whiteSpace='pre-wrap';p.textContent=settings.privacyText;(document.querySelector('#main .prose')||document.getElementById('main'))?.append(p)}
     const grid=document.querySelector('.chat-news .press-grid');
     if(grid&&articles.length){
@@ -68,7 +74,6 @@
           for(const link of links.filter(l=>!used.has(l))){const a=document.createElement('a');a.textContent=link.label;a.href=link.url;a.target='_blank';a.rel='noopener noreferrer';social.append(a)}
         }
       }
-      for(const link of (settings.navigation||[])){const destination=new URL(link.url,location.origin);if(destination.origin===location.origin&&/^\/bai-viet\/?$/.test(destination.pathname))continue;for(const nav of document.querySelectorAll('.desktop-nav,#menu-dialog .dialog-links')){const href=new URL(link.url,location.origin).href;if([...nav.querySelectorAll('a')].some(a=>a.href===href))continue;const a=document.createElement('a');a.textContent=link.label;a.href=link.url;nav.append(a)}}
       enrich();const news=await fetch('/api/articles?limit=3&sort=-updatedAt&where[kind][equals]=news');if(news.ok){articles=((await news.json()).docs||[]).filter(item=>item.kind==='news');enrich()}
     }catch{}
   });

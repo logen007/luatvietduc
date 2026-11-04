@@ -12,15 +12,17 @@ Continue the retained root prototype; do not replace its source assets. The runn
 
 ## Modules and usage
 
+Current ownership and release boundaries: [docs/07-current-structure.md](../../docs/07-current-structure.md).
+
 - /admin: Vietnamese CMS, accounts, country-scoped author/reviewer workflow, versions, dated knowledge and audit.
 - /tro-chuyen: guest/customer chat; /chuyen-vien: assigned staff inbox, private notes and versioned claim/close/reopen.
 - /tai-khoan: verified Google Gmail login when connected, customer history, staff navigation.
-- /quan-tri: owner-only connection status; /admin/globals/site-settings: validated website and operational settings.
-- /kien-thuc: fixed internal source test using approved, current public knowledge when the provider is connected. No customer AI or conversation reuse.
+- /admin/settings/connections: owner-only connection settings; /admin/globals/site-settings: validated website and operational settings.
+- /admin/knowledge: knowledge operations; new sources are CMS articles with AI opt-in. Customer answers use the scoped RAG pipeline and a durable answer queue.
 - /bai-viet: actual approved published articles; old hash catalog/routes remain available.
 - /health/live checks the process; /health/ready also checks migrated database access.
 
-Google, R2, email and AI are not configured by default. R2 uploads fail closed without a connection. Email recovery is explicitly unavailable. Google credentials and a private R2 bucket-scoped token belong in server environment only. Google login requests openid/email/profile, never Gmail or Drive access. See ../../ops/deploy/README.md for setup and rollback.
+Google, R2, email and AI are not configured by default. R2 uploads fail closed without a connection. Email recovery is explicitly unavailable. Google/R2/AI/email connections are managed in the encrypted admin vault; server environment is a fallback. Google login requests openid/email/profile, never Gmail or Drive access. See ../../ops/deploy/README.md for setup and rollback.
 
 ## Verification
 

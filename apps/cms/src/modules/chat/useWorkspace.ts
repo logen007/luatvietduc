@@ -2,12 +2,13 @@
 import {useEffect,useRef,useState} from "react";
 import {api} from "../shared/client-api";
 import {visiblePoll} from "../shared/polling";
+import type {Me,Conversation,Message,Transcript,Attachment} from './contracts';
 export function useWorkspace(staff=false,manageList=true){
-  const [me, setMe] = useState<any>(null),
-    [rows, setRows] = useState<any[]>([]),
+  const [me, setMe] = useState<Me|null>(null),
+    [rows, setRows] = useState<Conversation[]>([]),
     [selected, setSelected] = useState(""),
-    [conversation, setConversation] = useState<any>(null),
-    [messages, setMessages] = useState<any[]>([]),
+    [conversation, setConversation] = useState<Conversation|null>(null),
+    [messages, setMessages] = useState<Message[]>([]),
     [error, setError] = useState(""),
     [connectionError, setConnectionError] = useState(""),
     [text, setText] = useState(""),
@@ -17,7 +18,7 @@ export function useWorkspace(staff=false,manageList=true){
     [loaded, setLoaded] = useState(false),
     [notice, setNotice] = useState("");
   const [preferHuman,setPreferHuman]=useState(false),[sendingBody,setSendingBody]=useState("");
-  const [attachments,setAttachments]=useState<any[]>([]),[uploading,setUploading]=useState(false);
+  const [attachments,setAttachments]=useState<Attachment[]>([]),[uploading,setUploading]=useState(false);
   const [maxLength, setMaxLength] = useState(2000);
   const stickToBottom=useRef(true),revision=useRef(0);
   const pending = useRef<{
@@ -51,7 +52,7 @@ export function useWorkspace(staff=false,manageList=true){
   }, []);
   const refreshList = async () => {
     if(staff&&!manageList)return [];
-    const v = await api(staff ? "queue" : "conversations");
+    const v = await api<Conversation[]>(staff ? "queue" : "conversations");
     setRows(v);
     return v;
   };
@@ -61,10 +62,10 @@ export function useWorkspace(staff=false,manageList=true){
     if (draft) setText(draft);
     (async () => {
       try {
-        const user = await api("me");
+        const user = await api<Me>("me");
         if (!active) return;
         setMe(user);
-        const [s,list]=await Promise.all([api('settings'),staff&&!manageList?Promise.resolve([]):api(staff?'queue':'conversations')]);
+        const [s,list]=await Promise.all([api<import('../settings/view').PublicSettings>('settings'),staff&&!manageList?Promise.resolve([]):api<Conversation[]>(staff?'queue':'conversations')]);
         if (active) {
           setNotice(
             [
@@ -80,7 +81,7 @@ export function useWorkspace(staff=false,manageList=true){
         setRows(list);
         // A question from the homepage starts its own intake, even with saved history.
         if (staff){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&/^[a-f0-9-]{36}$/i.test(requested))setSelected(requested);}
-        else if(active&&!draft){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&list.some((item:any)=>item.id===requested))setSelected(requested);else if(list[0])setSelected(list[0].id);}
+        else if(active&&!draft){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&list.some(item=>item.id===requested))setSelected(requested);else if(list[0])setSelected(list[0].id);}
       } catch (e) {
         if (active) setError((e as Error).message);
       } finally {
@@ -105,11 +106,11 @@ export function useWorkspace(staff=false,manageList=true){
     }
     let active = true,
       cursor = 0;
-    let latestUser=0,latestAnswered=0,recovering=false;
+    let latestUser=0,latestAnswered=0,recovering=false,waiting=false;
     const load = async () => {
       const ticket=revision.current;
       try {
-        const v = await api(`conversations/${selected}?after=${cursor}`);
+        const v = await api<Transcript>(`conversations/${selected}?after=${cursor}`);
         if (!active||ticket!==revision.current) return;
         for(const message of v.messages){
           if(message.role==='user')latestUser=Math.max(latestUser,Number(message.id));
@@ -133,12 +134,13 @@ export function useWorkspace(staff=false,manageList=true){
           ),
         );
         if (v.messages.length) {
-          cursor = Number(v.messages.at(-1).id);
+          cursor = Number(v.messages[v.messages.length-1].id);
           setMessages((old) => {
             const ids = new Set(old.map((m) => m.id));
-            return [...old, ...v.messages.filter((m: any) => !ids.has(m.id))];
+            return [...old, ...v.messages.filter(m => !ids.has(m.id))];
           });
         }
+        waiting=Boolean(v.conversation.aiEnabled&&latestUser>latestAnswered);
         setConnectionError("");
       } catch (e) {
         if (active&&ticket===revision.current) {setConnectionError((e as Error).message);if(staff){setConversation(null);setMessages([]);cursor=0;}}
@@ -146,7 +148,8 @@ export function useWorkspace(staff=false,manageList=true){
     };
     setMessages([]);
     setConnectionError("");
-    const stop=visiblePoll(load,2500);
+    let idle=0;
+    const stop=visiblePoll(async()=>{const before=cursor;await load();idle=cursor===before?idle+1:0;},()=>waiting?1500:idle>=4?10000:2500);
     return () => {
       active = false;
       stop();
@@ -175,7 +178,7 @@ export function useWorkspace(staff=false,manageList=true){
         action,
         version: conversation.version,
       });
-      revision.current++;const latest=await api(`conversations/${selected}`);setConversation(latest.conversation);setMessages(old=>latest.conversation.restricted?[]:[...old,...latest.messages.filter((m:any)=>!old.some(previous=>previous.id===m.id))].sort((a,b)=>Number(a.id)-Number(b.id)));
+      revision.current++;const latest=await api<Transcript>(`conversations/${selected}`);setConversation(latest.conversation);setMessages(old=>latest.conversation.restricted?[]:[...old,...latest.messages.filter(m=>!old.some(previous=>previous.id===m.id))].sort((a,b)=>Number(a.id)-Number(b.id)));
       await refreshList();
       setError("");return true;
     } catch (e) {
@@ -194,7 +197,7 @@ export function useWorkspace(staff=false,manageList=true){
     try {
       let id = selected;
       if (!id) {
-        const c = await api("conversations", {
+        const c = await api<{id:string}>("conversations", {
           specialty: "general",
           consent:true,
           privacyNoticeVersion:"chat-v2",
@@ -217,8 +220,8 @@ export function useWorkspace(staff=false,manageList=true){
         };
       await api(`conversations/${id}/messages`, {...pending.current,...(!staff?{aiConsentVersion:"gemini-rag-v1"}:{})});
       setText("");setAttachments([]);
-      revision.current++;const latest=await api(`conversations/${id}`);
-      setMessages(old=>[...old,...latest.messages.filter((m:any)=>!old.some(previous=>previous.id===m.id))].sort((a,b)=>Number(a.id)-Number(b.id)));setConversation(latest.conversation);
+      revision.current++;const latest=await api<Transcript>(`conversations/${id}`);
+      setMessages(old=>[...old,...latest.messages.filter(m=>!old.some(previous=>previous.id===m.id))].sort((a,b)=>Number(a.id)-Number(b.id)));setConversation(latest.conversation);
       pending.current = null;
       await refreshList();return true;
     } catch (e) {
@@ -233,7 +236,7 @@ export function useWorkspace(staff=false,manageList=true){
     setUploading(true);setError('');
     try{
       let id=selected;
-      if(!id){const c=await api('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});id=c.id;setSelected(id);}
+      if(!id){const c=await api<{id:string}>('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});id=c.id;setSelected(id);}
       for(const file of files){
         if(file.size>10*1024*1024)throw new Error('Mỗi tệp tối đa 10 MB.');
         const response=await fetch(`/service/conversations/${id}/files`,{method:'POST',headers:{'content-type':'application/octet-stream','x-file-name':encodeURIComponent(file.name)},body:file});

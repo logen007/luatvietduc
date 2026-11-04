@@ -1,9 +1,9 @@
 "use client";
 import {loadPublicSession,invalidatePublicSession} from './session-client';
 import {loadPublicSettings} from '../settings/client';
-export async function api(path: string, data?: unknown) {
+export async function api<T=any>(path: string, data?: unknown):Promise<T> {
   if(path==='me'&&data===undefined)return loadPublicSession();
-  if(path==='settings'&&data===undefined)return loadPublicSettings();
+  if(path==='settings'&&data===undefined)return loadPublicSettings() as Promise<T>;
   let response: Response;
   try {
     response = await fetch("/service/" + path, {

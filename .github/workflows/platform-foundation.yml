@@ -71,6 +71,7 @@ jobs:
       PAYLOAD_SECRET: ci-only-nonproduction-secret-000000000000
       DATABASE_URL: postgresql://lvd:ci_only@127.0.0.1:5432/lvd_test
       NEXT_TELEMETRY_DISABLED: '1'
+      LVD_WORKERS_DISABLED: '1'
     services:
       postgres:
         image: postgres:17.6-bookworm

@@ -1,5 +1,6 @@
 import {adminI18n} from './modules/admin/i18n';
 import {adminPages} from './modules/admin/pages';
+import {withAdminPresentation,adminDateFormat} from './modules/admin/presentation';
 import { buildConfig } from "payload";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { runtimeStorage } from "./modules/integrations/storage";
@@ -20,7 +21,7 @@ export default buildConfig({
   serverURL: process.env.APP_URL || "http://localhost:3000",
   admin: {
     theme: "dark",
-    dateFormat: "dd/MM/yyyy HH:mm",
+    dateFormat: adminDateFormat,
     components: {
       afterNavLinks: ["./modules/admin/Navigation#AdminNavigation"],
       views: {
@@ -41,7 +42,7 @@ export default buildConfig({
     pool: { connectionString: process.env.DATABASE_URL || "" },
     push: false,
   }),
-  collections: [Users, Articles, Categories, Tags, Knowledge, Media, Audit],
+  collections: [Users, Articles, Categories, Tags, Knowledge, Media, Audit].map(withAdminPresentation),
   globals: [SiteSettings],
   plugins: [runtimeStorage()],
   email: runtimeEmail,

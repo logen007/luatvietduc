@@ -1,3 +1,5 @@
+import {knowledgeRequest} from '../../../modules/knowledge/http';
+import {readJsonRequest} from '../../../modules/http/request';
 import {specialistInbox} from '../../../modules/chat/inbox';
 import {uploadChatFile,downloadChatFile,MAX_CHAT_FILE} from '../../../modules/chat/files';
 import { NextResponse } from "next/server";
@@ -7,11 +9,8 @@ import { randomBytes } from "node:crypto";
 import { hash, pool } from "../../../modules/shared/db";
 import { cookieValue } from "../../../modules/identity/session";
 import * as chat from "../../../modules/chat/service";
-import { testSource } from "../../../modules/knowledge/test-source";
-import {replyToMessage} from '../../../modules/assistant/reply';
+import {requestAnswer} from '../../../modules/assistant/queue';
 import {activeValues} from '../../../modules/integrations/store';
-import {knowledgeArticles,writeKnowledgeArticle} from '../../../modules/knowledge/articles';
-import {retryIndex,knowledgeGaps} from '../../../modules/rag/admin';
 import {sendContact} from '../../../modules/contact/service';
 import {
   siteSettings,
@@ -60,35 +59,9 @@ async function route(
       if(!name||name.length>180)throw new chat.HttpError(400,'Tên tệp tối đa 180 ký tự.');
       return json(await uploadChatFile(actor,segments[1],name,Buffer.concat(chunks)));
     }
-    let data: any = {};
+    let data: Record<string,unknown> = {};
     if (method === "POST") {
-      const origin = process.env.APP_URL || "http://localhost:3000";
-      if (req.headers.get("origin") !== origin)
-        throw new chat.HttpError(403, "Nguồn yêu cầu không hợp lệ.");
-      if (!req.headers.get("content-type")?.startsWith("application/json"))
-        throw new chat.HttpError(415, "Yêu cầu JSON.");
-      const reader = req.body?.getReader();
-      let size = 0,
-        text = "";
-      if (reader) {
-        const decoder = new TextDecoder();
-        for (;;) {
-          const item = await reader.read();
-          if (item.done) break;
-          size += item.value.length;
-          if (size > (path === "knowledge-articles" ? 96000 : 16000)) {
-            await reader.cancel();
-            throw new chat.HttpError(413, "Nội dung quá lớn.");
-          }
-          text += decoder.decode(item.value, { stream: true });
-        }
-      }
-      try {
-        data = JSON.parse(text || "{}");
-      } catch {
-        throw new chat.HttpError(400, "JSON không hợp lệ.");
-      }
-      if(!data||typeof data!=='object'||Array.isArray(data))throw new chat.HttpError(400,'Nội dung không hợp lệ.');
+      data=await readJsonRequest(req,path==='knowledge-articles'?96000:16000);
       await chat.rateLimit(
         user ? "user:" + user.id : "guest:" + actor.guestHash,
       );
@@ -149,49 +122,17 @@ async function route(
           data,
           (await settings()).maxMessageLength || 2000,
         );
-        if(sent.role==='user')await replyToMessage(actor,id,sent.id,await settings());
         result=sent;
       } else if(segments[2]==='answer'&&method==='POST'){
         if((await settings()).chatEnabled===false)throw new chat.HttpError(503,'Tiếp nhận chat đang tạm dừng.');
         if(typeof data.messageId!=='string'||!/^\d{1,19}$/.test(data.messageId))throw new chat.HttpError(400,'Tin nhắn không hợp lệ.');
-        await replyToMessage(actor,id,data.messageId,await settings());result={ok:true};
+        await requestAnswer(actor,id,data.messageId);result={ok:true};
       } else if (segments[2] === "transition" && method === "POST")
         result = await chat.transition(actor, id, data);
       else throw new chat.HttpError(404, "Không tìm thấy chức năng.");
-    } else if(path === "knowledge-gaps" && method === "GET") {
-      result={conversations:await knowledgeGaps(user)};
-    } else if(path === "knowledge-reindex" && method === "POST") {
-      if(!Number.isSafeInteger(data.id)||data.id<1)throw new chat.HttpError(400,'Bài viết không hợp lệ.');
-      const article=await knowledgeArticles(payload,user,String(data.id));
-      result=await retryIndex(user,data.id,Number((article as any).id));
-    } else if(path === "knowledge-articles" && method === "GET") {
-      result=await knowledgeArticles(payload,user,url.searchParams.get("id"),{query:url.searchParams.get("q")||"",page:Number(url.searchParams.get("page")||1)});
-    } else if(path === "knowledge-articles" && method === "POST") {
-      result=await writeKnowledgeArticle(payload,user,data);
-    } else if (path === "knowledge-sources" && method === "GET") {
-      if (!user || !["owner", "reviewer", "knowledge", "support"].includes(user.role))
-        throw new chat.HttpError(403, "Chỉ dành cho nhân sự kiến thức.");
-      const sources = await payload.find({
-        collection: "knowledge",
-        user,
-        overrideAccess: false,
-        where: {
-          and: [
-            { approved: { equals: true } },
-            { _status: { equals: "published" } },
-          ],
-        },
-        limit: 100,
-      });
-      result = sources.docs.map((s) => ({
-        id: s.id,
-        title: s.title,
-        jurisdiction: s.jurisdiction,
-        reviewDueAt: s.reviewDueAt,
-      }));
-    } else if (path === "knowledge-test" && method === "POST")
-      result = await testSource(payload, user, Number(data.id), await settings());
-    else if (path === "connections" && method === "GET") {
+    } else if(path.startsWith('knowledge-')) {
+      result=await knowledgeRequest({payload,user,path,method,url,data,settings});
+    } else if (path === "connections" && method === "GET") {
       if (user?.role !== "owner")
         throw new chat.HttpError(403, "Chỉ chủ hệ thống.");
       result = {

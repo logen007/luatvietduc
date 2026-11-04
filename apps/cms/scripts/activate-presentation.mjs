@@ -1,7 +1,7 @@
 // Invoked only by the root-owned release engine. No HTTP endpoint or user input.
 import fs from 'node:fs';
 import path from 'node:path';
-const files=['design-system.css','live.css','editorial-ui.css','live-bridge.js','editorial-ui.js','legal-runtime.js','social-icons.json','frontend.html','release.json'];
+const files=['admin-theme.css','customer-chat.css','specialist-inbox.css','design-system.css','live.css','editorial-ui.css','live-bridge.js','editorial-ui.js','legal-runtime.js','social-icons.json','frontend.html','release.json'];
 export function switchPresentation(root,stage,sha){
  if(!/^[a-f0-9]{40}$/.test(sha))throw new Error('Invalid commit');
  const store=path.join(root,'presentation-releases'),current=path.join(store,'current');

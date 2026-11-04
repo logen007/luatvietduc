@@ -1,0 +1,9 @@
+export type ConversationState='queued'|'human'|'closed';
+export type Attachment={id:string;name:string;url:string;size:number;mimeType:string};
+export type Source={id:number;title:string;url:string;revision?:string};
+export type Message={id:string|number;role:'user'|'staff'|'assistant';body:string;internal?:boolean;created_at:string;client_key?:string;author_name?:string;attachments?:Attachment[];metadata?:{kind?:string;sources?:Source[]}};
+export type Conversation={id:string;title:string;state:ConversationState;version:number;jurisdiction?:string;assignedTo?:number|null;aiEnabled?:boolean;aiStartedAt?:string|null;aiMessageId?:string|number|null;restricted?:boolean;registered?:boolean;createdAt?:string;updatedAt?:string;assignedName?:string|null;customer?:{name:string;email:string|null}};
+export type Me={user:{id:number;name?:string;role:string;jurisdictions?:('VN'|'DE')[]}|null;connections:{google:boolean;storage:boolean;email:boolean;ai:boolean;customerAI:boolean}};
+export type Transcript={conversation:Conversation;messages:Message[]};
+export type InboxRow={id:string;title:string|null;state:ConversationState;version:number;registered:boolean;updated_at:string;last_role?:Message['role']};
+export type InboxResult={rows:InboxRow[];counts:Record<string,number>;total:number;totalPages:number;page:number};

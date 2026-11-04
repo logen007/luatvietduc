@@ -8,6 +8,6 @@ if [[ $# -lt 1 || $# -gt 2 || -z "$1" ]]; then
 fi
 node apps/cms/scripts/bump-site-version.mjs "${2:-patch}"
 node apps/cms/scripts/assemble-presentation.mjs
-git add apps/cms/public/editorial-ui.js apps/cms/public/editorial-ui.css apps/cms/public/live.css apps/cms/public/legal-runtime.js
+git add apps/cms/public/admin-theme.css apps/cms/public/customer-chat.css apps/cms/public/specialist-inbox.css apps/cms/public/editorial-ui.js apps/cms/public/editorial-ui.css apps/cms/public/live.css apps/cms/public/legal-runtime.js
 git commit -m "$1"
 git push origin HEAD:feat/platform-cms-bootstrap

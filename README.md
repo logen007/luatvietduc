@@ -1,3 +1,7 @@
+> Ứng dụng đang chạy: [luatvietduc.com](https://luatvietduc.com), mã nguồn tại `apps/cms`.
+> Xem [cấu trúc hiện hành](docs/07-current-structure.md). Phần dưới mô tả prototype
+> được giữ làm nguồn giao diện; không phải trạng thái backend hiện tại.
+
 # Luật Việt Đức — 1.4.0
 
 [Website](https://logen007.github.io/luatvietduc/) · [Thư viện Việt Nam](https://logen007.github.io/luatvietduc/#/phap-luat/viet-nam) · [Pháp luật Đức](https://logen007.github.io/luatvietduc/#/phap-luat/duc)

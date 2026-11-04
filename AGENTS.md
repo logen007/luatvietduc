@@ -34,6 +34,12 @@
 
 - Owner requests pre-created social icon slots in the footer even before accounts exist. Unconfigured slots are non-clickable; configured HTTPS links come from existing SiteSettings.socialLinks. Do not fabricate social URLs.
 
-- Runtime connections (01.02.00, deployed 8070aff): owner manages Google/Gemini/R2/Resend at /quan-tri via encrypted SQL vault. Do not put credentials in settings globals or public responses. New configuration is inactive until tested and explicitly enabled. Preserve installed auto-release policy; reviewed migration release is complete, routine code updates remain automatic.
+- Runtime connections (01.02.00, deployed 8070aff): owner manages Google/Gemini/R2/Resend at /admin/settings/connections via encrypted SQL vault. Do not put credentials in settings globals or public responses. New configuration is inactive until tested and explicitly enabled. Preserve installed auto-release policy; reviewed migration release is complete, routine code updates remain automatic.
 
 - Owner storage policy (2026-11-04): after a successful deployment keep only the currently running Luật Việt Đức application image. Preserve the previous image temporarily while an update is in progress so the existing automatic rollback still works. Cleanup must take the same deployment lock, verify served commit, preserve every container-referenced image, and target only this app's images/recognizable build cache. Data backup retention remains separate (7 daily + 1 long-term); never use global Docker prune or remove volumes.
+
+## Current ownership map
+- Read docs/07-current-structure.md before cross-module work. Public identity/navigation/copyright use modules/shared/public-shell.mjs in both renderers; preserve that contract.
+- Admin text belongs in modules/admin/presentation.ts, i18n.ts and pages.ts. Keep field storage, hooks and access in feature modules. CSS-only admin edits use the same reviewed public snapshot lane; do not bundle them back into the application.
+- Edit CSS source from presentation/modules.json. Customer chat, specialist inbox and admin styles are separate public bundles; do not put them back in common live.css.
+- Message persistence and answer job creation share one transaction. Preserve job leases, idempotency and latest-question/human-handoff checks; do not move provider work back into the customer's send request.

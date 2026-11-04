@@ -9,3 +9,5 @@ await writeFile(path.join(pub,'frontend.html'),transformFrontend(await readFile(
 await writeInterfaceLocale(pub);
 
 await writeFile(path.join(pub,'account-state.mjs'),await readFile(new URL('../src/modules/shared/account-state.mjs',import.meta.url)));
+
+await writeFile(path.join(pub,'public-shell.mjs'),await readFile(new URL('../src/modules/shared/public-shell.mjs',import.meta.url)));

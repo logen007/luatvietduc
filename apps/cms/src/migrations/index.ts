@@ -1,3 +1,4 @@
+import * as answerQueue from './20261104_130000_answer_queue';
 import * as threeRoles from './20261104_100000_three_user_roles';
 import * as chatFiles from './20261104_090000_chat_files';
 import * as bundledMedia from './20261104_080000_bundled_media';
@@ -34,4 +35,5 @@ export const migrations = [
  {up:bundledMedia.up,down:bundledMedia.down,name:'20261104_080000_bundled_media'},
  {up:chatFiles.up,down:chatFiles.down,name:'20261104_090000_chat_files'},
  {up:threeRoles.up,down:threeRoles.down,name:'20261104_100000_three_user_roles'},
+ {up:answerQueue.up,down:answerQueue.down,name:'20261104_130000_answer_queue'},
 ];

@@ -1,6 +1,4 @@
 /* Payload-only visual layer. Native controls, focus, validation and access rules remain intact. */
-@import url('/fonts/inter.css');
-@import url('/live.css');
 @font-face {
   font-family: Articulat;
   src: url('/fonts/Articulat-web.woff2') format('woff2');

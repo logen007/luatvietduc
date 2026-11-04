@@ -92,6 +92,9 @@ class Gates(unittest.TestCase):
         for path in ['apps/cms/src/modules/chat/reply.ts','apps/cms/src/payload.config.ts','ops/deploy/auto-release.py','.github/workflows/platform-foundation.yml','apps/cms/public/new-script.js','apps/cms/scripts/prepare-fast-release.mjs']:
             self.assertFalse(release.presentation_only(allowed+[path]))
         self.assertFalse(release.presentation_only(['docs/README.md']))
+        self.assertTrue(release.presentation_only(['apps/cms/src/app/(payload)/admin-custom.css','apps/cms/public/admin-theme.css']))
+        self.assertFalse(release.presentation_only(['apps/cms/src/modules/admin/presentation.ts']))
+        self.assertFalse(release.presentation_only(['apps/cms/src/app/(payload)/layout.tsx']))
 
     def test_presentation_requires_current_attempt_and_both_short_jobs(self):
         success=[{'name':n,'status':'completed','conclusion':'success'} for n in ['presentation-checks','deploy-tool-checks']]

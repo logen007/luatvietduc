@@ -2,14 +2,8 @@ import { randomUUID } from "node:crypto";
 import { pool, transaction, hash } from "../shared/db";
 import type { User } from "../../payload-types";
 export type Actor = { user: User | null; guestHash: string };
-export class HttpError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+import {HttpError} from '../http/errors';
+export {HttpError} from '../http/errors';
 const deny = () => {
   throw new HttpError(403, "Bạn không có quyền truy cập hội thoại này.");
 };
@@ -196,6 +190,7 @@ export async function message(
       await db.query("UPDATE lvd_chat_files SET message_id=$1,internal=$2 WHERE id=ANY($3::uuid[])",[result.rows[0].id,internal,fileIds]);
       if(own)await db.query("UPDATE lvd_conversations SET ai_enabled=false,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,state=CASE WHEN state='human' THEN state ELSE 'queued' END,version=version+1 WHERE id=$1",[id]);
     }
+    if(own&&!fileIds.length&&c.state==='queued'&&c.ai_enabled)await db.query('INSERT INTO lvd_answer_jobs(message_id,conversation_id) VALUES($1,$2) ON CONFLICT(message_id) DO NOTHING',[result.rows[0].id,id]);
     return {...result.rows[0],role:own?'user':'staff'};
   });
 }

@@ -1,3 +1,4 @@
+import {testAnswerQueue} from './test-answer-queue';
 import {testThreeRoles} from './test-three-roles';
 import {testSpecialistInbox} from './test-specialist-inbox';
 import {testGuestPriority} from './test-guest-priority';
@@ -199,6 +200,7 @@ try {
   await assert.rejects(()=>writeKnowledgeArticle(payload,staff,{id:imported.id,updatedAt:'2000-01-01',title:'Stale edit',body:'Synthetic',publish:true}),/đã thay đổi/);
   const draft=await writeKnowledgeArticle(payload,staff,{id:imported.id,updatedAt:imported.updatedAt,title:imported.title,body:imported.body,publish:false});assert.equal(draft._status,'draft');assert.equal(draft.approved,false);
   assert.equal((await readKnowledgeSource(new Request(imported.sourceUrl),{params:Promise.resolve({token})})).status,404,'Draft or withdrawn article cannot remain a public source');
+  await testAnswerQueue(owner);
   await testGuestPriority(owner,staff);
   await testSpecialistInbox(owner,staff,other,foreign);
   await testChatFiles(owner);

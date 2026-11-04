@@ -25,16 +25,16 @@ WORKFLOW = ".github/workflows/platform-foundation.yml"
 IMAGE = "luatvietduc-web:"
 CANDIDATE = "lvd-auto-check"
 NEXT_START = ["npx", "next", "start", "--hostname", "0.0.0.0"]
-REVISION_FILES = ["design-system.css", "live.css", "editorial-ui.css", "live-bridge.js", "editorial-ui.js", "legal-runtime.js"]
+REVISION_FILES = ["admin-theme.css", "customer-chat.css", "specialist-inbox.css", "design-system.css", "live.css", "editorial-ui.css", "live-bridge.js", "editorial-ui.js", "legal-runtime.js"]
 SCHEMA_FILES = {"apps/cms/src/payload.config.ts", "apps/cms/src/modules/identity/users.ts", "apps/cms/src/modules/content/articles.ts", "apps/cms/src/modules/content/audit.ts", "apps/cms/src/modules/settings/config.ts"}
 
 FAST_PUBLIC = REVISION_FILES + ['social-icons.json','frontend.html','release.json']
 FAST_SOURCE_PUBLIC = REVISION_FILES + ['social-icons.json']
-FAST_INPUTS = ['index.html','apps/cms/src/presentation','apps/cms/src/modules/shared/site-version.json','apps/cms/src/modules/shared/navigation.json','apps/cms/src/modules/shared/locale/de.json','apps/cms/src/modules/shared/presentation-version.mjs'] + ['apps/cms/scripts/' + name for name in ['prepare-fast-release.mjs','frontend-shell.mjs','assemble-presentation.mjs','locale-build.mjs']] + ['apps/cms/public/' + name for name in FAST_SOURCE_PUBLIC]
+FAST_INPUTS = ['apps/cms/src/app/(payload)/admin-custom.css','apps/cms/src/app/(payload)/admin-dashboard.css','index.html','apps/cms/src/presentation','apps/cms/src/modules/shared/site-version.json','apps/cms/src/modules/shared/navigation.json','apps/cms/src/modules/shared/locale/de.json','apps/cms/src/modules/shared/presentation-version.mjs'] + ['apps/cms/scripts/' + name for name in ['prepare-fast-release.mjs','frontend-shell.mjs','assemble-presentation.mjs','locale-build.mjs']] + ['apps/cms/public/' + name for name in FAST_SOURCE_PUBLIC]
 
 def presentation_only(paths):
     changed = [p for p in paths if not p.endswith('.md')]
-    return bool(changed) and all(p.startswith(('apps/cms/src/presentation/editorial-ui-css/','apps/cms/src/presentation/editorial-ui-js/','apps/cms/src/presentation/live-css/','apps/cms/src/presentation/legal-runtime-js/')) or p=='apps/cms/src/modules/shared/site-version.json' or p in {'apps/cms/public/'+name for name in FAST_SOURCE_PUBLIC} for p in changed)
+    return bool(changed) and all(p.startswith(('apps/cms/src/presentation/editorial-ui-css/','apps/cms/src/presentation/editorial-ui-js/','apps/cms/src/presentation/live-css/','apps/cms/src/presentation/legal-runtime-js/')) or p in {'apps/cms/src/app/(payload)/admin-custom.css','apps/cms/src/app/(payload)/admin-dashboard.css','apps/cms/src/modules/shared/site-version.json'} or p in {'apps/cms/public/'+name for name in FAST_SOURCE_PUBLIC} for p in changed)
 
 
 class ReleaseError(Exception):
@@ -346,7 +346,7 @@ class Engine:
                 (public / "release.json").write_text(json.dumps({"commit": sha, "backend_commit":sha,"version":version,"lane":"application", "built_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}))
                 self.run(["docker", "build", "--file", str(staging / "ops/deploy/Dockerfile"), "--tag", IMAGE + sha, str(staging)], env=self.env)
             self.run(["bash", self.c["backup_script"]], env=dict(self.env, RELEASE=old))
-            self.compose(sha, "run", "--detach", "--no-deps", "--pull", "never", "--label", "traefik.enable=false", "--label", "lvd.auto-release=true", "--name", CANDIDATE, "--publish", "127.0.0.1:3050:3000", "web", *NEXT_START)
+            self.compose(sha, "run", "--detach", "--no-deps", "--pull", "never", "--env", "LVD_WORKERS_DISABLED=1", "--label", "traefik.enable=false", "--label", "lvd.auto-release=true", "--name", CANDIDATE, "--publish", "127.0.0.1:3050:3000", "web", *NEXT_START)
             revision = self.revision(sha)
             self.probe("http://127.0.0.1:3050", sha, revision)
             require(self.head() == sha, "Branch advanced during candidate verification")

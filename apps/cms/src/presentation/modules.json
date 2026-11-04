@@ -17,10 +17,8 @@
     "live-css/03-connections.css",
     "live-css/04-articles.css",
     "live-css/05-responsive.css",
-    "live-css/06-chat.css",
     "editorial-ui-css/06-application-menu.css",
-    "live-css/07-assistant-chat.css",
-    "live-css/08-specialist-inbox.css"
+    "live-css/09-public-shell.css"
   ],
   "editorial-ui.js": [
     "editorial-ui-js/00-bootstrap.js",
@@ -34,5 +32,16 @@
   "legal-runtime.js": [
     "legal-runtime-js/00-contact-form.js",
     "legal-runtime-js/01-information-pages.js"
+  ],
+  "customer-chat.css": [
+    "live-css/06-chat.css",
+    "live-css/07-assistant-chat.css"
+  ],
+  "specialist-inbox.css": [
+    "live-css/08-specialist-inbox.css"
+  ],
+  "admin-theme.css": [
+    "../app/(payload)/admin-custom.css",
+    "../app/(payload)/admin-dashboard.css"
   ]
 }

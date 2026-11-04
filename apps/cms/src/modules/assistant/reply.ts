@@ -57,7 +57,11 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    if(!faq)throw new Error('Outside approved coverage');
    answer=await formatter(faq,connection,policy.aiMaxOutputTokens||700,limit);
   }
- }catch{/* Fall through to a recorded specialist handoff. Never generate an unsupported fallback. */}
+ }catch(error){
+  // Bounded operational codes only; no question, transcript or credentials in logs.
+  const reasons:Record<string,string>={'Disabled':'disabled','Specialist required':'personal-case','Provider not connected':'provider-disabled','Budget disabled':'budget-disabled','Budget exceeded':'budget-exhausted','Provider quota':'provider-quota','Provider unavailable':'provider-unavailable','Outside approved coverage':'no-source','Insufficient evidence':'insufficient-evidence'};
+  console.info('Assistant handoff',error instanceof Error?reasons[error.message]||'processing-error':'processing-error');
+ }
  await transaction(async db=>{
   const conversation=(await db.query('SELECT * FROM lvd_conversations WHERE id=$1 FOR UPDATE',[id])).rows[0];
   if(!conversation||conversation.state!=='queued'||!conversation.ai_enabled||conversation.ai_generation!==token||conversation.version!==work.version)return;

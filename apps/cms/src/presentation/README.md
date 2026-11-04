@@ -49,3 +49,13 @@ Shared version: `src/modules/shared/site-version.json`, format `xx.xx.xx`, shown
 ## Loading and polling
 
 Application routes load the design system and assembled live CSS, without three redundant legacy stylesheets. Public settings share a short same-tab cache and bypass session/vault reads. Hidden pages pause polling; requests never overlap. The hero defers video loading until allowed to play and pauses when off-screen. These changes reduce redundant work; no runtime speed benchmark is claimed.
+
+## Current split
+
+Public identity and setting interpretation: `modules/shared/public-shell.mjs`.
+Admin copy: `modules/admin/presentation.ts`; field schema and permissions stay in feature modules.
+CSS sources remain in modules.json. `live.css` owns the public shell;
+`customer-chat.css` is loaded only at /tro-chuyen; `specialist-inbox.css` and
+`admin-theme.css` load in the admin layout. The reviewed fast lane includes these
+CSS files and the two exact admin CSS source paths. React/TypeScript changes still
+require a full application build. See docs/07-current-structure.md for backend ownership.

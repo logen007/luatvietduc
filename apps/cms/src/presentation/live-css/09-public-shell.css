@@ -1,0 +1,3 @@
+/* Shared public identity; the header owns the logo in both renderers. */
+.public-brand-logo{display:block;width:36px;height:36px;object-fit:contain;flex-shrink:0}
+@media(max-width:600px){.public-brand-logo{width:28px;height:28px}}
