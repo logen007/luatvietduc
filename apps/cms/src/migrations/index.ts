@@ -1,3 +1,4 @@
+import * as bundledMedia from './20261104_080000_bundled_media';
 import * as legacyDrafts from './20261104_070000_legacy_drafts';
 import * as migration_20261103_035530 from './20261103_035530';
 import * as migration_20261103_054930_modular_system from './20261103_054930_modular_system';
@@ -28,4 +29,5 @@ export const migrations = [
  {up:semanticKnowledge.up,down:semanticKnowledge.down,name:'20261104_050000_semantic_knowledge'},
  {up:editorialTaxonomies.up,down:editorialTaxonomies.down,name:'20261104_060000_editorial_taxonomies'},
  {up:legacyDrafts.up,down:legacyDrafts.down,name:'20261104_070000_legacy_drafts'},
+ {up:bundledMedia.up,down:bundledMedia.down,name:'20261104_080000_bundled_media'},
 ];

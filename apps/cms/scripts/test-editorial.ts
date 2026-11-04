@@ -5,8 +5,10 @@ import {pool} from '../src/modules/shared/db';
 import {eligible,findFaq} from '../src/modules/assistant/faq';
 import seeds from '../src/modules/taxonomy/seeds.json';
 import legacyPosts from '../src/modules/legacy/posts.json';
+import {bundledFiles} from '../src/modules/storage/bundled';
 export async function testEditorial(payload:Payload,owner:User,specialist:User){
  const database=new URL(process.env.DATABASE_URL||'');if(!['localhost','127.0.0.1'].includes(database.hostname)||database.pathname!=='/lvd_test')throw new Error('Isolated CI database only');
+ for(const file of bundledFiles){const found=await payload.find({collection:'media',user:owner,overrideAccess:false,where:{filename:{equals:file.filename}},limit:1});assert.equal(found.totalDocs,1);assert.equal(found.docs[0].url,file.url);assert.equal(found.docs[0].visibility,'public');await assert.rejects(()=>payload.delete({collection:'media',id:found.docs[0].id,user:owner,overrideAccess:false}));}
  for(const post of legacyPosts){const found=await payload.find({collection:'articles',draft:true,user:owner,overrideAccess:false,where:{slug:{equals:post.slug}},limit:1,depth:0});assert.equal(found.totalDocs,1);assert.equal(found.docs[0]._status,'draft');assert.equal(found.docs[0].aiAllowed,false);assert.equal(found.docs[0].body,post.body);if(post.category)assert.ok(found.docs[0].categories?.length);}
  for(const category of seeds.legal)assert.equal((await payload.find({collection:'categories',where:{slug:{equals:category.slug}},overrideAccess:false,limit:1})).totalDocs,1);
  const vietnam=(await payload.find({collection:'tags',where:{slug:{equals:'vietnam'}},overrideAccess:false})).docs[0],germany=(await payload.find({collection:'tags',where:{slug:{equals:'germany'}},overrideAccess:false})).docs[0];assert.ok(vietnam&&germany);

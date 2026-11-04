@@ -266,6 +266,8 @@ export interface Knowledge {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Ảnh, logo và video có sẵn nằm trong danh sách này. Tệp giao diện chỉ đọc; tệp tải lên được quản lý qua R2.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
