@@ -60,11 +60,13 @@ For a schema change or a change to the approved workflow/Compose/engine policy, 
 
 The same `publish.sh` detects changes automatically. Allowlisted public CSS/JS,
 existing social icon assets and site version take the presentation lane. They use
-short CI syntax/bundle/deployment tests, then switch a complete public snapshot
+short CI syntax/bundle/deployment jobs without waiting for unrelated full checks, then switch a complete public snapshot
 inside the current app container. No Docker build, database migration, application
 restart or manual VPS access is needed for these later updates. React components,
 admin bundled CSS, navigation config and any mixed backend changes use full CI and
 an application build. Unknown/new paths fail closed to the full lane.
+
+Full CI can continue in the background; the server selects the fast path only after checking every changed path against its own allowlist. CI does not query the live site to decide scope.
 
 Both lanes pin the repository, branch, workflow and policy hashes; validate the
 exact commit and successful push run; share the deployment lock; probe localhost

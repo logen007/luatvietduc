@@ -11,26 +11,17 @@ concurrency:
   group: platform-foundation-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  release-scope:
+  presentation-checks:
     runs-on: ubuntu-latest
     timeout-minutes: 2
-    outputs:
-      fast: ${{ steps.scope.outputs.fast }}
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
           persist-credentials: false
-      - id: scope
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-        run: python3 ops/deploy/release-scope.py
       - uses: actions/setup-node@v6
-        if: steps.scope.outputs.fast == 'true'
         with:
           node-version: '24.22.1'
       - name: Validate presentation bundles and public scripts
-        if: steps.scope.outputs.fast == 'true'
         run: |
           CI=1 node apps/cms/scripts/assemble-presentation.mjs
           node --check apps/cms/public/editorial-ui.js
@@ -38,8 +29,6 @@ jobs:
           node --check apps/cms/public/legal-runtime.js
           python3 -m json.tool apps/cms/public/social-icons.json > /dev/null
   domain-tests:
-    needs: release-scope
-    if: needs.release-scope.outputs.fast != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     defaults:
@@ -73,8 +62,6 @@ jobs:
       - run: bash -n ops/deploy/install-auto-deploy.sh
       - run: bash -n ops/deploy/backup.sh
   cms-checks:
-    needs: release-scope
-    if: needs.release-scope.outputs.fast != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:

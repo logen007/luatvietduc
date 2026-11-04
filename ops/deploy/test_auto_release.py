@@ -93,6 +93,16 @@ class Gates(unittest.TestCase):
             self.assertFalse(release.presentation_only(allowed+[path]))
         self.assertFalse(release.presentation_only(['docs/README.md']))
 
+    def test_presentation_requires_current_attempt_and_both_short_jobs(self):
+        success=[{'name':n,'status':'completed','conclusion':'success'} for n in ['presentation-checks','deploy-tool-checks']]
+        for jobs,exception in [(success,None),(success[:1],release.APIBackoff),([dict(success[0],conclusion='failure'),success[1]],release.ReleaseError)]:
+            get=Mock(side_effect=[json.dumps({'workflow_runs':[workflow()]}),json.dumps(workflow(status='in_progress',run_attempt=2)),json.dumps({'jobs':jobs})])
+            if exception:
+                with self.assertRaises(exception):release.ci_success(NEW,get,presentation=True)
+            else:
+                self.assertEqual(release.ci_success(NEW,get,presentation=True),(12,2))
+                self.assertIn('/attempts/2/jobs',get.call_args.args[0])
+
     def test_full_release_rejects_skipped_backend_checks(self):
         for conclusion in ['skipped','failure',None]:
             get=Mock(side_effect=[json.dumps({'workflow_runs':[workflow()]}),json.dumps(workflow()),json.dumps({'jobs':[{'name':'cms-checks','conclusion':conclusion}]})])

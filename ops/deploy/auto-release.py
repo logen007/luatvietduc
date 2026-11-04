@@ -116,7 +116,7 @@ def ci_identity(item, sha):
             and item.get("head_sha") == sha and item.get("head_branch") == BRANCH and item.get("event") == "push" and item.get("path") == WORKFLOW)
 
 
-def ci_success(sha, get=fetch, require_full=False):
+def ci_success(sha, get=fetch, require_full=False, presentation=False):
     base = f"https://api.github.com/repos/{REPO}/actions"
     query = urllib.parse.urlencode({"branch": BRANCH, "event": "push", "head_sha": sha, "per_page": 100})
     listing = json.loads(get(f"{base}/workflows/platform-foundation.yml/runs?{query}"))
@@ -127,6 +127,15 @@ def ci_success(sha, get=fetch, require_full=False):
     latest = json.loads(get(f"{base}/runs/{int(selected['id'])}"))
     require(ci_identity(latest, sha) and latest.get("id") == selected["id"], "CI run identity mismatch")
     require(int(latest.get("run_attempt", 0)) >= int(selected.get("run_attempt", 1)), "CI attempt moved backwards")
+    if presentation:
+        require(latest.get('status') not in ('cancelled','failure'),'Cancelled presentation run')
+        jobs = json.loads(get(f"{base}/runs/{int(selected['id'])}/attempts/{int(latest['run_attempt'])}/jobs?per_page=100")).get('jobs',[])
+        for name in ['presentation-checks','deploy-tool-checks']:
+            matches=[job for job in jobs if job.get('name')==name]
+            if not matches or matches[-1].get('status')!='completed':
+                raise APIBackoff('Presentation checks are pending',15)
+            require(matches[-1].get('conclusion')=='success','Presentation check failed: '+name)
+        return latest['id'],latest['run_attempt']
     if latest.get("status") != "completed":
         raise APIBackoff("Latest CI attempt is pending")
     require(latest.get("conclusion") == "success", "Latest CI attempt did not succeed")
@@ -278,7 +287,7 @@ class Engine:
                 for name in FAST_PUBLIC:
                     shutil.copyfile(public/name,package/name)
                 require(self.head()==sha,'Branch advanced during presentation preparation')
-                ci_success(sha,self.get)
+                ci_success(sha,self.get,presentation=True)
                 previous = self.install_presentation(container,package,sha)
                 revision = self.revision(sha)
                 self.probe('http://127.0.0.1:3049',sha,revision)
@@ -373,7 +382,7 @@ class Engine:
             if not classify(paths) and not bootstrap:
                 return "no application changes"
             fast = not bootstrap and presentation_only(paths) and current.get('backend_sha')
-            ci_success(sha, self.get, require_full=not fast)
+            ci_success(sha, self.get, require_full=not fast, presentation=bool(fast))
             if check:
                 return f"approved candidate {sha}; no Docker/state changes performed"
             if fast:
