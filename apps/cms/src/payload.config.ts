@@ -1,6 +1,5 @@
-import {vi} from '@payloadcms/translations/languages/vi';
-import {de} from '@payloadcms/translations/languages/de';
-import {en} from '@payloadcms/translations/languages/en';
+import {adminI18n} from './modules/admin/i18n';
+import {adminPages} from './modules/admin/pages';
 import { buildConfig } from "payload";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { runtimeStorage } from "./modules/integrations/storage";
@@ -16,20 +15,21 @@ import { Knowledge } from "./modules/knowledge/collection";
 import { Media } from "./modules/storage/collection";
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
-  i18n:{fallbackLanguage:'vi',supportedLanguages:{vi,de,en}},
+  i18n:adminI18n,
   secret: process.env.PAYLOAD_SECRET || "",
   serverURL: process.env.APP_URL || "http://localhost:3000",
   admin: {
     theme: "dark",
+    dateFormat: "dd/MM/yyyy HH:mm",
     components: {
       afterNavLinks: ["./modules/admin/Navigation#AdminNavigation"],
       views: {
         dashboard: {Component:"./modules/settings/AdminWelcome#AdminDashboard"},
-        settings: { Component: "./modules/admin/Views#SettingsView", path: "/settings", exact: true },
-        connections: { Component: "./modules/admin/Views#ConnectionsView", path: "/settings/connections", exact: true },
-        backups: { Component: "./modules/admin/Views#BackupsView", path: "/settings/backups", exact: true },
-        knowledge: { Component: "./modules/admin/Views#KnowledgeView", path: "/knowledge", exact: true },
-        inbox: { Component: "./modules/admin/Views#InboxView", path: "/inbox", exact: true },
+        settings: { Component: "./modules/admin/Views#SettingsView", meta:{title:adminPages.settings.title}, path: "/settings", exact: true },
+        connections: { Component: "./modules/admin/Views#ConnectionsView", meta:{title:adminPages.connections.title}, path: "/settings/connections", exact: true },
+        backups: { Component: "./modules/admin/Views#BackupsView", meta:{title:adminPages.backups.title}, path: "/settings/backups", exact: true },
+        knowledge: { Component: "./modules/admin/Views#KnowledgeView", meta:{title:adminPages.knowledge.title}, path: "/knowledge", exact: true },
+        inbox: { Component: "./modules/admin/Views#InboxView", meta:{title:adminPages.inbox.title}, path: "/inbox", exact: true },
       },
       beforeLogin: ["./modules/settings/AdminWelcome#GoogleLogin"],
     },

@@ -49,10 +49,12 @@ export const SiteSettings: GlobalConfig = {
       name: "navigation",
       label: "Menu bổ sung",
       type: "array",
+      labels: {singular:"Liên kết",plural:"Liên kết"},
       fields: [
-        { name: "label", type: "text", required: true },
+        { name: "label", label:"Tên liên kết", type: "text", required: true },
         {
           name: "url",
+          label:"Đường dẫn",
           type: "text",
           required: true,
           validate: (v: unknown) =>

@@ -6,8 +6,8 @@ import type {
 import { sql } from "@payloadcms/db-postgres";
 import { owner } from "../shared/access";
 export const Audit: CollectionConfig = {
-  slug: "audit-events",labels:{singular:"Sự kiện",plural:"Nhật ký thay đổi"},
-  admin: { group: "Vận hành", useAsTitle: "action" },
+  slug: "audit-events",labels:{singular:"Sự kiện",plural:"Nhật ký hoạt động"},
+  admin: { group: "Vận hành", useAsTitle: "action",defaultColumns:["action","actor","recordId","createdAt"] },
   access: {
     create: () => false,
     read: owner,
@@ -15,10 +15,10 @@ export const Audit: CollectionConfig = {
     delete: () => false,
   },
   fields: [
-    { name: "action", type: "text", required: true },
-    { name: "recordId", type: "text", required: true },
-    { name: "actor", type: "relationship", relationTo: "users" },
-    { name: "details", type: "json" },
+    { name: "action", label:"Thao tác", type: "text", required: true,admin:{components:{Cell:"./modules/admin/AuditActionCell#AuditActionCell"}} },
+    { name: "recordId", label:"Mã bản ghi", type: "text", required: true },
+    { name: "actor", label:"Người thực hiện", type: "relationship", relationTo: "users" },
+    { name: "details", label:"Chi tiết", type: "json" },
   ],
 };
 // Lock inside the same Payload transaction, then reject a document read before a concurrent commit.

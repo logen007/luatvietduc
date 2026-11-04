@@ -14,13 +14,13 @@ References: [Geist neutral color system](https://vercel.com/geist/colors) and [t
 
 ## Navigation
 
-Desktop: 264px sidebar with identity, grouped destinations and active child links. Content occupies the remaining width. Child menus have a separate disclosure button.
+Desktop: 264px sidebar with grouped destinations and active child links. Content occupies the remaining width. Child menus have a separate disclosure button. Do not add a branding block above the destinations.
 
 At 1024px and below: a fixed 280px drawer, capped at viewport width minus 40px, inset 10px from the edges. Its header is the width of the drawer, never 100vw. A backdrop retains visible context and the native close/keyboard behavior. Choosing a destination closes the drawer. The page must not shift horizontally.
 
 ## Shared action rules
 
-The sidebar has one footer region: account identity, a labelled “Mở website” action, then the native logout action with its accessible label also visible. Do not add a separate unlabeled arrow button beside the avatar. Identity is not a navigation action. Keep action rows aligned with the menu and never use a lone logout glyph.
+The sidebar footer is one row: avatar, account name and role on the left; native logout icon on the right. Its accessible label and tooltip remain “Đăng xuất”, with a 44px target. Do not show a separate website link, logout text row or branding block. These are the owner's explicit decisions from 2026-11-04. Identity is not a navigation action.
 
 For each shared component change, review the default, selected, expanded, disabled and narrow-screen states together. Styling needs one responsible component rather than unrelated fixes on each page.
 
@@ -45,6 +45,14 @@ presentation only; server authorization remains authoritative.
 
 Check each shared change in desktop and mobile, open/closed navigation and
 keyboard focus. Account identity is text, navigation actions have visible labels,
-and logout is the native action with a visible accessible name. Avoid adding
+and logout is the native icon action with an accessible name and tooltip. Avoid adding
 page-specific versions of these controls. Tests of the shared state matrix guard
 against recurrence; no claim of a full visual audit without observing those views.
+
+The staff interface uses Vietnamese, including native collection actions, search,
+dates and upload labels. Browser language and old locale cookies must not switch
+only part of the console to English. Public VI/DE content is independent.
+Custom views use native Gutter and SetStepNav, with headings and breadcrumbs from
+pages.ts. Lists, document editors and custom pages share a 28px top inset (20px on
+mobile). New AI authoring starts in the common article editor; direct sources
+remain editable for existing records only.

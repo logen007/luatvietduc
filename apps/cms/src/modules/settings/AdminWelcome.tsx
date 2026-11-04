@@ -1,5 +1,5 @@
 import React from "react";
-import {Gutter} from "@payloadcms/ui";
+import {Gutter,SetStepNav} from "@payloadcms/ui";
 import {getPayload} from "payload";
 import config from "../../payload.config";
 import type {User} from "../../payload-types";
@@ -20,7 +20,7 @@ function WorkIcon({ name }: { name: IconName }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 
-export function AdminDashboard({user}:WelcomeProps){return <Gutter className="dashboard"><AdminWelcome user={user}/></Gutter>;}
+export function AdminDashboard({user}:WelcomeProps){return <Gutter className="dashboard"><SetStepNav nav={[]}/><AdminWelcome user={user}/></Gutter>;}
 
 export async function AdminWelcome({ user }: WelcomeProps) {
   const role = user?.role || "";
@@ -47,14 +47,12 @@ export async function AdminWelcome({ user }: WelcomeProps) {
     <section className="lvd-admin-welcome" aria-labelledby="lvd-admin-welcome-title">
       <header className="lvd-admin-welcome__header">
         <div>
-          <p className="lvd-admin-eyebrow">LUẬT VIỆT ĐỨC / QUẢN TRỊ</p>
           <h1 id="lvd-admin-welcome-title">Tổng quan</h1>
           <p className="lvd-admin-welcome__intro">{user?.name ? `Chào ${user.name}. ` : ""}Theo dõi công việc và mở nhanh mục cần xử lý.</p>
         </div>
-        <a className="lvd-admin-website-link" href="/">Mở website <WorkIcon name="arrow" /></a>
       </header>
       <div className="lvd-dashboard-stats">{stats.map(stat=><a href={stat.href} key={stat.label}><span>{stat.label}</span><strong>{stat.value===undefined?'—':stat.value.toLocaleString('vi-VN')}</strong><small>{stat.note}</small></a>)}</div>
-      <div className="lvd-dashboard-section-title"><h2>Thao tác nhanh</h2><span>Chọn công việc để bắt đầu</span></div>
+      <div className="lvd-dashboard-section-title"><h2>Thao tác nhanh</h2></div>
       {destinations.length > 0 && <nav className="lvd-admin-destinations" aria-label="Khu vực làm việc">
         {destinations.map((item) => <a href={item.href} key={item.href} className="lvd-admin-destination">
           <span className="lvd-admin-destination__icon"><WorkIcon name={item.icon} /></span>

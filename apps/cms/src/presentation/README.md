@@ -33,7 +33,7 @@ Batch related requests into one push. Do not interrupt an already running releas
 | Public footer / responsive layout | src/presentation/editorial-ui-css/05-news-footer-responsive.css |
 | Application footer | src/presentation/live-css/01-footer.css |
 | Customer chat | src/modules/chat/CustomerWorkspace.tsx; src/modules/chat/ui/; src/presentation/live-css/07-assistant-chat.css |
-| Specialist inbox | src/modules/chat/StaffWorkspace.tsx; src/presentation/live-css/06-chat.css |
+| Specialist inbox | src/modules/chat/StaffWorkspace.tsx; src/presentation/live-css/08-specialist-inbox.css (also imported by admin layout) |
 | Chat transport | src/modules/chat/useWorkspace.ts; src/modules/shared/polling.ts |
 | FAQ / AI answering | src/modules/assistant/faq.ts; format.ts; reply.ts |
 | Public settings request | src/modules/settings/client.ts; view.ts |

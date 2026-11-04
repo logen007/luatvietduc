@@ -62,16 +62,16 @@ export const Articles: CollectionConfig = {
       options: ["VN", "DE",{label:"Việt Nam và Đức",value:"BOTH"}],
       defaultValue:"BOTH",admin:{hidden:true},
     },
-    { name: "language", label:"Ngôn ngữ nội dung", type: "select", required: true,defaultValue:"vi", options: ["vi", "de"],admin:{position:"sidebar"} },
+    { name: "language", label:"Ngôn ngữ nội dung", type: "select", required: true,defaultValue:"vi", options: [{label:"Tiếng Việt",value:"vi"},{label:"Tiếng Đức",value:"de"}],admin:{position:"sidebar"} },
     {
       name: "sourceUrl", label:"Nguồn tham khảo",
       type: "text",
       validate: (v: unknown) => {
         if (!v) return true;
         try {
-          return new URL(String(v)).protocol === "https:" || "HTTPS required";
+          return new URL(String(v)).protocol === "https:" || "Vui lòng dùng địa chỉ HTTPS.";
         } catch {
-          return "Valid HTTPS URL required";
+          return "Địa chỉ HTTPS không hợp lệ.";
         }
       },
     },

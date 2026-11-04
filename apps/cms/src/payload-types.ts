@@ -274,7 +274,7 @@ export interface Knowledge {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Ảnh, logo và video có sẵn nằm trong danh sách này. Tệp giao diện chỉ đọc; tệp tải lên được quản lý qua R2.
+ * Quản lý ảnh, logo, video và tài liệu. Kết nối R2 trong Cài đặt để tải thêm tệp.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
