@@ -1,8 +1,9 @@
 "use client";
-import {setLanguage as localeSetLanguage,useLocale} from "./locale";
+import {useLocale} from "./locale";
 import { useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
+import {LanguageSwitch} from './LanguageSwitch';
 import navigation from "./navigation.json";
 import {usePublicSettings} from "../settings/client";
 const publicLinks=navigation.primary;
@@ -10,7 +11,6 @@ const arrow = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6
 
 export function Header() {
  const {t,language}=useLocale();
-  const switchLanguage=(next:string)=>{localeSetLanguage(next==='de'?'de':'vi');};
   const text=(vi:string,de:string)=>language==='de'?de:vi;
   const labels:Record<string,string>={'Thư viện pháp luật':'Rechtsbibliothek','Tin tức':'Nachrichten','Giới thiệu':'Über uns'};
   const settings=usePublicSettings();
@@ -30,7 +30,7 @@ export function Header() {
             {publicLinks.map((link) => <a key={link.href} href={link.href}>{language==='de'?(labels[link.label]||link.label):link.label}</a>)}
           </nav>
           <div className="live-header-actions">
-            <div className="lvd-language-switch"><button type="button" aria-label={text('Chuyển sang tiếng Đức','Zu Vietnamesisch wechseln')} onClick={()=>switchLanguage(language==='vi'?'de':'vi')}><img src={'/assets/flags/'+(language==='vi'?'vn':'de')+'.svg'} width="20" height="14" alt=""/>{language.toUpperCase()}</button></div>
+            <LanguageSwitch/>
             <a className="live-header-login-button button" href="/tai-khoan" aria-current={pathname === "/tai-khoan" ? "page" : undefined}>{text('Đăng nhập','Anmelden')} {arrow}</a>
             <button className="live-menu-button" type="button" aria-label={t("Mở menu")} aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="live-menu-dialog" onClick={() => { dialog.current?.showModal(); setMenuOpen(true); }}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>

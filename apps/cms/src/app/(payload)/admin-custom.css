@@ -312,3 +312,17 @@ html.lvd-admin .lvd-knowledge-editor .button.secondary{background:var(--theme-el
 
 .lvd-social-settings{margin:12px 0 32px}.lvd-social-settings h3{font-size:20px;margin-bottom:8px;color:var(--theme-text)}.lvd-social-settings>p{font-size:13px;color:var(--theme-elevation-600);margin-bottom:20px}.lvd-social-settings-list{border:1px solid var(--theme-elevation-150);border-radius:10px;overflow:hidden}.lvd-social-settings-row{display:grid;grid-template-columns:170px minmax(0,1fr) 70px;gap:20px;align-items:start;padding:18px 20px;border-bottom:1px solid var(--theme-elevation-150)}.lvd-social-settings-row:last-child{border:0}.lvd-social-settings-row label{display:flex;align-items:center;gap:12px;min-height:42px;font-size:14px;color:var(--theme-text)}.lvd-social-settings-row svg{width:24px;height:24px;fill:currentColor;flex-shrink:0}.lvd-social-settings-row input{width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--theme-elevation-200);border-radius:6px;color:var(--theme-text);background:var(--theme-elevation-50);font:inherit;font-size:14px}.lvd-social-settings-row input:focus{outline:2px solid var(--theme-text);outline-offset:2px}.lvd-social-settings-row input[aria-invalid=true]{border-color:var(--theme-error-500,#c45c5c)}.lvd-social-settings-row small{display:block;margin-top:8px;color:var(--theme-error-500,#c45c5c);font-size:12px}.lvd-social-settings-state{font-size:11px;border:1px solid var(--theme-elevation-200);border-radius:20px;padding:3px 8px;justify-self:end;margin-top:10px;color:var(--theme-elevation-600)}.lvd-social-settings-state.is-on{color:var(--theme-text)}
 @media(max-width:650px){.lvd-social-settings-row{grid-template-columns:minmax(0,1fr) auto;padding:14px;gap:8px}.lvd-social-settings-row>div{grid-column:1/-1;grid-row:2}.lvd-social-settings-row label{min-height:30px}.lvd-social-settings-state{margin-top:3px}.lvd-social-settings-row input{font-size:16px}}
+
+/* Mobile/tablet navigation floats over the workspace instead of filling it. */
+@media(max-width:1024px){
+ html.lvd-admin .template-default.template-default--nav-hydrated{grid-template-columns:minmax(0,1fr)}
+ html.lvd-admin .template-default .nav{display:block;position:fixed;inset:12px auto 12px 12px;width:min(300px,calc(100vw - 48px));height:calc(100dvh - 24px);z-index:1001;background:var(--theme-bg);border:1px solid var(--theme-elevation-200);border-radius:14px;box-shadow:0 16px 60px #0005;opacity:0;pointer-events:none;transform:translateX(calc(-100% - 20px));transition:transform .2s ease,opacity .2s ease}
+ html.lvd-admin .template-default .nav.nav--nav-open{transform:translateX(0);opacity:1;pointer-events:auto}
+ html.lvd-admin .nav__header{width:100%;height:56px}
+ html.lvd-admin .nav__mobile-close{display:flex;padding:12px 0}
+ html.lvd-admin .nav__scroll{padding:64px 18px 24px;overscroll-behavior:contain}
+ html.lvd-admin .template-default__nav-overlay{position:fixed;inset:0;width:100vw;height:100dvh;z-index:1000;background:#0006;backdrop-filter:blur(2px);opacity:0;pointer-events:none}
+ html.lvd-admin .template-default--nav-open .template-default__nav-overlay{opacity:1;pointer-events:auto}
+ html.lvd-admin .template-default__wrap{min-width:0;max-width:100%;grid-column:1}
+}
+@media(prefers-reduced-motion:reduce){html.lvd-admin .template-default .nav{transition:none}}

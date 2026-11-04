@@ -42,20 +42,19 @@ export default function Page() {
         <div className="live-auth-layout">
           <section className="live-auth-intro">
             <div className="live-auth-intro-copy">
-              <span className="live-eyebrow">{t("KHÔNG GIAN CÁ NHÂN")}</span>
-              <h2> {t("Những câu hỏi quan trọng.")} <br />
-                <span>{t("Một nơi để tiếp nối.")}</span>
+              <h2> {t("Hỏi cho rõ.")} <br />
+                <span>{t("Làm cho đúng.")}</span>
               </h2>
-              <p> {t("Theo dõi trao đổi pháp luật Việt Nam và Đức, từ câu hỏi đầu tiên đến phản hồi của chuyên viên.")} </p>
+              <p> {t("Giấy tờ ở Việt Nam, cuộc sống tại Đức — bắt đầu từ điều bạn đang vướng.")} </p>
             </div>
             <div className="live-auth-caption">
-              <span className="live-small-rule"></span>{t("Rõ ràng trong thông tin. Riêng tư trong trao đổi.")} </div>
+              <span className="live-small-rule"></span>{t("Lưu câu hỏi, tài liệu và phản hồi để xem lại khi cần.")} </div>
           </section>
           <section className="live-auth-panel">
             <a className="live-back-link" href="/"> {t("← Trở về website")} </a>
             <p className="live-eyebrow">LUẬT VIỆT ĐỨC</p>
             <h1>
-              {data?.user ? t("Xin chào, {name}",{name:data.user.name}) : t("Chào mừng bạn.")}
+              {data?.user ? t("Xin chào, {name}",{name:data.user.name}) : t("Cuộc trò chuyện của bạn.")}
             </h1>
             {error && (
               <p className="live-error" role="alert">
@@ -118,7 +117,7 @@ export default function Page() {
               </>
             ) : (
               <>
-                <p className="live-lead"> {t("Đăng nhập để lưu hội thoại và xem phản hồi trên nhiều thiết bị.")} </p>
+                <p className="live-lead"> {t("Đăng nhập để giữ câu hỏi, tài liệu và phản hồi trong tài khoản.")} </p>
                 {data.connections.google ? (
                   <a className="button live-google" href="/auth/google">
                     <GoogleMark /> {t("Tiếp tục bằng Google")} </a>
@@ -136,7 +135,7 @@ export default function Page() {
                 <a
                   className="button secondary live-guest-link"
                   href="/tro-chuyen"
-                > {t("Gửi câu hỏi với tư cách khách")}{" "}
+                > {t("Hỏi ngay, chưa cần đăng nhập")}{" "}
                   <span aria-hidden="true">↗</span>
                 </a>
                 <p className="live-auth-privacy"> {t("Chỉ sử dụng tên và email để đăng nhập. Không yêu cầu quyền đọc hộp thư Gmail.")} </p>

@@ -1,6 +1,7 @@
 "use client";
 import {useLocale} from "./locale";
 import siteVersion from "./site-version.json";
+import {LanguageSwitch} from './LanguageSwitch';
 import {SocialLinks} from "./SocialLinks";
 import navigation from "./navigation.json";
 const footerColumns=navigation.footer;
@@ -34,7 +35,7 @@ export function Footer() {
         ))}
       </div>
       <div className="live-footer-meta">
-        <small>© Luật Việt Đức. · v{siteVersion.version}</small>
+        <div className="live-footer-version-row"><small>© Luật Việt Đức. · v{siteVersion.version}</small><LanguageSwitch/></div>
         <nav aria-label={t("Chính sách")}>
           <a href="/#/chinh-sach-thong-tin">{t("Quyền riêng tư")}</a>
           <a href="/#/dieu-khoan">{t("Điều khoản sử dụng")}</a>

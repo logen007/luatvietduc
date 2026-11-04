@@ -96,3 +96,10 @@
 .lvd-footer-social a.lvd-social-icon:hover { color:#fff; background:rgba(255,255,255,.1); }
 .lvd-footer-social a:focus-visible { outline:2px solid #fff; outline-offset:3px; }
 .lvd-footer-social:empty { display:none; margin:0; }
+
+.live-footer .live-footer-meta{display:block}
+.live-footer-version-row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}
+.live-footer-version-row>small{min-width:0}
+.live-footer .live-footer-meta>nav{margin-top:16px}
+.live-footer-version-row .lvd-language-switch{color:inherit;margin-left:auto}
+.live-footer-version-row .lvd-language-switch button{opacity:1}

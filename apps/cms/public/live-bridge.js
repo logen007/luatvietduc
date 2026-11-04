@@ -20,7 +20,20 @@
     if(settings.logo)document.querySelectorAll('.brand-mark').forEach(el=>{const img=document.createElement('img');img.src=settings.logo;img.alt=settings.siteName;img.style.cssText='width:100%;height:100%;object-fit:contain';el.replaceChildren(img)});
     if(location.hash.startsWith('#/chinh-sach-thong-tin')&&settings.privacyText&&!document.getElementById('live-privacy')){const p=document.createElement('p');p.id='live-privacy';p.style.whiteSpace='pre-wrap';p.textContent=settings.privacyText;(document.querySelector('#main .prose')||document.getElementById('main'))?.append(p)}
     const grid=document.querySelector('.chat-news .press-grid');
-    if(grid&&articles.length){grid.replaceChildren();for(const item of articles){const article=document.createElement('article');article.className='press-card pm-story pm-story-cms';const copy=document.createElement('div');copy.className='press-copy';const h=document.createElement('h3');const link=document.createElement('a');link.href='/bai-viet/'+encodeURIComponent(item.slug);link.textContent=item.title;h.append(link);const p=document.createElement('p');p.textContent=item.body.slice(0,140);const more=document.createElement('a');more.className='lvd-link pm-story-read';more.href=link.href;more.textContent=window.LVD_I18N?.get()==='de'?'Beitrag lesen ↗':'Đọc bài viết ↗';copy.append(h,p,more);article.append(copy);grid.append(article)}}
+    if(grid&&articles.length){
+      grid.replaceChildren();
+      for(const item of articles){
+        const article=document.createElement('article');article.className='press-card pm-story pm-story-cms';
+        const href='/bai-viet/'+encodeURIComponent(item.slug),imageLink=document.createElement('a');imageLink.className='press-image-link';imageLink.href=href;imageLink.setAttribute('aria-label',item.title);
+        const subject=(item.title+' '+(item.legalField||'')).toLocaleLowerCase('vi');
+        const photo=/gia đình|kết hôn|con|thừa kế/.test(subject)?'family':/nhà|đất|thuê/.test(subject)?'housing':/lao động|việc làm|lương/.test(subject)?'work':/vé|tàu|đi lại/.test(subject)?'train':'berlin';
+        const image=document.createElement('img');image.className='press-photo';image.src='/assets/photos/'+photo+'-600.webp';image.alt='';image.width=600;image.height=400;image.loading='lazy';image.decoding='async';imageLink.append(image);
+        const copy=document.createElement('div');copy.className='press-copy';const h=document.createElement('h3'),link=document.createElement('a');link.href=href;link.textContent=item.title;h.append(link);
+        const p=document.createElement('p'),summary=String(item.body||'').split(/\n\s*\n/)[0].replace(/\s+/g,' ').trim();p.textContent=summary.length>160?summary.slice(0,160).replace(/\s+\S*$/,'')+'…':summary;
+        const more=document.createElement('a');more.className='lvd-link pm-story-read';more.href=href;more.textContent=window.LVD_I18N?.get()==='de'?'Beitrag lesen ↗':'Đọc bài viết ↗';
+        copy.append(h,p,more);article.append(imageLink,copy);grid.append(article);
+      }
+    }
   };
   window.addEventListener('hashchange',()=>queueMicrotask(enrich));
   document.addEventListener('DOMContentLoaded',async()=>{
@@ -38,7 +51,7 @@
         }
       }
       for(const link of (settings.navigation||[])){const destination=new URL(link.url,location.origin);if(destination.origin===location.origin&&/^\/bai-viet\/?$/.test(destination.pathname))continue;for(const nav of document.querySelectorAll('.desktop-nav,#menu-dialog .dialog-links')){const href=new URL(link.url,location.origin).href;if([...nav.querySelectorAll('a')].some(a=>a.href===href))continue;const a=document.createElement('a');a.textContent=link.label;a.href=link.url;nav.append(a)}}
-      enrich();const news=await fetch('/api/articles?limit=6&sort=-updatedAt');if(news.ok){articles=(await news.json()).docs||[];enrich()}
+      enrich();const news=await fetch('/api/articles?limit=3&sort=-updatedAt&where[kind][equals]=news');if(news.ok){articles=((await news.json()).docs||[]).filter(item=>item.kind==='news');enrich()}
     }catch{}
   });
 })();
