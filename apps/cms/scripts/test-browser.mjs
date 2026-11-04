@@ -28,11 +28,17 @@ try{
  const fits=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Page overflows horizontally');
  const visible=async selector=>{await page.locator(selector).waitFor({state:'visible'});};
  await page.goto(base);await visible('#pm-title');await fits();
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.evaluate(()=>{window.__asciiSeen=false;window.__asciiHidden=true;const observer=new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)if(node instanceof HTMLElement&&node.hasAttribute('data-lvd-ascii')){window.__asciiSeen=true;window.__asciiHidden=window.__asciiHidden&&node.getAttribute('aria-hidden')==='true';}});observer.observe(document.body,{childList:true});window.__stopAsciiObservation=()=>observer.disconnect();});
  const language=page.getByRole('button',{name:'Chuyển sang tiếng Đức'}).first();
  const box=await language.boundingBox();assert.ok(box&&box.width>=44&&box.height>=44,'Language hit target');
- await language.click();await page.getByRole('button',{name:'Zu Vietnamesisch wechseln'}).first().waitFor();
+ await language.click();await page.waitForFunction(()=>window.__asciiSeen);assert.equal(await page.evaluate(()=>window.__asciiHidden),true);await page.waitForFunction(()=>!document.querySelector('[data-lvd-ascii]'));
+ await page.emulateMedia({reducedMotion:'reduce'});await page.evaluate(()=>{window.__asciiSeen=false;});
+ await page.getByRole('button',{name:'Zu Vietnamesisch wechseln'}).first().click();await page.getByRole('button',{name:'Chuyển sang tiếng Đức'}).first().waitFor();
+ assert.equal(await page.evaluate(()=>window.__asciiSeen),false);await page.getByRole('button',{name:'Chuyển sang tiếng Đức'}).first().click();await page.evaluate(()=>window.__stopAsciiObservation());await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.getByRole('button',{name:'Zu Vietnamesisch wechseln'}).first().waitFor();
  await page.screenshot({path:'test-results/cms-browser/home-mobile-de.png'});
- await page.goto(base+'/thu-vien');await page.getByRole('heading',{name:'Bibliothek',exact:true}).waitFor();await fits();
+ await page.goto(base+'/thu-vien');await page.getByRole('heading',{name:'Bibliothek',level:1,exact:true}).waitFor();await fits();
  await page.getByRole('button',{name:'Zu Vietnamesisch wechseln'}).first().click();
  // Session is deliberately delayed to verify the loading state, not a fake guest.
  let releaseSession;const heldSession=new Promise(resolve=>{releaseSession=resolve;});

@@ -5,6 +5,7 @@ import {visiblePoll} from "../shared/polling";
 import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
 import {createMessageOutbox,createOperationGate,mergeMessages,validateAttachmentBatch,type MessageReceipt} from './client-operations';
 import type {Conversation,Message,Transcript,Attachment} from './contracts';
+import {initialChatQuestion} from './intake';
 export function useWorkspace(staff=false,manageList=true){
   const session=usePublicSession(),me=session.status==='ready'?session.data:null;
   const [ownerRevision,setOwnerRevision]=useState(-1),[intakeAttempt,setIntakeAttempt]=useState(0),[initializationFailed,setInitializationFailed]=useState(false);
@@ -76,7 +77,9 @@ export function useWorkspace(staff=false,manageList=true){
     if(session.status!=='ready')return;
     let active = true;
     const valid=()=>active&&current();
-    const draft = staff ? null : sessionStorage.getItem("lvd-question");
+    let savedDraft:string|null=null;
+    if(!staff)try{savedDraft=sessionStorage.getItem('lvd-question');}catch{}
+    const draft = staff ? '' : initialChatQuestion(window.location.search,savedDraft);
     if (draft) setText(draft);
     (async () => {
       try {
@@ -91,13 +94,14 @@ export function useWorkspace(staff=false,manageList=true){
               .join(" "),
           );
           setMaxLength(s.maxMessageLength || 2000);
+          if(draft)setText(draft.slice(0,s.maxMessageLength||2000));
         }
         if (!valid()) return;
         setRows(list);
         // A question from the homepage starts its own intake, even with saved history.
         if (staff){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&/^[a-f0-9-]{36}$/i.test(requested))changeSelection(requested);}
         else if(!draft){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&list.some(item=>item.id===requested))changeSelection(requested);else if(list[0])changeSelection(list[0].id);}
-        if(draft&&sessionStorage.getItem('lvd-question')===draft)sessionStorage.removeItem('lvd-question');
+        if(draft)try{if(sessionStorage.getItem('lvd-question')===draft)sessionStorage.removeItem('lvd-question');}catch{}
       } catch (e) {
         if (valid()){setError((e as Error).message);setInitializationFailed(true);}
       } finally {

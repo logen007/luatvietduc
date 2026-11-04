@@ -133,3 +133,9 @@ chỉ giữ để bảo trì dữ liệu đã có. Không loại bỏ nguồn c�
 Biểu mẫu nguồn kiến thức cũ và kết nối dùng cảnh báo thay đổi chưa lưu; khóa kết nối không được đưa vào lưu nháp trên trình duyệt. Trang kết nối phân biệt hết phiên, thiếu quyền và lỗi có thể thử lại. Chat có trạng thái khởi tạo và thử lại, giữ nguyên giới hạn phiên, lưu tin và chuyển chuyên viên. Lựa chọn sắp xếp thư viện áp dụng cả truy vấn bài CMS, trước phân trang.
 
 Bundle editorial-ui.js chỉ còn adapter bookmark native; giữ tên tệp/version để tương thích kiểm tra triển khai. Các fragment renderer cũ vẫn nằm trong nguồn tham chiếu. Kiểm tra giao diện CMS chạy trong postbuild của workflow hiện hữu ở CI, không sửa policy phát hành và không yêu cầu vào VPS.
+
+## Chuyển ngôn ngữ và ngữ cảnh câu hỏi
+
+`shared/locale/ascii-transition.ts` tạo lớp chữ ASCII trang trí cho các nhãn vừa đổi VI/DE, giữ nguyên DOM bản dịch và accessible name; chỉ các chữ đang nhìn thấy được xử lý. Hiệu ứng 320ms được hủy khi thao tác tiếp, cuộn, đổi kích thước hoặc ẩn tab, và bỏ qua khi bật reduced motion. `ascii.ts` chứa bộ sinh khung chữ có kiểm tra riêng.
+
+Liên kết từ chủ đề đưa tiêu đề công khai vào ô soạn chat qua `chat/intake.ts`, không tự gửi hoặc tạo câu trả lời. Storage không khả dụng không làm treo việc khởi tạo. Browser check phân biệt H1 Thư viện với nhãn cùng tên ở footer.
