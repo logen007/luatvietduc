@@ -136,7 +136,9 @@ Bundle editorial-ui.js chỉ còn adapter bookmark native; giữ tên tệp/vers
 
 ## Chuyển ngôn ngữ và ngữ cảnh câu hỏi
 
-`shared/locale/ascii-transition.ts` tạo lớp chữ ASCII trang trí cho các nhãn vừa đổi VI/DE, giữ nguyên DOM bản dịch và accessible name; chỉ các chữ đang nhìn thấy được xử lý. Hiệu ứng 320ms được hủy khi thao tác tiếp, cuộn, đổi kích thước hoặc ẩn tab, và bỏ qua khi bật reduced motion. `ascii.ts` chứa bộ sinh khung chữ có kiểm tra riêng.
+`shared/locale/ascii-transition.ts` tạo lớp chữ ASCII trang trí cho các nhãn vừa đổi VI/DE, giữ nguyên DOM bản dịch và accessible name; chỉ các chữ đang nhìn thấy được xử lý. Hiệu ứng 1.500ms được hủy khi thao tác tiếp, cuộn, đổi kích thước hoặc ẩn tab, và bỏ qua khi bật reduced motion. `ascii.ts` chứa bộ sinh khung chữ có kiểm tra riêng.
+
+Menu admin dùng nút mở cố định của template ở mọi kích thước, giữ hỗ trợ bàn phím; nút mobile trùng lặp trong header được ẩn.
 
 Liên kết từ chủ đề đưa tiêu đề công khai vào ô soạn chat qua `chat/intake.ts`, không tự gửi hoặc tạo câu trả lời. Storage không khả dụng không làm treo việc khởi tạo. Browser check phân biệt H1 Thư viện với nhãn cùng tên ở footer.
 

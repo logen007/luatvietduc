@@ -10,6 +10,8 @@ html.lvd-admin :is(h1,h2,h3,h4){font-family:var(--font-body);letter-spacing:-.02
 html.lvd-admin h1{font-size:28px;line-height:1.25}html.lvd-admin h2{font-size:19px;line-height:1.35}html.lvd-admin h3{font-size:15px;line-height:1.45}
 html.lvd-admin :focus-visible{outline:2px solid var(--admin-accent);outline-offset:3px}
 html.lvd-admin .app-header{background:var(--admin-canvas);border-bottom:1px solid var(--admin-line)}
+/* The persistent, keyboard-accessible template toggle owns opening the menu. */
+html.lvd-admin .app-header__mobile-nav-toggler{display:none}
 html.lvd-admin .step-nav{font-size:12px;color:var(--admin-muted)}
 html.lvd-admin .nav{background:var(--admin-sidebar);border-color:var(--admin-line)}
 html.lvd-admin .nav__header{width:100%}

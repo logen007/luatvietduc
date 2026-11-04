@@ -67,7 +67,7 @@ export function withAsciiTransition(update:()=>void){
   if(!visuals.length){stop();return;}
   const start=performance.now();
   const draw=(now:number)=>{
-   const progress=(now-start)/320;
+   const progress=(now-start)/1500;
    if(progress>=1||visuals.some(visual=>!visual.element.isConnected||visual.element.textContent!==visual.content)){stop();return;}
    if(now-lastDraw>=30){for(const visual of visuals)visual.overlay.textContent=asciiFrame(visual.text,progress);lastDraw=now;}
    frame=requestAnimationFrame(draw);

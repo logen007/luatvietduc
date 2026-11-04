@@ -92,7 +92,7 @@ try{
    if(await page.getByRole('button',{name:'Mở Menu',exact:true}).count())await page.getByRole('button',{name:'Mở Menu',exact:true}).click();
    await page.waitForFunction(()=>{const box=document.querySelector('.nav.nav--nav-open')?.getBoundingClientRect();return box&&box.left>=0&&box.width<=innerWidth-40;});
    await page.screenshot({path:'test-results/cms-browser/admin-drawer-mobile.png'});
-   await page.getByRole('button',{name:'Đóng Menu',exact:true}).first().click();
+   await page.locator('.nav.nav--nav-open').getByRole('button',{name:'Đóng Menu',exact:true}).click();
   }
   for(const path of ['/admin','/admin/collections/articles','/admin/collections/media','/admin/inbox','/admin/settings']){await page.goto(base+path);await visible('.template-default');await fits();}
  }
