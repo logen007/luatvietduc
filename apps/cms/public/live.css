@@ -471,7 +471,7 @@
 
 /* Shared public/application social links, configured in existing admin socialLinks. */
 .lvd-footer-social { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:20px; }
-.lvd-footer-social .lvd-social-icon { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; line-height:1; color:#ccc; border:0; border-radius:0; background:transparent; transition:color .15s ease; }
+.lvd-footer-social .lvd-social-icon { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; flex:0 0 44px; line-height:1; color:#ccc; border:0; border-radius:0; background:transparent; transition:color .15s ease; }
 .lvd-footer-social .lvd-social-icon svg { display:block; width:28px; height:28px; fill:currentColor; stroke:none; stroke-width:0; }
 .lvd-footer-social .lvd-social-icon svg path { stroke:none; stroke-width:0; }
 .lvd-footer-social .lvd-social-icon.is-unset { color:rgba(255,255,255,.45); }
