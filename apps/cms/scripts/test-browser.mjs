@@ -20,7 +20,7 @@ try{
   try{if((await fetch(base+'/health/ready')).ok){ready=true;break;}}catch{}
   await pause(250);
  }
- assert.ok(ready,'Built CMS server did not become ready');browser=await chromium.launch({headless:true});
+ assert.ok(ready,'Built CMS server did not become ready');browser=await chromium.launch({headless:true,...(process.env.LVD_TEST_BROWSER_EXECUTABLE?{executablePath:process.env.LVD_TEST_BROWSER_EXECUTABLE}:{})});
  const context=await browser.newContext({viewport:{width:390,height:844}});
  // Only this local server may receive test traffic. No Google, mail, Drive or R2.
  await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
@@ -94,12 +94,33 @@ try{
    await page.screenshot({path:'test-results/cms-browser/admin-drawer-mobile.png'});
    await page.locator('.nav.nav--nav-open').getByRole('button',{name:'Đóng Menu',exact:true}).click();
   }
-  for(const path of ['/admin','/admin/collections/articles','/admin/collections/media','/admin/inbox','/admin/settings']){await page.goto(base+path);await visible('.template-default');await fits();}
+  for(const path of ['/admin','/admin/collections/articles','/admin/collections/media','/admin/inbox','/admin/settings']){console.log('CMS page check:',viewport.width,path);await page.goto(base+path);await visible('.template-default');await fits();}
  }
+ // A transition acknowledged by the server survives a failed follow-up read.
+ const threadId=crypto.randomUUID();
+ let thread={id:threadId,title:'Synthetic conversation',state:'human',version:1,assignedTo:owner.id,customer:{name:'Synthetic customer',email:'customer@example.invalid'},aiEnabled:false},failTranscript=false;
+ await page.route('**/service/inbox?*',route=>route.fulfill({json:{rows:[],counts:{},total:0,totalPages:1,page:1}}));
+ await page.route(new RegExp('/service/conversations/'+threadId+'(?:[/?]|$)'),async route=>{
+  if(route.request().method()==='POST'){
+   const data=route.request().postDataJSON();assert.equal(data.action,'close');assert.equal(data.version,1);
+   thread={...thread,state:'closed',version:2};failTranscript=true;
+   return route.fulfill({json:{state:thread.state,version:thread.version}});
+  }
+  return route.fulfill(failTranscript?{status:503,json:{error:'Synthetic transcript unavailable'}}:{json:{conversation:thread,messages:[]}});
+ });
+ await page.goto(base+'/admin/inbox?conversation='+threadId);
+ await page.getByRole('heading',{name:'Synthetic customer',exact:true}).waitFor();
+ await page.getByRole('button',{name:'✓ Hoàn tất',exact:true}).click();
+ await page.locator('.operator-error').waitFor();assert.match(await page.locator('.operator-error').innerText(),/Synthetic transcript unavailable/);
+ await page.locator('.operator-conversation-header').getByText('Đã hoàn tất',{exact:false}).waitFor();
+ assert.equal(await page.getByRole('button',{name:/Gửi phản hồi/}).isDisabled(),true);
+ failTranscript=false;await page.locator('.operator-error').getByRole('button',{name:'Thử lại',exact:true}).click();
+ await page.waitForFunction(()=>!document.querySelector('.operator-error'));
+ await page.locator('.operator-conversation-header').getByText('Đã hoàn tất',{exact:false}).waitFor();
  console.log('CMS browser checks passed: public VI/DE, mobile fit, session loading, signed-in menu, retry, unsaved changes and native admin pages.');
-}finally{
+}catch(error){console.error('CMS browser check failed:',error);throw error;}finally{
  await browser?.close();
- if(server&&server.exitCode===null){server.kill('SIGTERM');await new Promise(resolve=>server.once('exit',resolve));}
+ if(server&&server.exitCode===null)await new Promise(resolve=>{const timeout=setTimeout(()=>server.kill('SIGKILL'),5000);server.once('exit',()=>{clearTimeout(timeout);resolve();});server.kill('SIGTERM');});
  for(const id of ids)await payload.delete({collection:'users',id,overrideAccess:true});
  await payload.destroy();await pool.end();
 }

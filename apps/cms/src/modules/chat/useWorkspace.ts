@@ -1,11 +1,12 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
-import {api} from "../shared/client-api";
+import {api,ClientApiError} from "../shared/client-api";
 import {visiblePoll} from "../shared/polling";
 import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
 import {createMessageOutbox,createOperationGate,mergeMessages,validateAttachmentBatch,type MessageReceipt} from './client-operations';
-import type {Conversation,Message,Transcript,Attachment} from './contracts';
+import type {Conversation,Message,Transcript,Attachment,TransitionReceipt} from './contracts';
 import {initialChatQuestion} from './intake';
+import {applyTransitionReceipt} from './transition-receipt';
 export function useWorkspace(staff=false,manageList=true){
   const session=usePublicSession(),me=session.status==='ready'?session.data:null;
   const [ownerRevision,setOwnerRevision]=useState(-1),[intakeAttempt,setIntakeAttempt]=useState(0),[initializationFailed,setInitializationFailed]=useState(false);
@@ -26,7 +27,7 @@ export function useWorkspace(staff=false,manageList=true){
   const [preferHuman,setPreferHuman]=useState(false),[sendingBody,setSendingBody]=useState("");
   const [attachments,setAttachments]=useState<Attachment[]>([]),[uploading,setUploading]=useState(false);
   const [maxLength, setMaxLength] = useState(2000);
-  const stickToBottom=useRef(true),revision=useRef(0),wakeTranscript=useRef(()=>{});
+  const stickToBottom=useRef(true),revision=useRef(0),wakeTranscript=useRef<(reset?:boolean)=>void>(()=>{});
   const mode=useRef(staff);mode.current=staff;
   const operations=useRef(createOperationGate()),selection=useRef('');
   const outbox=useRef(createMessageOutbox((id,draft)=>api<MessageReceipt>(`conversations/${id}/messages`,{...draft,...(!mode.current?{aiConsentVersion:'gemini-rag-v1'}:{})}))),
@@ -157,14 +158,14 @@ export function useWorkspace(staff=false,manageList=true){
         waiting=Boolean(v.conversation.aiEnabled&&latestUser>latestAnswered);
         setConnectionError("");
       } catch (e) {
-        if (active&&current()&&ticket===revision.current) {setConnectionError((e as Error).message);if(staff){setConversation(null);setMessages([]);cursor=0;}}
+        if (active&&current()&&ticket===revision.current) {setConnectionError((e as Error).message);if(staff&&e instanceof ClientApiError&&[401,403,404].includes(e.status)){setConversation(null);setMessages([]);setAttachments([]);setText('');cursor=0;}}
       }
     };
     setMessages([]);
     setConnectionError("");
     let idle=0;
     const stop=visiblePoll(async()=>{const before=cursor;await load();idle=cursor===before?idle+1:0;},()=>waiting?1500:idle>=4?10000:2500);
-    wakeTranscript.current=()=>{idle=0;stop.refresh();};
+    wakeTranscript.current=(reset=false)=>{if(reset){cursor=0;latestUser=0;latestAnswered=0;}idle=0;stop.refresh();};
     return () => {
       active = false;
       wakeTranscript.current=()=>{};
@@ -192,17 +193,17 @@ export function useWorkspace(staff=false,manageList=true){
     const valid=()=>current()&&operations.current.isCurrent(operation);
     setBusy(true);revision.current++;
     try {
-      await api(`conversations/${selected}/transition`, {
+      const receipt=await api<TransitionReceipt>(`conversations/${selected}/transition`, {
         action,
         version: conversation.version,
       });
       if(!valid())return false;
-      revision.current++;const latest=await api<Transcript>(`conversations/${selected}`);
-      if(!valid())return false;
-      setConversation(latest.conversation);setMessages(old=>latest.conversation.restricted?[]:mergeMessages(old,latest.messages));
-      await refreshList();
-      if(!valid())return false;
-      setError("");return true;
+      revision.current++;
+      const acknowledged=applyTransitionReceipt(conversation,receipt,action,staff?me?.user||undefined:undefined);
+      setConversation(acknowledged);if(acknowledged.restricted){setMessages([]);setAttachments([]);}
+      setError("");wakeTranscript.current(true);
+      void refreshList().catch(()=>{});
+      return true;
     } catch (e) {
       if(valid())setError((e as Error).message);return false;
     } finally {

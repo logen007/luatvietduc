@@ -37,3 +37,18 @@ test('polling never overlaps, sleeps when hidden, and stops on cleanup',async()=
   doc.hidden=false;doc.dispatchEvent(new Event('visibilitychange'));assert.equal(calls,2);stop();release();await Promise.resolve();await Promise.resolve();assert.equal(timers.size,0);stop.refresh();win.dispatchEvent(new Event('focus'));assert.equal(calls,2);
  }finally{stop?.();Object.assign(globalThis,original);}
 });
+test('refresh during a pending read runs once immediately afterward, without overlapping reads',async()=>{
+ const original={document:globalThis.document,window:globalThis.window,setTimeout:globalThis.setTimeout,clearTimeout:globalThis.clearTimeout};
+ const doc=new EventTarget(),win=new EventTarget(),timers=new Map();doc.hidden=false;let sequence=0,calls=0,release;
+ globalThis.document=doc;globalThis.window=win;globalThis.setTimeout=callback=>{timers.set(++sequence,callback);return sequence;};globalThis.clearTimeout=id=>timers.delete(id);
+ let stop;
+ try{
+  stop=visiblePoll(()=>{calls++;return new Promise(resolve=>{release=resolve;});},10000);
+  for(let i=0;i<20;i++)stop.refresh();
+  assert.equal(calls,1);assert.equal(timers.size,0);
+  release();await Promise.resolve();await Promise.resolve();
+  assert.equal(calls,2,'The acknowledged write must not wait for the idle polling interval');assert.equal(timers.size,0);
+  release();await Promise.resolve();await Promise.resolve();assert.equal(calls,2);assert.equal(timers.size,1);
+  stop();assert.equal(timers.size,0);
+ }finally{stop?.();Object.assign(globalThis,original);}
+});

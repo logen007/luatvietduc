@@ -139,6 +139,7 @@ Bundle editorial-ui.js chỉ còn adapter bookmark native; giữ tên tệp/vers
 `shared/locale/ascii-transition.ts` tạo lớp chữ ASCII trang trí cho các nhãn vừa đổi VI/DE, giữ nguyên DOM bản dịch và accessible name; chỉ các chữ đang nhìn thấy được xử lý. Hiệu ứng 1.500ms được hủy khi thao tác tiếp, cuộn, đổi kích thước hoặc ẩn tab, và bỏ qua khi bật reduced motion. `ascii.ts` chứa bộ sinh khung chữ có kiểm tra riêng.
 
 Menu admin dùng nút mở cố định của template ở mọi kích thước, giữ hỗ trợ bàn phím; nút mobile trùng lặp trong header được ẩn.
+Quy tắc mobile hiện biểu tượng và vùng bấm 44px của nút cố định, ghi đè việc thư viện gốc ẩn biểu tượng dưới 768px.
 
 Liên kết từ chủ đề đưa tiêu đề công khai vào ô soạn chat qua `chat/intake.ts`, không tự gửi hoặc tạo câu trả lời. Storage không khả dụng không làm treo việc khởi tạo. Browser check phân biệt H1 Thư viện với nhãn cùng tên ở footer.
 
@@ -147,3 +148,9 @@ Liên kết từ chủ đề đưa tiêu đề công khai vào ô soạn chat qu
 `knowledge/useSources.ts` sở hữu danh sách, bộ lọc và polling khi tab đang mở. `shared/latest-request.ts` gộp lượt đọc cùng truy vấn, bỏ kết quả của lượt cũ và vô hiệu lượt đọc trước khi ghi đã thành công. Lỗi cập nhật danh sách được hiển thị riêng với lỗi ghi; xác nhận lưu không bị đổi thành thất bại vì lượt đọc sau đó. Thao tác chỉnh/lưu/lập chỉ mục dùng chốt đồng bộ để chặn nhấn lặp, và trang vượt phạm vi được đưa về trang còn hợp lệ.
 
 Các lượt đọc phiên, cài đặt, API giao diện và kết nối có giới hạn chờ 15 giây, giữ nguyên các lượt ghi và cơ chế gửi lại hiện có. Nhãn ô nội dung/cách hỏi có phần chữ riêng, không bị lẫn với nội dung textarea.
+
+## Hội thoại khi mạng chậm
+
+Lệnh làm mới trong lúc đang đọc được gộp thành một lượt đọc ngay sau đó, thay vì bị bỏ qua hoặc chờ nhịp polling dài. Vòng đọc vẫn không chạy chồng và dừng khi ẩn/đóng trang. Kết quả tiếp nhận/hoàn tất/trả hàng chờ được áp dụng ngay từ xác nhận ghi, tách khỏi lỗi đọc tiếp theo; không tải hai transcript song song sau mỗi thao tác.
+
+`chat/transition-receipt.ts` giữ trạng thái đã xác nhận và che dữ liệu ngay khi chuyên viên trả/mở lại hội thoại vào hàng chờ. Tiếp nhận không tự mở nội dung trước khi transcript đã kiểm tra quyền trả về. Lỗi mạng tạm thời giữ trạng thái gần nhất và bản nháp; lỗi mất quyền xóa transcript, tệp đang soạn và nội dung soạn khỏi màn hình. Hộp thư có nút thử lại, làm mới sau ghi vô hiệu kết quả cũ, và tự đưa phân trang về phạm vi còn hợp lệ. Server vẫn kiểm tra quyền, phiên bản và lưu chuyển trạng thái trong giao dịch.

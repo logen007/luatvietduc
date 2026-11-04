@@ -13,9 +13,9 @@ export function useInbox(userId:number|undefined,sessionRevision:number){
  const activeKey=useRef(key);activeKey.current=key;
  const serial=useRef(0),pending=useRef<{key:string;task:Promise<void>}|null>(null);
  useEffect(()=>{const timer=setTimeout(()=>setDebouncedQuery(query),250);return()=>clearTimeout(timer);},[query]);
- function refresh():Promise<void>{
+ function refresh(force=false):Promise<void>{
   if(!owner||activeKey.current!==key||!isPublicSessionCurrent(sessionRevision))return Promise.resolve();
-  if(pending.current?.key===key)return pending.current.task;
+  if(!force&&pending.current?.key===key)return pending.current.task;
   const turn=++serial.current;
   const valid=()=>turn===serial.current&&activeKey.current===key&&isPublicSessionCurrent(sessionRevision);
   const task=(async()=>{
@@ -31,10 +31,11 @@ export function useInbox(userId:number|undefined,sessionRevision:number){
  useEffect(()=>{
   if(!owner){setSaved({owner:'',key:'',data:empty,loading:false,error:''});return;}
   setSaved(previous=>({owner,key,data:previous.owner===owner&&previous.key===key?previous.data:empty,loading:true,error:''}));
-  const stop=visiblePoll(refresh,5000);
+  const stop=visiblePoll(()=>refresh(),5000);
   return()=>{serial.current++;pending.current=null;stop();};
  },[owner,key]);
  const matches=Boolean(owner)&&saved.owner===owner&&saved.key===key&&query===debouncedQuery;
+ useEffect(()=>{if(matches&&!saved.loading&&!saved.error&&page>saved.data.totalPages)setPage(Math.max(1,saved.data.totalPages));},[matches,saved.loading,saved.error,saved.data.totalPages,page]);
  const data=matches?saved.data:empty;
  return {...data,view,query,page,loading:Boolean(owner)&&(!matches||saved.loading),error:matches?saved.error:'',refresh,setView:(v:string)=>{setView(v);setPage(1);},setQuery:(v:string)=>{setQuery(v);setPage(1);},setPage};
 }

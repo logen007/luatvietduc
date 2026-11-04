@@ -5,5 +5,6 @@ export type Message={id:string|number;role:'user'|'staff'|'assistant';body:strin
 export type Conversation={id:string;title:string;state:ConversationState;version:number;jurisdiction?:string;assignedTo?:number|null;aiEnabled?:boolean;aiStartedAt?:string|null;aiMessageId?:string|number|null;restricted?:boolean;registered?:boolean;createdAt?:string;updatedAt?:string;assignedName?:string|null;customer?:{name:string;email:string|null}};
 export type {PublicSession as Me} from '../identity/contracts';
 export type Transcript={conversation:Conversation;messages:Message[]};
+export type TransitionReceipt=Pick<Conversation,'state'|'version'>;
 export type InboxRow={id:string;title:string|null;state:ConversationState;version:number;registered:boolean;updated_at:string;last_role?:Message['role']};
 export type InboxResult={rows:InboxRow[];counts:Record<string,number>;total:number;totalPages:number;page:number};
