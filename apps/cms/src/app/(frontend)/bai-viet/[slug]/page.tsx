@@ -15,7 +15,7 @@ export default async function Page({
     collection: "articles",
     overrideAccess: false,
     where: { slug: { equals: slug } },
-    limit: 1,
+    limit: 1,depth:1,
   });
   const a = result.docs[0];
   if (!a) notFound();
@@ -29,13 +29,14 @@ export default async function Page({
             <span>/</span>
             <a href="/#/tin-tuc">Tin tức & đời sống</a>
             <span>/</span>
-            <span>{a.jurisdiction === "VN" ? "Việt Nam" : "Đức"}</span>
+            <span>{a.jurisdiction === "VN" ? "Việt Nam" : a.jurisdiction === "DE" ? "Đức" : "Luật Việt Đức"}</span>
           </nav>
           <header className="live-reading-heading">
             <p className="live-eyebrow">
-              {a.jurisdiction === "VN" ? "PHÁP LUẬT VIỆT NAM" : "PHÁP LUẬT ĐỨC"}
+              {a.kind === "news" ? "TIN TỨC" : "KIẾN THỨC PHÁP LUẬT"}
             </p>
             <h1>{a.title}</h1>
+            <div className="live-reading-taxonomy">{a.categories?.map(category=>typeof category==='object'&&category?<span key={'category-'+category.id}>{category.name}</span>:null)}{a.tags?.map(tag=>typeof tag==='object'&&tag?<span key={'tag-'+tag.id}>#{tag.name}</span>:null)}</div>
             <div className="live-reading-meta">
               <span>Luật Việt Đức</span>
               <span aria-hidden="true">·</span>

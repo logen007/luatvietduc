@@ -10,7 +10,7 @@ export async function knowledgeArticles(payload:Payload,user:User|null,id?:strin
  if(id){if(!/^\d+$/.test(id))throw new HttpError(400,'Bài viết không hợp lệ.');return payload.findByID({collection:'knowledge',id:Number(id),user,overrideAccess:false,draft:true});}
  const query=(options.query||'').trim().slice(0,160),page=options.page||1;
  if(!Number.isSafeInteger(page)||page<1||page>100000)throw new HttpError(400,'Trang không hợp lệ.');
- const result=await payload.find({collection:'knowledge',user,overrideAccess:false,draft:true,limit:25,page,where:query?{title:{contains:query}}:undefined,sort:'-updatedAt',select:{title:true,jurisdiction:true,_status:true,approved:true,updatedAt:true,reviewDueAt:true}});
+ const result=await payload.find({collection:'knowledge',user,overrideAccess:false,draft:true,limit:25,page,where:{and:[{articleOrigin:{exists:false}},...(query?[{title:{contains:query}}]:[])]},sort:'-updatedAt',select:{title:true,jurisdiction:true,_status:true,approved:true,updatedAt:true,reviewDueAt:true}});
  const index=await indexStatus(user,result.docs.map(doc=>doc.id));
  return {articles:result.docs.map(doc=>({...doc,index:index.rows.find(row=>row.source_id===doc.id)||null})),indexWorker:index.worker,total:result.totalDocs,page:result.page,totalPages:result.totalPages};
 }

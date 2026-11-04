@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     users: User;
     articles: Article;
+    categories: Category;
+    tags: Tag;
     knowledge: Knowledge;
     media: Media;
     'audit-events': AuditEvent;
@@ -81,6 +83,8 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
     knowledge: KnowledgeSelect<false> | KnowledgeSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'audit-events': AuditEventsSelect<false> | AuditEventsSelect<true>;
@@ -162,23 +166,74 @@ export interface User {
  */
 export interface Article {
   id: number;
+  title: string;
+  /**
+   * Địa chỉ bài viết: https://luatvietduc.com/bai-viet/ + permalink. Để trống để tự tạo từ tiêu đề.
+   */
+  slug: string;
+  body: string;
+  /**
+   * Chọn một hoặc nhiều danh mục. Quản lý danh mục cha–con trong Bài viết → Danh mục.
+   */
+  categories?: (number | Category)[] | null;
+  /**
+   * Vietnam, Germany hoặc tag do anh tạo thêm.
+   */
+  tags?: (number | Tag)[] | null;
   kind?: ('article' | 'news' | 'question') | null;
   legalField?: string | null;
   effectiveFrom?: string | null;
   reviewDueAt?: string | null;
   reviewedBy?: (number | null) | User;
   reviewedAt?: string | null;
-  title: string;
-  slug: string;
-  body: string;
-  jurisdiction: 'VN' | 'DE';
+  jurisdiction: 'VN' | 'DE' | 'BOTH';
   language: 'vi' | 'de';
   sourceUrl?: string | null;
   reviewState?: ('draft' | 'pending' | 'approved' | 'withdrawn') | null;
+  /**
+   * RAG chỉ nhận bài đã xuất bản, được duyệt và đang bật tùy chọn này. Bỏ tick để ngừng dùng ngay.
+   */
   aiAllowed?: boolean | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * Tạo danh mục cha hoặc chọn danh mục cha để tạo danh mục con.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  label?: string | null;
+  name: string;
+  /**
+   * Tự tạo từ tên nếu để trống.
+   */
+  slug: string;
+  /**
+   * Để trống để làm danh mục cha. Không thể chọn chính nó hoặc danh mục con của nó.
+   */
+  parent?: (number | null) | Category;
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  name: string;
+  /**
+   * Tự tạo từ tên nếu để trống.
+   */
+  slug: string;
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Nhập FAQ công khai, kiểm tra căn cứ và xuất bản vào kho kiến thức chung. Không nhập hồ sơ hay hội thoại riêng. Xuất bản là xác nhận chuyên viên chịu trách nhiệm nội dung.
@@ -188,6 +243,7 @@ export interface Article {
  */
 export interface Knowledge {
   id: number;
+  articleOrigin?: (number | null) | Article;
   title: string;
   /**
    * Mỗi dòng một câu hỏi có cùng phạm vi và điều kiện với câu hỏi chuẩn. Không bắt buộc. AI còn tìm theo ý nghĩa trong nội dung bài viết.
@@ -285,6 +341,14 @@ export interface PayloadLockedDocument {
         value: number | Article;
       } | null)
     | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: number | Tag;
+      } | null)
+    | ({
         relationTo: 'knowledge';
         value: number | Knowledge;
       } | null)
@@ -369,15 +433,17 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "articles_select".
  */
 export interface ArticlesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  body?: T;
+  categories?: T;
+  tags?: T;
   kind?: T;
   legalField?: T;
   effectiveFrom?: T;
   reviewDueAt?: T;
   reviewedBy?: T;
   reviewedAt?: T;
-  title?: T;
-  slug?: T;
-  body?: T;
   jurisdiction?: T;
   language?: T;
   sourceUrl?: T;
@@ -389,9 +455,34 @@ export interface ArticlesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  label?: T;
+  name?: T;
+  slug?: T;
+  parent?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "knowledge_select".
  */
 export interface KnowledgeSelect<T extends boolean = true> {
+  articleOrigin?: T;
   title?: T;
   questionAliases?: T;
   body?: T;

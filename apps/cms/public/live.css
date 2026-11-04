@@ -1094,6 +1094,8 @@
   letter-spacing: -0.01em;
   margin: 24px 0 30px;
 }
+
+.live-reading-taxonomy{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}.live-reading-taxonomy span{border:1px solid #d9d6cf;border-radius:4px;padding:5px 10px;font-size:12px;line-height:1.5;color:#666}
 /* Reference breakpoint: navigation collapses at 980px; real UI never scales. */
 @media (max-width: 1200px) {
   .live-header .live-header-inner {

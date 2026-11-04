@@ -32,6 +32,7 @@ export const Knowledge: CollectionConfig = {
     beforeChange: [
       articleLock,
       ({ data, originalDoc, req }) => {
+        if(originalDoc?.articleOrigin)throw new Error("Bài viết này được đồng bộ tự động. Hãy chỉnh sửa trong Bài viết.");
         if (
           req.user?.role !== "owner" &&
           (data.jurisdiction ?? originalDoc?.jurisdiction) !== "BOTH" &&
@@ -90,6 +91,7 @@ export const Knowledge: CollectionConfig = {
     afterChange: [auditArticle],
   },
   fields: [
+    {name:"articleOrigin",type:"relationship",relationTo:"articles",admin:{hidden:true},access:{create:()=>false,update:()=>false}},
     { name: "title", label: "Câu hỏi chuẩn / tên nguồn", type: "text", required: true },
     {name:'questionAliases',label:'Cách hỏi khác đã được chuyên viên xác nhận',type:'textarea',maxLength:4000,admin:{description:'Mỗi dòng một câu hỏi có cùng phạm vi và điều kiện với câu hỏi chuẩn. Không bắt buộc. AI còn tìm theo ý nghĩa trong nội dung bài viết.'}},
     {

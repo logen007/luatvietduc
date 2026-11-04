@@ -9,7 +9,7 @@ test('anonymous user creation denied',()=>assert.equal(users.access.create({req:
 test('editor cannot create privileged users',()=>assert.equal(users.access.create({req:req('editor')}),false));
 test('owner may provision users',()=>assert.equal(users.access.create({req:req('owner')}),true));
 test('member only reads own user record',()=>assert.deepEqual(users.access.read({req:req('member')}),{id:{equals:1}}));
-test('support cannot edit articles',()=>assert.equal(articles.access.update({req:req('support')}),false));
+test('specialists can manage shared articles within assigned scope',()=>assert.deepEqual(articles.access.update({req:req('support')}),{jurisdiction:{in:['VN','BOTH']}}));
 test('public article query requires publication and approval',()=>assert.deepEqual(articles.access.read({req:req()}),{and:[{_status:{equals:'published'}},{reviewState:{equals:'approved'}}]}));
 const articleHook=articles.hooks.beforeChange[1];
 test('editor cannot publish',()=>assert.throws(()=>articleHook({req:req('editor'),data:{jurisdiction:'VN',_status:'published'}}),/Publication restricted/));
@@ -21,7 +21,7 @@ test('private site settings cannot be read by editor',()=>assert.equal(config.gl
 test('Payload merged publication state is invalidated before editor publication guard',()=>assert.equal(articleHook({req:req('editor'),data:{body:'New',_status:'published'},originalDoc:{jurisdiction:'VN',body:'Old',_status:'published',reviewState:'approved'}})._status,'draft'));
 
 test('member sees public approved articles',()=>assert.deepEqual(articles.access.read({req:req('member')}),articles.access.read({req:req()})));
-test('staff updates are constrained by country',()=>assert.deepEqual(articles.access.update({req:req('reviewer')}),{jurisdiction:{in:['VN']}}));
+test('staff updates are constrained by country',()=>assert.deepEqual(articles.access.update({req:req('reviewer')}),{jurisdiction:{in:['VN','BOTH']}}));
 test('staff without a country cannot update',()=>assert.equal(articles.access.update({req:{user:{role:'editor'},context:{}}}),false));
 test('editor cannot create across countries',()=>assert.equal(articles.access.create({req:req('editor'),data:{jurisdiction:'DE'}}),false));
 test('editor cannot move article across countries',()=>assert.throws(()=>articleHook({req:req('editor'),data:{jurisdiction:'DE'},originalDoc:{jurisdiction:'VN'}}),/jurisdiction/));

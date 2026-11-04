@@ -8,6 +8,7 @@ import { runtimeEmail } from "./modules/integrations/email";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Users } from "./modules/identity/users";
+import {Categories,Tags} from "./modules/taxonomy/collections";
 import { Articles } from "./modules/content/articles";
 import { Audit } from "./modules/content/audit";
 import { SiteSettings } from "./modules/settings/config";
@@ -39,7 +40,7 @@ export default buildConfig({
     pool: { connectionString: process.env.DATABASE_URL || "" },
     push: false,
   }),
-  collections: [Users, Articles, Knowledge, Media, Audit],
+  collections: [Users, Articles, Categories, Tags, Knowledge, Media, Audit],
   globals: [SiteSettings],
   plugins: [runtimeStorage()],
   email: runtimeEmail,

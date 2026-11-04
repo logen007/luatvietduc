@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import {permalink} from "../taxonomy/slug";
 import { owner } from "../shared/access";
 import {
   articleWorkflow,
@@ -10,7 +11,7 @@ import { articleLock, auditArticle } from "./audit";
 export const Articles: CollectionConfig = {
   slug: "articles",labels:{singular:"Bài viết",plural:"Bài viết & hỏi đáp"},
   versions: { drafts: true },
-  admin: { group: "Nội dung", useAsTitle: "title" },
+  admin: { group: "Nội dung", useAsTitle: "title",defaultColumns:["title","categories","tags","_status","aiAllowed","updatedAt"],preview:doc=>"/bai-viet/"+doc.slug },
   access: {
     create: createArticle,
     read: readArticles,
@@ -19,17 +20,24 @@ export const Articles: CollectionConfig = {
     readVersions: scopedStaff,
   },
   hooks: {
+    beforeValidate:[({data,originalDoc})=>{if(!data)return data;data.slug=permalink(String(data.slug||originalDoc?.slug||data.title||''));return data;}],
     beforeChange: [articleLock, articleWorkflow],
     afterChange: [auditArticle],
   },
   fields: [
+    {name:'title',label:'Tiêu đề',type:'text',required:true,maxLength:240,admin:{className:'lvd-post-title'}},
+    {name:'slug',label:'Permalink',type:'text',required:true,unique:true,admin:{description:'Địa chỉ bài viết: https://luatvietduc.com/bai-viet/ + permalink. Để trống để tự tạo từ tiêu đề.'}},
+    {name:'body',label:'Nội dung',type:'textarea',required:true,maxLength:16000,admin:{rows:28,className:'lvd-post-body'}},
+    {name:'categories',label:'Danh mục',type:'relationship',relationTo:'categories',hasMany:true,admin:{position:'sidebar',allowCreate:true,description:'Chọn một hoặc nhiều danh mục. Quản lý danh mục cha–con trong Bài viết → Danh mục.'}},
+    {name:'tags',label:'Tag',type:'relationship',relationTo:'tags',hasMany:true,admin:{position:'sidebar',allowCreate:true,description:'Vietnam, Germany hoặc tag do anh tạo thêm.'}},
     {
       name: "kind",
       label: "Loại nội dung",
       type: "select",
       defaultValue: "article",
-      options: ["article", "news", "question"],
+      options: [{label:"Bài viết",value:"article"},{label:"Tin tức",value:"news"},{label:"Hỏi đáp",value:"question"}],admin:{position:"sidebar"},
     },
+    {type:"collapsible",label:"Thông tin bổ sung",admin:{initCollapsed:true},fields:[
     { name: "legalField", label: "Lĩnh vực", type: "text" },
     { name: "effectiveFrom", label: "Có hiệu lực từ", type: "date" },
     { name: "reviewDueAt", label: "Hạn rà soát", type: "date" },
@@ -46,16 +54,15 @@ export const Articles: CollectionConfig = {
       type: "date",
       access: { create: () => false, update: () => false },
     },
-    { name: "title", label:"Tiêu đề", type: "text", required: true },
-    { name: "slug", label:"Đường dẫn", type: "text", required: true, unique: true },
-    { name: "body", label:"Nội dung", type: "textarea", required: true },
+    ]},
     {
       name: "jurisdiction", label:"Quốc gia",
       type: "select",
       required: true,
-      options: ["VN", "DE"],
+      options: ["VN", "DE",{label:"Việt Nam và Đức",value:"BOTH"}],
+      defaultValue:"BOTH",admin:{hidden:true},
     },
-    { name: "language", label:"Ngôn ngữ nội dung", type: "select", required: true, options: ["vi", "de"] },
+    { name: "language", label:"Ngôn ngữ nội dung", type: "select", required: true,defaultValue:"vi", options: ["vi", "de"],admin:{position:"sidebar"} },
     {
       name: "sourceUrl", label:"Nguồn tham khảo",
       type: "text",
@@ -71,21 +78,21 @@ export const Articles: CollectionConfig = {
     {
       name: "reviewState", label:"Trạng thái duyệt",
       type: "select",
-      defaultValue: "draft",
-      options: ["draft", "pending", "approved", "withdrawn"],
+      defaultValue: ({user})=>["owner","knowledge","support"].includes(user?.role||"")?"approved":"draft",
+      options: [{label:"Nháp",value:"draft"},{label:"Chờ duyệt",value:"pending"},{label:"Đã duyệt",value:"approved"},{label:"Thu hồi",value:"withdrawn"}],admin:{position:"sidebar"},
       access: {
-        create: ({ req }) => ["owner", "editor"].includes(req.user?.role || ""),
+        create: ({ req }) => ["owner", "editor","knowledge","support"].includes(req.user?.role || ""),
         update: ({ req }) =>
-          ["owner", "editor", "reviewer"].includes(req.user?.role || ""),
+          ["owner", "editor", "reviewer","knowledge","support"].includes(req.user?.role || ""),
       },
     },
     {
       name: "aiAllowed", label:"Cho phép dùng cho AI",
       type: "checkbox",
-      defaultValue: false,
+      defaultValue: false,admin:{position:"sidebar",description:"RAG chỉ nhận bài đã xuất bản, được duyệt và đang bật tùy chọn này. Bỏ tick để ngừng dùng ngay."},
       access: {
-        create: ({ req }) => req.user?.role === "owner",
-        update: ({ req }) => req.user?.role === "owner",
+        create: ({ req }) => ["owner","knowledge","support","reviewer"].includes(req.user?.role||""),
+        update: ({ req }) => ["owner","knowledge","support","reviewer"].includes(req.user?.role||""),
       },
     },
   ],
