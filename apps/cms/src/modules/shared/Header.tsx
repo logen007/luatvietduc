@@ -45,7 +45,7 @@ export function Header({publicMode=false,activeSection=''}:{publicMode?:boolean;
           <a href="/" onClick={closeMenu}>{t("Trang chủ")} {arrow}</a>
           {publicLinks.map((link) => <a key={link.href} href={link.href} onClick={closeMenu}>{t(link.label)}{arrow}</a>)}
           <a href="/lien-he" onClick={closeMenu}>{t("Liên hệ")} {arrow}</a>
-          <a href="/tro-chuyen" onClick={closeMenu} aria-current={pathname === "/tro-chuyen" ? "page" : undefined}>{t("Hỏi chuyên viên")} {arrow}</a>
+          <a href="/tro-chuyen" onClick={closeMenu} aria-current={pathname === "/tro-chuyen" ? "page" : undefined}>{t("Trò chuyện")} {arrow}</a>
           <a href={account.href} onClick={closeMenu}>{account.label} {arrow}</a>
           {account.management&&<a href={account.management.href} onClick={closeMenu}>{account.management.label} {arrow}</a>}
         </nav>
