@@ -12,9 +12,9 @@ export const integrationCatalog = {
     { key: 'apiKey', label: 'API key', secret: true, placeholder: '' },
     { key: 'model', label: 'Model (để trống để tự chọn)', secret: false, placeholder: 'Tự chọn model Flash phù hợp từ Google' },
   ] },
-  translation: { title: 'Dịch bài viết · Grok', help: 'Khóa xAI riêng cho dịch Việt–Đức. Chỉ dịch khi bấm Dịch bằng AI.', fields: [
-    { key: 'apiKey', label: 'API key xAI', secret: true, placeholder: '' },
-    { key: 'model', label: 'Model (để trống để tự chọn)', secret: false, placeholder: 'Tự chọn Grok phù hợp với khóa' },
+  translation: { title: 'Dịch bài viết · Gemini', help: 'Dùng hạn mức miễn phí với khóa Google AI Studio riêng từ dự án chưa bật thanh toán. Chỉ dịch khi bấm Dịch bằng AI.', fields: [
+    { key: 'apiKey', label: 'API key Gemini', secret: true, placeholder: '' },
+    { key: 'model', label: 'Model (để trống để tự chọn)', secret: false, optional: true, placeholder: 'Gemini 3.1 Flash-Lite' },
   ] },
   r2: { title: 'Lưu tệp · Cloudflare R2', help: 'Dùng bucket riêng tư và khóa S3 chỉ có quyền trên bucket này.', fields: [
     { key: 'endpoint', label: 'S3 endpoint', secret: false, placeholder: 'https://<account-id>.r2.cloudflarestorage.com' },

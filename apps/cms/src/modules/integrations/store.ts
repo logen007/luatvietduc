@@ -2,6 +2,7 @@ import { pool, transaction } from '../shared/db';
 import { integrationCatalog, type Provider, type Values } from './catalog';
 import { seal, unseal } from './crypto';
 import { IntegrationError, mergeValues, validateValues } from './validation';
+import {translationVendor} from './translation-policy';
 type Row = { provider: Provider; encrypted_values: string; enabled: boolean; version: number; check_state: string; checked_at: string | null; updated_at: string };
 const envValues = (p: Provider): Values => {
   const e = process.env;
@@ -21,7 +22,10 @@ export async function activeValues(provider: Provider): Promise<Values | null> {
   if (row) {
     if (!row.enabled) return null;
     const values=unseal(provider,row.encrypted_values);
-    if (provider==='translation' && values.vendor!=='xai') return null;
+    if (provider==='translation') {
+      if(values.vendor!==translationVendor)return null;
+      try{validateValues(provider,values);}catch{return null;}
+    }
     return values;
   }
   const values = envValues(provider);
@@ -29,7 +33,7 @@ export async function activeValues(provider: Provider): Promise<Values | null> {
 }
 export async function safeConnection(provider: Provider) {
   const row = await readRow(provider), saved = row ? unseal(provider, row.encrypted_values) : envValues(provider);
-  const obsolete=provider==='translation'&&saved.vendor!=='xai';
+  const obsolete=provider==='translation'&&saved.vendor!==translationVendor;
   const values:Values=obsolete?{}:saved;
   const fields: Values = {}, stored: Record<string, boolean> = {};
   for (const field of integrationCatalog[provider].fields) {
