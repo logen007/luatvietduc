@@ -7,7 +7,7 @@
 }
 .live-footer-inner {
   display: grid;
-  grid-template-columns: 200px repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(260px, 1.6fr) repeat(4, minmax(0, 1fr));
   gap: 30px;
   max-width: 1600px;
   margin: auto;
@@ -19,7 +19,8 @@
   letter-spacing: -0.01em;
   color: #fff;
   text-decoration: none;
-  max-width: 200px;
+  max-width: none;
+  white-space: nowrap;
 }
 .live-footer-identity p {
   font-size: 13px;

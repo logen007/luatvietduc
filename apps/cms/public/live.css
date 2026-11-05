@@ -399,7 +399,7 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 }
 .live-footer-inner {
   display: grid;
-  grid-template-columns: 200px repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(260px, 1.6fr) repeat(4, minmax(0, 1fr));
   gap: 30px;
   max-width: 1600px;
   margin: auto;
@@ -411,7 +411,8 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
   letter-spacing: -0.01em;
   color: #fff;
   text-decoration: none;
-  max-width: 200px;
+  max-width: none;
+  white-space: nowrap;
 }
 .live-footer-identity p {
   font-size: 13px;
@@ -1125,7 +1126,7 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
     margin-left: 0;
   }
   .live-footer-inner {
-    grid-template-columns: 180px repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(260px, 1.6fr) repeat(4, minmax(0, 1fr));
     gap: 24px;
   }
   .live-auth-intro,
@@ -1235,6 +1236,9 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 40px 30px;
     padding-inline: 24px;
+  }
+  .live-footer-identity {
+    grid-column: 1 / -1;
   }
   .live-footer-meta {
     padding-inline: 24px;

@@ -7,7 +7,7 @@
     margin-left: 0;
   }
   .live-footer-inner {
-    grid-template-columns: 180px repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(260px, 1.6fr) repeat(4, minmax(0, 1fr));
     gap: 24px;
   }
   .live-auth-intro,
@@ -117,6 +117,9 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 40px 30px;
     padding-inline: 24px;
+  }
+  .live-footer-identity {
+    grid-column: 1 / -1;
   }
   .live-footer-meta {
     padding-inline: 24px;
