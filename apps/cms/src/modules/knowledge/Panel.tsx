@@ -28,7 +28,7 @@ function KnowledgeWorkspace(){
  const change=(key:keyof typeof empty,value:string)=>{setForm(previous=>({...previous,[key]:value}));setNotice('');};
  function create(){if(operation.current||!canDiscard())return;setEditing(null);setForm(empty);setError('');setNotice('');}
  async function edit(id:number){
-  if(operation.current||id===editing?.id||!canDiscard())return;operation.current=true;setBusy(true);setError('');
+  if(operation.current||!canDiscard())return;operation.current=true;setBusy(true);setError('');
   try{const doc=await api('knowledge-articles?id='+id);if(mounted.current){setEditing(doc);setForm(editable(doc));setNotice('');}}
   catch(error){if(mounted.current)setError((error as Error).message);}finally{operation.current=false;if(mounted.current)setBusy(false);}
  }

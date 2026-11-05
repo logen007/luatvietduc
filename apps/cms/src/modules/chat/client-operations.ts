@@ -1,4 +1,13 @@
-import type {Message} from './contracts';
+import type {Conversation,Message} from './contracts';
+
+// A create receipt establishes only this ID and the server's new-thread
+// defaults. Delivery, assignment and assistant state still come from reads.
+export function rememberCreatedConversation(previous:Conversation[],id:string):Conversation[]{
+ if(typeof id!=='string'||!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(id)||previous.some(row=>row.id===id))return previous;
+ return [{id,title:'Cuộc trò chuyện mới',state:'queued' as const,version:1},...previous].slice(0,100);
+}
+
+export const normalizeInboxQuery=(query:string)=>query.trim().slice(0,120);
 
 // React state disables controls on the next render. This lock also covers two
 // events arriving before that render, and cannot be released by an older task.

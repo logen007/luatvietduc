@@ -1,14 +1,16 @@
 "use client";
 import {useLocale} from "../../../modules/shared/locale";
-import {usePublicSession} from '../../../modules/shared/session-client';
-import { useEffect, useState } from "react";
+import {loadPublicSession,usePublicSession} from '../../../modules/shared/session-client';
+import { useEffect, useRef, useState } from "react";
 import { api } from "../../../modules/shared/client-api";
 import { Header } from "../../../modules/shared/Header";
 import { Footer } from "../../../modules/shared/Footer";
-import {AccountForm} from "../../../modules/identity/AccountForm";
+import {AccountForm,type AccountRecoveryLink} from "../../../modules/identity/AccountForm";
 export default function Page() {
  const {t}=useLocale();
   const session=usePublicSession(),data=session.data;
+  const recoveryLink=useRef<AccountRecoveryLink|null>(null);
+  useEffect(()=>{if(data?.user)recoveryLink.current=null;},[data?.user]);
   const [error,setError]=useState('');
   const [conversation,setConversation]=useState('');
   useEffect(()=>{const id=new URLSearchParams(window.location.search).get('conversation');if(id&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id))setConversation(id);},[]);
@@ -35,7 +37,7 @@ export default function Page() {
             {!data ? (
               error ? (
                 <div className="live-actions">
-                  <button className="button" onClick={() => location.reload()}> {t("Thử lại")} </button>
+                  <button className="button" onClick={() => {setError('');void loadPublicSession().catch(()=>setError('Không thể kiểm tra phiên đăng nhập.'));}}> {t("Thử lại")} </button>
                 </div>
               ) : (
                 <div className="live-loading" role="status">
@@ -85,7 +87,7 @@ export default function Page() {
                 > {t("Đăng xuất")} </button>
               </>
             ) : (
-              <AccountForm google={data.connections.google} conversation={conversation}/>
+              <AccountForm google={data.connections.google} conversation={conversation} recoveryLink={recoveryLink.current} onRecoveryLink={value=>{recoveryLink.current=value;}}/>
             )}
           </section>
         </div>

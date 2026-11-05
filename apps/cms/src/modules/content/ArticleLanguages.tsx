@@ -27,7 +27,7 @@ export function ArticleLanguages(){
     const saved=await submit({action:'/api/articles/'+id+'?depth=0&draft=true',method:'PATCH',overrides:{_status:'draft'},skipValidation:true,disableSuccessStatus:true});
     if(!saved?.res.ok)throw new Error('Chưa lưu được bản nháp. Kiểm tra các ô đang báo lỗi.');
     if(!mounted.current||controller.signal.aborted)return;
-    const latest=await fetch('/api/articles/'+id+'?draft=true&depth=0',{cache:'no-store',signal:controller.signal});
+    const latest=await fetch('/api/articles/'+id+'?draft=true&depth=0',{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)])});
     if(!latest.ok)throw new Error('Đã lưu bản nháp nhưng chưa mở được bản ngôn ngữ. Thử lại.');
     updatedAt=(await latest.json()).updatedAt;
    }
@@ -36,7 +36,7 @@ export function ArticleLanguages(){
    const response=await fetch('/service/articles/translations',{method:'POST',headers:{'content-type':'application/json'},signal:AbortSignal.any([controller.signal,AbortSignal.timeout(20000)]),body:JSON.stringify({id:Number(id),updatedAt,language:other,mode:'manual'})});
    const result=await response.json();if(!response.ok)throw new Error(result.error||'Chưa mở được bản ngôn ngữ.');
    if(mounted.current&&!controller.signal.aborted)window.location.assign('/admin/collections/articles/'+result.id);
-  }catch(e){if(mounted.current&&!controller.signal.aborted)setError((e as Error).message||'Chưa mở được bản ngôn ngữ.');}
+  }catch(e){if(mounted.current&&!controller.signal.aborted)setError(e instanceof Error&&e.name==='Error'?e.message:'Chưa mở được bản ngôn ngữ. Thử lại.');}
   finally{if(flight.current===controller)flight.current=null;if(mounted.current)setBusy(null);}
  }
  async function translate(){
@@ -46,7 +46,7 @@ export function ArticleLanguages(){
   try{
    let input:Record<string,unknown>={mode:'draft',language,title:current.title,body:current.body};
    if(source){
-    const response=await fetch('/api/articles/'+source.id+'?draft=true&depth=0',{cache:'no-store',signal:controller.signal});
+    const response=await fetch('/api/articles/'+source.id+'?draft=true&depth=0',{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)])});
     const article=await response.json();if(!response.ok)throw new Error('Chưa đọc được bản nguồn.');
     input={id:source.id,updatedAt:article.updatedAt,language,mode:'preview'};
    }
@@ -55,7 +55,7 @@ export function ArticleLanguages(){
    if(!mounted.current||controller.signal.aborted)return;
    if(JSON.stringify(getData())!==snapshot)throw new Error('Bài đang sửa đã thay đổi. Nội dung mới của anh được giữ nguyên.');
    setTitle(result.translation.title);setBody(result.translation.body);setMessage('Đã dịch. Lưu bản nháp sau khi đọc lại.');
-  }catch(e){if(mounted.current&&!controller.signal.aborted)setError((e as Error).message||'Chưa hoàn tất bản dịch. Thử lại sau.');}
+  }catch(e){if(mounted.current&&!controller.signal.aborted)setError(e instanceof Error&&e.name==='Error'?e.message:'Chưa hoàn tất bản dịch. Thử lại sau.');}
   finally{if(flight.current===controller)flight.current=null;if(mounted.current)setBusy(null);}
  }
  const controls=<div className="lvd-article-language-actions"><button type="button" className="lvd-article-language-toggle" aria-label={'Chuyển bài viết sang '+names[other]} title={'Chuyển sang '+names[other]} disabled={disabled||(Boolean(id)&&!siblings)} onClick={()=>void select()}><img src={'/assets/flags/'+(language==='vi'?'vn':'de')+'.svg'} width="20" height="14" alt=""/>{language.toUpperCase()}</button><button type="button" className="lvd-article-translate" disabled={disabled||!ready} title={ready?'Dịch sang '+names[language]:'Chưa bật kết nối AI dịch bài viết'} onClick={()=>void translate()}>Dịch bằng AI</button></div>;

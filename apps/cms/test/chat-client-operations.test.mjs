@@ -1,9 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createOperationGate,createMessageOutbox,mergeMessages,validateAttachmentBatch} from '../src/modules/chat/client-operations.ts';
+import {createOperationGate,createMessageOutbox,mergeMessages,rememberCreatedConversation,normalizeInboxQuery,validateAttachmentBatch} from '../src/modules/chat/client-operations.ts';
 
 const draft={body:'Synthetic question',internal:false,fileIds:[]};
 function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};}
+
+test('acknowledged new conversation IDs remain navigable without inventing delivery or assignment',()=>{
+ const id='11111111-2222-4333-8444-555555555555',existing={id:'22222222-2222-4333-8444-555555555555',title:'Known thread',state:'human',version:8,assignedTo:7};
+ const before=[existing],rows=rememberCreatedConversation(before,id);
+ assert.deepEqual(rows,[{id,title:'Cuộc trò chuyện mới',state:'queued',version:1},existing]);assert.deepEqual(before,[existing]);
+ assert.equal(rememberCreatedConversation(rows,id),rows,'Repeated receipts cannot duplicate a history row');
+ assert.equal(rememberCreatedConversation(rows,existing.id),rows,'A create default cannot overwrite an authoritative transcript');
+ for(const invalid of ['',undefined,'unacknowledged-id'])assert.equal(rememberCreatedConversation(rows,invalid),rows);
+ const full=Array.from({length:100},(_,index)=>({...existing,id:index.toString(16).padStart(8,'0')+'-2222-4333-8444-555555555555'}));
+ const bounded=rememberCreatedConversation(full,id);assert.equal(bounded.length,100);assert.equal(bounded[0].id,id);assert.equal(bounded.at(-1).id,full[98].id);
+});
+
+test('inbox request normalization matches the server bound without changing editable text',()=>{
+ const input='  '+'x'.repeat(130)+'  ';
+ assert.equal(normalizeInboxQuery(input),'x'.repeat(120));assert.equal(input.length,134);
+ assert.equal(normalizeInboxQuery('  hồ sơ  '),'hồ sơ');assert.equal(normalizeInboxQuery('   '),'');
+});
 
 test('rapid mutations share one exclusive gate and an old completion cannot unlock a new session',()=>{
  const gate=createOperationGate(),first=gate.begin();assert.ok(first);

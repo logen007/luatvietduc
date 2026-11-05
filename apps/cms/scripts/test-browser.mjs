@@ -82,7 +82,8 @@ try{
  const nav=page.locator('.live-menu-dialog');await page.getByRole('button',{name:'Mở menu',exact:true}).click();await nav.waitFor({state:'visible'});
  assert.equal(await nav.getByRole('link',{name:'Đăng nhập',exact:true}).count(),0);await page.getByRole('button',{name:'Đóng menu',exact:true}).click();
  const {testPublicReview}=await import('./test-public-review.mjs');await testPublicReview({page,context,base,owner});
- const {testChatReview}=await import('./test-chat-review.mjs');await testChatReview({page,base,owner});
+ const {testAccountRecovery}=await import('./test-account-recovery.mjs');await testAccountRecovery({page,base});
+ const {testChatReview,testCustomerHistoryRecovery}=await import('./test-chat-review.mjs');await testCustomerHistoryRecovery({page,base});await testChatReview({page,base,owner});
  await page.setViewportSize({width:1280,height:900});
  await page.goto(base+'/tin-tuc');assert.ok((await page.locator('#news-query').boundingBox()).width>240,'Desktop news search must remain usable beside its filters');
  // Test recoverable connection errors independently of real credentials.
@@ -107,15 +108,15 @@ try{
  assert.equal(await page.getByLabel('Client Secret',{exact:true}).count(),0);
  await page.unroute('**/service/me');await page.evaluate(()=>document.dispatchEvent(new Event('lvd:sessionchange')));
  await page.getByLabel('Client Secret',{exact:true}).waitFor();assert.equal(await page.getByLabel('Client Secret',{exact:true}).inputValue(),'');
- let failSourceList=false;
+ let failSourceList=false,failSourceRead=false,sourceConflict=false,sourceReads=0;
  const sources=[{id:901,title:'Synthetic source A',body:'Synthetic body A',_status:'draft',approved:false,reviewDueAt:'2030-01-01T00:00:00Z'},{id:902,title:'Synthetic source B',body:'Synthetic body B',_status:'draft',approved:false,reviewDueAt:'2030-01-01T00:00:00Z'}];
- await page.route('**/service/knowledge-articles?*',route=>{const id=new URL(route.request().url()).searchParams.get('id');if(!id&&failSourceList){return route.fulfill({status:503,json:{error:'Synthetic list unavailable'}});}return route.fulfill({json:id?sources.find(source=>source.id===Number(id)):{articles:sources,total:2,totalPages:1,indexWorker:{online:true,state:'ready'}}});});
+ await page.route('**/service/knowledge-articles?*',route=>{const id=new URL(route.request().url()).searchParams.get('id');if(id){sourceReads++;if(failSourceRead)return route.fulfill({status:503,json:{error:'Synthetic source read unavailable'}});}if(!id&&failSourceList){return route.fulfill({status:503,json:{error:'Synthetic list unavailable'}});}return route.fulfill({json:id?sources.find(source=>source.id===Number(id)):{articles:sources,total:2,totalPages:1,indexWorker:{online:true,state:'ready'}}});});
  await page.route('**/service/knowledge-gaps',route=>route.fulfill({json:{conversations:[]}}));
  await page.goto(base+'/admin/knowledge');await page.getByRole('button',{name:/Synthetic source A/}).click();
  await page.getByLabel('Nội dung bài viết',{exact:true}).fill('Unsaved source content');page.once('dialog',dialog=>dialog.dismiss());await page.getByRole('button',{name:/Synthetic source B/}).click();assert.equal(await page.getByLabel('Nội dung bài viết',{exact:true}).inputValue(),'Unsaved source content');
  page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:/Synthetic source B/}).click();await page.waitForFunction(()=>document.querySelector('#knowledge-title')?.value==='Synthetic source B');
  // A saved draft remains successful even if the follow-up list request fails.
- await page.route('**/service/knowledge-articles',async route=>{assert.equal(route.request().method(),'POST');const data=route.request().postDataJSON(),index=sources.findIndex(source=>source.id===data.id);assert.ok(index>=0);sources[index]={...sources[index],...data,updatedAt:new Date().toISOString(),_status:'draft',approved:false};failSourceList=true;await route.fulfill({json:sources[index]});});
+ await page.route('**/service/knowledge-articles',async route=>{assert.equal(route.request().method(),'POST');if(sourceConflict)return route.fulfill({status:409,json:{error:'Synthetic source conflict'}});const data=route.request().postDataJSON(),index=sources.findIndex(source=>source.id===data.id);assert.ok(index>=0);sources[index]={...sources[index],...data,updatedAt:new Date().toISOString(),_status:'draft',approved:false};failSourceList=true;await route.fulfill({json:sources[index]});});
  await page.getByLabel('Nội dung bài viết',{exact:true}).fill('Synthetic saved draft');
  await page.getByRole('button',{name:'Lưu nháp / thu hồi',exact:true}).click();
  await page.getByText('Đã lưu bản nháp và ngừng dùng bài cho AI.',{exact:true}).waitFor();
@@ -123,6 +124,12 @@ try{
  assert.equal(await page.locator('.lvd-knowledge-editor .live-error').count(),0);
  failSourceList=false;await page.locator('.lvd-knowledge-list').getByRole('button',{name:'Thử lại',exact:true}).click();
  await page.waitForFunction(()=>!document.querySelector('.lvd-knowledge-list [role="alert"]'));
+ // Reloading the selected article recovers its revision after a write conflict.
+ sourceConflict=true;await page.getByLabel('Nội dung bài viết',{exact:true}).fill('Synthetic unsaved conflict draft');await page.getByRole('button',{name:'Lưu nháp / thu hồi',exact:true}).click();await page.locator('.lvd-knowledge-editor').getByRole('alert').filter({hasText:'Synthetic source conflict'}).waitFor();
+ const sameSource=page.locator('.lvd-knowledge-list').getByRole('button',{name:/Synthetic source B/}),readsBeforeCancel=sourceReads;
+ page.once('dialog',dialog=>dialog.dismiss());await sameSource.click();assert.equal(sourceReads,readsBeforeCancel);assert.equal(await page.getByLabel('Nội dung bài viết',{exact:true}).inputValue(),'Synthetic unsaved conflict draft');
+ failSourceRead=true;page.once('dialog',dialog=>dialog.accept());await sameSource.click();await page.locator('.lvd-knowledge-editor').getByRole('alert').filter({hasText:'Synthetic source read unavailable'}).waitFor();assert.equal(await page.getByLabel('Nội dung bài viết',{exact:true}).inputValue(),'Synthetic unsaved conflict draft');
+ failSourceRead=false;sources[1]={...sources[1],body:'Synthetic newer server revision',updatedAt:new Date().toISOString()};page.once('dialog',dialog=>dialog.accept());await sameSource.click();await page.waitForFunction(()=>document.querySelector('#knowledge-body')?.value==='Synthetic newer server revision');sourceConflict=false;
  assert.equal(await page.getByText('Bài viết cho AI ↗',{exact:true}).count(),0);assert.equal(await page.getByText(/Nguồn nhập trực tiếp/).count(),0);assert.equal(await page.getByText('Bật kết nối Gemini trong Cài đặt để AI nhận bài mới.',{exact:true}).count(),0);
  await page.getByRole('button',{name:'Thêm bài viết',exact:true}).click();await page.getByRole('combobox',{name:'Loại nội dung',exact:true}).selectOption('rule');await page.getByLabel('Tiêu đề',{exact:true}).fill('Synthetic operator rule');await page.getByLabel('Quy tắc trả lời',{exact:true}).fill('Synthetic operator policy');
  assert.equal(await page.getByRole('button',{name:'Dùng cho AI',exact:true}).isEnabled(),true);
@@ -138,6 +145,14 @@ try{
  await page.goto(base+'/admin/collections/articles/'+translationSource.id);await page.locator('.lvd-article-language-actions').waitFor();
  assert.equal(await page.getByText('Thông tin bổ sung',{exact:true}).count(),0);
  await page.getByRole('button',{name:'Chuyển bài viết sang Tiếng Đức',exact:true}).click();assert.equal(translationsRequested,0,'Switching to an existing language never invokes AI');await page.waitForURL('**/admin/collections/articles/'+translationCopy.id);
+ // A stalled source read must time out, retain the editor and unlock actions.
+ const sourceRead=url=>url.origin===base&&url.pathname==='/api/articles/'+translationSource.id&&url.searchParams.get('draft')==='true'&&url.searchParams.get('depth')==='0';let heldSourceRead;
+ const holdSourceRead=route=>{heldSourceRead=route;};await page.route(sourceRead,holdSourceRead);
+ const titleBeforeTimeout=await page.locator('#field-title').inputValue(),bodyBeforeTimeout=await page.locator('#field-body').inputValue();
+ await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).click();await page.getByRole('progressbar',{name:'Đang dịch bài viết'}).waitFor();
+ await page.locator('.lvd-translation-error').filter({hasText:'Chưa hoàn tất bản dịch. Thử lại sau.'}).waitFor({timeout:20000});
+ assert.ok(heldSourceRead,'The source read was actually intercepted');assert.equal(translationsRequested,0,'A timed-out source read never starts provider generation');assert.equal(await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).isEnabled(),true);assert.equal(await page.locator('#field-title').inputValue(),titleBeforeTimeout);assert.equal(await page.locator('#field-body').inputValue(),bodyBeforeTimeout);
+ await heldSourceRead.abort().catch(()=>{});await page.unroute(sourceRead,holdSourceRead);
  await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).click();await page.getByRole('progressbar',{name:'Đang dịch bài viết'}).waitFor();
  assert.equal(await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).isDisabled(),true);await Promise.race([translationStarted,pause(12000).then(()=>{throw new Error('Translation request did not start');})]);assert.equal(translationsRequested,1);
  await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/article-translation-loading-mobile.png'});

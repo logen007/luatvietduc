@@ -4,7 +4,7 @@ import {api,ClientApiError} from "../shared/client-api";
 import {canEnterAdmin} from '../identity/permissions';
 import {visiblePoll} from "../shared/polling";
 import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
-import {createMessageOutbox,createOperationGate,mergeMessages,validateAttachmentBatch,type MessageReceipt} from './client-operations';
+import {createMessageOutbox,createOperationGate,mergeMessages,rememberCreatedConversation,validateAttachmentBatch,type MessageReceipt} from './client-operations';
 import type {Conversation,Message,Transcript,Attachment,TransitionReceipt} from './contracts';
 import {initialChatQuestion} from './intake';
 import {applyTransitionReceipt} from './transition-receipt';
@@ -29,7 +29,7 @@ export function useWorkspace(staff=false,manageList=true){
   const [preferHuman,setPreferHuman]=useState(false),[sendingBody,setSendingBody]=useState("");
   const [attachments,setAttachments]=useState<Attachment[]>([]),[uploading,setUploading]=useState(false);
   const [maxLength, setMaxLength] = useState(2000);
-  const stickToBottom=useRef(true),revision=useRef(0),wakeTranscript=useRef<(reset?:boolean)=>void>(()=>{});
+  const stickToBottom=useRef(true),revision=useRef(0),listRevision=useRef(0),wakeTranscript=useRef<(reset?:boolean)=>void>(()=>{});
   const mode=useRef(staff);mode.current=staff;
   const operations=useRef(createOperationGate()),selection=useRef('');
   const drafts=useRef(createDraftBook());
@@ -59,10 +59,12 @@ export function useWorkspace(staff=false,manageList=true){
   }, []);
   const refreshList = async () => {
     if(!current()||(staff&&!manageList))return [];
+    const ticket=++listRevision.current;
     const v = await api<Conversation[]>(staff ? "queue" : "conversations");
-    if(current())setRows(v);
+    if(current()&&ticket===listRevision.current)setRows(v);
     return v;
   };
+  function rememberCreated(id:string){listRevision.current++;setRows(previous=>rememberCreatedConversation(previous,id));}
   function changeSelection(id:string){selection.current=id;revision.current++;setSelected(id);}
   function forgetDraft(id:string){drafts.current.remove(id);outbox.current.reset(id);if(staff)try{sessionStorage.removeItem(`lvd-staff-draft:${me?.user?.id}:${id}:reply`);}catch{}}
   function selectConversation(id:string){
@@ -160,6 +162,7 @@ export function useWorkspace(staff=false,manageList=true){
             row.id === v.conversation.id
               ? {
                   ...row,
+                  title: v.conversation.title,
                   state: v.conversation.state,
                   version: v.conversation.version,
                 }
@@ -246,6 +249,7 @@ export function useWorkspace(staff=false,manageList=true){
         });
         if(!valid())return false;
         id = c.id;
+        rememberCreated(id);
         drafts.current.remove('');changeSelection(id);
       }
       const {receipt,key}=await outbox.current.send(id,{body,internal,fileIds:files.map(file=>file.id)});
@@ -272,7 +276,7 @@ export function useWorkspace(staff=false,manageList=true){
     setUploading(true);setError('');
     try{
       let id=selected;
-      if(!id){const c=await api<{id:string}>('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});if(!valid())return;id=c.id;drafts.current.remove('');changeSelection(id);}
+      if(!id){const c=await api<{id:string}>('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});if(!valid())return;id=c.id;rememberCreated(id);drafts.current.remove('');changeSelection(id);}
       for(const file of files){
         if(!valid())return;
         const response=await fetch(`/service/conversations/${id}/files`,{method:'POST',headers:{'content-type':'application/octet-stream','x-file-name':encodeURIComponent(file.name)},body:file});
@@ -294,7 +298,7 @@ export function useWorkspace(staff=false,manageList=true){
       let id=selected;
       if(!id&&(text||attachments.length)){
         const created=await api<{id:string}>('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});
-        if(!valid())return;id=created.id;drafts.current.remove('');changeSelection(id);
+        if(!valid())return;id=created.id;rememberCreated(id);drafts.current.remove('');changeSelection(id);
       }
       if(!valid())return;
       if(id&&(text||attachments.length))saveDraftHandoff(sessionStorage,me?.user?.id||null,id,{text,attachments});

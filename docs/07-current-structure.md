@@ -1,5 +1,25 @@
 # Cấu trúc đang chạy
 
+## Rà soát phục hồi tiếp theo — 2026-11-05
+
+Trang tài khoản giữ mã verify/reset trong bộ nhớ của chính trang qua lỗi kiểm
+tra phiên. Nút Thử lại dùng session store hiện có, không tải lại trang; rời luồng,
+hoàn tất hoặc đăng nhập thì bỏ mã. Không thêm lưu trữ token hay thay xác thực.
+Menu không lặp Liên hệ khi cấu hình đã có liên kết này.
+
+Hai lượt đọc bài nguồn/bản nháp trong trình đổi ngôn ngữ giới hạn 15 giây; lỗi
+mở lại thao tác và giữ nội dung đang sửa. Bấm lại bài kiến thức đang chọn cho
+phép tải phiên bản mới sau xung đột, vẫn xác nhận bỏ nháp trước khi tải.
+
+Xác nhận tạo hội thoại giữ ID trong lịch sử cục bộ, tối đa 100 mục. Lượt đọc cũ
+không ghi đè ID mới; nội dung/trạng thái thật tiếp tục lấy từ transcript. Tìm hộp
+thư chuẩn hóa từ khóa theo server, chờ debounce trước khi đọc trang đầu và giữ
+nguyên chữ đang nhập. Không thay hàng chờ trả lời, quyền hay schema.
+
+Kiểm tra: 203 unit, TypeScript, build và trình duyệt với dữ liệu giả. Có các ca
+verify/reset→lỗi phiên→Thử lại, đọc nguồn dịch hết hạn, xung đột kiến thức và hủy
+bỏ nháp, lịch sử lỗi sau tạo hội thoại, tìm từ trang 3 và từ khóa cùng nội dung.
+
 ## Rà soát luồng sử dụng 2026-11-05
 
 Đổi chuyên mục tin giữ từ khóa, đặt lại trang và không khôi phục bộ lọc loại đã bỏ.
