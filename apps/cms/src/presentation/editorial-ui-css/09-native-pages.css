@@ -54,3 +54,6 @@
 
 .lvd-public-site :is(#main,#noi-dung,#nguon-tham-khao,.lvd-policy-text [id]){scroll-margin-top:96px}
 .lvd-public-site :is(.lvd-country-tabs,.press-categories) a{min-height:44px;display:inline-flex;align-items:center}
+
+/* Library hierarchy follows the title and lists ancestors only. */
+.lvd-public-site .catalog-page .page-heading>.breadcrumb{margin:18px 0 0;gap:10px;font-size:13px;line-height:1.5}
