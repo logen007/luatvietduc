@@ -4,6 +4,7 @@ import type {Payload} from 'payload';
 import type {User} from '../src/payload-types';
 import {pool} from '../src/modules/shared/db';
 import * as chat from '../src/modules/chat/service';
+import {specialistInbox} from '../src/modules/chat/inbox';
 import * as integrations from '../src/modules/integrations/store';
 import {replyToMessage} from '../src/modules/assistant/reply';
 import {publicFaq,clearFaqCatalog,type Faq} from '../src/modules/assistant/faq';
@@ -18,6 +19,9 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
  await payload.updateGlobal({slug:'site-settings',overrideAccess:false,user:owner,data:{customerAIEnabled:true,chatEnabled:true}});
  await integrations.saveConnection('ai',{apiKey:'synthetic-ai-key-no-provider-request',model:'synthetic-model'},0,owner.id);await integrations.markCheck('ai',1,'passed',owner.id);await integrations.setEnabled('ai',1,true,owner.id);
  const policy={customerAIEnabled:true,chatEnabled:true,aiDailyRequests:20,aiMaxOutputTokens:700};
+ // Eligibility must not depend on unrelated fixtures filling the legacy
+ // compatibility queue's first 100 results. The current inbox filters first.
+ const queued=async(id:string)=>(await specialistInbox({user:support,guestHash:''},{view:'queue',query:id})).rows.some((row:{id:string})=>row.id===id);
  let calls=0;const formatter=async(faq:Faq)=>{calls++;assert.ok(!JSON.stringify(publicFaq(faq)).includes(alias.toUpperCase()));return outline(faq);};
  async function start(body=title,country='VN'){
   const actor:chat.Actor={user:null,guestHash:crypto.randomUUID()};
@@ -35,16 +39,16 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
  try{
   clearFaqCatalog();
   const answered=await start(alias.toUpperCase());
-  assert.ok(!(await chat.queue({user:support,guestHash:''})).some(row=>row.id===answered.conversation.id),'Fresh AI work is not a specialist request');
+  assert.ok(!(await queued(answered.conversation.id)),'Fresh AI work is not a specialist request');
   await Promise.all([replyToMessage(answered.actor,answered.conversation.id,answered.message.id,policy,formatter),replyToMessage(answered.actor,answered.conversation.id,answered.message.id,policy,formatter)]);
   await replyToMessage(answered.actor,answered.conversation.id,answered.message.id,policy,formatter);
   let transcript=await chat.transcript(answered.actor,answered.conversation.id);assert.equal(calls,1);assert.equal(transcript.messages.length,2);assert.equal(transcript.messages[1].metadata.kind,'ai');assert.equal(transcript.messages[1].metadata.sources[0].id,source.id);assert.ok(transcript.messages[1].body.includes('Synthetic mandatory condition.'));
   await pool.query("UPDATE lvd_conversations SET updated_at=now()-interval '1 minute' WHERE id=$1",[answered.conversation.id]);
-  assert.ok(!(await chat.queue({user:support,guestHash:''})).some(row=>row.id===answered.conversation.id),'Answered AI conversations do not become specialist requests when idle');
+  assert.ok(!(await queued(answered.conversation.id)),'Answered AI conversations do not become specialist requests when idle');
   await assert.rejects(()=>chat.transition({user:support,guestHash:''},answered.conversation.id,{action:'claim',version:1}),/chưa yêu cầu/);
   await assert.rejects(()=>replyToMessage({user:null,guestHash:'unrelated'},answered.conversation.id,answered.message.id,policy,formatter),/quyền/);
   const missing=await start('Synthetic uncovered question');await replyToMessage(missing.actor,missing.conversation.id,missing.message.id,policy,formatter);transcript=await chat.transcript(missing.actor,missing.conversation.id);assert.equal(transcript.conversation.aiEnabled,false);assert.equal(transcript.messages[1].metadata.kind,'handoff');assert.equal(calls,1);
-  assert.ok((await chat.queue({user:support,guestHash:''})).some(row=>row.id===missing.conversation.id));
+  assert.ok(await queued(missing.conversation.id));
   const wrongCountry=await start(title,'DE');await replyToMessage(wrongCountry.actor,wrongCountry.conversation.id,wrongCountry.message.id,policy,formatter);assert.equal((await chat.transcript(wrongCountry.actor,wrongCountry.conversation.id)).messages[1].metadata.kind,'handoff');assert.equal(calls,1);
   const personal=await start('Hồ sơ của tôi: synthetic-private@example.invalid');await replyToMessage(personal.actor,personal.conversation.id,personal.message.id,policy,formatter);assert.equal(calls,1);
   await pool.query("UPDATE knowledge SET expires_at=now()-interval '1 second' WHERE id=$1",[source.id]);const expired=await start();await replyToMessage(expired.actor,expired.conversation.id,expired.message.id,policy,formatter);assert.equal(calls,1);await pool.query('UPDATE knowledge SET expires_at=NULL WHERE id=$1',[source.id]);
@@ -57,7 +61,7 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
   assert.equal((await chat.transcript(handed.actor,handed.conversation.id)).messages.length,1,'Explicit human handoff invalidates in-flight AI');
   const claimed=await start(),claiming=await deferred(claimed);
   await pool.query("UPDATE lvd_conversations SET ai_started_at=now()-interval '1 minute' WHERE id=$1",[claimed.conversation.id]);
-  assert.ok((await chat.queue({user:support,guestHash:''})).some(row=>row.id===claimed.conversation.id),'Interrupted unanswered AI can reach the specialist queue');
+  assert.ok(await queued(claimed.conversation.id),'Interrupted unanswered AI can reach the specialist queue');
   await chat.transition({user:support,guestHash:''},claimed.conversation.id,{action:'claim',version:1});claiming.release();await claiming.task;
   assert.equal((await chat.transcript(claimed.actor,claimed.conversation.id)).messages.length,1,'Specialist claim invalidates in-flight AI');
   const disabled=await start(),switchOff=await deferred(disabled);

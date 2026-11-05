@@ -80,7 +80,9 @@ try {
   const queue = await (
     await request("/service/queue", undefined, staffHeaders)
   ).json();
-  assert.ok(queue.some((r: any) => r.id === c.id));
+  const inboxResponse=await request('/service/inbox?view=queue&q='+encodeURIComponent(c.id),undefined,staffHeaders);
+  assert.equal(inboxResponse.status,200);
+  assert.ok((await inboxResponse.json()).rows.some((r:{id:string})=>r.id===c.id));
   assert.ok(!("title" in queue[0]));
   const denied = await fetch(base + "/service/conversations", {
     method: "POST",

@@ -27,3 +27,13 @@ test('a committed public-field save becomes clean after refresh while a typed se
  assert.deepEqual(mergeConnectionDraft(original,draft,fresh,fields),fresh);
  assert.deepEqual(mergeConnectionDraft(original,{...draft,clientSecret:'synthetic-memory-only'},fresh,fields),{...fresh,clientSecret:'synthetic-memory-only'});
 });
+
+test('connection writes have a bounded wait and never retry an uncertain save or email test',async()=>{
+ const original=globalThis.fetch;let calls=0,signal;
+ try{
+  globalThis.fetch=async(_url,options)=>{calls++;signal=options.signal;throw new DOMException('Synthetic disconnected write','TimeoutError');};
+  await assert.rejects(()=>requestConnection({action:'save',provider:'ai',version:1,values:{model:'synthetic'}}),error=>error instanceof ConnectionError&&/chưa xác nhận/i.test(error.message));
+  assert.ok(signal instanceof AbortSignal,'Writes must not leave the connection form busy forever');
+  assert.equal(calls,1,'The browser must not automatically replay a possibly committed mutation');
+ }finally{globalThis.fetch=original;}
+});

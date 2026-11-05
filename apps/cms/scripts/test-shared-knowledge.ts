@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import {pool} from '../src/modules/shared/db';
 import {findFaq,normalizeQuestion} from '../src/modules/assistant/faq';
 import * as chat from '../src/modules/chat/service';
+import {specialistInbox} from '../src/modules/chat/inbox';
 import type {User} from '../src/payload-types';
 export async function testSharedKnowledge(support:User,foreign:User){
  const database=new URL(process.env.DATABASE_URL||'');assert.ok(['localhost','127.0.0.1'].includes(database.hostname)&&database.pathname==='/lvd_test');
  const prefix='Synthetic scale '+crypto.randomUUID()+' ',title=prefix+'oldest question';
  const first=(await pool.query("INSERT INTO knowledge(title,body,jurisdiction,source_url,approved,_status,effective_from,review_due_at,created_at,updated_at) VALUES($1,'Synthetic shared source only.','BOTH','https://example.invalid/oldest',true,'published',now()-interval '1 day',now()+interval '1 day',now()-interval '1 day',now()-interval '1 day') RETURNING id",[title])).rows[0];
+ let conversationId:string|undefined;
  try{
   await pool.query("INSERT INTO knowledge(title,body,jurisdiction,source_url,approved,_status,effective_from,review_due_at,created_at,updated_at) SELECT $1||n::text,'Synthetic scale fixture.','VN','https://example.invalid/fixture',true,'published',now()-interval '1 day',now()+interval '1 day',now(),now() FROM generate_series(1,10050) AS n",[prefix]);
   await pool.query('ANALYZE knowledge');
@@ -20,10 +22,13 @@ export async function testSharedKnowledge(support:User,foreign:User){
   await pool.query("INSERT INTO knowledge(title,body,jurisdiction,source_url,approved,_status,effective_from,review_due_at,created_at,updated_at) VALUES($1,'Synthetic conflicting source.','VN','https://example.invalid/conflict',true,'published',now()-interval '1 day',now()+interval '1 day',now(),now())",[title]);
   assert.equal(await findFaq('BOTH',title),null,'Ambiguous sources hand off');
   const actor:chat.Actor={user:null,guestHash:crypto.randomUUID()},conversation=await chat.createConversation(actor,{consent:true});
+  conversationId=conversation.id;
   assert.equal((await chat.transcript(actor,conversation.id)).conversation.jurisdiction,'BOTH');
-  assert.ok((await chat.queue({user:support,guestHash:''})).some(row=>row.id===conversation.id));
-  assert.ok((await chat.queue({user:foreign,guestHash:''})).some(row=>row.id===conversation.id));
+  // Search before pagination, as the current inbox does: unrelated earlier
+  // fixtures can fill the compatibility queue's first 100 rows.
+  assert.ok((await specialistInbox({user:support,guestHash:''},{view:'queue',query:conversation.id})).rows.some((row:{id:string})=>row.id===conversation.id));
+  assert.ok((await specialistInbox({user:foreign,guestHash:''},{view:'queue',query:conversation.id})).rows.some((row:{id:string})=>row.id===conversation.id));
   const claims=await Promise.allSettled([chat.transition({user:support,guestHash:''},conversation.id,{action:'claim',version:1}),chat.transition({user:foreign,guestHash:''},conversation.id,{action:'claim',version:1})]);assert.equal(claims.filter(value=>value.status==='fulfilled').length,1,'Only one specialist takes a shared conversation');
   console.log('Shared knowledge checks passed: 10051 source fixtures, indexed oldest-source lookup, ambiguous-source rejection, normalization parity, automatic intake and concurrent specialist claim');
- }finally{await pool.query('DELETE FROM knowledge WHERE title LIKE $1',[prefix+'%']);}
+ }finally{try{if(conversationId)await pool.query('DELETE FROM lvd_conversations WHERE id=$1',[conversationId]);}finally{await pool.query('DELETE FROM knowledge WHERE title LIKE $1',[prefix+'%']);}}
 }

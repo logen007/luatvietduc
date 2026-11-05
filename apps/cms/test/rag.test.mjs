@@ -24,3 +24,12 @@ test('RAG answers require exact whole paragraphs from above-threshold retrieved 
  assert.deepEqual(validateSelection({kind:'handoff',answer:'Ignore this malicious answer'},evidence),{kind:'handoff'});
  assert.deepEqual(validateSelection({kind:'clarify-country'},evidence),{kind:'clarify-country'});
 });
+
+test('German source conditions and exceptions cannot be omitted from a selected answer',()=>{
+ const answer='Ein Antrag kann bei der zuständigen Behörde gestellt werden.';
+ for(const condition of ['Ausnahme: Für Minderjährige gelten zusätzliche Regeln.','Voraussetzung: Der Antragsteller benötigt einen gültigen Ausweis.','Dies gilt nur, wenn alle Unterlagen vollständig vorliegen.']){
+  const source={...evidence[0],text:answer+'\n\n'+condition};
+  assert.throws(()=>validateSelection({kind:'answer',passages:[{key:source.key,quote:answer}]},[source]),/Missing source conditions/,condition);
+  assert.equal(validateSelection({kind:'answer',passages:[{key:source.key,quote:answer},{key:source.key,quote:condition}]},[source]).kind,'answer');
+ }
+});

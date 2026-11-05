@@ -109,7 +109,11 @@ export async function transformMediaImage(data:Buffer,mimeType:unknown,edit:Extr
  if(edit.rotate){geometry=geometry.rotate(edit.rotate);if(edit.rotate===90||edit.rotate===270)[width,height]=[height,width];}
  let targetWidth=edit.width??(edit.height?Math.max(1,Math.round(edit.height*width/height)):width),targetHeight=edit.height??(edit.width?Math.max(1,Math.round(edit.width*height/width)):height);
  if(targetWidth>width||targetHeight>height)throw new HttpError(400,'Không thể phóng lớn hơn ảnh hiện tại.');
- if(Math.abs(targetHeight-Math.round(targetWidth*height/width))>1||Math.abs(targetWidth-Math.round(targetHeight*width/height))>1)throw new HttpError(400,'Giữ nguyên tỷ lệ khi thu nhỏ ảnh.');
+ // Both dimensions must come from one proportional scale rounded to pixels.
+ // Compare doubled rounding intervals without floating-point division; the
+ // UI clamps either dimension to at least one pixel when shrinking.
+ const widthLow=targetWidth===1?0:2*targetWidth-1,heightLow=targetHeight===1?0:2*targetHeight-1;
+ if(widthLow*height>=(2*targetHeight+1)*width||heightLow*width>=(2*targetWidth+1)*height)throw new HttpError(400,'Giữ nguyên tỷ lệ khi thu nhỏ ảnh.');
  if(!edit.crop&&!edit.rotate&&!edit.flipHorizontal&&!edit.flipVertical&&targetWidth===width&&targetHeight===height)throw new HttpError(400,'Ảnh chưa thay đổi.');
  try{
   // Sharp flips precede rotation within one pipeline. Materialize raw pixels
@@ -117,7 +121,7 @@ export async function transformMediaImage(data:Buffer,mimeType:unknown,edit:Extr
   const pixels=await geometry.raw().toBuffer({resolveWithObject:true});
   let output=sharp(pixels.data,{raw:{width:pixels.info.width,height:pixels.info.height,channels:pixels.info.channels},limitInputPixels:MAX_MEDIA_IMAGE_PIXELS});
   if(edit.flipHorizontal)output=output.flop();if(edit.flipVertical)output=output.flip();
-  if(targetWidth!==width||targetHeight!==height)output=output.resize({width:targetWidth,height:targetHeight,fit:'inside',withoutEnlargement:true});
+  if(targetWidth!==width||targetHeight!==height)output=output.resize({width:targetWidth,height:targetHeight,fit:'fill',withoutEnlargement:true});
   const result=await output.toFormat(imageTypes[info.mimeType].format).toBuffer({resolveWithObject:true});
   if(result.data.length>MAX_MEDIA_IMAGE_BYTES)throw new HttpError(413,'Ảnh sau khi chỉnh vượt quá 10 MB.');
   return {data:result.data,mimeType:info.mimeType,width:result.info.width,height:result.info.height};
