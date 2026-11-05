@@ -36,7 +36,6 @@ export default function Page() {
               error ? (
                 <div className="live-actions">
                   <button className="button" onClick={() => location.reload()}> {t("Thử lại")} </button>
-                  <a className="live-text-action" href={chatHref}> {t("Tiếp tục với tư cách khách ↗")} </a>
                 </div>
               ) : (
                 <div className="live-loading" role="status">
@@ -86,7 +85,7 @@ export default function Page() {
                 > {t("Đăng xuất")} </button>
               </>
             ) : (
-              <AccountForm google={data.connections.google} conversation={conversation} chatHref={chatHref}/>
+              <AccountForm google={data.connections.google} conversation={conversation}/>
             )}
           </section>
         </div>

@@ -216,7 +216,7 @@
 .live-auth-panel .live-auth-divider::before{background:#303030}
 .live-auth-panel .live-auth-divider span{background:#0b0b0b}
 .live-credentials-form{display:grid;gap:18px}
-.live-credentials-form label{display:grid;gap:8px;color:#e5e5e5;font-size:14px}
+.live-credential-field{display:grid;gap:8px}
 .live-credentials-form input{width:100%;min-width:0;min-height:50px;padding:12px 14px;border:1px solid #3a3a3a;border-radius:5px;background:#171717;color:#fff;font:400 16px/24px var(--lvd-font);box-shadow:none}
 .live-credentials-form input:focus{outline:2px solid #ddd;outline-offset:2px}
 .live-credentials-form input:disabled{opacity:.65}
@@ -242,3 +242,8 @@
 .live-auth-panel .live-loading p{color:#bbb}
 .live-auth-panel .live-text-action{color:#eee}
 .live-auth-panel .live-account-link:hover>span:last-child{color:inherit}
+
+/* Email first; the Google mark is a clean monochrome glyph on the dark form. */
+.live-auth-panel .live-google svg{width:20px;height:20px;fill:currentColor;stroke:none}
+.live-auth-panel .live-google svg path{stroke:none}
+.live-credentials-form input::placeholder{color:#a3a3a3;opacity:1}
