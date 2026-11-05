@@ -16,6 +16,8 @@ References: [Geist neutral color system](https://vercel.com/geist/colors) and [t
 
 Desktop: 264px sidebar with grouped destinations and active child links. Content occupies the remaining width. Child menus have a separate disclosure button. Do not add a branding block above the destinations.
 
+Omit the top app header (logo, breadcrumb, duplicate account avatar). Keep the native menu toggle available independently, with a 44px target; mobile content clears it. The sidebar account uses the same native avatar source. Reply-template management belongs under Hộp thư. The dashboard lists every provider from the connection catalog and distinguishes enabled, disabled, missing and failed configuration without making a live health-check claim.
+
 At 1024px and below: a fixed 280px drawer, capped at viewport width minus 40px, inset 10px from the edges. Its header is the width of the drawer, never 100vw. A backdrop retains visible context and the native close/keyboard behavior. Choosing a destination closes the drawer. The page must not shift horizontally.
 
 ## Shared action rules

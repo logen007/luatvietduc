@@ -13,6 +13,7 @@ export const adminLinks={
  media:{label:'Thư viện tệp',href:'/admin/collections/media'},
  knowledge:{label:'Kiến thức AI',href:'/admin/knowledge'},
  inbox:{label:'Hộp thư',href:'/admin/inbox'},
+ conversations:{label:'Hội thoại',href:'/admin/inbox'},
  users:{label:'Người dùng',href:'/admin/collections/users'},
  allUsers:{label:'Tất cả người dùng',href:'/admin/collections/users'},
  createUser:{label:'Thêm mới',href:'/admin/collections/users/create'},
@@ -35,15 +36,15 @@ export function adminNavigation(viewer?:AdminViewer|null):AdminNavItem[]{
   {...adminLinks.articles,section:'Nội dung',icon:'post',children:[adminLinks.allArticles,...(can.write?[adminLinks.writeArticle]:[]),adminLinks.categories,adminLinks.tags]},
   {...adminLinks.media,icon:'media'},
   {...adminLinks.knowledge,icon:'knowledge'},
-  {...adminLinks.inbox,section:'Hỗ trợ khách',icon:'chat'},
+  {...adminLinks.inbox,section:'Hỗ trợ khách',icon:'chat',...(can.owner?{children:[adminLinks.conversations,adminLinks.quickReplies]}:{})},
   ...(can.owner?[
    {...adminLinks.users,section:'Hệ thống',icon:'users',children:[adminLinks.allUsers,adminLinks.createUser]},
-   {...adminLinks.settings,icon:'settings',children:[adminLinks.website,adminLinks.quickReplies,adminLinks.connections,adminLinks.backups,adminLinks.audit]},
+   {...adminLinks.settings,icon:'settings',children:[adminLinks.website,adminLinks.connections,adminLinks.backups,adminLinks.audit]},
   ]:[]),
  ];
 }
 export const adminSettingsSections=[
- {title:'Website',items:[adminLinks.website,adminLinks.quickReplies]},
+ {title:'Website',items:[adminLinks.website]},
  {title:'Kết nối',items:[adminLinks.connections]},
  {title:'Bảo trì',items:[adminLinks.backups,adminLinks.audit]},
 ];

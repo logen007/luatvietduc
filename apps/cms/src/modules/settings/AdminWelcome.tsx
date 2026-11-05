@@ -6,6 +6,8 @@ import type {User} from "../../payload-types";
 import {specialistInbox} from "../chat/inbox";
 import { connectionStatus } from "./public";
 import {adminCapabilities,adminLinks,adminShortcuts} from '../admin/navigation-model';
+import {integrationCatalog,type Provider} from '../integrations/catalog';
+import {safeConnection} from '../integrations/store';
 
 type WelcomeProps = {user?:User|null};
 type IconName = "article" | "chat" | "knowledge" | "settings" | "arrow";
@@ -25,7 +27,7 @@ export function AdminDashboard({user}:WelcomeProps){return <Gutter className="da
 
 export async function AdminWelcome({ user }: WelcomeProps) {
   const can=adminCapabilities(user),canSupport=can.inbox;
-  const connections = can.owner ? await connectionStatus() : null;
+  const connections = can.owner ? await Promise.all((Object.keys(integrationCatalog) as Provider[]).map(safeConnection)) : null;
   const payload=await getPayload({config});
   const results=user?await Promise.allSettled([
     can.content?payload.count({collection:'articles',overrideAccess:false,user}):Promise.resolve(null),
@@ -60,7 +62,13 @@ export async function AdminWelcome({ user }: WelcomeProps) {
       {can.owner && connections && <section className="lvd-admin-connections" aria-labelledby="lvd-admin-connections-title">
         <div className="lvd-admin-connections__heading"><h2 id="lvd-admin-connections-title">Kết nối hệ thống</h2><a href={adminLinks.connections.href}>Thiết lập kết nối <WorkIcon name="arrow" /></a></div>
         <div className="lvd-admin-connection-list">
-          {[{ label: "Google", ready: connections.google }, { label: "Lưu tệp R2", ready: connections.storage }, { label: "Email", ready: connections.email }, { label: "Gemini / FAQ", ready: connections.ai }].map((item) => <div key={item.label} className="lvd-admin-connection"><span>{item.label}</span><span className={item.ready ? "lvd-admin-status lvd-admin-status--configured" : "lvd-admin-status"}>{item.ready ? "Đã cấu hình" : "Chưa kết nối"}</span></div>)}
+          {connections.map(item=>{
+            const configured=item.version>0||Object.values(item.stored).some(Boolean);
+            const failed=item.checkState==='failed';
+            const status=failed?'Kiểm tra lỗi':item.enabled?'Đang bật':configured?'Đang tắt':'Chưa cấu hình';
+            const tone=failed?'error':item.enabled?'enabled':'disabled';
+            return <a key={item.provider} href={item.provider==='drive'?adminLinks.backups.href:adminLinks.connections.href} className="lvd-admin-connection"><span>{integrationCatalog[item.provider].title}</span><span className={'lvd-admin-status lvd-admin-status--'+tone}>{status}</span></a>;
+          })}
         </div>
       </section>}
     </section>

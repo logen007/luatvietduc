@@ -1,6 +1,6 @@
 import type {CollectionConfig,Field,GlobalConfig} from 'payload';
 type FieldCopy={label?:string;description?:string;placeholder?:string;cell?:string};
-type Presentation={singular?:string;plural?:string;description?:string;fields?:Record<string,FieldCopy>};
+type Presentation={singular?:string;plural?:string;description?:string;group?:string;fields?:Record<string,FieldCopy>};
 // Edit console copy here. Database fields, validation, hooks and access remain
 // in their feature modules and stay on the reviewed schema release path.
 export const adminDateFormat='dd/MM/yyyy HH:mm';
@@ -11,6 +11,7 @@ export const presentation:Record<string,Presentation>={
  users:{singular:'Người dùng',plural:'Người dùng'},
  categories:{singular:'Danh mục',plural:'Danh mục'},
  tags:{singular:'Tag',plural:'Tag'},
+ 'quick-replies':{singular:'Câu trả lời nhanh',plural:'Câu trả lời nhanh',group:'Hộp thư'},
 };
 function fieldsCopy(fields:Field[],copy:Record<string,FieldCopy>):Field[]{
  return fields.map(field=>{
@@ -24,5 +25,5 @@ function fieldsCopy(fields:Field[],copy:Record<string,FieldCopy>):Field[]{
 }
 export function withAdminPresentation<T extends CollectionConfig|GlobalConfig>(config:T):T{
  const copy=presentation[config.slug];if(!copy)return config;
- return {...config,...('labels' in config?{labels:{singular:copy.singular,plural:copy.plural}}:{}),admin:{...config.admin,...(config.slug==='media'?{listSearchableFields:['filename','title','alt','caption','description'],pagination:{defaultLimit:48,limits:[24,48,96]},components:{...config.admin?.components,views:{...config.admin?.components?.views,list:{Component:'./modules/storage/MediaLibrary#MediaLibrary'}}}}:{}),...(copy.description!==undefined?{description:copy.description}:{})},fields:fieldsCopy(config.fields,copy.fields||{})};
+ return {...config,...('labels' in config?{labels:{singular:copy.singular,plural:copy.plural}}:{}),admin:{...config.admin,...(copy.group!==undefined?{group:copy.group}:{}),...(config.slug==='media'?{listSearchableFields:['filename','title','alt','caption','description'],pagination:{defaultLimit:48,limits:[24,48,96]},components:{...config.admin?.components,views:{...config.admin?.components?.views,list:{Component:'./modules/storage/MediaLibrary#MediaLibrary'}}}}:{}),...(copy.description!==undefined?{description:copy.description}:{})},fields:fieldsCopy(config.fields,copy.fields||{})};
 }

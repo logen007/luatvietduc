@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect,useRef,useState} from 'react';
 import {roleLabel} from '../identity/roles';
-import {useNav} from '@payloadcms/ui';
+import {Account,useNav} from '@payloadcms/ui';
 import {usePathname} from 'next/navigation';
 import {confirmAdminNavigation} from '../shared/unsaved-changes';
 import type {AdminNavItem as Item} from './navigation-model';
@@ -27,5 +27,5 @@ export function NavigationLinks({items,viewer}:{items:Item[];viewer?:{name?:stri
  return <div ref={root} className="lvd-admin-sidebar"><nav className="lvd-admin-navigation lvd-admin-menu" aria-label="Quản trị website">{items.map((item,index)=>{
   const selected=active(item.href)||Boolean(item.children?.some(child=>active(child.href))),open=expanded[item.href]??selected,subId='lvd-nav-children-'+index;
   return <div key={item.href} className={'lvd-menu-item'+(item.icon==='settings'?' lvd-menu-settings':'')+(selected?' is-current':'')}>{item.section&&<p className="lvd-menu-section">{item.section}</p>}<div className="lvd-menu-main"><Link href={item.href} title={item.label} aria-label={item.label} prefetch={false} onNavigate={event=>{if(!confirmAdminNavigation(item.href))event.preventDefault();else closeMobile();}} aria-current={pathname===item.href?'page':undefined}><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d={paths[item.icon]}/></svg><span>{item.label}</span></Link>{item.children&&<button type="button" aria-expanded={open} aria-controls={subId} aria-label={(open?'Thu gọn ':'Mở rộng ')+item.label} onClick={()=>setExpanded(previous=>({...previous,[item.href]:!open}))}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 6 3 3 3-3"/></svg></button>}</div>{item.children&&open&&<div id={subId} className="lvd-menu-children">{item.children.map(child=><Link prefetch={false} onNavigate={event=>{if(!confirmAdminNavigation(child.href))event.preventDefault();else closeMobile();}} key={child.href} href={child.href} aria-current={pathname===child.href?'page':undefined}>{child.label}</Link>)}</div>}</div>;
- })}</nav><div className="lvd-sidebar-footer"><div className="lvd-sidebar-account"><span className="lvd-sidebar-avatar" aria-hidden="true">{viewer?.name?.slice(0,1)||'L'}</span><span><strong>{viewer?.name||'Luật Việt Đức'}</strong><small>{viewer?.role?roleLabel(viewer.role):'Quản trị'}</small></span></div></div></div>;
+ })}</nav><div className="lvd-sidebar-footer"><div className="lvd-sidebar-account"><span className="lvd-sidebar-avatar" aria-hidden="true"><Account/></span><span><strong>{viewer?.name||'Luật Việt Đức'}</strong><small>{viewer?.role?roleLabel(viewer.role):'Quản trị'}</small></span></div></div></div>;
 }

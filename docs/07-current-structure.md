@@ -62,7 +62,7 @@ lưu, kiểm tra và bật kết nối tiếp tục là các thao tác riêng do
 | Menu, lối tắt, nhóm cài đặt admin | `modules/admin/navigation-model.ts`; chỉ gợi ý hiển thị, không thay quyền server |
 | Điều hướng từ bài viết công khai | `modules/content/navigation.ts`; kiến thức về Thư viện, tin tức về Tin tức |
 | Giao thức HTTP | `modules/http/`, giữ đường dẫn cũ |
-| Mẫu trả lời chuyên viên | `modules/quick-replies/`; admin quản lý tại Cài đặt → Câu trả lời nhanh, chỉ chèn vào bản nháp |
+| Mẫu trả lời chuyên viên | `modules/quick-replies/`; admin quản lý tại Hộp thư → Câu trả lời nhanh, chỉ chèn vào bản nháp |
 | API kiến thức | `modules/knowledge/http.ts`, nghiệp vụ trong `articles.ts` |
 | Dữ liệu chat client/server | `modules/chat/contracts.ts` |
 | Gửi tin, tiếp nhận, đóng/mở | `modules/chat/service.ts`, giao dịch PostgreSQL |
