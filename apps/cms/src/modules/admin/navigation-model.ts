@@ -39,14 +39,14 @@ export function adminNavigation(viewer?:AdminViewer|null):AdminNavItem[]{
   {...adminLinks.inbox,section:'Hỗ trợ khách',icon:'chat',...(can.owner?{children:[adminLinks.conversations,adminLinks.quickReplies]}:{})},
   ...(can.owner?[
    {...adminLinks.users,section:'Hệ thống',icon:'users',children:[adminLinks.allUsers,adminLinks.createUser]},
-   {...adminLinks.settings,icon:'settings',children:[adminLinks.website,adminLinks.connections,adminLinks.backups,adminLinks.audit]},
+   {...adminLinks.settings,icon:'settings',children:[adminLinks.website,adminLinks.connections,adminLinks.backups]},
   ]:[]),
  ];
 }
 export const adminSettingsSections=[
  {title:'Website',items:[adminLinks.website]},
  {title:'Kết nối',items:[adminLinks.connections]},
- {title:'Bảo trì',items:[adminLinks.backups,adminLinks.audit]},
+ {title:'Bảo trì',items:[adminLinks.backups]},
 ];
 type Shortcut={href:string;title:string;text:string;icon:'article'|'chat'|'knowledge'|'settings'};
 export function adminShortcuts(viewer?:AdminViewer|null):Shortcut[]{
