@@ -529,3 +529,6 @@ html.lvd-admin .doc-controls__meta .doc-controls__value{white-space:normal;overf
 }
 /* Payload's preference separators used a fixed 100px bleed on narrow screens. */
 html.lvd-admin .payload-settings::before,html.lvd-admin .payload-settings::after{left:0;right:0;width:auto}
+
+/* Dashboard navigation remains in the sidebar; omit the duplicate shortcut block. */
+html.lvd-admin .lvd-admin-welcome :is(.lvd-dashboard-section-title,.lvd-admin-destinations,.lvd-admin-workflow){display:none}
