@@ -1,7 +1,7 @@
 import {createLocalReq,logoutOperation,initTransaction,commitTransaction,killTransaction,type Payload} from 'payload';
 import {NextResponse} from 'next/server';
 import {cookieValue} from './session';
-import {appSessionUser,revokeAppSession,revokeAppUserSessions} from './app-sessions';
+import {appSessionUser,revokeAppSession,revokeAppUserSessions,lockAccounts} from './app-sessions';
 import {clearSessionCookies} from './session-cookies';
 import {requireSameOrigin} from '../http/request';
 import {HttpError} from '../http/errors';
@@ -14,14 +14,27 @@ export async function revokeBrowserSessions(request:Request,payload:Payload,allS
   localHeaders.set('cookie',(request.headers.get('cookie')||'').split(';').map(value=>value.trim()).filter(value=>!value.startsWith('lvd-session=')).join('; '));
   localHeaders.set('DisableAutologin','true');
   const {user}=await payload.auth({headers:localHeaders});
+  const googleUser=await appSessionUser(token);
+  const accounts=[...(user?.collection==='users'?[Number(user.id)]:[]),...(googleUser?[googleUser]:[])];
   const req=await createLocalReq({req:{headers:localHeaders,user}},payload);
   await initTransaction(req);
   try{
+   // Native logout reads/writes the user document. Lock before that read so it
+   // cannot write an old role over a concurrent administrator change.
+   await lockAccounts(req,accounts);
    if(user?.collection==='users')await logoutOperation({collection:payload.collections.users,req,allSessions});
-   const googleUser=allSessions?await appSessionUser(token):null;
+   if(allSessions&&googleUser&&Number(user?.id)!==googleUser){
+    // A verified Google-only caller can revoke the same account's native
+    // sessions too; no local cookie is required for "all devices".
+    const previousUser=req.user;
+    try{
+     const googleAccount=await payload.findByID({collection:'users',id:googleUser,overrideAccess:true,req});
+     req.user={...googleAccount,collection:'users'};
+     await logoutOperation({collection:payload.collections.users,req,allSessions:true});
+    }finally{req.user=previousUser;}
+   }
    if(allSessions){
-    const accounts=new Set([...(user?.collection==='users'?[Number(user.id)]:[]),...(googleUser?[googleUser]:[])]);
-    for(const id of accounts)await revokeAppUserSessions(id,req);
+    for(const id of new Set(accounts))await revokeAppUserSessions(id,req);
    }else await revokeAppSession(token,req);
    await commitTransaction(req);
   }catch(error){

@@ -4,6 +4,14 @@ import {sql} from '@payloadcms/db-postgres';
 import {hash,pool,transaction} from '../shared/db';
 import {payloadTransaction} from '../shared/payload-transaction';
 import {GOOGLE_SESSION_SECONDS} from './session-policy';
+export async function lockAccounts(req:PayloadRequest,ids:number[]){
+ const db=await payloadTransaction(req);
+ // Stable ordering also covers a browser carrying credentials for two accounts.
+ for(const id of [...new Set(ids)].sort((a,b)=>a-b)){
+  if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid account');
+  await db.execute(sql`SELECT id FROM users WHERE id=${id} FOR UPDATE`);
+ }
+}
 export async function createAppSession(userId:number){
  const token=randomBytes(32).toString('base64url');
  await transaction(async db=>{
@@ -25,6 +33,6 @@ export async function revokeAppSession(token:string|undefined,req?:PayloadReques
  else await pool.query('DELETE FROM lvd_sessions WHERE token_hash=$1',[digest]);
 }
 export async function revokeAppUserSessions(userId:number,req?:PayloadRequest){
- if(req)await(await payloadTransaction(req)).execute(sql`DELETE FROM lvd_sessions WHERE user_id=${userId}`);
+ if(req){await lockAccounts(req,[userId]);await(await payloadTransaction(req)).execute(sql`DELETE FROM lvd_sessions WHERE user_id=${userId}`);}
  else await pool.query('DELETE FROM lvd_sessions WHERE user_id=$1',[userId]);
 }

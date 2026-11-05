@@ -368,5 +368,6 @@
   "You are already signed in.": "Sie sind bereits angemeldet.",
   "Email is temporarily unavailable. Please try Google or try again later.": "E-Mail ist vorübergehend nicht verfügbar. Nutzen Sie Google oder versuchen Sie es später erneut.",
   "Email or password is incorrect, or your email has not been verified.": "E-Mail-Adresse oder Passwort ist falsch, oder Ihre E-Mail-Adresse wurde noch nicht bestätigt.",
-  "Unable to sign in. Please try again.": "Die Anmeldung ist fehlgeschlagen. Bitte erneut versuchen."
+  "Unable to sign in. Please try again.": "Die Anmeldung ist fehlgeschlagen. Bitte erneut versuchen.",
+  "Chưa đăng nhập được. Vui lòng thử lại.": "Die Anmeldung ist gerade nicht möglich. Bitte erneut versuchen."
 }

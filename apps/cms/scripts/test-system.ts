@@ -1,3 +1,6 @@
+import {testChatAccountRetry} from './test-chat-account-retry';
+import {testAccountLifecycleRaces} from './test-account-lifecycle-races';
+import {testPasswordLoginAdmission} from './test-password-login-admission';
 import {testQuickReplies} from './test-quick-replies';
 import {testPrivateKnowledge} from './test-private-knowledge';
 import {testMediaLibrary} from './test-media-library';
@@ -53,6 +56,8 @@ try {
   await testEmailAccounts(payload,owner);
   await testLogout(payload,owner);
   await testIdentityFoundation(payload,owner);
+  await testAccountLifecycleRaces(payload,owner);
+  await testPasswordLoginAdmission(payload,owner);
   await testThreeRoles(payload,owner);
   await testPublicContent(payload,owner);
   // Vault tests run only in the isolated CI database; no provider request is made.
@@ -218,6 +223,7 @@ try {
   assert.equal((await readKnowledgeSource(new Request(imported.sourceUrl),{params:Promise.resolve({token})})).status,404,'Draft or withdrawn article cannot remain a public source');
   await testAnswerQueue(owner);
   await testGuestPriority(owner,staff);
+  await testChatAccountRetry(owner,staff);
   await testSpecialistInbox(owner,staff,other,foreign);
   await testChatFiles(owner);
   await testEditorial(payload,owner,staff);

@@ -3,13 +3,13 @@ import {useEffect,useRef,useState} from 'react';
 import {useUnsavedChanges} from '../shared/unsaved-changes';
 type Row={name:string;progress:number;error?:string;done?:boolean};
 const accept='.jpg,.jpeg,.png,.webp,.svg,.pdf,.mp4,.webm,.mp3,.wav,.ogg';
-export function MediaUploader({onDone}:{onDone:()=>void}){
+export function MediaUploader({onDone,onBusyChange}:{onDone:()=>void;onBusyChange:(busy:boolean)=>void}){
  const input=useRef<HTMLInputElement>(null),request=useRef<XMLHttpRequest|null>(null),active=useRef(false),mounted=useRef(true);
  const [rows,setRows]=useState<Row[]>([]),[busy,setBusy]=useState(false),[drag,setDrag]=useState(false);
  useUnsavedChanges(busy);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;request.current?.abort();};},[]);
  async function upload(files:File[]){
-  if(active.current||!files.length)return;active.current=true;setBusy(true);setRows(files.map(file=>({name:file.name,progress:0})));
+  if(active.current||!files.length)return;active.current=true;setBusy(true);onBusyChange(true);setRows(files.map(file=>({name:file.name,progress:0})));
   let uploaded=false;
   const update=(index:number,patch:Partial<Row>)=>{if(mounted.current)setRows(previous=>previous.map((row,i)=>i===index?{...row,...patch}:row));};
   try{for(const [index,file] of files.entries()){
@@ -25,7 +25,7 @@ export function MediaUploader({onDone}:{onDone:()=>void}){
      const form=new FormData();form.append('file',file);form.append('_payload',JSON.stringify({title:file.name.replace(/\.[^.]+$/,''),alt:''}));xhr.send(form);
     });uploaded=true;update(index,{done:true,progress:100});
    }catch(e){update(index,{error:e instanceof Error?e.message:'Chưa tải được tệp.'});}
-  }}finally{active.current=false;request.current=null;if(mounted.current){setBusy(false);if(uploaded)onDone();}}
+  }}finally{active.current=false;request.current=null;if(mounted.current){setBusy(false);onBusyChange(false);if(uploaded)onDone();}}
  }
  return <section className={'lvd-media-upload'+(drag?' is-dragging':'')} aria-label="Tải tệp" aria-busy={busy} onDragOver={e=>{e.preventDefault();if(!busy)setDrag(true);}} onDragLeave={()=>setDrag(false)} onDrop={e=>{e.preventDefault();setDrag(false);void upload(Array.from(e.dataTransfer.files));}}>
   <input ref={input} type="file" multiple hidden accept={accept} onChange={e=>{void upload(Array.from(e.target.files||[]));e.target.value='';}}/>

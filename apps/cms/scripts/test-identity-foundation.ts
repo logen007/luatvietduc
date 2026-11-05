@@ -51,6 +51,9 @@ export async function testIdentityFoundation(payload:Payload,owner:User){
   const passwordOnly=await login(),remoteGoogle=await createAppSession(user.id);
   assert.equal((await logoutRequest(new Request(origin+'/api/users/logout?allSessions=true',{method:'POST',headers:{origin,cookie:'payload-token='+passwordOnly.token}}),payload)).status,200);
   assert.equal(await appSessionUser(remoteGoogle),null,'Password-only all-session logout also revokes Google on other devices');
+  const remotePassword=await login(),googleOnly=await createAppSession(user.id);
+  assert.equal((await logoutRequest(new Request(origin+'/api/users/logout?allSessions=true',{method:'POST',headers:{origin,cookie:'lvd-session='+googleOnly}}),payload)).status,200);
+  assert.equal((await authenticate('payload-token='+remotePassword.token)).user,null,'Google-only all-session logout also revokes native sessions on other devices');
   assert.ok(response.cookies.getAll().some(cookie=>cookie.name==='lvd-oauth'&&cookie.path==='/auth/google'&&cookie.maxAge===0),'Logout clears OAuth state at its real path');
   console.log('Identity foundation checks passed: native CMS password changes/reset, rollback, local login switching, verified-only Google, all-session logout and OAuth cookie scope.');
  }finally{

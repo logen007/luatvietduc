@@ -76,6 +76,7 @@ try{
  assert.match(accountResponse.headers()['cache-control'],/no-store/);assert.equal(accountResponse.headers()['referrer-policy'],'no-referrer');
  const nav=page.locator('.live-menu-dialog');await page.getByRole('button',{name:'Mở menu',exact:true}).click();await nav.waitFor({state:'visible'});
  assert.equal(await nav.getByRole('link',{name:'Đăng nhập',exact:true}).count(),0);await page.getByRole('button',{name:'Đóng menu',exact:true}).click();
+ const {testPublicReview}=await import('./test-public-review.mjs');await testPublicReview({page,context,base,owner});
  await page.setViewportSize({width:1280,height:900});
  await page.goto(base+'/tin-tuc');assert.ok((await page.locator('#news-query').boundingBox()).width>240,'Desktop news search must remain usable beside its filters');
  // Test recoverable connection errors independently of real credentials.
@@ -163,9 +164,11 @@ try{
  await detailTitle.fill(oldMediaTitle);await page.waitForFunction(()=>document.querySelector('.lvd-media-detail-state')?.textContent==='Đã lưu');
  await page.getByRole('button',{name:'Đóng chi tiết tệp',exact:true}).click();await page.locator('.lvd-media-details').waitFor({state:'detached'});
  await page.getByRole('button',{name:'Tải tệp',exact:true}).click();await page.locator('.lvd-media-upload').waitFor();
+ let releaseMediaUpload;const mediaUploadPending=new Promise(resolve=>{releaseMediaUpload=resolve;});
  let syntheticUploadId;
- await page.route('**/api/media',async route=>{if(route.request().method()!=='POST')return route.continue();const filename='browser-upload-'+suffix+'.svg';syntheticUploadId=(await pool.query("INSERT INTO media(title,alt,filename,mime_type,filesize,visibility,uploaded_by_id) VALUES($1,'',$2,'image/svg+xml',100,'private',$3) RETURNING id",['Browser uploaded SVG',filename,owner.id])).rows[0].id;mediaFixtureIds.push(syntheticUploadId);return route.fulfill({status:201,json:{doc:{id:syntheticUploadId,filename}}});});
+ await page.route('**/api/media',async route=>{if(route.request().method()!=='POST')return route.continue();await mediaUploadPending;const filename='browser-upload-'+suffix+'.svg';syntheticUploadId=(await pool.query("INSERT INTO media(title,alt,filename,mime_type,filesize,visibility,uploaded_by_id) VALUES($1,'',$2,'image/svg+xml',100,'private',$3) RETURNING id",['Browser uploaded SVG',filename,owner.id])).rows[0].id;mediaFixtureIds.push(syntheticUploadId);return route.fulfill({status:201,json:{doc:{id:syntheticUploadId,filename}}});});
  await page.locator('.lvd-media-upload input[type=file]').setInputFiles({name:'browser-upload-'+suffix+'.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0h10v10H0Z"/></svg>')});
+ assert.equal(await page.getByRole('button',{name:'Tải tệp',exact:true}).isDisabled(),true,'An active upload cannot be unmounted by its toolbar toggle');releaseMediaUpload();
  await page.locator('.lvd-media-upload').getByText('Đã tải',{exact:true}).waitFor();assert.ok(syntheticUploadId);await page.unroute('**/api/media');
  await page.getByRole('button',{name:'Tải tệp',exact:true}).click();
  await page.route('**/api/media/file/browser-upload-*',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"/>'}));
@@ -173,6 +176,7 @@ try{
  await page.route('**/api/media/'+syntheticUploadId,async route=>{if(route.request().method()!=='DELETE')return route.continue();await pool.query('DELETE FROM media WHERE id=$1',[syntheticUploadId]);return route.fulfill({json:{id:syntheticUploadId}});});
  await page.getByRole('button',{name:'Xóa vĩnh viễn',exact:true}).click();await page.getByRole('button',{name:'Xóa tệp',exact:true}).click();await page.locator('.lvd-media-details').waitFor({state:'detached'});assert.equal((await pool.query('SELECT id FROM media WHERE id=$1',[syntheticUploadId])).rowCount,0);mediaFixtureIds.splice(mediaFixtureIds.indexOf(syntheticUploadId),1);
  await page.reload();await page.locator('.lvd-media-grid').waitFor();
+ const {testMediaReview}=await import('./test-media-review.mjs');await testMediaReview({page,base,pool,owner,ids:mediaFixtureIds,suffix});
 
  assert.equal(await page.getByText('Quản lý ảnh, logo, video và tài liệu. Kết nối R2 trong Cài đặt để tải thêm tệp.',{exact:true}).count(),0);
  await page.getByRole('button',{name:'Chọn nhiều',exact:true}).click();assert.equal(await page.locator('.lvd-media-grid input[type=checkbox]:disabled').count(),0,'Interface assets support metadata selection');
@@ -297,6 +301,23 @@ try{
   const replay=await fetch(base+'/service/me',{headers:{cookie:cookie.name+'='+cookie.value}});assert.equal((await replay.json()).user,null,'Old credentials cannot restore a logged-out user');
   assert.equal((await fetch(base+'/api/users',{headers:{cookie:cookie.name+'='+cookie.value}})).status,403);
  }
+ // The native CMS form sends multipart _payload; REST clients send JSON.
+ // Both entry points share password admission without replacing native auth.
+ await page.goto(base+'/admin/login');
+ await page.locator('#field-email').fill(owner.email);await page.locator('#field-password').fill(password);
+ const nativeLogin=page.waitForRequest(request=>new URL(request.url()).pathname==='/api/users/login'&&request.method()==='POST');
+ const nativeLoginResponse=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/users/login'&&response.request().method()==='POST');
+ await page.locator('form').getByRole('button',{name:'Đăng nhập',exact:true}).click();
+ assert.match((await nativeLogin).headers()['content-type'],/^multipart\/form-data;/);
+ assert.equal((await nativeLoginResponse).status(),200,'Native CMS multipart login must succeed');
+ await page.waitForURL(base+'/admin');await page.locator('.lvd-admin-navigation').waitFor();
+ const nativeJSON=await context.request.post(base+'/api/users/login',{headers:{origin:base},data:{email:owner.email,password}});
+ assert.equal(nativeJSON.status(),200,'Native REST JSON login remains available');
+ const crossOriginLogin=await context.request.post(base+'/api/users/LoGiN',{headers:{origin:'https://cross-origin.example.invalid'},data:{email:owner.email,password}});
+ assert.equal(crossOriginLogin.status(),403,'Mixed-case native login cannot bypass the same-origin admission wrapper');
+ const mixedLogin=await context.request.post(base+'/api/users/LoGiN',{headers:{origin:base},data:{email:owner.email,password}});assert.equal(mixedLogin.status(),200);
+ const mixedLogout=await context.request.post(base+'/api/users/LoGoUt',{headers:{origin:base},data:{}});assert.equal(mixedLogout.status(),200);
+ assert.equal((await(await context.request.get(base+'/service/me')).json()).user,null,'Mixed-case native logout uses shared revocation');
  console.log('CMS browser checks passed: public VI/DE, mobile fit, session loading, signed-in menu, retry, unsaved changes and native admin pages.');
 }catch(error){console.error('CMS browser check failed:',error);throw error;}finally{
  await browser?.close();

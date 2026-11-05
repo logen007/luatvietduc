@@ -23,11 +23,12 @@ export function invalidatePublicSession(){
 }
 function onStorage(event:StorageEvent){if(event.key==='lvd-session-revision'){clearPrivateDrafts();store.invalidate();refresh();}}
 function onVisibility(){if(!document.hidden)refresh();}
+function onPageShow(event:PageTransitionEvent){if(event.persisted)store.invalidate();refresh();}
 let subscribers=0;
 function subscribe(listener:()=>void){
  const off=store.subscribe(listener);
- if(subscribers++===0){window.addEventListener('pageshow',refresh);window.addEventListener('focus',refresh);window.addEventListener('storage',onStorage);document.addEventListener('visibilitychange',onVisibility);document.addEventListener('lvd:sessionchange',refresh);}
- return()=>{off();if(--subscribers===0){window.removeEventListener('pageshow',refresh);window.removeEventListener('focus',refresh);window.removeEventListener('storage',onStorage);document.removeEventListener('visibilitychange',onVisibility);document.removeEventListener('lvd:sessionchange',refresh);}};
+ if(subscribers++===0){window.addEventListener('pageshow',onPageShow);window.addEventListener('focus',refresh);window.addEventListener('storage',onStorage);document.addEventListener('visibilitychange',onVisibility);document.addEventListener('lvd:sessionchange',refresh);}
+ return()=>{off();if(--subscribers===0){window.removeEventListener('pageshow',onPageShow);window.removeEventListener('focus',refresh);window.removeEventListener('storage',onStorage);document.removeEventListener('visibilitychange',onVisibility);document.removeEventListener('lvd:sessionchange',refresh);}};
 }
 export function usePublicSession(){
  const snapshot=useSyncExternalStore(subscribe,store.getSnapshot,()=>initial);

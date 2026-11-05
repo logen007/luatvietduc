@@ -21,8 +21,28 @@ def main():
     sha = args.approved_sha
     module.require(module.valid_sha(sha), 'A full reviewed commit is required')
     # Hooks and access only. No fields, SQL schema or installed deployment policy change.
-    allowed = {'apps/cms/src/modules/identity/users.ts', 'apps/cms/src/payload.config.ts'}
+    allowed = {'apps/cms/src/modules/identity/users.ts'}
     reviewed = [
+        'apps/cms/scripts/test-account-lifecycle-races.ts',
+        'apps/cms/scripts/test-login-revision-pool.ts',
+        'apps/cms/scripts/test-chat-account-retry.ts',
+        'apps/cms/scripts/test-password-login-admission.ts',
+        'apps/cms/scripts/test-media-review.mjs',
+        'apps/cms/scripts/test-public-review.mjs',
+        'apps/cms/scripts/test-system.ts',
+        'apps/cms/src/modules/identity/password-login.ts',
+        'apps/cms/src/modules/identity/native-login-request.ts',
+        'apps/cms/src/modules/assistant/faq.ts',
+        'apps/cms/src/modules/chat/guest-account.ts',
+        'apps/cms/src/modules/public-site/Library.tsx',
+        'apps/cms/src/modules/shared/session-client.ts',
+        'apps/cms/src/modules/storage/MediaDetails.tsx',
+        'apps/cms/src/modules/storage/MediaLibrary.tsx',
+        'apps/cms/src/modules/storage/MediaUploader.tsx',
+        'apps/cms/test/native-login-request.test.mjs',
+        'apps/cms/test/chat-server-handoff.test.mjs',
+        'apps/cms/test/public-library-form.test.mjs',
+        'apps/cms/test/session-history.test.mjs',
         'apps/cms/scripts/test-browser.mjs',
         'apps/cms/scripts/test-identity-foundation.ts',
         'apps/cms/scripts/test-logout.ts',

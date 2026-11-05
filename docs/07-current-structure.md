@@ -340,5 +340,25 @@ và native, dùng lại token cũ, CSRF, thiết bị khác, reset native, rollb
 đổi tài khoản, quyền ba role, trình duyệt mobile/desktop và thử lại khi đăng xuất
 lỗi. Các kiểm tra dùng tài khoản/AI/email/tệp giả; không gọi nhà cung cấp thật.
 Helper `release-reviewed-identity-base.py` ghim commit và manifest của auth/access,
-chỉ cho phép hai tệp config/hook đã rà soát, dùng backup/candidate/rollback của
+chỉ cho phép tệp hook Users đã rà soát trong đợt củng cố tiếp theo, dùng backup/candidate/rollback của
 engine hiện có, không thay chính sách tự cập nhật và không cần migration DB.
+
+## Rà soát song song sau 01.28
+
+Ba vùng công khai, admin/tệp và hội thoại có người sửa riêng, hoạt động đồng thời.
+Các tệp danh tính dùng chung được giao cho một người tại mỗi thời điểm; kiểm tra
+DB/build/trình duyệt và phát hành do người tích hợp thực hiện. Agent kiểm tra chéo
+những thay đổi đã hoàn thành trong khi vùng khác tiếp tục làm, không tự đẩy bản riêng.
+
+Native/public đăng nhập dùng cùng cổng tiếp nhận mật khẩu theo tài khoản. Payload
+tiếp tục xác thực mật khẩu, đếm sai và khóa tài khoản. JSON/multipart bị giới hạn
+8 KiB, chuẩn hóa thành cùng một đối tượng trước khi chuyển cho native API. Đăng
+xuất, cập nhật/reset và ghi phiên có thứ tự khóa nhất quán; snapshot tài khoản trước
+đăng nhập gồm cả phiên và phạm vi, dùng pool đọc riêng có giới hạn chờ. Tạo/đổi
+email dùng cùng khóa tiếp nhận trong giao dịch; tranh chấp trả 409 để thử lại,
+không chờ trong khi giữ khóa bản ghi tài khoản.
+
+Thư viện tệp giữ hộp chi tiết qua các lượt tự lưu, chỉ làm mới kết quả khi đóng;
+lỗi lưu không xóa bản nhập. Khách đăng nhập giữa một lần gửi và thử lại vẫn dùng
+đúng mã gửi của hội thoại đã chuyển vào tài khoản. Khôi phục trang từ lịch sử trình
+duyệt che dữ liệu tài khoản cũ cho tới khi kiểm tra lại phiên, giữ nháp trong storage.

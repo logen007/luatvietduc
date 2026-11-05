@@ -24,6 +24,7 @@
 - Production database ports stay private. Never use `docker system prune`, `down -v`, blanket upgrades or a new proxy on existing ports without a reviewed plan.
 
 ## Delivery
+- Parallel review when requested: assign separate owners for public UI, admin/media and chat. Let them work simultaneously in their modules; reserve shared identity/integration files and the test database for one owner. Peer-review before one integrated release; no independent agent pushes.
 - Owner correction (2026-11-05): a specific small fix takes priority over an ongoing broad review. Freeze its scope, edit only the responsible component, publish it independently, and stop. Do not bundle unrelated chat, admin or architecture work into it.
 - For a routine small fix, do not add testing infrastructure, refactor adjacent code, research alternative designs or create new release tooling. Use the existing source map and delivery path. Aim to edit and submit within about one minute; this is not a guarantee that an application build or GitHub queue finishes in one minute.
 - Choose the existing presentation lane for changes that CSS/assets can correctly express. React/TypeScript behavior still uses the application lane. Never reclassify code to bypass required checks. If a release fails, diagnose its exact failing step and verify the complete affected interaction before another push; do not publish successive guessed fixes.

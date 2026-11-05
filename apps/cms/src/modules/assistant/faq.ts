@@ -5,7 +5,13 @@ export type Faq={id:number;title:string;body:string;question_aliases:string|null
 type Question=Pick<Faq,'id'|'title'|'question_aliases'>;
 // Keep numbers, operators and internal punctuation: removing them could widen a legal condition.
 export const normalizeQuestion=(text:string)=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase().trim().replace(/[?!]+$/g,'').replace(/\s+/g,' ').trim();
-export function requiresHuman(text:string){return /[\w.+-]+@[\w.-]+\.[a-z]{2,}|\d{8,}/i.test(text)||/\b(ho so|cua toi|ket luan vu viec|du doan ket qua|nguoi that|chuyen vien|tu van truc tiep|noi chuyen voi nguoi|gap nguoi tu van|bo qua quy tac|bo qua huong dan)\b/.test(normalizeQuestion(text));}
+export function requiresHuman(text:string){
+ const question=normalizeQuestion(text);
+ return /[\w.+-]+@[\w.-]+\.[a-z]{2,}|\d{8,}/i.test(text)
+  ||/\b(ho so|cua toi|ket luan vu viec|du doan ket qua|nguoi that|chuyen vien|tu van truc tiep|noi chuyen voi nguoi|gap nguoi tu van|bo qua quy tac|bo qua huong dan)\b/.test(question)
+  ||/\b(mein(?:e|er|en|em)? (?:akte|akten|fall|unterlagen|dokumente)|personliche (?:rechts)?beratung)\b/.test(question)
+  ||/\b(?:ich (?:mochte|will)|(?:kann|konnte) ich) (?:bitte |gerne? )?(?:mit (?:einem |einer )?|(?:einen |eine )?)(?:menschen|mitarbeiter(?:in)?|berater(?:in)?|anwalt(?:in)?|fachkraft) (?:sprechen|reden|chatten)\b/.test(question);
+}
 export function faqRevision(faq:Faq){const fields:unknown[]=[faq.title,faq.body,faq.question_aliases,faq.jurisdiction,faq.source_url,faq.effective_from,faq.expires_at,faq.review_due_at,faq.updated_at];if(faq.entry_type==='rule')fields.push('rule');return createHash('sha256').update(JSON.stringify(fields)).digest('hex');}
 export function matchesQuestion(question:string,faq:Question){const key=normalizeQuestion(question);return [faq.title,...(faq.question_aliases||'').split('\n')].some(value=>key&&normalizeQuestion(value)===key);}
 export function eligible(faq:Faq,now=Date.now()){

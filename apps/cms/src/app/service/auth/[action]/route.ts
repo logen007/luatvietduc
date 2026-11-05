@@ -1,5 +1,5 @@
 import {NextResponse} from 'next/server';
-import {getPayload} from 'payload';
+import {getPayload,APIError} from 'payload';
 import config from '@payload-config';
 import {accountActions,accountInput,type AccountAction} from '../../../../modules/identity/account-input';
 import {accountEmail} from '../../../../modules/identity/account-email';
@@ -11,6 +11,7 @@ import {rateLimit} from '../../../../modules/chat/service';
 import {activeValues} from '../../../../modules/integrations/store';
 import {pool,hash} from '../../../../modules/shared/db';
 import {setPasswordSession} from '../../../../modules/identity/session-cookies';
+import {withPasswordLoginLock} from '../../../../modules/identity/password-login';
 export const dynamic='force-dynamic';
 const json=(value:unknown,status=200)=>NextResponse.json(value,{status,headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
 export async function POST(req:Request,context:{params:Promise<{action:string}>}){
@@ -52,7 +53,10 @@ export async function POST(req:Request,context:{params:Promise<{action:string}>}
    return json({ok:true,state:'password-reset'});
   }
   let login;
-  try{login=await payload.login({collection:'users',data:{email:data.email,password:data.password},depth:0});}catch{throw new HttpError(401,'Email or password is incorrect, or your email has not been verified.');}
+  try{login=await withPasswordLoginLock(data.email,()=>payload.login({collection:'users',data:{email:data.email,password:data.password},depth:0}));}catch(error){
+   if(error instanceof APIError&&[409,503].includes(error.status))throw new HttpError(error.status,'Chưa đăng nhập được. Vui lòng thử lại.');
+   throw new HttpError(401,'Email or password is incorrect, or your email has not been verified.');
+  }
   if(!login.token||!login.user)throw new HttpError(503,'Unable to sign in. Please try again.');
   const guest=cookieValue(req.headers,'lvd-guest');
   if(guest&&/^[\w-]{43}$/.test(guest))await linkGuestConversations(Number(login.user.id),await hash(guest));

@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {useAuth} from '@payloadcms/ui';
 import {mediaEditable,mediaName,mediaReadOnly,mediaURL} from './media-view';
-import {useUnsavedChanges} from '../shared/unsaved-changes';
+import {confirmDiscardChanges,useUnsavedChanges} from '../shared/unsaved-changes';
 export type MediaItem={id:number;title?:string;filename?:string;alt?:string;caption?:string;description?:string;mimeType?:string;filesize?:number;createdAt?:string;updatedAt?:string;url?:string;thumbnailURL?:string;width?:number;height?:number;visibility?:string;uploadedBy?:number|{id:number;name?:string}|null;_isLocked?:boolean;_userEditing?:{id:number}};
 type Metadata={title:string;alt:string;caption:string;description:string;visibility:string};
 const metadata=(doc:MediaItem):Metadata=>({title:doc.title||'',alt:doc.alt||'',caption:doc.caption||'',description:doc.description||'',visibility:doc.visibility||'private'});
@@ -29,7 +29,7 @@ export function MediaDetails({id,ids,onSelect,onClose,onChanged}:{id:number;ids:
  }
  useEffect(()=>{if(!dirty||!editable||saving||error)return;const timer=setTimeout(()=>void save(),650);return()=>clearTimeout(timer);},[draft,saved,saving,error,editable]);
  useEffect(()=>{if(closing.current&&!dirty&&!saving)onClose();},[dirty,saving]);
- function close(){if(dirty||saving){closing.current=true;void save();}else onClose();}
+ function close(){if(dirty&&error&&!saving){closing.current=false;if(confirmDiscardChanges(true))onClose();return;}if(dirty||saving){closing.current=true;void save();}else onClose();}
  function move(next:number){if(next<0||next>=ids.length||dirty||saving)return;onSelect(ids[next]);}
  const index=ids.indexOf(id),src=mediaURL(doc?.url),absolute=src?new URL(src,typeof location==='undefined'?'https://luatvietduc.com':location.origin).href:'';
  async function remove(){if(!doc||flight.current||mediaReadOnly(doc))return;flight.current=true;setSaving(true);setError('');try{const r=await fetch('/api/media/'+id,{method:'DELETE',signal:AbortSignal.timeout(20000)});if(!r.ok)throw new Error('Chưa xóa được tệp. Tải lại để kiểm tra.');onChanged();onClose();}catch(e){setError((e as Error).message);setSaving(false);}finally{flight.current=false;}}
