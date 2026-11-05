@@ -1,3 +1,4 @@
+import {testMediaLibrary} from './test-media-library';
 import {testArticleTranslations} from './test-article-translations';
 import {testEmailAccounts} from './test-email-accounts';
 import {testAnswerQueue} from './test-answer-queue';
@@ -41,6 +42,7 @@ try {
       role: "owner",
     },
   });
+  await testMediaLibrary(payload,owner);
   await testArticleTranslations(payload,owner);
   await testEmailAccounts(payload,owner);
   await testThreeRoles(payload,owner);

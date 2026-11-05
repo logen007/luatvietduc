@@ -6,7 +6,8 @@ export const storageReady = async () => Boolean(await activeValues("r2"));
 export const Media: CollectionConfig = {
   slug: "media",
   labels: { singular: "Tệp", plural: "Thư viện tệp" },
-  admin: { group: "Nội dung",useAsTitle:"alt",defaultColumns:["filename","alt","mimeType","filesize"],description:"Quản lý ảnh, logo, video và tài liệu. Kết nối R2 trong Cài đặt để tải thêm tệp." },
+  defaultSort:"-createdAt",
+  admin: { group: "Nội dung",useAsTitle:"alt",defaultColumns:["filename","alt","mimeType","filesize"] },
   access: {
     create: async ({ req }) =>
       (await storageReady()) &&
@@ -21,7 +22,7 @@ export const Media: CollectionConfig = {
   hooks:{afterRead:[({doc})=>bundledURL(doc)],beforeChange:[mediaWriteGuard],beforeDelete:[mediaWriteGuard]},
   upload: {
     disableLocalStorage: true,
-    mimeTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
+    mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/svg+xml", "application/pdf"],
     staticDir: "private-media",
   },
   fields: [

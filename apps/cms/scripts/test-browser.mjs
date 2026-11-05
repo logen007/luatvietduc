@@ -9,7 +9,7 @@ if(!['localhost','127.0.0.1'].includes(db.hostname)||db.pathname!=='/lvd_test')t
 const base='http://127.0.0.1:3047';process.env.APP_URL=base;process.env.LVD_WORKERS_DISABLED='1';
 const {getPayload}=await import('payload'),{default:config}=await import('../src/payload.config.ts'),{pool}=await import('../src/modules/shared/db.ts');
 const {chromium}=await import('playwright'),payload=await getPayload({config});
-let server,browser;const suffix=crypto.randomUUID(),password=crypto.randomUUID(),ids=[],translationArticleIds=[];
+let server,browser;const suffix=crypto.randomUUID(),password=crypto.randomUUID(),ids=[],translationArticleIds=[],mediaFixtureIds=[];
 await mkdir('test-results/cms-browser',{recursive:true});
 try{
  const owner=await payload.create({collection:'users',overrideAccess:true,context:{bootstrapOwner:true},data:{name:'Browser test admin',email:`browser-${suffix}@example.invalid`,password,role:'owner'}});ids.push(owner.id);
@@ -132,6 +132,24 @@ try{
  await page.locator('.lvd-article-languages').getByRole('button',{name:'VI',exact:true}).click();await page.getByText('Lưu thay đổi trước khi chuyển ngôn ngữ.',{exact:true}).waitFor();
  assert.ok(page.url().endsWith('/'+translationCopy.id));page.once('dialog',dialog=>dialog.accept());await page.goto(base+'/admin');
  await page.unroute('**/service/articles/translations');await page.unroute('**/service/articles/translations?*');
+ // Media library uses native permissions/bulk controls in both presentation modes.
+ for(const index of [1,2,3]){const mime=index===3?'application/pdf':'image/svg+xml',filename='synthetic-media-'+suffix+'-'+index+(index===3?'.pdf':'.svg');const row=(await pool.query("INSERT INTO media(alt,filename,mime_type,filesize,visibility) VALUES($1,$2,$3,120,'private') RETURNING id",['Synthetic media '+index,filename,mime])).rows[0];mediaFixtureIds.push(row.id);}
+ await page.route('**/api/media/file/synthetic-media-*',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="white"/></svg>'}));
+ await page.goto(base+'/admin/collections/media');await page.locator('.lvd-media-grid').waitFor();
+ assert.equal(await page.getByText('Quản lý ảnh, logo, video và tài liệu. Kết nối R2 trong Cài đặt để tải thêm tệp.',{exact:true}).count(),0);
+ await page.getByRole('button',{name:'Chọn nhiều',exact:true}).click();assert.ok(await page.locator('.lvd-media-grid input[type=checkbox]:disabled').count()>0,'Interface assets cannot be selected for destructive operations');
+ await page.getByRole('button',{name:'Hủy chọn',exact:true}).click();await page.getByRole('searchbox',{name:'Tìm tệp',exact:true}).fill(suffix);
+ await page.waitForFunction(()=>document.querySelectorAll('.lvd-media-grid .lvd-media-tile').length===3);
+ await page.getByRole('button',{name:'Chọn nhiều',exact:true}).click();await page.getByRole('button',{name:'Chọn cả trang',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelectorAll('.lvd-media-grid input:checked').length===3);
+ await page.getByRole('button',{name:'Xem dạng danh sách',exact:true}).click();await page.locator('.lvd-media-table').waitFor();assert.equal(await page.locator('.lvd-media-table input:checked').count(),3);
+ await page.locator('.lvd-media-bulk-actions').getByRole('button',{name:'Chỉnh sửa',exact:true}).click();await page.locator('.edit-many__main').waitFor();await page.locator('.edit-many__header__close').click();
+ await page.getByRole('button',{name:'Hủy chọn',exact:true}).click();await page.getByRole('combobox',{name:'Loại tệp',exact:true}).selectOption('svg');
+ await page.waitForFunction(()=>document.querySelectorAll('.lvd-media-table tbody tr').length===2);
+ await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/media-list-mobile.png'});
+ await page.getByRole('button',{name:'Xem dạng lưới',exact:true}).click();await page.locator('.lvd-media-grid').waitFor();await fits();await page.screenshot({path:'test-results/cms-browser/media-grid-mobile.png'});
+ await page.reload();await page.locator('.lvd-media-grid').waitFor();assert.equal(await page.getByRole('button',{name:'Xem dạng lưới',exact:true}).getAttribute('aria-pressed'),'true');
+ await page.setViewportSize({width:1280,height:900});await fits();await page.screenshot({path:'test-results/cms-browser/media-grid-desktop.png'});
  // Native CMS pages, not the old prototype, at desktop and phone widths.
  for(const viewport of [{width:390,height:844},{width:1280,height:900}]){
   await page.setViewportSize(viewport);
@@ -199,6 +217,7 @@ try{
 }catch(error){console.error('CMS browser check failed:',error);throw error;}finally{
  await browser?.close();
  if(server&&server.exitCode===null)await new Promise(resolve=>{const timeout=setTimeout(()=>server.kill('SIGKILL'),5000);server.once('exit',()=>{clearTimeout(timeout);resolve();});server.kill('SIGTERM');});
+ if(mediaFixtureIds.length)await pool.query('DELETE FROM media WHERE id=ANY($1::int[])',[mediaFixtureIds]);
  for(const id of translationArticleIds.reverse())await payload.delete({collection:'articles',id,user:await payload.findByID({collection:'users',id:ids[0],overrideAccess:true}),overrideAccess:false});
  for(const id of ids)await payload.delete({collection:'users',id,overrideAccess:true});
  await payload.destroy();await pool.end();

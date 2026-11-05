@@ -345,6 +345,58 @@ html.lvd-admin .lvd-translation-error{margin-top:12px;color:var(--theme-error-50
 @keyframes lvd-translation-progress{from{transform:translateX(-110%)}to{transform:translateX(350%)}}
 @media(prefers-reduced-motion:reduce){html.lvd-admin .lvd-translation-progress i{animation:none;width:100%;opacity:.65}}
 @media(max-width:600px){html.lvd-admin .lvd-article-languages .lvd-article-translate{margin-left:0;width:100%}html.lvd-admin .lvd-article-languages__actions{align-items:stretch;flex-direction:column}}
+
+/* WordPress-style media library, sharing native permissions and bulk operations. */
+html.lvd-admin .lvd-media-library .list-controls,html.lvd-admin .lvd-media-library .list-header__actions,html.lvd-admin .lvd-media-library .collection-list__list-selection{display:none}
+html.lvd-admin .lvd-media-toolbar{margin:20px 0}
+html.lvd-admin .lvd-media-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px;border:1px solid var(--theme-elevation-150);border-radius:9px;background:var(--theme-elevation-50)}
+html.lvd-admin .lvd-media-filters :is(button,select,input),html.lvd-admin .lvd-media-status button{height:40px;min-width:0;border:1px solid var(--theme-elevation-200);border-radius:6px;background:var(--theme-bg);color:var(--theme-text);font:inherit;font-size:13px;padding:0 10px}
+html.lvd-admin .lvd-media-filters button{cursor:pointer}
+html.lvd-admin .lvd-media-view-buttons{display:flex;gap:4px}
+html.lvd-admin .lvd-media-view-buttons button{width:40px;display:grid;place-items:center;padding:8px}
+html.lvd-admin .lvd-media-view-buttons svg{width:20px;height:20px}
+html.lvd-admin .lvd-media-view-buttons button[aria-pressed=true],html.lvd-admin .lvd-media-bulk-toggle[aria-pressed=true]{background:#ededed;color:#111;border-color:#ededed}
+html.lvd-admin .lvd-media-filters .lvd-media-search{margin-left:auto;flex:1 1 180px;max-width:320px}
+html.lvd-admin .lvd-media-status{display:flex;align-items:center;gap:12px;margin-top:12px;color:var(--theme-elevation-600);font-size:13px}
+html.lvd-admin .lvd-media-status button{height:30px;padding:0 8px;cursor:pointer}
+html.lvd-admin .lvd-media-bulk-actions{margin-top:12px;padding:12px;background:var(--theme-elevation-100);border-radius:8px}
+html.lvd-admin .lvd-media-bulk-actions .list-selection{display:flex;flex-wrap:wrap;gap:10px}
+html.lvd-admin .lvd-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+html.lvd-admin .lvd-media-tile{position:relative;min-width:0;border:1px solid var(--theme-elevation-150);border-radius:8px;background:var(--theme-elevation-50);overflow:hidden;transition:border-color .15s}
+html.lvd-admin .lvd-media-tile:hover,html.lvd-admin .lvd-media-tile.is-selected{border-color:var(--theme-elevation-600)}
+html.lvd-admin .lvd-media-tile.is-selected{box-shadow:inset 0 0 0 1px var(--theme-text)}
+html.lvd-admin .lvd-media-tile-link{display:flex;flex-direction:column;color:inherit;height:100%}
+html.lvd-admin .lvd-media-preview{display:flex;align-items:center;justify-content:center;aspect-ratio:1;overflow:hidden;background:#202020}
+html.lvd-admin .lvd-media-preview img{width:100%;height:100%;object-fit:contain;padding:12px}
+html.lvd-admin .lvd-media-preview.is-svg{background-color:#808080;background-image:linear-gradient(45deg,#666 25%,transparent 25%),linear-gradient(-45deg,#666 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#666 75%),linear-gradient(-45deg,transparent 75%,#666 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+html.lvd-admin .lvd-media-file-icon{display:grid;justify-items:center;gap:6px;color:#aaa}
+html.lvd-admin .lvd-media-file-icon svg{width:44px;height:44px}
+html.lvd-admin .lvd-media-file-icon small{font-size:11px}
+html.lvd-admin .lvd-media-tile-name{padding:11px 12px;font-size:13px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.lvd-admin .lvd-media-checkbox{position:absolute;top:10px;left:10px;z-index:1;display:grid;place-items:center;padding:4px;border-radius:5px;background:#111c}
+html.lvd-admin .lvd-media-library input[type=checkbox]{width:18px;height:18px;margin:0;accent-color:#ddd;cursor:pointer}
+html.lvd-admin .lvd-media-library input[type=checkbox]:disabled{cursor:default;opacity:.4}
+html.lvd-admin .lvd-media-readonly{padding:0 12px 9px;font-size:11px;color:var(--theme-elevation-600)}
+html.lvd-admin .lvd-media-table-wrap{width:100%;overflow:auto;border:1px solid var(--theme-elevation-150);border-radius:8px}
+html.lvd-admin .lvd-media-table{width:100%;border-collapse:collapse;font-size:13px;text-align:left}
+html.lvd-admin .lvd-media-table :is(th,td){padding:12px;border-bottom:1px solid var(--theme-elevation-150);vertical-align:middle}
+html.lvd-admin .lvd-media-table th{font-weight:600;white-space:nowrap;background:var(--theme-elevation-50)}
+html.lvd-admin .lvd-media-table tr:last-child td{border-bottom:0}
+html.lvd-admin .lvd-media-table tr.is-selected{background:var(--theme-elevation-100)}
+html.lvd-admin .lvd-media-table th:first-child{width:50%}
+html.lvd-admin .lvd-media-table .lvd-media-check-col{width:40px}
+html.lvd-admin .lvd-media-file-row{display:flex;align-items:center;gap:12px;color:inherit;min-width:180px}
+html.lvd-admin .lvd-media-file-row .lvd-media-preview{width:64px;height:64px;flex:0 0 64px;border:1px solid var(--theme-elevation-150);border-radius:5px}
+html.lvd-admin .lvd-media-file-row .lvd-media-preview img{padding:4px}
+html.lvd-admin .lvd-media-file-row :is(strong,small){display:block;overflow-wrap:anywhere}
+html.lvd-admin .lvd-media-file-row strong{font-weight:600}
+html.lvd-admin .lvd-media-file-row small{margin-top:4px;color:var(--theme-elevation-600);font-size:12px}
+html.lvd-admin .lvd-media-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+@media(max-width:600px){html.lvd-admin .lvd-media-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}html.lvd-admin .lvd-media-filters .lvd-media-search{margin-left:0;max-width:none;flex-basis:100%}html.lvd-admin .lvd-media-filters{padding:10px}html.lvd-admin .lvd-media-filters select{flex:1 1 120px}html.lvd-admin .lvd-media-filters input[type=month]{flex:1 1 150px}html.lvd-admin .lvd-media-table :is(th,td){padding:10px}html.lvd-admin .lvd-media-file-row{min-width:200px}}
+
+html.lvd-admin .lvd-media-month{display:flex;align-items:center;gap:7px;height:40px;margin:0;padding-left:10px;border:1px solid var(--theme-elevation-200);border-radius:6px;background:var(--theme-bg);font-size:13px}
+html.lvd-admin .lvd-media-filters .lvd-media-month input{border:0;background:transparent;min-width:125px;max-width:145px;padding-left:0}
+@media(max-width:600px){html.lvd-admin .lvd-media-month{flex:1 1 175px}html.lvd-admin .lvd-media-filters .lvd-media-month input{max-width:none;width:100%;flex:1;min-width:0}}
 /* Admin design system. Owns the final visual layer; public pages are unaffected. */
 html.lvd-admin[data-theme='dark']{
  --admin-canvas:#0a0a0a;--admin-sidebar:#0d0d0d;--admin-panel:#141414;--admin-raised:#1c1c1c;--admin-line:#303030;--admin-text:#f5f5f5;--admin-muted:#a3a3a3;--admin-accent:#fafafa;--admin-selected:#242424;

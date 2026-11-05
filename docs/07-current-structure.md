@@ -209,3 +209,27 @@ Migration bổ sung nhóm ngôn ngữ ở articles/versions và provider trong v
 candidate của engine đang cài, không sửa policy phát hành. Code rollback giữ
 cột mới; down từ chối xóa nếu đã có bài liên kết hoặc khóa dịch. Kiểm tra hệ
 thống dùng khóa/AI giả, không phát sinh gửi bài thật hoặc email.
+
+## Thư viện tệp — 01.22
+
+`storage/MediaLibrary.tsx` cung cấp lưới/danh sách, nhớ chế độ xem, tìm theo tên
+hoặc mô tả, lọc loại/tháng, sắp xếp và phân trang. Bố cục tham khảo
+[Media Library của WordPress](https://wordpress.org/documentation/article/media-library-screen/),
+giữ theme đen/xám/trắng của admin. `media-view.ts` giữ tên tệp, URL preview và
+các bộ lọc dùng chung. Chỉ tải ảnh thumbnail khi cần; video/tài liệu dùng biểu tượng.
+Không dựng SVG bằng innerHTML.
+
+Component bọc DefaultListView và dùng ListQueryProvider/SelectionProvider cùng
+EditMany/DeleteMany native của Payload. Không tạo API lưu/xóa khác. Bộ chọn tệp
+trong các form khác vẫn dùng giao diện native. Chọn cả trang chỉ chọn tệp được
+phép sửa; tệp giao diện đóng gói vẫn được bảo vệ bởi quyền collection ở server.
+Không chọn ngầm mọi tệp trên các trang khác. Bulk có xác nhận và kết quả lỗi theo
+cơ chế CMS hiện tại; không coi một nhóm thao tác là giao dịch nguyên tử.
+
+SVG được thêm vào allowlist; dùng kiểm tra XML/active content sẵn có trong Payload
+3.92.1. Giữ nguyên kiểm tra quyền, giới hạn dung lượng, media backup lock và CSP
+sandbox tại đường đọc R2. Không mở quyền tải/xóa cho người dùng khác. Không thay
+schema hoặc chạy migration trong bản này. Vì collection.ts thuộc nhóm được bảo vệ,
+release-reviewed-media-ui.py ghim commit/manifest và dùng engine có sẵn, không đổi
+policy tự cập nhật. Kiểm tra với dữ liệu/kho tệp giả bao gồm SVG an toàn/độc hại,
+sửa và xóa hàng loạt, bộ lọc, chọn lưới/danh sách và mobile; không gọi R2 thật.
