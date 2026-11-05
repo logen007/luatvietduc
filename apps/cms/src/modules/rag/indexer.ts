@@ -14,7 +14,7 @@ export async function indexNext(){
   if(!connection)return false;
   if(await ensureCollection())await lock.query("UPDATE lvd_rag_jobs SET generation=generation+1,status='pending',available_at=now(),lease=NULL,lease_until=NULL,error_code=NULL,updated_at=now()");
   // Date boundaries do not fire publication triggers. Reconcile future-effective/expired/overdue sources too.
-  await lock.query("UPDATE lvd_rag_jobs j SET status='pending',available_at=now(),updated_at=now() FROM knowledge k WHERE j.source_id=k.id AND j.status='ready' AND ((j.indexed_revision IS NULL AND k.approved AND k._status='published' AND k.effective_from<=now() AND k.review_due_at>now() AND (k.expires_at IS NULL OR k.expires_at>now())) OR (j.indexed_revision IS NOT NULL AND (NOT k.approved OR k._status<>'published' OR k.effective_from>now() OR k.review_due_at<=now() OR k.expires_at<=now())))");
+  await lock.query("UPDATE lvd_rag_jobs j SET status='pending',available_at=now(),updated_at=now() FROM knowledge k WHERE j.source_id=k.id AND j.status='ready' AND ((j.indexed_revision IS NULL AND k.entry_type='knowledge' AND k.approved AND k._status='published' AND k.effective_from<=now() AND k.review_due_at>now() AND (k.expires_at IS NULL OR k.expires_at>now())) OR (j.indexed_revision IS NOT NULL AND (k.entry_type='rule' OR NOT k.approved OR k._status<>'published' OR k.effective_from>now() OR k.review_due_at<=now() OR k.expires_at<=now())))");
   const token=randomUUID();
   const job=await transaction(async db=>{
    const row=(await db.query("SELECT * FROM lvd_rag_jobs WHERE available_at<=now() AND (status IN ('pending','waiting') OR (status='processing' AND lease_until<now())) ORDER BY available_at,source_id FOR UPDATE SKIP LOCKED LIMIT 1")).rows[0];

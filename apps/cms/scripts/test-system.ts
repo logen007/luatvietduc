@@ -1,3 +1,4 @@
+import {testPrivateKnowledge} from './test-private-knowledge';
 import {testMediaLibrary} from './test-media-library';
 import {testArticleTranslations} from './test-article-translations';
 import {testEmailAccounts} from './test-email-accounts';
@@ -42,6 +43,7 @@ try {
       role: "owner",
     },
   });
+  await testPrivateKnowledge(payload,owner);
   await testMediaLibrary(payload,owner);
   await testArticleTranslations(payload,owner);
   await testEmailAccounts(payload,owner);
@@ -201,9 +203,9 @@ try {
     "System database checks passed: guest isolation, country scope, idempotent send, concurrent claim, assignment privacy, internal notes, close and reopen",
   );
   const imported=await writeKnowledgeArticle(payload,staff,{title:'Synthetic simple article',body:'Synthetic public content only.',publish:true});
-  assert.equal(imported.approved,true);assert.equal(imported.jurisdiction,'BOTH');assert.ok(imported.sourceUrl.includes('/service/knowledge-source/'));assert.ok(new Date(imported.reviewDueAt)>new Date());
+  assert.equal(imported.approved,true);assert.equal(imported.jurisdiction,'BOTH');assert.ok(imported.sourceUrl.includes('/admin/knowledge#'));assert.ok(new Date(imported.reviewDueAt)>new Date());
   const token=imported.sourceUrl.split('/').at(-1)!;
-  const publicSource=await readKnowledgeSource(new Request(imported.sourceUrl),{params:Promise.resolve({token})});assert.equal(publicSource.status,200);assert.equal((await publicSource.json()).body,imported.body);
+  const publicSource=await readKnowledgeSource(new Request(imported.sourceUrl),{params:Promise.resolve({token})});assert.equal(publicSource.status,404,'Internal AI knowledge is never a public source page');
   const sharedDocument=await knowledgeArticles(payload,foreign,String(imported.id));assert.ok('id' in sharedDocument);assert.equal(sharedDocument.id,imported.id,'Shared knowledge is available to both assigned country teams');
   await assert.rejects(()=>writeKnowledgeArticle(payload,staff,{id:imported.id,updatedAt:'2000-01-01',title:'Stale edit',body:'Synthetic',publish:true}),/đã thay đổi/);
   const draft=await writeKnowledgeArticle(payload,staff,{id:imported.id,updatedAt:imported.updatedAt,title:imported.title,body:imported.body,publish:false});assert.equal(draft._status,'draft');assert.equal(draft.approved,false);

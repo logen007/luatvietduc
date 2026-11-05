@@ -233,3 +233,46 @@ schema hoặc chạy migration trong bản này. Vì collection.ts thuộc nhóm
 release-reviewed-media-ui.py ghim commit/manifest và dùng engine có sẵn, không đổi
 policy tự cập nhật. Kiểm tra với dữ liệu/kho tệp giả bao gồm SVG an toàn/độc hại,
 sửa và xóa hàng loạt, bộ lọc, chọn lưới/danh sách và mobile; không gọi R2 thật.
+
+## Kho riêng cho AI và quy tắc — 01.23
+
+`/admin/knowledge` chỉ quản lý bài riêng cho AI và quy tắc trả lời: tiêu đề,
+nội dung, loại nội dung; lưu nháp hoặc bật sử dụng. Không tạo bài trong collection
+articles, không hiển thị permalink công khai, không có khối nguồn nhập trực tiếp,
+liên kết bài công khai hay danh sách mã hội thoại cần bổ sung. Bài công khai đã bật
+AI vẫn đồng bộ riêng như trước; không được sửa qua API kho riêng.
+
+Kiến thức riêng dùng RAG hiện có. Quy tắc có entryType=rule và ruleEnabled,
+luôn giữ draft + approved=false bằng hook và CHECK tại DB để cả mã cũ cũng không
+đưa quy tắc thành nguồn trả lời/công khai. Quy tắc bật được đọc theo phạm vi và
+hiệu lực, đưa vào system instruction dưới các giới hạn cố định: chỉ dùng căn cứ
+được phép, không bịa, không bỏ điều kiện và chuyển chuyên viên khi thiếu căn cứ.
+Chúng không được embedding, chọn làm câu hỏi gợi ý hoặc trích dẫn. Mỗi quy tắc
+4.000 ký tự; tối đa 20 quy tắc bật, tổng 16.000 ký tự. Đây là giới hạn prompt;
+số bài kiến thức riêng vẫn phân trang và tìm bằng pipeline hiện hữu.
+
+Ghi/thu hồi quy tắc có khóa giao dịch. Trước khi lưu câu trả lời, hệ thống khóa
+đọc và so lại revision toàn bộ quy tắc đang áp dụng; thay đổi trong lúc tạo câu trả
+lời làm phản hồi cũ mất hiệu lực. Cache formatter cũng chứa revision quy tắc.
+Không gửi hồ sơ/tệp khách vào pipeline này, không cho quy tắc nới các kiểm tra
+pháp lý/riêng tư đang có. Quy tắc không phải công cụ tạo thêm căn cứ pháp luật.
+
+Nguồn nội bộ dùng địa chỉ admin; migration đổi các UUID source link cũ của nguồn
+riêng sang admin và giữ phiên bản. Endpoint knowledge-source cũ trả 404, không
+phục vụ thân bài. Tài khoản nhân sự đọc/sửa qua API admin có phân quyền. Khách
+không truy cập catalog/native API, không thấy tiêu đề riêng trong gợi ý; câu trả
+lời chỉ giữ tên căn cứ riêng, không liên kết công khai. Các source link cũ cũng
+được lọc khi đọc lịch sử chat. Nội dung đã trả lời cho khách là phạm vi sử dụng
+kiến thức được chủ hệ thống cho phép; đây không phải kho lưu bí mật hoặc hồ sơ cá nhân.
+
+Migration bổ sung loại nội dung, cờ ruleEnabled, index quy tắc và ràng buộc
+không xuất bản quy tắc. Không xóa bài/nguồn cũ; revision nguồn cũ chỉ đổi khi URL
+nội bộ cần chuyển. Giữ hiệu lực/hết hạn đã lưu, mặc định xác nhận rà soát 90 ngày
+khi nhân sự chủ động bật lại. Helper release-reviewed-private-knowledge.py ghim
+SHA/manifest và dùng backup, migration, candidate hiện hữu; không đổi policy
+triển khai. Down yêu cầu forward recovery để không mất nội dung/cờ quy tắc.
+
+Đã kiểm tra trên DB thử sạch và provider giả: truy cập khách bị từ chối, không có
+bài công khai, rule không vào RAG, giới hạn/thu hồi, đổi rule khi phản hồi đang tạo,
+10.051 nguồn, bảo vệ expiry, luồng chuyên viên, form và giữ nháp trên mobile/desktop.
+Không gửi hội thoại hoặc nội dung thật tới Gemini trong các kiểm tra này.

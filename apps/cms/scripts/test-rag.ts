@@ -9,10 +9,12 @@ import {CONSENT_VERSION,DIMENSIONS} from '../src/modules/rag/core';
 import {replyToMessage} from '../src/modules/assistant/reply';
 import * as chat from '../src/modules/chat/service';
 import * as integrations from '../src/modules/integrations/store';
+import {writeKnowledgeArticle} from '../src/modules/knowledge/articles';
 export async function testRag(payload:Payload,owner:User,support:User){
  const database=new URL(process.env.DATABASE_URL||'');if(!['localhost','127.0.0.1'].includes(database.hostname)||database.pathname!=='/lvd_test')throw new Error('Isolated CI database only');
  const originalFetch=globalThis.fetch,requests:{task:string;text:string}[]=[],points=new Map<string,any>();
  let gate:(()=>Promise<void>)|null=null,invalid=false,failIndex=false;
+ const rule=await writeKnowledgeArticle(payload,owner,{title:'Synthetic operator rule',body:'Synthetic policy marker: always preserve conditions.',entryType:'rule',publish:true});
  const faqTitle='Synthetic published document '+crypto.randomUUID(),body='Synthetic public answer for semantic retrieval.\n\nSynthetic mandatory exception and condition.';
  const source=await payload.create({collection:'knowledge',user:support,overrideAccess:false,data:{title:faqTitle,body,jurisdiction:'BOTH',sourceUrl:'https://example.invalid/rag-source',effectiveFrom:new Date(Date.now()-86400000).toISOString(),reviewDueAt:new Date(Date.now()+86400000).toISOString(),_status:'published'}});
  await integrations.saveConnection('ai',{apiKey:'synthetic-rag-key-no-network',model:'synthetic-model'},0,owner.id);await integrations.markCheck('ai',1,'passed',owner.id);await integrations.setEnabled('ai',1,true,owner.id);
@@ -32,7 +34,7 @@ export async function testRag(payload:Payload,owner:User,support:User){
    if(failIndex&&data.taskType==='RETRIEVAL_DOCUMENT')return json({},429);
    return json({embedding:{values:Array.from({length:DIMENSIONS},(_,i)=>i===0?1:0)}});
   }
-  assert.ok(url.endsWith(':generateContent'));
+  assert.ok(url.endsWith(':generateContent'));assert.ok(data.systemInstruction.parts[0].text.includes('Synthetic policy marker'),'Approved operator rules reach the instruction channel');
   if(gate)await gate();
   const prompt=JSON.parse(data.contents[0].parts[0].text);requests.push({task:'generate',text:JSON.stringify(prompt)});
   const selection={kind:'answer',passages:prompt.sources.slice(0,1).flatMap((s:any)=>s.text.split(/\n\s*\n/).map((quote:string)=>({key:s.key,quote:invalid?'Invented unsupported legal statement.':quote})))};
@@ -52,6 +54,11 @@ export async function testRag(payload:Payload,owner:User,support:User){
   const normal=await start();await Promise.all([answer(normal),answer(normal)]);
   let transcript=await chat.transcript(normal.actor,normal.conversation.id);assert.equal(transcript.messages.length,2);assert.equal(transcript.messages[1].metadata.retrieval,'semantic-v1');assert.equal(transcript.messages[1].body,body);assert.equal(transcript.messages[1].metadata.sources[0].id,source.id);
   assert.equal(transcript.messages[0].metadata.aiConsent.version,CONSENT_VERSION);
+  assert.equal(transcript.messages[1].metadata.sources[0].url,undefined,'Private answer source has no public link');
+  let ruleReached!:()=>void,ruleRelease!:()=>void;const ruleWaiting=new Promise<void>(resolve=>{ruleReached=resolve;}),ruleHold=new Promise<void>(resolve=>{ruleRelease=resolve;});gate=async()=>{ruleReached();await ruleHold;};
+  const changingRule=await start(),changingTask=answer(changingRule);await ruleWaiting;
+  await payload.update({collection:'knowledge',id:rule.id,user:owner,overrideAccess:false,data:{body:'Synthetic policy marker: changed policy',_status:'published'}});ruleRelease();
+  assert.equal((await changingTask).messages[1].metadata.kind,'handoff','Changed rules invalidate an in-flight response');gate=null;
   const before=requests.length;await answer(await start('Synthetic private question without consent',false));assert.equal(requests.length,before,'Legacy messages cannot send a query to Gemini');
   await answer(await start('Hồ sơ của tôi: private@example.invalid'));assert.equal(requests.length,before,'Sensitive cases hand off before any provider request');
   invalid=true;transcript=await answer(await start());assert.equal(transcript.messages[1].metadata.kind,'handoff','Invented output cannot reach chat');invalid=false;
@@ -68,5 +75,6 @@ export async function testRag(payload:Payload,owner:User,support:User){
   const embeddingCalls=requests.filter(r=>r.task==='RETRIEVAL_DOCUMENT').length;await indexSource();assert.equal(requests.filter(r=>r.task==='RETRIEVAL_DOCUMENT').length,embeddingCalls,'Reindex reuses checkpointed public embeddings');
   await payload.delete({collection:'knowledge',id:source.id,user:owner,overrideAccess:false});await indexSource();assert.equal(points.size,0);assert.equal((await pool.query('SELECT count(*)::int AS n FROM lvd_rag_chunks WHERE source_id=$1',[source.id])).rows[0].n,0);
   console.log('Semantic RAG pipeline checks passed: durable indexing, semantic route, consent boundary, exact citations, no invented claims, withdrawal race, retry and delete cleanup (mocked providers, not a semantic-quality benchmark)');
- }finally{globalThis.fetch=originalFetch;await pool.query("DELETE FROM lvd_integration_events WHERE provider='ai'");await pool.query("DELETE FROM lvd_integrations WHERE provider='ai'");}
+ }finally{
+  await payload.delete({collection:'knowledge',id:rule.id,user:owner,overrideAccess:false});globalThis.fetch=originalFetch;await pool.query("DELETE FROM lvd_integration_events WHERE provider='ai'");await pool.query("DELETE FROM lvd_integrations WHERE provider='ai'");}
 }

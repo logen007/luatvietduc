@@ -17,7 +17,7 @@ export function ChatMessages({state}:{state:WorkspaceState}){
    {message.role!=='user'&&<div className="chat-answer-label"><ChatIcon name={message.role==='staff'?'person':'spark'}/><strong>{t(message.role==='staff'?'Chuyên viên':['ai','clarify'].includes(message.metadata?.kind||'')?'Trợ lý AI':'Luật Việt Đức')}</strong></div>}
    {Boolean(message.attachments?.length)&&<div className="chat-message-files">{(message.attachments||[]).map(file=><a className="chat-file-chip" key={file.id} href={file.url} download><span aria-hidden="true">▤</span><span><strong>{file.name}</strong><small>{Math.ceil(file.size/1024)} KB</small></span><span aria-hidden="true">↓</span></a>)}</div>}
    <div className="chat-answer-text">{String(message.body).split(/\n\n+/).map((paragraph,index)=><p key={index}>{paragraph}</p>)}</div>
-   {Boolean(message.metadata?.sources?.length)&&<div className="chat-sources">{(message.metadata?.sources||[]).map(source=>{const href=sourceHref(source.url);return href?<a key={source.id} href={href} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><ChatIcon name="arrow"/>{source.title}</a>:null;})}</div>}
+   {Boolean(message.metadata?.sources?.length)&&<div className="chat-sources">{(message.metadata?.sources||[]).map(source=>{const href=sourceHref(source.url||'');return href?<a key={source.id} href={href} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><ChatIcon name="arrow"/>{source.title}</a>:<span key={source.id}>{source.title}</span>;})}</div>}
    {message.role!=='user'&&<CopyAnswer text={message.body}/>}
    <time className="sr-only" dateTime={message.created_at}>{new Date(message.created_at).toLocaleString(language==='de'?'de-DE':'vi-VN')}</time>
   </article>)}

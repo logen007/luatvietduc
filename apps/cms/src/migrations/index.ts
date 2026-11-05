@@ -1,3 +1,4 @@
+import * as privateKnowledge from './20261105_150000_private_ai_knowledge';
 import * as articleTranslations from './20261105_130000_article_translations';
 import * as emailAccounts from './20261105_110000_email_accounts';
 import * as answerQueue from './20261104_130000_answer_queue';
@@ -40,4 +41,5 @@ export const migrations = [
  {up:answerQueue.up,down:answerQueue.down,name:'20261104_130000_answer_queue'},
  {up:emailAccounts.up,down:emailAccounts.down,name:'20261105_110000_email_accounts'},
  {up:articleTranslations.up,down:articleTranslations.down,name:'20261105_130000_article_translations'},
+ {up:privateKnowledge.up,down:privateKnowledge.down,name:'20261105_150000_private_ai_knowledge'},
 ];

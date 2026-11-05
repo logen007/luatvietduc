@@ -27,6 +27,7 @@ export async function knowledgeRequest({payload,user,path,method,url,data,settin
         overrideAccess: false,
         where: {
           and: [
+            { entryType: { equals: 'knowledge' } },
             { approved: { equals: true } },
             { _status: { equals: "published" } },
           ],

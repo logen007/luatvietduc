@@ -1,6 +1,7 @@
 import type { Access, CollectionConfig } from "payload";
 import { articleLock, auditArticle } from "../content/audit";
 import { owner } from "../shared/access";
+import {lockKnowledgeRules,validateKnowledgeRule} from "./rules-hook";
 const knowledgeRoles = ["knowledge", "support", "reviewer"];
 const knowledgeScope: Access = ({ req }) => {
   if (req.user?.role === "owner") return true;
@@ -15,7 +16,7 @@ export const Knowledge: CollectionConfig = {
     group: "Kiến thức",
     useAsTitle: "title",
     description:
-      "Nhập FAQ công khai, kiểm tra căn cứ và xuất bản vào kho kiến thức chung. Không nhập hồ sơ hay hội thoại riêng. Xuất bản là xác nhận chuyên viên chịu trách nhiệm nội dung.",
+      "",
   },
   versions: { drafts: true },
   access: {
@@ -30,7 +31,7 @@ export const Knowledge: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
-      articleLock,
+      async args=>{await lockKnowledgeRules(args);return articleLock(args);},
       ({ data, originalDoc, req }) => {
         if(originalDoc?.articleOrigin)throw new Error("Bài viết này được đồng bộ tự động. Hãy chỉnh sửa trong Bài viết.");
         if (
@@ -54,6 +55,8 @@ export const Knowledge: CollectionConfig = {
             "expiresAt",
             "reviewDueAt",
             "questionAliases",
+            "entryType",
+            "ruleEnabled",
           ].some((k) => k in data && data[k] !== originalDoc[k]);
         // Publication is an explicit self-approval of this revision by scoped staff.
         const withdrawing=data.approved===false&&originalDoc?.approved===true;
@@ -87,17 +90,21 @@ export const Knowledge: CollectionConfig = {
         if(data._status==='published' && originalDoc?._status!=='published' && !['owner',...knowledgeRoles].includes(req.user?.role||''))throw new Error('Reviewer publication required');
         return data;
       },
+      validateKnowledgeRule,
     ],
+    beforeDelete:[async({req})=>{await lockKnowledgeRules({req});}],
     afterChange: [auditArticle],
   },
   fields: [
+    {name:"ruleEnabled",type:"checkbox",defaultValue:false,admin:{hidden:true}},
+    {name:"entryType",label:"Loại nội dung",type:"select",defaultValue:"knowledge",options:[{label:"Kiến thức",value:"knowledge"},{label:"Quy tắc trả lời",value:"rule"}]},
     {name:"articleOrigin",type:"relationship",relationTo:"articles",admin:{hidden:true},access:{create:()=>false,update:()=>false}},
-    { name: "title", label: "Câu hỏi chuẩn / tên nguồn", type: "text", required: true },
+    { name: "title", label: "Tiêu đề", type: "text", required: true },
     {name:'questionAliases',label:'Cách hỏi khác đã được chuyên viên xác nhận',type:'textarea',maxLength:4000,admin:{description:'Mỗi dòng một câu hỏi có cùng phạm vi và điều kiện với câu hỏi chuẩn. Không bắt buộc. AI còn tìm theo ý nghĩa trong nội dung bài viết.'}},
     {
       name: "body",
-      label: "Câu trả lời chuẩn và phạm vi áp dụng",
-      admin: { description: "FAQ gồm: câu trả lời; điều kiện áp dụng; trường hợp loại trừ; khi nào chuyển chuyên viên. Chỉ dùng nội dung công khai đã kiểm chứng." },
+      label: "Nội dung",
+      admin: { description: "FAQ gồm: câu trả lời; điều kiện áp dụng; trường hợp loại trừ; khi nào chuyển chuyên viên. Chỉ dùng nội dung đã được kiểm chứng và cho phép dùng để trả lời khách." },
       type: "textarea",
       required: true,
     },

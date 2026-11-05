@@ -8,8 +8,10 @@ import {formatFaq} from './format';
 import {CONSENT_VERSION} from '../rag/core';
 import {retrieve} from '../rag/retrieve';
 import {reserveBudget,selectPassages} from '../rag/provider';
+import {activeAnswerRules,rulesRevision,type AnswerRule} from './rules';
+import {answerCitation} from '../knowledge/citations';
 type Policy={customerAIEnabled?:boolean|null;chatEnabled?:boolean|null;aiDailyRequests?:number|null;aiMaxOutputTokens?:number|null};
-type Formatter=(faq:Faq,connection:Record<string,string>,maxTokens:number,dailyLimit:number)=>Promise<string>;
+type Formatter=(faq:Faq,connection:Record<string,string>,maxTokens:number,dailyLimit:number,rules?:AnswerRule[])=>Promise<string>;
 const handoffText='Câu hỏi này cần chuyên viên xem xét thêm. Mình đã chuyển cuộc trò chuyện để chuyên viên tiếp tục hỗ trợ tại đây.';
 export async function replyToMessage(actor:Actor,id:string,messageId:string|number,policy:Policy,formatter:Formatter=formatFaq){
  const token=randomUUID(),replyKey='assistant:'+messageId;
@@ -29,12 +31,14 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
  });
  if(!work)return;
  let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined;
- let ragSources:Faq[]=[],rag=false,clarification=false;
+ let ragSources:Faq[]=[],rules:AnswerRule[]=[],rag=false,clarification=false;
  try{
   if(policy.customerAIEnabled===false||policy.chatEnabled===false)throw new Error('Disabled');
   if(requiresHuman(work.question))throw new Error('Specialist required');
   providerVersion=(await readRow('ai'))?.version;
   const connection=await activeValues('ai');if(!connection)throw new Error('Provider not connected');
+  const ruleQuestion=work.context?String(work.context)+'\nCâu hỏi tiếp: '+work.question:work.question;
+  rules=await activeAnswerRules(work.country,ruleQuestion);
   const limit=policy.aiDailyRequests||0;if(!limit)throw new Error('Budget disabled');
   if(work.consented){
    rag=true;
@@ -43,7 +47,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    await reserveBudget(limit);
    const found=await retrieve(question,work.country,connection);
    if(!found.evidence.length)throw new Error('Outside approved coverage');
-   const selection=await selectPassages(question,found.evidence,connection,policy.aiMaxOutputTokens||700);
+   const selection=await selectPassages(question,found.evidence,connection,policy.aiMaxOutputTokens||700,rules);
    if(selection.kind==='answer'){
     const used=new Set(selection.passages.map(p=>p.key));
     ragSources=found.sources.filter(source=>used.has('source-'+source.id));
@@ -52,10 +56,10 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
     ragSources=found.sources;clarification=true;answer='Bạn muốn tìm hiểu quy định tại Việt Nam, tại Đức hay liên quan đến cả hai nước?';
    }else throw new Error('Insufficient evidence');
   }else{
-   // Legacy clients without this message's consent retain the public-source-only formatter.
+   // Legacy clients never send a customer question to the provider.
    faq=await findFaq(work.country,work.question);
    if(!faq)throw new Error('Outside approved coverage');
-   answer=await formatter(faq,connection,policy.aiMaxOutputTokens||700,limit);
+   answer=await formatter(faq,connection,policy.aiMaxOutputTokens||700,limit,rules);
   }
  }catch(error){
   // Bounded operational codes only; no question, transcript or credentials in logs.
@@ -67,11 +71,16 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   if(!conversation||conversation.state!=='queued'||!conversation.ai_enabled||conversation.ai_generation!==token||conversation.version!==work.version)return;
   const latest=(await db.query("SELECT id FROM lvd_messages WHERE conversation_id=$1 AND role='user' ORDER BY id DESC LIMIT 1",[id])).rows[0];
   if(String(latest?.id)!==String(messageId))return;
+  if(answer){
+   const ruleQuestion=work.context?String(work.context)+'\nCâu hỏi tiếp: '+work.question:work.question;
+   const currentRules=await activeAnswerRules(work.country,ruleQuestion,db,true);
+   if(rulesRevision(currentRules)!==rulesRevision(rules))answer=null;
+  }
   if(answer&&faq){
    const current=(await db.query('SELECT * FROM knowledge WHERE id=$1 FOR SHARE',[faq.id])).rows[0] as Faq|undefined;
    const settings=(await db.query('SELECT customer_a_i_enabled,chat_enabled FROM site_settings LIMIT 1 FOR SHARE')).rows[0];
    const provider=(await db.query("SELECT enabled,version FROM lvd_integrations WHERE provider='ai' FOR SHARE")).rows[0];
-   const unambiguous=(await db.query("SELECT id FROM knowledge WHERE lvd_knowledge_keys(title,question_aliases) @> ARRAY[lvd_question_key($1)] AND jurisdiction=ANY($2::enum_knowledge_jurisdiction[]) AND approved AND _status='published' AND effective_from<=now() AND review_due_at>now() AND (expires_at IS NULL OR expires_at>now()) ORDER BY id LIMIT 2",[work.question,sourceScopes(work.country,work.question)])).rows;
+   const unambiguous=(await db.query("SELECT id FROM knowledge WHERE entry_type='knowledge' AND lvd_knowledge_keys(title,question_aliases) @> ARRAY[lvd_question_key($1)] AND jurisdiction=ANY($2::enum_knowledge_jurisdiction[]) AND approved AND _status='published' AND effective_from<=now() AND review_due_at>now() AND (expires_at IS NULL OR expires_at>now()) ORDER BY id LIMIT 2",[work.question,sourceScopes(work.country,work.question)])).rows;
    if(unambiguous.length!==1||unambiguous[0].id!==faq.id)answer=null;
    const providerChanged=providerVersion===undefined?Boolean(provider):!provider?.enabled||provider.version!==providerVersion;
    if(!current||!eligible(current)||!sourceInScope(current.jurisdiction,work.country,work.question)||!matchesQuestion(work.question,current)||faqRevision(current)!==faqRevision(faq)||settings?.customer_a_i_enabled===false||settings?.chat_enabled===false||providerChanged)answer=null;
@@ -90,7 +99,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    if(!ragSources.length)answer=null;
   }
   const cited=rag?ragSources:faq?[faq]:[];
-  const metadata=answer?{kind:clarification?'clarify':'ai',...(rag?{retrieval:'semantic-v1'}:{}),sources:clarification?[]:cited.map(source=>({id:source.id,title:source.title,url:source.source_url,revision:new Date(source.updated_at).toISOString()+'#'+faqRevision(source).slice(0,12)}))}:{kind:'handoff'};
+  const metadata=answer?{kind:clarification?'clarify':'ai',...(rag?{retrieval:'semantic-v1'}:{}),sources:clarification?[]:cited.map(source=>({...answerCitation(source),revision:new Date(source.updated_at).toISOString()+'#'+faqRevision(source).slice(0,12)}))}:{kind:'handoff'};
   await db.query("INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,'assistant',$2,false,'assistant',$3,$4) ON CONFLICT(conversation_id,client_key) DO NOTHING",[id,answer||handoffText,replyKey,JSON.stringify(metadata)]);
   await db.query('UPDATE lvd_conversations SET ai_enabled=$2,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,version=version+$3,updated_at=clock_timestamp() WHERE id=$1',[id,Boolean(answer),answer?0:1]);
   await db.query('INSERT INTO lvd_chat_events(conversation_id,action,version) SELECT id,$2,version FROM lvd_conversations WHERE id=$1',[id,answer?'ai.reply':'ai.handoff']);

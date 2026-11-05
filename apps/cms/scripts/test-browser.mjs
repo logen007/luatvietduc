@@ -113,6 +113,10 @@ try{
  assert.equal(await page.locator('.lvd-knowledge-editor .live-error').count(),0);
  failSourceList=false;await page.locator('.lvd-knowledge-list').getByRole('button',{name:'Thử lại',exact:true}).click();
  await page.waitForFunction(()=>!document.querySelector('.lvd-knowledge-list [role="alert"]'));
+ assert.equal(await page.getByText('Bài viết cho AI ↗',{exact:true}).count(),0);assert.equal(await page.getByText(/Nguồn nhập trực tiếp/).count(),0);assert.equal(await page.getByText('Bật kết nối Gemini trong Cài đặt để AI nhận bài mới.',{exact:true}).count(),0);
+ await page.getByRole('button',{name:'Thêm bài viết',exact:true}).click();await page.getByRole('combobox',{name:'Loại nội dung',exact:true}).selectOption('rule');await page.getByLabel('Tiêu đề',{exact:true}).fill('Synthetic operator rule');await page.getByLabel('Quy tắc trả lời',{exact:true}).fill('Synthetic operator policy');
+ assert.equal(await page.getByRole('button',{name:'Dùng cho AI',exact:true}).isEnabled(),true);
+ page.once('dialog',dialog=>dialog.accept());
  await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/knowledge-mobile.png'});
  // Native article language controls: preserve edits and show real pending state.
  const {articleTranslation}=await import('../src/modules/content/translations.ts');

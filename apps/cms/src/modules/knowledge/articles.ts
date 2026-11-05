@@ -7,10 +7,10 @@ import {knowledgeArticleInput} from './article-input';
 export function requireKnowledge(user:User|null):asserts user is User{if(!user||!['owner','knowledge','support','reviewer'].includes(user.role))throw new HttpError(403,'Tài khoản chưa được giao quản lý kiến thức AI.');}
 export async function knowledgeArticles(payload:Payload,user:User|null,id?:string|null,options:{query?:string;page?:number}={}){
  requireKnowledge(user);
- if(id){if(!/^\d+$/.test(id))throw new HttpError(400,'Bài viết không hợp lệ.');return payload.findByID({collection:'knowledge',id:Number(id),user,overrideAccess:false,draft:true});}
+ if(id){if(!/^\d+$/.test(id))throw new HttpError(400,'Bài viết không hợp lệ.');const doc=await payload.findByID({collection:'knowledge',id:Number(id),user,overrideAccess:false,draft:true});if(doc.articleOrigin)throw new HttpError(403,'Bài viết công khai được quản lý trong Bài viết.');return doc;}
  const query=(options.query||'').trim().slice(0,160),page=options.page||1;
  if(!Number.isSafeInteger(page)||page<1||page>100000)throw new HttpError(400,'Trang không hợp lệ.');
- const result=await payload.find({collection:'knowledge',user,overrideAccess:false,draft:true,limit:25,page,where:{and:[{articleOrigin:{exists:false}},...(query?[{title:{contains:query}}]:[])]},sort:'-updatedAt',select:{title:true,jurisdiction:true,_status:true,approved:true,updatedAt:true,reviewDueAt:true}});
+ const result=await payload.find({collection:'knowledge',user,overrideAccess:false,draft:true,limit:25,page,where:{and:[{articleOrigin:{exists:false}},...(query?[{title:{contains:query}}]:[])]},sort:'-updatedAt',select:{title:true,entryType:true,ruleEnabled:true,jurisdiction:true,_status:true,approved:true,updatedAt:true,effectiveFrom:true,expiresAt:true,reviewDueAt:true}});
  const index=await indexStatus(user,result.docs.map(doc=>doc.id));
  return {articles:result.docs.map(doc=>({...doc,index:index.rows.find(row=>row.source_id===doc.id)||null})),indexWorker:index.worker,total:result.totalDocs,page:result.page,totalPages:result.totalPages};
 }
@@ -19,6 +19,7 @@ export async function writeKnowledgeArticle(payload:Payload,user:User|null,input
  const tx=await payload.db.beginTransaction();if(!tx)throw new Error('Knowledge transaction unavailable');
  const req=await createLocalReq({user},payload);req.transactionID=tx;
  try{
+  await (payload.db as any).sessions[String(tx)].db.execute(sql`SELECT pg_advisory_xact_lock(73051105)`);
   let original:any;
   if(input.id){
    if(!Number.isSafeInteger(input.id)||input.id<1)throw new HttpError(400,'Bài viết không hợp lệ.');

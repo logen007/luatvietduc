@@ -1,3 +1,4 @@
+import {customerMetadata} from '../knowledge/citations';
 import { randomUUID } from "node:crypto";
 import { pool, transaction, hash } from "../shared/db";
 import type { User } from "../../payload-types";
@@ -120,7 +121,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
       aiStartedAt:c.ai_started_at,
       aiMessageId:c.ai_message_id,
     },
-    messages: messages.rows,
+    messages: messages.rows.map(row=>({...row,metadata:staff?row.metadata:customerMetadata(row.metadata)})),
   };
 }
 export async function message(

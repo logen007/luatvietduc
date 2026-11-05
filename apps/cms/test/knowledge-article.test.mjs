@@ -4,7 +4,7 @@ import {knowledgeArticleInput} from '../src/modules/knowledge/article-input.ts';
 const staff={id:2,role:'support',jurisdictions:['VN']};
 test('two-field article input uses shared knowledge scope and review defaults',()=>{
  const value=knowledgeArticleInput({title:'Synthetic title',body:'Synthetic article',publish:true},staff);
- assert.equal(value.jurisdiction,'BOTH');assert.equal(value._status,'published');assert.equal(value.approved,true);assert.match(value.sourceUrl,/\/service\/knowledge-source\/[a-f0-9-]{36}$/);assert.ok(new Date(value.reviewDueAt)>new Date());
+ assert.equal(value.jurisdiction,'BOTH');assert.equal(value._status,'published');assert.equal(value.approved,true);assert.match(value.sourceUrl,/\/admin\/knowledge#[a-f0-9-]{36}$/);assert.ok(new Date(value.reviewDueAt)>new Date());
 });
 test('simple authoring cannot widen permissions or accept invented external source protocols',()=>{
  for(const user of [{...staff,role:'member'},{...staff,jurisdictions:[]}])assert.throws(()=>knowledgeArticleInput({title:'Title',body:'Body',jurisdiction:'VN'},user));
@@ -16,3 +16,8 @@ test('source and policy dates of an existing article are preserved',()=>{
 });
 
 test('authoring ignores obsolete visitor country selectors',()=>assert.equal(knowledgeArticleInput({title:'Title',body:'Body',jurisdiction:'DE'},staff).jurisdiction,'BOTH'));
+
+test('editing private knowledge preserves a real expiry date unless explicitly changed',()=>{
+ const original={sourceUrl:'https://example.invalid/real-source',expiresAt:'2026-12-31T00:00:00.000Z'};
+ assert.equal(knowledgeArticleInput({title:'Title',body:'Body',publish:true},staff,original).expiresAt,original.expiresAt);
+});

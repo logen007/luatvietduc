@@ -397,6 +397,11 @@ html.lvd-admin .lvd-media-sr{position:absolute;width:1px;height:1px;overflow:hid
 html.lvd-admin .lvd-media-month{display:flex;align-items:center;gap:7px;height:40px;margin:0;padding-left:10px;border:1px solid var(--theme-elevation-200);border-radius:6px;background:var(--theme-bg);font-size:13px}
 html.lvd-admin .lvd-media-filters .lvd-media-month input{border:0;background:transparent;min-width:125px;max-width:145px;padding-left:0}
 @media(max-width:600px){html.lvd-admin .lvd-media-month{flex:1 1 175px}html.lvd-admin .lvd-media-filters .lvd-media-month input{max-width:none;width:100%;flex:1;min-width:0}}
+
+html.lvd-admin .lvd-knowledge-toolbar>span{font-size:13px;color:var(--theme-elevation-600)}
+html.lvd-admin .lvd-knowledge-retry{margin-top:16px;padding:8px 0;border:0;background:none;color:var(--theme-elevation-600);font:inherit;font-size:13px;cursor:pointer}
+
+@media(max-width:1100px){html.lvd-admin .lvd-knowledge-list:has([role=alert]){display:block}}
 /* Admin design system. Owns the final visual layer; public pages are unaffected. */
 html.lvd-admin[data-theme='dark']{
  --admin-canvas:#0a0a0a;--admin-sidebar:#0d0d0d;--admin-panel:#141414;--admin-raised:#1c1c1c;--admin-line:#303030;--admin-text:#f5f5f5;--admin-muted:#a3a3a3;--admin-accent:#fafafa;--admin-selected:#242424;

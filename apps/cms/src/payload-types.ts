@@ -247,13 +247,13 @@ export interface Tag {
   createdAt: string;
 }
 /**
- * Nhập FAQ công khai, kiểm tra căn cứ và xuất bản vào kho kiến thức chung. Không nhập hồ sơ hay hội thoại riêng. Xuất bản là xác nhận chuyên viên chịu trách nhiệm nội dung.
- *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "knowledge".
  */
 export interface Knowledge {
   id: number;
+  ruleEnabled?: boolean | null;
+  entryType?: ('knowledge' | 'rule') | null;
   articleOrigin?: (number | null) | Article;
   title: string;
   /**
@@ -261,7 +261,7 @@ export interface Knowledge {
    */
   questionAliases?: string | null;
   /**
-   * FAQ gồm: câu trả lời; điều kiện áp dụng; trường hợp loại trừ; khi nào chuyển chuyên viên. Chỉ dùng nội dung công khai đã kiểm chứng.
+   * FAQ gồm: câu trả lời; điều kiện áp dụng; trường hợp loại trừ; khi nào chuyển chuyên viên. Chỉ dùng nội dung đã được kiểm chứng và cho phép dùng để trả lời khách.
    */
   body: string;
   jurisdiction: 'VN' | 'DE' | 'BOTH';
@@ -496,6 +496,8 @@ export interface TagsSelect<T extends boolean = true> {
  * via the `definition` "knowledge_select".
  */
 export interface KnowledgeSelect<T extends boolean = true> {
+  ruleEnabled?: T;
+  entryType?: T;
   articleOrigin?: T;
   title?: T;
   questionAliases?: T;
