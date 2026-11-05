@@ -3,6 +3,7 @@ import {testPrivateKnowledge} from './test-private-knowledge';
 import {testMediaLibrary} from './test-media-library';
 import {testArticleTranslations} from './test-article-translations';
 import {testEmailAccounts} from './test-email-accounts';
+import {testLogout} from './test-logout';
 import {testAnswerQueue} from './test-answer-queue';
 import {testPublicContent} from './test-public-content';
 import {testThreeRoles} from './test-three-roles';
@@ -49,6 +50,7 @@ try {
   await testMediaLibrary(payload,owner);
   await testArticleTranslations(payload,owner);
   await testEmailAccounts(payload,owner);
+  await testLogout(payload,owner);
   await testThreeRoles(payload,owner);
   await testPublicContent(payload,owner);
   // Vault tests run only in the isolated CI database; no provider request is made.

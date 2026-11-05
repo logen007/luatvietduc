@@ -273,6 +273,24 @@ try{
  // A German keyword search with no approved content has a real empty state.
  await page.goto(base+'/phap-luat/duc?q=synthetic-no-results-'+suffix);await page.locator('.native-empty').waitFor();await fits();
  await page.goto(base+'/review-missing-'+suffix);await page.getByRole('heading',{name:'Không tìm thấy trang.',exact:true}).waitFor();await page.getByRole('link',{name:'Mở thư viện',exact:false}).waitFor();await fits();
+ // Native admin logout must revoke the Google cookie as well as the password
+ // cookie. Re-entering admin and replaying either old credential must be denied.
+ await page.unroute('**/service/me');
+ const {hash}=await import('../src/modules/shared/db.ts');
+ const googleSession=crypto.randomUUID();await pool.query("INSERT INTO lvd_sessions(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval '1 day')",[await hash(googleSession),owner.id]);
+ await context.addCookies([{name:'lvd-session',value:googleSession,url:base,httpOnly:true,sameSite:'Lax'}]);
+ const oldCookies=(await context.cookies()).filter(cookie=>['lvd-session','payload-token'].includes(cookie.name));assert.equal(oldCookies.length,2);
+ await page.goto(base+'/admin');await page.locator('.lvd-admin-navigation').waitFor();
+ if(!await page.locator('.nav').evaluate(nav=>nav.classList.contains('nav--nav-open')))await page.getByRole('button',{name:'Mở Menu',exact:true}).click();
+ await page.locator('.nav__log-out').click();await page.waitForURL(base+'/admin/login');
+ for(const path of ['/admin','/admin/settings','/admin/inbox','/admin/collections/users']){
+  await page.goto(base+path);await page.waitForURL(url=>url.pathname==='/admin/login');assert.equal(await page.locator('.lvd-admin-navigation').count(),0);
+ }
+ assert.equal((await context.cookies()).filter(cookie=>['lvd-session','payload-token'].includes(cookie.name)).length,0);
+ for(const cookie of oldCookies){
+  const replay=await fetch(base+'/service/me',{headers:{cookie:cookie.name+'='+cookie.value}});assert.equal((await replay.json()).user,null,'Old credentials cannot restore a logged-out user');
+  assert.equal((await fetch(base+'/api/users',{headers:{cookie:cookie.name+'='+cookie.value}})).status,403);
+ }
  console.log('CMS browser checks passed: public VI/DE, mobile fit, session loading, signed-in menu, retry, unsaved changes and native admin pages.');
 }catch(error){console.error('CMS browser check failed:',error);throw error;}finally{
  await browser?.close();

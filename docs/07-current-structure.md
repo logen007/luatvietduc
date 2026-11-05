@@ -175,6 +175,13 @@ Kiểm tra mới gồm unit cho chính sách và HTTP trong browser CI trên tra
 
 Trang `/tai-khoan` dùng form nền đen, Google và email/mật khẩu; mặc định Create your account, chuyển Sign in trong cùng trang. `modules/identity/AccountForm.tsx` giữ phần form, `account-input.ts` lọc dữ liệu, `account-email.ts` tạo email VI/DE; POST `/service/auth/{action}` xử lý đăng ký, đăng nhập, xác minh, gửi lại và đặt lại mật khẩu. Mật khẩu dùng bộ hash và hạn chế đăng nhập của Payload; token đăng nhập chỉ được đặt trong cookie HttpOnly.
 
+Đăng xuất công khai `/service/logout` và native `/api/users/logout` dùng chung
+`identity/logout.ts`: kiểm tra cùng origin, xác thực độc lập cookie mật khẩu để
+thu hồi phiên Payload, xóa phiên Google hiện tại trong DB rồi hết hạn cả hai
+cookie. Không chỉ xóa trạng thái giao diện; token cũ không truy cập lại được API.
+Các phiên trên thiết bị khác được giữ nguyên. Native admin vẫn dùng nút/luồng
+đăng xuất sẵn có, không tạo một giao diện đăng xuất riêng.
+
 Đăng ký công khai chỉ tạo User chưa xác minh. Hai cột bổ sung giữ tài khoản cũ đã xác minh; Google cấp mới được xác minh theo danh tính Google. Một đăng ký email chưa xác minh không giữ lại mật khẩu cũ khi chủ email đăng nhập bằng Google. Chỉ cookie khách HttpOnly của trình duyệt hiện tại được dùng để nối hội thoại sau đăng nhập; mã hội thoại không tự cấp quyền.
 
 Resend cần được kiểm tra và bật trong `/admin/settings/connections` để gửi email xác minh/đặt lại mật khẩu. Khi chưa bật, API báo chưa sẵn sàng, không báo gửi thành công. Chủ hệ thống chọn tự gửi email thử; địa chỉ gửi đã sửa sang tên miền mail.luatvietduc.com đã xác minh, kết nối vẫn tắt chờ thao tác này. Không gửi email thật trong kiểm tra tự động.

@@ -8,6 +8,7 @@ import config from "@payload-config";
 import { randomBytes } from "node:crypto";
 import { hash, pool } from "../../../modules/shared/db";
 import { cookieValue } from "../../../modules/identity/session";
+import {logoutRequest} from '../../../modules/identity/logout';
 import * as chat from "../../../modules/chat/service";
 import {requestAnswer} from '../../../modules/assistant/queue';
 import {activeValues} from '../../../modules/integrations/store';
@@ -34,8 +35,9 @@ async function route(
       method = req.method,
       path = segments.join("/"),
       url = new URL(req.url);
-    const payload = await getPayload({ config }),
-      { user } = await payload.auth({ headers: req.headers });
+    const payload = await getPayload({ config });
+    if(path==='logout'&&method==='POST')return logoutRequest(req,payload);
+    const { user } = await payload.auth({ headers: req.headers });
     let guest = cookieValue(req.headers, "lvd-guest"),
       fresh = false;
     if (!guest || !/^[\w-]{43}$/.test(guest)) {
@@ -80,17 +82,7 @@ async function route(
           : null,
         connections: await connectionStatus(),
       };
-    else if (path === "logout" && method === "POST") {
-      const token = cookieValue(req.headers, "lvd-session");
-      if (token)
-        await pool.query("DELETE FROM lvd_sessions WHERE token_hash=$1", [
-          await hash(token),
-        ]);
-      const response = json({ ok: true });
-      for (const name of ["lvd-session", "payload-token"])
-        response.cookies.delete(name);
-      return response;
-    } else if (path === "contact" && method === "POST")
+    else if (path === "contact" && method === "POST")
       result = await sendContact(data);
     else if (path === "conversations" && method === "GET")
       result = await chat.chatList(actor);
