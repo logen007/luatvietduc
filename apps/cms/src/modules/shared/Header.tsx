@@ -7,15 +7,23 @@ import { usePathname } from "next/navigation";
 
 import {LanguageSwitch} from './LanguageSwitch';
 import {usePublicShell} from './usePublicShell';
+import {api} from './client-api';
 const arrow = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6" /></svg>;
 
 export function Header({publicMode=false,activeSection='',onAccountNavigate}:{publicMode?:boolean;activeSection?:string;onAccountNavigate?:(event:React.MouseEvent<HTMLAnchorElement>)=>void}={}) {
  const {t,language}=useLocale(),session=usePublicSession(),account=accountView(session,language);
   const shell=usePublicShell(),name=shell.name,publicLinks=shell.primary;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loggingOut,setLoggingOut]=useState(false),[logoutError,setLogoutError]=useState('');
   const dialog = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
   const closeMenu = () => dialog.current?.close();
+  const signOut=async()=>{
+    if(loggingOut)return;
+    setLoggingOut(true);setLogoutError('');
+    try{await api('logout',{});window.location.assign('/');}
+    catch(error){setLogoutError(error instanceof Error?error.message:'Không thể kết nối. Vui lòng kiểm tra mạng và thử lại.');setLoggingOut(false);}
+  };
   return (
     <>
       <header className="site-header live-header">
@@ -42,12 +50,12 @@ export function Header({publicMode=false,activeSection='',onAccountNavigate}:{pu
           <button type="button" onClick={closeMenu} aria-label={t("Đóng menu")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" /></svg></button>
         </div>
         <nav aria-label={t("Menu")}>
-          <a href="/" onClick={closeMenu}>{t("Trang chủ")} {arrow}</a>
           {publicLinks.map((link) => <a key={link.href} href={link.href} onClick={closeMenu}>{t(link.label)}{arrow}</a>)}
           <a href="/lien-he" onClick={closeMenu}>{t("Liên hệ")} {arrow}</a>
-          <a href="/tro-chuyen" onClick={closeMenu} aria-current={pathname === "/tro-chuyen" ? "page" : undefined}>{t("Trò chuyện")} {arrow}</a>
           <a href={account.href} onClick={event=>{closeMenu();onAccountNavigate?.(event);}}>{account.label} {arrow}</a>
           {account.management&&<a href={account.management.href} onClick={closeMenu}>{account.management.label} {arrow}</a>}
+          {session.status==='ready'&&session.user&&<button type="button" onClick={()=>void signOut()} disabled={loggingOut} aria-busy={loggingOut}>{t('Đăng xuất')} <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H4v14h5M13 8l4 4-4 4M8 12h13"/></svg></button>}
+          {logoutError&&<p className="live-error" role="alert">{t(logoutError)}</p>}
         </nav>
       </dialog>
     </>
