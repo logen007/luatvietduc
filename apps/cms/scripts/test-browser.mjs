@@ -164,8 +164,11 @@ try{
    await page.screenshot({path:'test-results/cms-browser/admin-drawer-mobile.png'});
    await page.locator('.nav.nav--nav-open').getByRole('button',{name:'Đóng Menu',exact:true}).click();
   }
-  for(const path of ['/admin','/admin/collections/articles','/admin/collections/media','/admin/inbox','/admin/settings','/admin/account']){console.log('CMS page check:',viewport.width,path);await page.goto(base+path);await visible('.template-default');await fits();}
+  for(const path of ['/admin','/admin/collections/articles','/admin/collections/media','/admin/collections/quick-replies','/admin/inbox','/admin/settings','/admin/account']){console.log('CMS page check:',viewport.width,path);await page.goto(base+path);await visible('.template-default');await fits();}
  }
+ const templatesResponse=await page.evaluate(async()=>{const r=await fetch('/api/quick-replies?limit=1',{cache:'no-store'});return {status:r.status,data:await r.json()};});
+ assert.equal(templatesResponse.status,200);assert.ok(templatesResponse.data.docs.length);
+ assert.equal((await fetch(base+'/api/quick-replies?limit=1')).status,403,'Anonymous API access must be denied');
  // A transition acknowledged by the server survives a failed follow-up read.
  const threadId=crypto.randomUUID();
  let thread={id:threadId,title:'Synthetic conversation',state:'human',version:1,assignedTo:owner.id,customer:{name:'Synthetic customer',email:'customer@example.invalid'},aiEnabled:false},failTranscript=false;
@@ -180,6 +183,25 @@ try{
  });
  await page.setViewportSize({width:390,height:844});await page.goto(base+'/admin/inbox?conversation='+threadId);
  await page.getByRole('heading',{name:'Synthetic customer',exact:true}).waitFor();
+ // Templates are loaded from the private collection and only edit the draft.
+ assert.equal(await page.locator('.operator-compose-tabs').count(),0);
+ assert.equal(await page.getByText('KHÔNG GIAN LÀM VIỆC',{exact:true}).count(),0);
+ const replyBox=page.getByRole('textbox',{name:'Nội dung trả lời khách',exact:true});
+ await replyBox.fill('Bản nháp');
+ let replyRequests=0,templateFailure=true;
+ await page.route('**/api/quick-replies?*',route=>route.fulfill(templateFailure?{status:503,json:{errors:[]}}:{json:{docs:[{id:1,title:'Mẫu kiểm tra',body:'Nội dung mẫu.'},{id:2,title:'Mẫu dài',body:'x'.repeat(10000)}],totalPages:1,page:1}}));
+ page.on('request',request=>{if(request.url().includes('/service/conversations/'+threadId)&&request.method()==='POST')replyRequests++;});
+ await page.getByRole('button',{name:'Chèn câu mẫu',exact:true}).click();
+ await page.locator('.operator-quick-panel').getByRole('alert').waitFor();
+ templateFailure=false;await page.locator('.operator-quick-panel').getByRole('button',{name:'Thử lại',exact:true}).click();
+ await page.locator('.operator-quick-list').getByRole('button',{name:'Mẫu kiểm tra Nội dung mẫu.'}).click();
+ assert.equal(await replyBox.inputValue(),'Bản nháp\nNội dung mẫu.');assert.equal(replyRequests,0,'Inserting a template never sends it');
+ await page.getByRole('button',{name:'Chèn câu mẫu',exact:true}).click();
+ await page.locator('.operator-quick-list').getByRole('button',{name:/^Mẫu dài/}).click();
+ await page.locator('.operator-template-error').waitFor();
+ assert.equal(await replyBox.inputValue(),'Bản nháp\nNội dung mẫu.','Oversized template leaves the draft intact');
+ await page.getByRole('button',{name:'Đóng câu trả lời nhanh',exact:true}).click();await fits();
+ await page.unroute('**/api/quick-replies?*');
  await page.getByRole('button',{name:'✓ Hoàn tất',exact:true}).click();
  await page.locator('.operator-error').waitFor();assert.match(await page.locator('.operator-error').innerText(),/Synthetic transcript unavailable/);
  await page.locator('.operator-conversation-header').getByText('Đã hoàn tất',{exact:false}).waitFor();

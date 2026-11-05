@@ -74,6 +74,7 @@ export interface Config {
     knowledge: Knowledge;
     media: Media;
     'audit-events': AuditEvent;
+    'quick-replies': QuickReply;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -88,6 +89,7 @@ export interface Config {
     knowledge: KnowledgeSelect<false> | KnowledgeSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'audit-events': AuditEventsSelect<false> | AuditEventsSelect<true>;
+    'quick-replies': QuickRepliesSelect<false> | QuickRepliesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -321,6 +323,18 @@ export interface AuditEvent {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quick-replies".
+ */
+export interface QuickReply {
+  id: number;
+  title: string;
+  body: string;
+  enabled?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -370,6 +384,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'audit-events';
         value: number | AuditEvent;
+      } | null)
+    | ({
+        relationTo: 'quick-replies';
+        value: number | QuickReply;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -544,6 +562,17 @@ export interface AuditEventsSelect<T extends boolean = true> {
   recordId?: T;
   actor?: T;
   details?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quick-replies_select".
+ */
+export interface QuickRepliesSelect<T extends boolean = true> {
+  title?: T;
+  body?: T;
+  enabled?: T;
   updatedAt?: T;
   createdAt?: T;
 }

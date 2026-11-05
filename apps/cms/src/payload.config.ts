@@ -14,6 +14,7 @@ import { Audit } from "./modules/content/audit";
 import { SiteSettings } from "./modules/settings/config";
 import { Knowledge } from "./modules/knowledge/collection";
 import { Media } from "./modules/storage/collection";
+import {QuickReplies} from "./modules/quick-replies/collection";
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
   i18n:adminI18n,
@@ -42,7 +43,7 @@ export default buildConfig({
     pool: { connectionString: process.env.DATABASE_URL || "" },
     push: false,
   }),
-  collections: [Users, Articles, Categories, Tags, Knowledge, Media, Audit].map(withAdminPresentation),
+  collections: [Users, Articles, Categories, Tags, Knowledge, Media, Audit, QuickReplies].map(withAdminPresentation),
   globals: [SiteSettings],
   plugins: [runtimeStorage()],
   email: runtimeEmail,

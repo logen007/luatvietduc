@@ -17,6 +17,7 @@ export const adminLinks={
  createUser:{label:'Thêm mới',href:'/admin/collections/users/create'},
  settings:{label:'Cài đặt',href:'/admin/settings'},
  website:{label:'Website & giao diện',href:'/admin/globals/site-settings'},
+ quickReplies:{label:'Câu trả lời nhanh',href:'/admin/collections/quick-replies'},
  connections:{label:'Kết nối dịch vụ',href:'/admin/settings/connections'},
  backups:{label:'Sao lưu & khôi phục',href:'/admin/settings/backups'},
  audit:{label:'Nhật ký hoạt động',href:'/admin/collections/audit-events'},
@@ -36,12 +37,12 @@ export function adminNavigation(viewer?:AdminViewer|null):AdminNavItem[]{
   {...adminLinks.inbox,section:'Hỗ trợ khách',icon:'chat'},
   ...(can.owner?[
    {...adminLinks.users,section:'Hệ thống',icon:'users',children:[adminLinks.allUsers,adminLinks.createUser]},
-   {...adminLinks.settings,icon:'settings',children:[adminLinks.website,adminLinks.connections,adminLinks.backups,adminLinks.audit]},
+   {...adminLinks.settings,icon:'settings',children:[adminLinks.website,adminLinks.quickReplies,adminLinks.connections,adminLinks.backups,adminLinks.audit]},
   ]:[]),
  ];
 }
 export const adminSettingsSections=[
- {title:'Website',items:[adminLinks.website]},
+ {title:'Website',items:[adminLinks.website,adminLinks.quickReplies]},
  {title:'Kết nối',items:[adminLinks.connections]},
  {title:'Bảo trì',items:[adminLinks.backups,adminLinks.audit]},
 ];

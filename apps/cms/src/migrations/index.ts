@@ -1,3 +1,4 @@
+import * as quickReplies from './20261105_170000_quick_replies';
 import * as privateKnowledge from './20261105_150000_private_ai_knowledge';
 import * as articleTranslations from './20261105_130000_article_translations';
 import * as emailAccounts from './20261105_110000_email_accounts';
@@ -42,4 +43,5 @@ export const migrations = [
  {up:emailAccounts.up,down:emailAccounts.down,name:'20261105_110000_email_accounts'},
  {up:articleTranslations.up,down:articleTranslations.down,name:'20261105_130000_article_translations'},
  {up:privateKnowledge.up,down:privateKnowledge.down,name:'20261105_150000_private_ai_knowledge'},
+ {up:quickReplies.up,down:quickReplies.down,name:'20261105_170000_quick_replies'},
 ];

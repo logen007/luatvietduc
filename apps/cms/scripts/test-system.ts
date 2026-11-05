@@ -1,3 +1,4 @@
+import {testQuickReplies} from './test-quick-replies';
 import {testPrivateKnowledge} from './test-private-knowledge';
 import {testMediaLibrary} from './test-media-library';
 import {testArticleTranslations} from './test-article-translations';
@@ -43,6 +44,7 @@ try {
       role: "owner",
     },
   });
+  await testQuickReplies(payload,owner);
   await testPrivateKnowledge(payload,owner);
   await testMediaLibrary(payload,owner);
   await testArticleTranslations(payload,owner);
