@@ -31,7 +31,7 @@
 .lvd-public-site .catalog-page .catalog-toolbar:has(>label[for="catalog-group"]){grid-template-columns:minmax(0,1fr) minmax(180px,.6fr) minmax(160px,.45fr) auto}
 .lvd-public-site .catalog-toolbar>label{display:grid;gap:8px;margin:0}
 .lvd-public-site .catalog-toolbar>.button{width:auto;min-height:48px;white-space:nowrap}
-.lvd-public-site .native-news-search{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,.55fr) auto;max-width:none;align-items:center}
+.lvd-public-site .native-news-search{display:grid;grid-template-columns:minmax(0,1fr) auto;max-width:none;align-items:center}
 .lvd-public-site .native-news-search>.button{min-height:48px;white-space:nowrap}
 /* Selection uses weight and a surface, with no decorative link underline. */
 .lvd-public-site :is(.lvd-country-tabs,.press-categories) a{border-bottom-color:transparent!important;border-radius:4px;padding-inline:10px}
