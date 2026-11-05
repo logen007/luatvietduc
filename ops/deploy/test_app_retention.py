@@ -1,4 +1,4 @@
-import importlib.util,pathlib,unittest
+import importlib.util,pathlib,re,unittest
 spec=importlib.util.spec_from_file_location('retention',pathlib.Path(__file__).with_name('app-retention.py'));m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 class Retention(unittest.TestCase):
  def test_preserves_current_and_every_container_reference(self):
@@ -13,4 +13,12 @@ class Retention(unittest.TestCase):
  def test_buildx_writes_only_inside_existing_state_boundary(self):
   unit=pathlib.Path(__file__).with_name('luatvietduc-retention.service').read_text()
   self.assertIn('Environment=DOCKER_CONFIG=/var/lib/luatvietduc-deploy/retention-docker-cli',unit);self.assertIn('ProtectHome=true',unit);self.assertIn('ProtectSystem=strict',unit)
+ def test_prunes_the_presentation_leaf_that_pins_old_build_chains(self):
+  dockerfile=pathlib.Path(__file__).with_name('Dockerfile').read_text()
+  command=next(line[4:] for line in dockerfile.splitlines() if line.startswith('RUN mkdir presentation-releases'))
+  self.assertNotRegex(m.CACHE_FILTER,r'\s')
+  pattern=m.CACHE_FILTER.removeprefix('description~=')
+  self.assertRegex('mount / from exec /bin/sh -c '+command,pattern)
+  for unrelated in ['mount / from exec /bin/sh -c npm ci --ignore-scripts','[stage-1 4/9] COPY src/domain/student-profile.js /app/src/domain/student-profile.js','local source for context']:
+   self.assertIsNone(re.search(pattern,unrelated))
 if __name__=='__main__':unittest.main()

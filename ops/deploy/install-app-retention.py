@@ -2,6 +2,10 @@
 """Install the owner's one-current-image retention without modifying release-engine policy."""
 import argparse,fcntl,hashlib,importlib.util,json,os,pathlib,subprocess
 FILES=['ops/deploy/app-retention.py','ops/deploy/luatvietduc-retention.service','ops/deploy/luatvietduc-retention.timer']
+UPGRADE_FROM={
+ 'luatvietduc-retention.service':'e079a9060818c653bbe969c2c7fbfdc074939f0ea9cad86cac7cdef8d92451ad',
+ 'app-retention.py':'6e82f8ef8b88ed3b69c4c442d09e45110616d1fdf6d889efcfae48cd7a5570c2',
+}
 def digest(read):
  h=hashlib.sha256()
  for name in FILES:h.update(name.encode()+b'\0'+hashlib.sha256(read(name)).digest())
@@ -21,7 +25,7 @@ def main():
    m.require(not target.is_symlink(),'Unsafe retention path')
    if target.exists():
     if target.read_bytes()!=read(name):
-     m.require(target.name=='luatvietduc-retention.service' and hashlib.sha256(target.read_bytes()).hexdigest()=='e079a9060818c653bbe969c2c7fbfdc074939f0ea9cad86cac7cdef8d92451ad','Existing retention file differs')
+     m.require(hashlib.sha256(target.read_bytes()).hexdigest()==UPGRADE_FROM.get(target.name),'Existing retention file differs')
      target.write_bytes(read(name))
    else:target.write_bytes(read(name));target.chmod(0o600 if name.endswith('.py') else 0o644)
   e.run(['systemctl','daemon-reload'],env=e.env);e.run(['systemctl','enable','--now','luatvietduc-retention.timer'],env=e.env)

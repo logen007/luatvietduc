@@ -2,7 +2,9 @@
 """Keep the current app image; temporary rollback image survives until release lock is released."""
 import fcntl,json,pathlib,re,subprocess,urllib.request
 STATE=pathlib.Path('/var/lib/luatvietduc-deploy')
-CACHE_FILTER='description~=fs.accessSync.*fs.constants.R_OK|build-placeholder-not-for-runtime-secret|/legacy-assets|/legacy-index|apps/cms/|prepare-container.mjs'
+# Include the presentation-directory step: an unmatched terminal cache record
+# keeps the matching build ancestors alive even after their image is removed.
+CACHE_FILTER='description~=fs.accessSync.*fs.constants.R_OK|build-placeholder-not-for-runtime-secret|/legacy-assets|/legacy-index|apps/cms/|prepare-container.mjs|presentation-releases/base'
 
 def obsolete(tags,current,used,inspect):
     if not re.fullmatch(r'[a-f0-9]{40}',current):raise ValueError('Known current release required')
