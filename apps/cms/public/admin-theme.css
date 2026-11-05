@@ -543,9 +543,12 @@ html.lvd-admin .operator-eyebrow{letter-spacing:.08em}
 }
 @media(prefers-reduced-motion:reduce){html.lvd-admin .nav,html.lvd-admin .lvd-menu-main>button svg{transition:none}}
 
-/* Monochrome feedback remains explicit in labels, borders and note headings. */
+/* Connection states use distinct colors while retaining their text labels. */
 html.lvd-admin .lvd-admin-workflow__dot{background:var(--admin-muted)}
-html.lvd-admin .lvd-admin-page :is(.live-status,.live-status.is-ready,.live-status.is-pending){background:var(--admin-raised);border-color:var(--admin-line);color:var(--admin-text)}
+html.lvd-admin .lvd-admin-page .live-status{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;background:var(--admin-raised);border-color:var(--admin-line);color:var(--admin-text)}
+html.lvd-admin .lvd-admin-page .live-status.is-ready{background:#17372b;border-color:#347658;color:#9be4ba}
+html.lvd-admin .lvd-admin-page .live-status.is-pending{background:#242424;border-color:#525252;color:#b8b8b8}
+html.lvd-admin .lvd-admin-page :is(.live-status.is-ready,.live-status.is-pending)::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
 html.lvd-admin :is(.operator-status.human,.operator-status.queued,.operator-welcome>span,.operator-files>div>small){color:var(--admin-muted)}
 html.lvd-admin :is(.operator-message.is-note,.operator-composer.is-note){background:#202020;border-color:#484848}
 html.lvd-admin .operator-thread.is-selected{box-shadow:inset 3px 0 #fafafa}
