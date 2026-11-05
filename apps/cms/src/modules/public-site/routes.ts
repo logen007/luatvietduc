@@ -2,7 +2,7 @@ import {publicHref,legacyGroupAliases} from '../shared/public-shell.mjs';
 export type PublicRoute={kind:'home'|'library'|'topic'|'news'|'legacy-news'|'about'|'contact'|'privacy'|'terms'|'help';path:string;title:string;country?:'VN'|'DE';group?:string;topic?:number;slug?:string};
 export const publicPages=[
  {kind:'home',path:'/',title:'Luật Việt Đức'},
- {kind:'library',path:'/thu-vien',title:'Thư viện'},
+ {kind:'library',path:'/thu-vien',title:'Pháp luật Việt Nam',country:'VN'},
  {kind:'news',path:'/tin-tuc',title:'Tin tức & đời sống'},
  {kind:'about',path:'/gioi-thieu',title:'Giới thiệu'},
  {kind:'contact',path:'/lien-he',title:'Liên hệ'},
@@ -13,11 +13,11 @@ export const publicPages=[
 export const groupAliases=legacyGroupAliases;
 export function resolvePublicRoute(path:string):PublicRoute|null{
  const page=publicPages.find(page=>page.path===path);if(page)return {...page};
- if(path==='/tim-kiem')return {kind:'library',path,title:'Kết quả tìm kiếm'};
+ if(path==='/tim-kiem')return {kind:'library',path,title:'Kết quả tìm kiếm',country:'VN'};
  const story=/^\/tin\/([a-z0-9-]+)$/.exec(path);if(story)return {kind:'legacy-news',path,title:'Tin tức',slug:story[1]};
  const match=/^\/(?:phap-luat\/(viet-nam|duc)(?:\/(.*))?|chu-de\/(.+))$/.exec(path);
  if(!match)return null;
- const country=match[1]==='duc'?'DE':match[1]?'VN':undefined,parts=(match[2]||match[3]||'').split('/').filter(Boolean);
+ const country=match[1]==='duc'?'DE':'VN',parts=(match[2]||match[3]||'').split('/').filter(Boolean);
  if(parts.length>2||parts[1]&&(!/^\d{1,2}$/.test(parts[1])||Number(parts[1])<1))return null;
  const group=parts[0]?groupAliases[parts[0]]||parts[0]:undefined,topic=parts[1]?Number(parts[1]):undefined;
  return {kind:topic?'topic':'library',path,title:country==='DE'?'Pháp luật Đức':country==='VN'?'Pháp luật Việt Nam':'Thư viện',country,group,topic};
