@@ -696,7 +696,7 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 .pm-country:hover { background:#fafaf9; border-color:rgba(0,0,0,.24); }
 .pm-country-flag { flex:none; width:30px; height:auto; max-height:22px; object-fit:contain; }
 .pm-country-copy { flex:1; min-width:0; }
-.lvd-redesign .pm-country h2 { margin:0 0 8px; font:600 20px/1.3 var(--lvd-font); letter-spacing:-.01em; }
+.lvd-redesign .pm-country h2 { margin:0; font:600 20px/1.3 var(--lvd-font); letter-spacing:-.01em; }
 .pm-country p { margin:0; color:#737373; font:400 14px/22px var(--lvd-font); }
 .pm-country>.lvd-arrow { flex:none; }
 .pm-fields { padding:100px 0 110px; background:#f5f3ee; }
@@ -889,6 +889,14 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 
 /* Compact visual, comfortable hit area on touch screens. */
 .lvd-language-switch button{min-width:44px;min-height:44px}
+
+/* Equal side tracks keep navigation centered independently of account width. */
+@media(min-width:1101px){
+ .live-header .live-header-inner{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+ .live-header .live-brand{justify-self:start}
+ .live-header .live-nav{justify-self:center;margin:0}
+ .live-header .live-header-actions{justify-self:end;margin:0}
+}
 /* Contact email owns its form and responsive layout; the prototype remains a reference. */
 .lvd-redesign .contact-email-heading{max-width:920px;margin:20px 0 64px}
 .lvd-redesign .contact-email-heading h1{margin:20px 0 24px;font:500 clamp(48px,5.5vw,80px)/1.05 var(--lvd-display);letter-spacing:-.025em}

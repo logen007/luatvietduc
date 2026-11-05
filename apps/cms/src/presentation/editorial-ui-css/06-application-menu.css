@@ -52,3 +52,11 @@
 
 /* Compact visual, comfortable hit area on touch screens. */
 .lvd-language-switch button{min-width:44px;min-height:44px}
+
+/* Equal side tracks keep navigation centered independently of account width. */
+@media(min-width:1101px){
+ .live-header .live-header-inner{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+ .live-header .live-brand{justify-self:start}
+ .live-header .live-nav{justify-self:center;margin:0}
+ .live-header .live-header-actions{justify-self:end;margin:0}
+}
