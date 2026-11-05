@@ -1,5 +1,27 @@
 # Cấu trúc đang chạy
 
+## Rà soát luồng sử dụng 2026-11-05
+
+Đổi chuyên mục tin giữ từ khóa, đặt lại trang và không khôi phục bộ lọc loại đã bỏ.
+Form câu hỏi/liên hệ khai báo POST để dữ liệu không rơi vào URL trước hydration;
+gửi nội dung vẫn qua handler hiện có, chưa có luồng gửi khi JavaScript bị tắt.
+
+Lỗi xóa media tách khỏi lỗi lưu metadata: thử lại đúng thao tác, hủy giữ quyền
+xác nhận, 404 được coi là tệp đã xóa. Hoàn tất upload hủy tìm kiếm đang chờ để
+không ẩn tệp mới. Thay tệp đang xem xóa trạng thái lỗi/xác nhận/sao chép cũ.
+
+Outbox giữ khóa theo hội thoại và nội dung chưa được xác nhận, kể cả khi đổi
+hội thoại hoặc mở cuộc mới. Tối đa 50 yêu cầu chưa xác nhận; hết chỗ thì từ chối
+yêu cầu mới, không bỏ khóa cũ. Xác nhận gửi giải phóng chỗ. Bộ nhớ này thuộc phiên
+workspace hiện tại, không bảo đảm giữ khóa qua tải lại trang hoặc thay phiên.
+Bản nháp chuyên viên giữ cả chữ và tệp khi đổi hội thoại, chỉ hiện sau lượt đọc
+được phép. Thu hồi quyền rõ ràng xóa bản nháp và khóa gửi của hội thoại đó; lỗi
+đọc tạm thời hoặc đóng hội thoại vẫn giữ nháp đã được phép.
+
+Kiểm tra: 200 unit, TypeScript, build và trình duyệt trên dữ liệu giả. Luồng
+trình duyệt gồm A→B→A, lỗi xác nhận gửi, mất quyền, retry xóa sau autosave và
+upload trong lúc tìm kiếm. Không gọi nhà cung cấp hay ghi dữ liệu khách thật.
+
 Ứng dụng hiện hành ở `apps/cms`, phục vụ https://luatvietduc.com. Root `index.html`
 và `assets/` là nguồn giao diện được giữ lại. `platform/` là bộ quy tắc nền; quyền,
 giao dịch và API thực tế nằm trong CMS.

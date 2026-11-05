@@ -52,6 +52,27 @@ test('invalid save receipts keep the retry key instead of claiming successful de
  await assert.rejects(outbox.send('a',draft),/phản hồi/);assert.equal(outbox.pendingKey(),'synthetic-key');
 });
 
+test('A/B/A retries and returning to an earlier edited draft retain their original save keys',async()=>{
+ let keys=0;const sent=[];
+ const outbox=createMessageOutbox(async(id,payload)=>{sent.push({id,...payload});throw new Error('Ambiguous save');},()=>`synthetic-key-${++keys}`);
+ await assert.rejects(outbox.send('a',draft));const first=outbox.pendingKey('a');
+ await assert.rejects(outbox.send('b',draft));assert.equal(outbox.pendingKey('a'),first);assert.notEqual(outbox.pendingKey('b'),first);
+ await assert.rejects(outbox.send('a',{...draft,body:'Edited question'}));
+ await assert.rejects(outbox.send('a',draft));assert.equal(sent.at(-1).key,first);assert.equal(outbox.pendingKey('a'),first);assert.equal(keys,3);
+ outbox.reset('b');assert.equal(outbox.pendingKey('b'),undefined);assert.equal(outbox.pendingKey('a'),first);
+ outbox.reset();assert.equal(outbox.pendingKey('a'),undefined);await assert.rejects(outbox.send('a',draft));assert.notEqual(sent.at(-1).key,first,'A changed identity cannot inherit a retry key');
+});
+
+test('the retry bound rejects new attempts without evicting an ambiguous key; acknowledgments free slots',async()=>{
+ let keys=0,acknowledge=false;const sent=[];
+ const outbox=createMessageOutbox(async(id,payload)=>{sent.push({id,...payload});if(acknowledge)return {id:999,role:'user'};throw new Error('Ambiguous save');},()=>`synthetic-key-${++keys}`);
+ for(let index=0;index<50;index++)await assert.rejects(outbox.send(String(index),draft));
+ const first=outbox.pendingKey('0');await assert.rejects(outbox.send('new',draft),/chưa xác nhận/);
+ assert.equal(sent.length,50);assert.equal(keys,50);assert.equal(outbox.pendingKey('0'),first);
+ acknowledge=true;await outbox.send('0',draft);assert.equal(sent.at(-1).key,first);assert.equal(outbox.pendingKey('0'),undefined);
+ await outbox.send('new',draft);assert.equal(keys,51);assert.equal(outbox.pendingKey('1'),'synthetic-key-2');
+});
+
 test('attachment preflight rejects a bad later file, oversized batches and empty files before upload',()=>{
  const file=(name,size=100)=>({name,size});
  assert.doesNotThrow(()=>validateAttachmentBatch([file('A.PDF'),file('b.jpeg',10*1024*1024)],2));

@@ -82,6 +82,7 @@ try{
  const nav=page.locator('.live-menu-dialog');await page.getByRole('button',{name:'Mở menu',exact:true}).click();await nav.waitFor({state:'visible'});
  assert.equal(await nav.getByRole('link',{name:'Đăng nhập',exact:true}).count(),0);await page.getByRole('button',{name:'Đóng menu',exact:true}).click();
  const {testPublicReview}=await import('./test-public-review.mjs');await testPublicReview({page,context,base,owner});
+ const {testChatReview}=await import('./test-chat-review.mjs');await testChatReview({page,base,owner});
  await page.setViewportSize({width:1280,height:900});
  await page.goto(base+'/tin-tuc');assert.ok((await page.locator('#news-query').boundingBox()).width>240,'Desktop news search must remain usable beside its filters');
  // Test recoverable connection errors independently of real credentials.
@@ -157,9 +158,9 @@ try{
  // Native storage cleanup/ACLs run separately with an in-process S3 mock. The
  // browser deletes only exact synthetic rows and never calls server-side S3.
  for(const index of [1,2,3]){const mime=index===3?'application/pdf':'image/svg+xml',filename='synthetic-media-'+suffix+'-'+index+(index===3?'.pdf':'.svg');const row=(await pool.query("INSERT INTO media(alt,filename,mime_type,filesize,visibility) VALUES($1,$2,$3,120,'private') RETURNING id",['Synthetic media '+index,filename,mime])).rows[0];mediaFixtureIds.push(row.id);}
- let mediaDeleteRequests=0,failMediaDeleteId=null,mediaDeleteFailed=false;
+ let mediaDeleteRequests=0,failMediaDeleteId=null,mediaDeleteFailed=false,deleteNotFoundId=null;
  const mediaDeleteURL=url=>url.origin===base&&/^\/api\/media\/\d+$/.test(url.pathname);
- const mediaDeleteHandler=async route=>{if(route.request().method()!=='DELETE')return route.fallback();const id=Number(new URL(route.request().url()).pathname.split('/').pop());assert.ok(mediaFixtureIds.includes(id),'Browser deletes only its own synthetic media');mediaDeleteRequests++;if(id===failMediaDeleteId&&!mediaDeleteFailed){mediaDeleteFailed=true;return route.fulfill({status:503,json:{errors:[{message:'Synthetic delete failure'}]}});}await pool.query('DELETE FROM media WHERE id=$1',[id]);return route.fulfill({json:{id}});};
+ const mediaDeleteHandler=async route=>{if(route.request().method()!=='DELETE')return route.fallback();const id=Number(new URL(route.request().url()).pathname.split('/').pop());assert.ok(mediaFixtureIds.includes(id),'Browser deletes only its own synthetic media');mediaDeleteRequests++;if(id===failMediaDeleteId&&!mediaDeleteFailed){mediaDeleteFailed=true;return route.fulfill({status:503,json:{errors:[{message:'Synthetic delete failure'}]}});}await pool.query('DELETE FROM media WHERE id=$1',[id]);return id===deleteNotFoundId?route.fulfill({status:404,json:{errors:[{message:'Synthetic already deleted'}]}}):route.fulfill({json:{id}});};
  await page.route(mediaDeleteURL,mediaDeleteHandler);
  const confirmMediaDelete=(trigger,accept)=>Promise.all([page.waitForEvent('dialog').then(async prompt=>{assert.equal(prompt.type(),'confirm');await (accept?prompt.accept():prompt.dismiss());}),trigger()]);
  await page.route('**/api/media/file/synthetic-media-*',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="white"/></svg>'}));
@@ -182,11 +183,20 @@ try{
  let syntheticUploadId;
  await page.route('**/api/media',async route=>{if(route.request().method()!=='POST')return route.continue();await mediaUploadPending;const filename='browser-upload-'+suffix+'.svg';syntheticUploadId=(await pool.query("INSERT INTO media(title,alt,filename,mime_type,filesize,visibility,uploaded_by_id) VALUES($1,'',$2,'image/svg+xml',100,'private',$3) RETURNING id",['Browser uploaded SVG',filename,owner.id])).rows[0].id;mediaFixtureIds.push(syntheticUploadId);return route.fulfill({status:201,json:{doc:{id:syntheticUploadId,filename}}});});
  await page.locator('.lvd-media-upload input[type=file]').setInputFiles({name:'browser-upload-'+suffix+'.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0h10v10H0Z"/></svg>')});
- assert.equal(await page.getByRole('button',{name:'Tải tệp',exact:true}).isDisabled(),true,'An active upload cannot be unmounted by its toolbar toggle');releaseMediaUpload();
+ assert.equal(await page.getByRole('button',{name:'Tải tệp',exact:true}).isDisabled(),true,'An active upload cannot be unmounted by its toolbar toggle');
+ await page.getByRole('searchbox',{name:'Tìm tệp',exact:true}).fill('pending-hidden-'+suffix);releaseMediaUpload();
  await page.locator('.lvd-media-upload').getByText('Đã tải',{exact:true}).waitFor();assert.ok(syntheticUploadId);await page.unroute('**/api/media');
+ await page.waitForTimeout(450);assert.equal(await page.getByRole('searchbox',{name:'Tìm tệp',exact:true}).inputValue(),'','Upload completion cancels a pending search');assert.ok(!new URL(page.url()).searchParams.get('search'),'A stale search cannot hide the new upload');
  await page.getByRole('button',{name:'Tải tệp',exact:true}).click();
  await page.locator('.lvd-media-grid a[href="/admin/collections/media/'+syntheticUploadId+'"]').click();await page.getByRole('button',{name:'Xóa vĩnh viễn',exact:true}).waitFor();
- await page.getByRole('button',{name:'Xóa vĩnh viễn',exact:true}).click();await page.getByRole('button',{name:'Xóa tệp',exact:true}).click();await page.locator('.lvd-media-details').waitFor({state:'detached'});assert.equal((await pool.query('SELECT id FROM media WHERE id=$1',[syntheticUploadId])).rowCount,0);mediaFixtureIds.splice(mediaFixtureIds.indexOf(syntheticUploadId),1);
+ failMediaDeleteId=syntheticUploadId;mediaDeleteFailed=false;
+ await page.getByRole('button',{name:'Xóa vĩnh viễn',exact:true}).click();await page.getByRole('button',{name:'Xóa tệp',exact:true}).click();
+ const deletionError=page.getByRole('dialog',{name:'Chi tiết tệp',exact:true}).getByRole('alert').filter({hasText:'Chưa xóa được tệp.'});await deletionError.waitFor();
+ // A successful metadata save cannot replace the failed action's retry intent.
+ await page.getByRole('textbox',{name:'Tiêu đề tệp',exact:true}).fill('Browser retry metadata '+suffix);await page.waitForFunction(()=>document.querySelector('.lvd-media-detail-state')?.textContent==='Đã lưu');
+ await deletionError.waitFor();await page.locator('.lvd-media-delete-confirm').getByRole('button',{name:'Hủy',exact:true}).click();
+ const beforeDetailRetry=mediaDeleteRequests;await deletionError.getByRole('button',{name:'Thử lại',exact:true}).click();await page.locator('.lvd-media-delete-confirm').waitFor();assert.equal(mediaDeleteRequests,beforeDetailRetry,'Retry after cancellation first reopens confirmation');
+ deleteNotFoundId=syntheticUploadId;await deletionError.getByRole('button',{name:'Thử lại',exact:true}).click();await page.locator('.lvd-media-details').waitFor({state:'detached'});assert.equal(mediaDeleteRequests,beforeDetailRetry+1,'Failed deletion retries DELETE, not metadata save');assert.equal((await pool.query('SELECT id FROM media WHERE id=$1',[syntheticUploadId])).rowCount,0);mediaFixtureIds.splice(mediaFixtureIds.indexOf(syntheticUploadId),1);deleteNotFoundId=null;
  await page.reload();await page.locator('.lvd-media-grid').waitFor();
  const {testMediaReview}=await import('./test-media-review.mjs');await testMediaReview({page,base,pool,owner,ids:mediaFixtureIds,suffix});
 
@@ -205,7 +215,7 @@ try{
  await page.getByRole('button',{name:'Hủy chọn',exact:true}).click();assert.equal(await page.locator('.lvd-media-grid input[type=checkbox]').count(),0);assert.equal(mediaDeleteRequests,beforeCancelledDelete,'Leaving grid selection mode does not delete files');
 
  const mediaBulkIds=[];for(const index of [1,2]){const row=(await pool.query("INSERT INTO media(alt,filename,mime_type,filesize,visibility,uploaded_by_id) VALUES($1,$2,'image/svg+xml',120,'private',$3) RETURNING id",['Synthetic bulk '+suffix,'synthetic-media-bulk-'+suffix+'-'+index+'.svg',owner.id])).rows[0];mediaBulkIds.push(row.id);mediaFixtureIds.push(row.id);}
- failMediaDeleteId=mediaBulkIds[1];await page.getByRole('searchbox',{name:'Tìm tệp',exact:true}).fill('bulk-'+suffix);await page.waitForFunction(()=>document.querySelectorAll('.lvd-media-grid .lvd-media-tile').length===2);
+ failMediaDeleteId=mediaBulkIds[1];mediaDeleteFailed=false;await page.getByRole('searchbox',{name:'Tìm tệp',exact:true}).fill('bulk-'+suffix);await page.waitForFunction(()=>document.querySelectorAll('.lvd-media-grid .lvd-media-tile').length===2);
  await page.getByRole('button',{name:'Chọn nhiều',exact:true}).click();for(const box of await page.locator('.lvd-media-grid input[type=checkbox]').all())await box.check();
  await confirmMediaDelete(()=>page.getByRole('button',{name:'Xóa tệp đã chọn',exact:true}).click(),true);await page.locator('.lvd-media-delete-error').waitFor();
  await page.waitForFunction(()=>document.querySelectorAll('.lvd-media-grid .lvd-media-tile').length===1&&document.querySelectorAll('.lvd-media-grid input:checked').length===1);

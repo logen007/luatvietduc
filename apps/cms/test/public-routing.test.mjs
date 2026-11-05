@@ -2,12 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
 import {publicHref,legacyTarget} from '../src/modules/shared/public-shell.mjs';
 import {publicPages,resolvePublicRoute,redirectTarget,positivePage,legacyKeyword} from '../src/modules/public-site/routes.ts';
 import {catalogueTopics} from '../src/modules/public-site/search.ts';
 import {publicMetadata,privatePaths,sitemapIndex,sitemapDocument,sitemapPageSize} from '../src/modules/public-site/seo.ts';
 import {canonicalCopy} from '../src/modules/public-site/Information.tsx';
 import {keepsLegacyCopy} from '../src/modules/public-site/legacy-news.ts';
+import {News} from '../src/modules/public-site/News.tsx';
+import {Home} from '../src/modules/public-site/Home.tsx';
+import {Contact} from '../src/modules/public-site/Contact.tsx';
 const content=JSON.parse(fs.readFileSync(new URL('../src/modules/public-site/content.json',import.meta.url)));
 
 test('legacy hash navigation preserves searches, filters, context and aliases without external redirects',()=>{
@@ -27,6 +32,40 @@ test('public route registry excludes every private area and rejects malformed to
  assert.equal(resolvePublicRoute('/phap-luat/duc/quoc-tich')?.country,'DE');
  assert.equal(resolvePublicRoute('/chu-de/gia-dinh/01')?.group,'hon-nhan-gia-dinh');
  assert.equal(positivePage('100000000'),1);assert.equal(positivePage('NaN'),1);assert.equal(positivePage('2'),2);
+});
+
+test('changing news categories keeps the search and resets pagination without restoring the retired type filter',()=>{
+ const html=renderToStaticMarkup(createElement(News,{articles:{docs:[],totalDocs:30,totalPages:3,page:2},query:'q=nhà+ở+%26+Berlin&nhom=viec-lam&trang=2&loai=guide',categories:[['viec-lam','Việc làm'],['gia-dinh','Gia đình']]}));
+ const navigation=html.match(/<nav class="press-categories"[^>]*>([\s\S]*?)<\/nav>/)?.[1];assert.ok(navigation);
+ const links=[...navigation.matchAll(/href="([^"]+)"/g)].map(([,href])=>new URL(href.replaceAll('&amp;','&'),'https://example.invalid'));
+ assert.equal(links.length,3);
+ links.forEach((url,index)=>{
+  assert.equal(url.searchParams.get('q'),'nhà ở & Berlin');
+  assert.equal(url.searchParams.get('nhom'),[null,'viec-lam','gia-dinh'][index]);
+  assert.equal(url.searchParams.has('trang'),false);assert.equal(url.searchParams.has('loai'),false);
+ });
+ const form=html.match(/<form class="native-news-search"[^>]*>([\s\S]*?)<\/form>/)?.[1];assert.ok(form);
+ assert.match(form,/name="nhom" value="viec-lam"/);assert.doesNotMatch(form,/name="(?:trang|loai)"/);
+ const pagination=html.match(/<nav class="pagination"[^>]*>([\s\S]*?)<\/nav>/)?.[1];assert.ok(pagination);
+ for(const [,href] of pagination.matchAll(/href="([^"]+)"/g)){
+  const url=new URL(href.replaceAll('&amp;','&'),'https://example.invalid');
+  assert.equal(url.searchParams.get('q'),'nhà ở & Berlin');assert.equal(url.searchParams.get('nhom'),'viec-lam');assert.equal(url.searchParams.has('loai'),false);
+ }
+});
+
+test('news category navigation uses clean links when there is no search',()=>{
+ const html=renderToStaticMarkup(createElement(News,{articles:{docs:[],totalDocs:0,totalPages:1,page:1},query:'nhom=viec-lam&trang=4',categories:[['gia-dinh','Gia đình']]}));
+ const navigation=html.match(/<nav class="press-categories"[^>]*>([\s\S]*?)<\/nav>/)?.[1];assert.ok(navigation);
+ assert.match(navigation,/href="\/tin-tuc"/);assert.match(navigation,/href="\/tin-tuc\?nhom=gia-dinh"/);
+});
+
+test('question and contact forms keep entered details out of URLs before hydration',()=>{
+ const home=renderToStaticMarkup(createElement(Home,{groups:content.groups,partners:[],news:{docs:[],totalDocs:0,totalPages:1,page:1}}));
+ const contact=renderToStaticMarkup(createElement(Contact));
+ for(const [label,html] of [['home question',home],['contact message',contact]]){
+  const form=html.match(/<form\b[^>]*>/)?.[0];assert.ok(form);
+  assert.match(form,/\bmethod="post"/,`${label} must use a body submission if its submit handler is not yet attached`);
+ }
 });
 
 test('all source catalogue titles and their order survive without invented German topics or answers',()=>{

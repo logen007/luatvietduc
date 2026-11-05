@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
 import {applyTransitionReceipt} from '../src/modules/chat/transition-receipt.ts';
+import {Composer} from '../src/modules/chat/staff/Composer.tsx';
 
 const thread={id:'synthetic-thread',title:'Synthetic private title',state:'human',version:4,assignedTo:7,assignedName:'Synthetic staff',customer:{name:'Synthetic customer',email:'test@example.invalid'},aiEnabled:true,aiStartedAt:'2026-11-05T00:00:00Z',aiMessageId:'41',registered:true,createdAt:'2026-11-05T00:00:00Z'};
 test('a confirmed close keeps its authoritative state without needing a follow-up read',()=>{
@@ -25,5 +28,22 @@ test('owner and customer retain their already authorized content after a handoff
  for(const actor of [undefined,{id:1,role:'owner'}]){
   const result=applyTransitionReceipt(thread,{state:'queued',version:5},'handoff',actor);
   assert.equal(result.customer,thread.customer);assert.equal(result.restricted,undefined);assert.equal(result.assignedTo,null);assert.equal(result.assignedName,null);
+ }
+});
+
+const draftState=conversation=>({conversation,text:'PRIVATE-SYNTHETIC-REPLY',attachments:[{id:'synthetic-file',name:'PRIVATE-SYNTHETIC-FILE',size:12,url:'/service/chat-files/synthetic-file',mimeType:'text/plain'}],me:{user:{id:7,role:'support'}},selected:thread.id,sessionRevision:1,internal:false,busy:false,uploading:false,maxLength:2000,setText(){},setInternal(){}});
+test('released, reopened and not-yet-authorized claim receipts mask composer data before effects',()=>{
+ for(const action of ['release','reopen','claim']){
+  const base=action==='claim'?{...thread,state:'queued',restricted:true}:thread;
+  const conversation=applyTransitionReceipt(base,{state:action==='claim'?'human':'queued',version:5},action,{id:7,role:'support'});
+  const html=renderToStaticMarkup(createElement(Composer,{state:draftState(conversation),canReply:false,onSent(){}}));
+  assert.ok(!html.includes('PRIVATE-SYNTHETIC'),action+' cannot expose stale reply text or attachments');
+ }
+});
+test('a completed thread or recoverable read error retains an authorized unsent draft',()=>{
+ const closed=applyTransitionReceipt(thread,{state:'closed',version:5},'close',{id:7,role:'support'});
+ for(const conversation of [thread,closed]){
+  const html=renderToStaticMarkup(createElement(Composer,{state:{...draftState(conversation),connectionError:'Synthetic temporary read failure'},canReply:false,onSent(){}}));
+  assert.ok(html.includes('PRIVATE-SYNTHETIC-REPLY'));assert.ok(html.includes('PRIVATE-SYNTHETIC-FILE'));
  }
 });

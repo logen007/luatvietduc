@@ -12,6 +12,13 @@ test('conversation drafts remain independent, cloned and removable after acknowl
  book.remove(id);assert.equal(book.get(id).text,'');assert.equal(book.get('').text,'New question');
  book.clear();assert.deepEqual(book.get(other),{text:'',attachments:[]});
 });
+test('reply attachment drafts are bounded in workspace memory and clear with their owner',()=>{
+ const book=createDraftBook();book.save(id,draft);book.save(other,{text:'Other reply',attachments:[]});
+ assert.deepEqual(book.get(id).attachments,[file]);book.remove(other);assert.deepEqual(book.get(id),draft);
+ for(let index=0;index<50;index++)book.save('synthetic-'+index,{text:'Reply '+index,attachments:[file]});
+ assert.deepEqual(book.get(id),{text:'',attachments:[]},'The oldest inactive draft can leave the 50-entry draft book');
+ assert.equal(book.get('synthetic-49').attachments[0].id,file.id);book.clear();assert.deepEqual(book.get('synthetic-49'),{text:'',attachments:[]});
+});
 test('account navigation restores once for the same owner or an explicitly linked guest conversation',()=>{
  for(const [before,after] of [[7,7],[null,null],[null,8]]){
   const s=storage();saveDraftHandoff(s,before,id,draft,1000);

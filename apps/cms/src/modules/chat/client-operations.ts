@@ -24,21 +24,24 @@ export function createMessageOutbox(
  request:(conversation:string,draft:Draft&{key:string})=>Promise<MessageReceipt>,
  newKey=()=>crypto.randomUUID() as string,
 ){
- let pending:Attempt|null=null;
+ const pending=new Map<string,Attempt>();let lastConversation='',lastSignature='';
  function send(conversation:string,draft:Draft):Promise<Delivery>{
-  if(!pending||pending.conversation!==conversation||pending.draft.body!==draft.body||pending.draft.internal!==draft.internal||JSON.stringify(pending.draft.fileIds)!==JSON.stringify(draft.fileIds)){
-   pending={conversation,draft:{...draft,fileIds:[...draft.fileIds]},key:newKey(),task:null};
+  const signature=JSON.stringify([conversation,draft.body,draft.internal,draft.fileIds]);
+  let attempt=pending.get(signature);lastConversation=conversation;lastSignature=signature;
+  if(!attempt){
+   if(pending.size>=50)return Promise.reject(new Error('Có quá nhiều tin nhắn chưa xác nhận. Hãy thử lại các tin đang chờ trước khi gửi tin mới.'));
+   attempt={conversation,draft:{...draft,fileIds:[...draft.fileIds]},key:newKey(),task:null};pending.set(signature,attempt);
   }
-  const attempt=pending;
   if(attempt.task)return attempt.task;
-  attempt.task=Promise.resolve().then(()=>request(conversation,{...attempt.draft,key:attempt.key})).then(receipt=>{
+  const current=attempt;
+  attempt.task=Promise.resolve().then(()=>request(conversation,{...current.draft,key:current.key})).then(receipt=>{
    if(!receipt||! /^[1-9]\d*$/.test(String(receipt.id))||!['user','staff'].includes(receipt.role))throw new Error('Không thể đọc phản hồi của dịch vụ. Vui lòng thử lại.');
-   if(pending===attempt)pending=null;
-   return {receipt,key:attempt.key};
-  }).finally(()=>{attempt.task=null;});
+   if(pending.get(signature)===current)pending.delete(signature);
+   return {receipt,key:current.key};
+  }).finally(()=>{current.task=null;});
   return attempt.task;
  }
- return {send,reset(){pending=null;},pendingKey:()=>pending?.key};
+ return {send,reset(conversation?:string){if(conversation===undefined){pending.clear();lastConversation='';lastSignature='';}else for(const [key,attempt] of pending)if(attempt.conversation===conversation)pending.delete(key);},pendingKey:(conversation=lastConversation)=>{const latest=pending.get(lastSignature);return latest?.conversation===conversation?latest.key:[...pending.values()].reverse().find(attempt=>attempt.conversation===conversation)?.key;}};
 }
 
 export function validateAttachmentBatch(files:Pick<File,'name'|'size'>[],existingCount:number){
