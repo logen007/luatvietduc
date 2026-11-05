@@ -349,7 +349,7 @@ html.lvd-admin .lvd-translation-error{margin-top:12px;color:var(--theme-error-50
 /* WordPress-style media library, sharing native permissions and bulk operations. */
 html.lvd-admin .lvd-media-library .list-controls,html.lvd-admin .lvd-media-library .list-header__actions,html.lvd-admin .lvd-media-library .collection-list__list-selection{display:none}
 html.lvd-admin .lvd-media-toolbar{margin:20px 0}
-html.lvd-admin .lvd-media-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px;border:1px solid var(--theme-elevation-150);border-radius:9px;background:var(--theme-elevation-50)}
+html.lvd-admin .lvd-media-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;margin:0;padding:12px;border:1px solid var(--theme-elevation-150);border-radius:6px;background:var(--theme-elevation-50)}
 html.lvd-admin .lvd-media-filters :is(button,select,input),html.lvd-admin .lvd-media-status button{height:40px;min-width:0;border:1px solid var(--theme-elevation-200);border-radius:6px;background:var(--theme-bg);color:var(--theme-text);font:inherit;font-size:13px;padding:0 10px}
 html.lvd-admin .lvd-media-filters button{cursor:pointer}
 html.lvd-admin .lvd-media-view-buttons{display:flex;gap:4px}
@@ -359,8 +359,11 @@ html.lvd-admin .lvd-media-view-buttons button[aria-pressed=true],html.lvd-admin 
 html.lvd-admin .lvd-media-filters .lvd-media-search{margin-left:auto;flex:1 1 180px;max-width:320px}
 html.lvd-admin .lvd-media-status{display:flex;align-items:center;gap:12px;margin-top:12px;color:var(--theme-elevation-600);font-size:13px}
 html.lvd-admin .lvd-media-status button{height:30px;padding:0 8px;cursor:pointer}
-html.lvd-admin .lvd-media-bulk-actions{margin-top:12px;padding:12px;background:var(--theme-elevation-100);border-radius:8px}
-html.lvd-admin .lvd-media-bulk-actions .list-selection{display:flex;flex-wrap:wrap;gap:10px}
+html.lvd-admin .lvd-media-list-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:12px}
+html.lvd-admin .lvd-media-list-actions :is(select,button),html.lvd-admin .lvd-media-delete-error button{min-height:36px;padding:6px 10px;border:1px solid var(--theme-elevation-200);border-radius:4px;background:var(--theme-bg);color:var(--theme-text);font:inherit;font-size:13px}
+html.lvd-admin .lvd-media-toolbar :is(button,select):disabled{opacity:.45;cursor:default}
+html.lvd-admin :is(.lvd-media-delete-status,.lvd-media-delete-error){margin:12px 0 0;font-size:13px}
+html.lvd-admin .lvd-media-delete-error{color:var(--theme-error-500)}
 html.lvd-admin .lvd-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
 html.lvd-admin .lvd-media-tile{position:relative;min-width:0;border:1px solid var(--theme-elevation-150);border-radius:8px;background:var(--theme-elevation-50);overflow:hidden;transition:border-color .15s}
 html.lvd-admin .lvd-media-tile:hover,html.lvd-admin .lvd-media-tile.is-selected{border-color:var(--theme-elevation-600)}
@@ -376,14 +379,13 @@ html.lvd-admin .lvd-media-tile-name{padding:11px 12px;font-size:13px;line-height
 html.lvd-admin .lvd-media-checkbox{position:absolute;top:10px;left:10px;z-index:1;display:grid;place-items:center;padding:4px;border-radius:5px;background:#111c}
 html.lvd-admin .lvd-media-library input[type=checkbox]{width:18px;height:18px;margin:0;accent-color:#ddd;cursor:pointer}
 html.lvd-admin .lvd-media-library input[type=checkbox]:disabled{cursor:default;opacity:.4}
-html.lvd-admin .lvd-media-readonly{padding:0 12px 9px;font-size:11px;color:var(--theme-elevation-600)}
 html.lvd-admin .lvd-media-table-wrap{width:100%;overflow:auto;border:1px solid var(--theme-elevation-150);border-radius:8px}
 html.lvd-admin .lvd-media-table{width:100%;border-collapse:collapse;font-size:13px;text-align:left}
 html.lvd-admin .lvd-media-table :is(th,td){padding:12px;border-bottom:1px solid var(--theme-elevation-150);vertical-align:middle}
 html.lvd-admin .lvd-media-table th{font-weight:600;white-space:nowrap;background:var(--theme-elevation-50)}
 html.lvd-admin .lvd-media-table tr:last-child td{border-bottom:0}
 html.lvd-admin .lvd-media-table tr.is-selected{background:var(--theme-elevation-100)}
-html.lvd-admin .lvd-media-table th:first-child{width:50%}
+html.lvd-admin .lvd-media-table th:nth-child(2){width:50%}
 html.lvd-admin .lvd-media-table .lvd-media-check-col{width:40px}
 html.lvd-admin .lvd-media-file-row{display:flex;align-items:center;gap:12px;color:inherit;min-width:180px}
 html.lvd-admin .lvd-media-file-row .lvd-media-preview{width:64px;height:64px;flex:0 0 64px;border:1px solid var(--theme-elevation-150);border-radius:5px}

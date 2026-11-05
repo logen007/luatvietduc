@@ -3,9 +3,9 @@ import {pool,transaction} from '../../src/modules/shared/db';
 import {activeValues} from '../../src/modules/integrations/store';
 import {unseal} from '../../src/modules/integrations/crypto';
 import {readFile} from 'node:fs/promises';
+import {mediaInventorySQL as inventorySQL} from '../../src/modules/storage/inventory';
 let input='';for await(const chunk of process.stdin){input+=chunk;if(input.length>16000)throw new Error('Too much input');}
 const d=JSON.parse(input||'{}');
-const inventorySQL="SELECT filename,prefix,COALESCE(_objectkey,_object_key) AS _object_key,mime_type FROM media WHERE filename NOT LIKE 'lvd-bundled-%' UNION ALL SELECT split_part(object_key,'/',3) AS filename,regexp_replace(object_key,'/[^/]+$','') AS prefix,NULL AS _object_key,mime_type FROM lvd_chat_files WHERE ready=true";
 async function main(){
  if(d.action==='claim')return transaction(async db=>{
   await db.query('UPDATE lvd_backup_runtime SET heartbeat=now() WHERE id=1');

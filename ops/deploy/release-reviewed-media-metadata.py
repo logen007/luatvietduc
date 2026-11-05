@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-time reviewed media library metadata migration. Does not change installed auto-release policy."""
+"""Reviewed original/derived media lifecycle migration. Does not change installed auto-release policy."""
 import argparse, fcntl, importlib.util, json, os, pathlib
 
 def main():
@@ -20,9 +20,9 @@ def main():
         module.trusted_file(config[name])
     sha = args.approved_sha
     module.require(module.valid_sha(sha), 'A full reviewed commit is required')
-    migration_path = 'apps/cms/src/migrations/20261105_190000_media_metadata.ts'
-    allowed = {migration_path, 'apps/cms/src/migrations/index.ts', 'apps/cms/src/modules/storage/collection.ts'}
-    reviewed = sorted(allowed | {'apps/cms/src/modules/storage/metadata-guard.ts', 'apps/cms/src/modules/storage/MediaLibrary.tsx', 'apps/cms/src/modules/storage/MediaDetails.tsx', 'apps/cms/src/modules/storage/MediaUploader.tsx', 'apps/cms/src/modules/storage/media-view.ts', 'apps/cms/src/app/service/media/dates/route.ts', 'apps/cms/scripts/test-media-library.ts', 'apps/cms/scripts/probe-media-storage.ts'})
+    migration_path = 'apps/cms/src/migrations/20261105_210000_media_families.ts'
+    allowed = {migration_path, 'apps/cms/src/migrations/index.ts', 'apps/cms/src/modules/storage/collection.ts', 'apps/cms/src/payload.config.ts'}
+    reviewed = sorted(allowed | {'apps/cms/src/app/service/media/dates/route.ts', 'apps/cms/src/modules/storage/MediaImageEditor.tsx', 'apps/cms/scripts/test-media-image-edit.ts', 'apps/cms/src/modules/storage/metadata-guard.ts', 'apps/cms/scripts/test-media-families.ts', 'apps/cms/src/modules/storage/image-editor-model.ts', 'apps/cms/scripts/test-system.ts', 'apps/cms/src/modules/storage/MediaDetails.tsx', 'apps/cms/scripts/test-media-library.ts', 'apps/cms/src/modules/integrations/storage.ts', 'apps/cms/scripts/test-browser.mjs', 'apps/cms/src/app/service/media/image/[id]/route.ts', 'apps/cms/src/modules/storage/media-coordinates.ts', 'apps/cms/scripts/test-media-image-editor.mjs', 'apps/cms/scripts/test-media-coordinates.ts', 'apps/cms/src/modules/storage/MediaLibrary.tsx', 'apps/cms/src/modules/storage/media-enumeration.ts', 'apps/cms/package.json', 'apps/cms/src/modules/storage/image-edit.ts', 'apps/cms/src/modules/storage/MediaImageTools.tsx', 'apps/cms/src/modules/storage/inventory.ts', 'apps/cms/src/app/(payload)/admin/importMap.ts', 'apps/cms/src/modules/storage/bundled-families.json', 'apps/cms/package-lock.json', 'apps/cms/src/modules/storage/bundled.ts', 'apps/cms/scripts/backup/bridge.ts'})
     class ReviewedEngine(module.Engine):
         migrated = False
         def compose(self, release, *command):
@@ -48,7 +48,7 @@ def main():
         manifest = {p: module.digest(engine.git('show',sha + ':' + p).encode()) for p in reviewed}
         # git() strips final newline; review checksum follows this exact canonical representation.
         module.require(module.digest(json.dumps(manifest,sort_keys=True,separators=(',',':')).encode()) == args.manifest_sha256, 'Media metadata schema/security manifest differs from reviewed content')
-        module.ci_success(sha, engine.get)
+        module.ci_success(sha, engine.get, require_full=True)
         engine.activate(sha,current)
         module.atomic_json(engine.retry_path,{})
         print('Activated reviewed media metadata release ' + sha, flush=True)

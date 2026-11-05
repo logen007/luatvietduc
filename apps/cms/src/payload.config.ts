@@ -15,8 +15,10 @@ import { SiteSettings } from "./modules/settings/config";
 import { Knowledge } from "./modules/knowledge/collection";
 import { Media } from "./modules/storage/collection";
 import {QuickReplies} from "./modules/quick-replies/collection";
+import sharp from 'sharp';
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
+  sharp,
   i18n:adminI18n,
   secret: process.env.PAYLOAD_SECRET || "",
   serverURL: process.env.APP_URL || "http://localhost:3000",

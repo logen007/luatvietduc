@@ -4,6 +4,8 @@ import {testPasswordLoginAdmission} from './test-password-login-admission';
 import {testQuickReplies} from './test-quick-replies';
 import {testPrivateKnowledge} from './test-private-knowledge';
 import {testMediaLibrary} from './test-media-library';
+import {testMediaImageEdit} from './test-media-image-edit';
+import {testMediaFamilies} from './test-media-families';
 import {testArticleTranslations} from './test-article-translations';
 import {testEmailAccounts} from './test-email-accounts';
 import {testLogout} from './test-logout';
@@ -52,6 +54,8 @@ try {
   await testQuickReplies(payload,owner);
   await testPrivateKnowledge(payload,owner);
   await testMediaLibrary(payload,owner);
+  await testMediaFamilies(payload,owner);
+  await testMediaImageEdit(payload,owner);
   await testArticleTranslations(payload,owner);
   await testEmailAccounts(payload,owner);
   await testLogout(payload,owner);

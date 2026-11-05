@@ -362,3 +362,31 @@ Thư viện tệp giữ hộp chi tiết qua các lượt tự lưu, chỉ làm 
 lỗi lưu không xóa bản nhập. Khách đăng nhập giữa một lần gửi và thử lại vẫn dùng
 đúng mã gửi của hội thoại đã chuyển vào tài khoản. Khôi phục trang từ lịch sử trình
 duyệt che dữ liệu tài khoản cũ cho tới khi kiểm tra lại phiên, giữ nháp trong storage.
+
+## Media theo luồng WordPress — 01.29
+
+Lưới dùng chọn nhiều/xóa/hủy; bảng có checkbox, chọn trang và thanh tác vụ Apply.
+Không dùng EditMany để sửa metadata media. Title/alt/caption/description sửa ở hộp
+chi tiết hoặc trang sửa native. `MediaImageEditor` là luồng cắt, xoay, lật, thu nhỏ,
+undo/redo và khôi phục riêng; không để song song nút crop native cũ.
+
+Upload R2 có một bản ghi, giữ tệp chính và native `sizes.thumbnail/medium/large`.
+Sharp sinh size không phóng lớn; cấu hình lần lượt 150×150 crop, tối đa600×600 và
+1200×1200 giữ tỷ lệ. `bundled-families.json` xác nhận9 nhóm ảnh cũ bằng tên và kích
+thước thực:43 ID/URL được giữ,17 alias được gắn `legacyParent`,26 mục được liệt kê.
+`media-enumeration.ts` chỉ lọc list/count ngoài cùng; đọc ID và quan hệ cũ vẫn chạy.
+Tài nguyên đóng gói trong mã giữ bảo vệ xóa/thay nội dung vì các trang/CSS đang dùng.
+
+`image-edit.ts` kiểm tra quyền, phiên bản và khóa backup→bản ghi trước khi xử lý.
+Lần sửa pixel đầu giữ một bản nguồn riêng. Bản nguồn không công khai theo ảnh hiện
+hành; chỉ Admin hoặc Chuyên viên sở hữu được đọc. Server quản lý toàn bộ prefix,
+object key và descriptor; native storage không phục vụ namespace `originals/`.
+API gốc/size vẫn kiểm tra quyền native; không dùng URL ký tạm hoặc gửi ảnh sang AI.
+
+`captureMediaOwnedFiles` khóa bản ghi và chụp metadata trước xóa. Hook xóa chờ dọn
+các tệp sở hữu rồi mới cho commit; lỗi giữ bản ghi để thử lại bằng delete idempotent.
+R2 không thuộc giao dịch DB: sau lỗi một phần, một số tệp có thể đã bị xóa và bản
+ghi còn lại là biên nhận để dọn tiếp. Không tuyên bố rollback khôi phục byte đã xóa.
+Inventory backup dùng chung `storage/inventory.ts`, gồm tệp chính, mọi size và nguồn
+giữ lại; không chỉ sao lưu filename của media. Migration mở rộng không xóa alias.
+Down từ chối bỏ cột khi có size/nguồn mới; quay lại mã giữ schema để bảo toàn dữ liệu.
