@@ -1,5 +1,21 @@
 import assert from 'node:assert/strict';
 
+export async function testHeroLoading({context,base}){
+ const origin=new URL(base).origin;assert.ok(['localhost','127.0.0.1'].includes(new URL(origin).hostname));
+ const page=await context.newPage();let videoRequests=0;
+ try{
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  // Hold only the hero observer's first delivery; real React/media code runs.
+  await page.addInitScript(()=>{const Native=window.IntersectionObserver;window.IntersectionObserver=class extends Native{constructor(callback,options){super(callback,options);this.callback=callback;}observe(target){if(target.matches('.pm-hero-video'))window.__showHero=()=>this.callback([{target,isIntersecting:true}],this);else super.observe(target);}};});
+  await page.route('**/media/legal-hero-montage-v2.mp4',route=>{videoRequests++;return route.fulfill({contentType:'video/mp4',body:''});});
+  await page.goto(origin+'/');await page.waitForFunction(()=>typeof window.__showHero==='function');
+  assert.equal(await page.locator('.pm-hero-video').getAttribute('src'),null,'Initial rendering waits for confirmed visibility before loading video');assert.equal(videoRequests,0);
+  const response=page.waitForResponse('**/media/legal-hero-montage-v2.mp4');await page.evaluate(()=>window.__showHero());await response;
+  assert.equal(await page.locator('.pm-hero-video').getAttribute('src'),'/media/legal-hero-montage-v2.mp4');assert.equal(videoRequests,1);
+  console.log('Hero loading browser check passed: no video request before confirmed visibility');
+ }finally{await page.close();}
+}
+
 // Call after the signed-in account check, before integration mocks or unsaved
 // admin edits. The caller owns the ready local server and authenticated context.
 export async function testPublicReview({page,context,base,owner}){

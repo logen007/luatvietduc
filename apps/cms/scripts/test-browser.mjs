@@ -81,17 +81,33 @@ try{
  assert.match(accountResponse.headers()['cache-control'],/no-store/);assert.equal(accountResponse.headers()['referrer-policy'],'no-referrer');
  const nav=page.locator('.live-menu-dialog');await page.getByRole('button',{name:'Mở menu',exact:true}).click();await nav.waitFor({state:'visible'});
  assert.equal(await nav.getByRole('link',{name:'Đăng nhập',exact:true}).count(),0);await page.getByRole('button',{name:'Đóng menu',exact:true}).click();
- const {testPublicReview}=await import('./test-public-review.mjs');await testPublicReview({page,context,base,owner});
+ const {testPublicReview,testHeroLoading}=await import('./test-public-review.mjs');await testPublicReview({page,context,base,owner});await testHeroLoading({context,base});
  const {testAccountRecovery}=await import('./test-account-recovery.mjs');await testAccountRecovery({page,base});
  const {testChatReview,testCustomerHistoryRecovery}=await import('./test-chat-review.mjs');await testCustomerHistoryRecovery({page,base});await testChatReview({page,base,owner});
  await page.setViewportSize({width:1280,height:900});
  await page.goto(base+'/tin-tuc');assert.ok((await page.locator('#news-query').boundingBox()).width>240,'Desktop news search must remain usable beside its filters');
  // Test recoverable connection errors independently of real credentials.
- let connectionAttempt=0;
+ let connectionAttempt=0,failConnectionRefresh=false;const connectionWrites=[];
  const connection={provider:'google',values:{clientId:'synthetic.apps.googleusercontent.com'},stored:{clientSecret:false},version:1,enabled:false,checkState:'untested',checkedAt:null};
- await page.route('**/service/integrations',route=>route.fulfill({status:++connectionAttempt===1?503:200,json:connectionAttempt===1?{error:'Synthetic network error'}:{connections:[connection]}}));
+ await page.route('**/service/integrations',route=>{
+  if(route.request().method()==='POST'){
+   const body=route.request().postDataJSON();connectionWrites.push(body);assert.equal(body.action,'save','Recovery never tests or enables a provider automatically');
+   if(body.version!==connection.version)return route.fulfill({status:409,json:{error:'Synthetic connection conflict'}});
+   connection.version++;connection.values={clientId:body.values.clientId};connection.stored={clientSecret:true};
+   if(connectionWrites.length===1)return route.abort('failed');
+   return route.fulfill({json:{connection}});
+  }
+  if(failConnectionRefresh)return route.fulfill({status:503,json:{error:'Synthetic connection refresh unavailable'}});
+  return route.fulfill({status:++connectionAttempt===1?503:200,json:connectionAttempt===1?{error:'Synthetic network error'}:{connections:[connection]}});
+ });
  await page.goto(base+'/admin/settings/connections');await page.getByRole('button',{name:'Thử lại',exact:true}).waitFor();
  assert.equal(await page.getByRole('link',{name:'Đăng nhập quản trị',exact:true}).count(),0);await page.getByRole('button',{name:'Thử lại',exact:true}).click();await page.getByRole('heading',{name:'Đăng nhập Google',exact:true}).waitFor();
+ await page.getByLabel('Client ID',{exact:true}).fill('committed.apps.googleusercontent.com');await page.getByLabel('Client Secret',{exact:true}).fill('synthetic-typed-secret');
+ await page.getByRole('button',{name:'Lưu cấu hình',exact:true}).click();await page.getByRole('alert').filter({hasText:'Chưa kết nối được.'}).waitFor();
+ await page.getByRole('button',{name:'Lưu cấu hình',exact:true}).click();await page.getByRole('alert').filter({hasText:'Synthetic connection conflict'}).waitFor();assert.equal(await page.getByRole('button',{name:'Lưu cấu hình',exact:true}).isDisabled(),true);
+ await page.getByLabel('Client ID',{exact:true}).fill('retained.apps.googleusercontent.com');failConnectionRefresh=true;await page.getByRole('button',{name:'Tải lại cấu hình',exact:true}).click();await page.getByRole('alert').filter({hasText:'Synthetic connection refresh unavailable'}).waitFor();assert.equal(await page.getByLabel('Client Secret',{exact:true}).inputValue(),'synthetic-typed-secret');
+ failConnectionRefresh=false;await page.getByRole('button',{name:'Tải lại cấu hình',exact:true}).click();await page.getByRole('status').filter({hasText:'Đã tải cấu hình mới.'}).waitFor();assert.equal(connectionWrites.length,2);assert.equal(await page.getByLabel('Client ID',{exact:true}).inputValue(),'retained.apps.googleusercontent.com');assert.equal(await page.getByLabel('Client Secret',{exact:true}).inputValue(),'synthetic-typed-secret');
+ await page.getByRole('button',{name:'Lưu cấu hình',exact:true}).click();await page.getByRole('status').filter({hasText:'Đã lưu. Kiểm tra rồi bật để sử dụng.'}).waitFor();assert.equal(connectionWrites[2].version,2);assert.equal(connectionWrites[2].values.clientSecret,'synthetic-typed-secret');assert.equal(await page.getByLabel('Client Secret',{exact:true}).inputValue(),'');
  await page.getByLabel('Client ID',{exact:true}).fill('unsaved synthetic edit');
  // Cancel a navigation and ensure both the route and edited value survive.
  if(await page.getByRole('button',{name:'Mở Menu',exact:true}).count())await page.getByRole('button',{name:'Mở Menu',exact:true}).click();

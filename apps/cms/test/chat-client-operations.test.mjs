@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createOperationGate,createMessageOutbox,mergeMessages,rememberCreatedConversation,normalizeInboxQuery,validateAttachmentBatch} from '../src/modules/chat/client-operations.ts';
+import {uploadChatAttachment} from '../src/modules/chat/client-upload.ts';
 
 const draft={body:'Synthetic question',internal:false,fileIds:[]};
 function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};}
@@ -97,6 +98,48 @@ test('attachment preflight rejects a bad later file, oversized batches and empty
  assert.throws(()=>validateAttachmentBatch([file('a.pdf'),file('b.pdf',10*1024*1024+1)],0),/10 MB/);
  assert.throws(()=>validateAttachmentBatch([file('a.pdf')],4),/4 tệp/);
  assert.throws(()=>validateAttachmentBatch([file('empty.txt',0)],0),/Chọn PDF/);
+});
+
+test('chat uploads bound a stalled request or response body without retrying',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const file=new File(['Synthetic attachment'],'review.txt');
+ for(const stalledBody of [false,true]){
+  let calls=0,transport;
+  t.mock.method(globalThis,'fetch',async(url,options)=>{
+   calls++;transport=options.signal;
+   const pending=()=>new Promise((resolve,reject)=>transport.addEventListener('abort',()=>reject(transport.reason),{once:true}));
+   return stalledBody?{ok:true,json:pending}:pending();
+  });
+  const result=uploadChatAttachment('synthetic-thread',file,new AbortController().signal);
+  const failure=assert.rejects(result,/Không thể kết nối/);
+  await Promise.resolve();t.mock.timers.tick(89999);assert.equal(transport.aborted,false);
+  t.mock.timers.tick(1);await failure;assert.equal(transport.aborted,true);assert.equal(calls,1);
+  t.mock.restoreAll();
+ }
+});
+
+test('workspace cancellation stops uploads without releasing a newer operation',async t=>{
+ const gate=createOperationGate(),old=gate.begin(),session=new AbortController();let transport,calls=0;
+ t.mock.method(globalThis,'fetch',async(url,options)=>{calls++;transport=options.signal;return new Promise((resolve,reject)=>transport.addEventListener('abort',()=>reject(transport.reason),{once:true}));});
+ const pending=uploadChatAttachment('old-thread',new File(['Synthetic'],'review.txt'),session.signal).finally(()=>gate.end(old));
+ const failure=assert.rejects(pending,/Không thể kết nối/);
+ gate.reset();session.abort();const next=gate.begin();await failure;
+ assert.equal(transport.aborted,true);assert.equal(gate.isCurrent(next),true);assert.equal(gate.busy(),true);assert.equal(calls,1);
+ await assert.rejects(uploadChatAttachment('old-thread',new File(['Synthetic'],'review.txt'),session.signal));assert.equal(calls,1,'An already closed workspace must not start a request');
+});
+
+test('chat uploads preserve raw file payload and server errors while completed requests detach cancellation',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const file=new File(['Synthetic'],'hồ sơ.txt'),session=new AbortController(),receipt={id:'synthetic-file',name:file.name,size:file.size,mimeType:'text/plain',url:'/service/chat-files/synthetic-file'};
+ let calls=0,transport;
+ t.mock.method(globalThis,'fetch',async(url,options)=>{
+  calls++;transport=options.signal;assert.equal(url,'/service/conversations/synthetic-thread/files');assert.equal(options.method,'POST');assert.equal(options.body,file);
+  assert.equal(options.headers['x-file-name'],encodeURIComponent(file.name));assert.equal(options.headers['content-type'],'application/octet-stream');
+  return calls===1?Response.json(receipt):Response.json({error:'Synthetic second-file failure'},{status:503});
+ });
+ assert.deepEqual(await uploadChatAttachment('synthetic-thread',file,session.signal),receipt);const completed=transport;
+ await assert.rejects(uploadChatAttachment('synthetic-thread',file,session.signal),/Synthetic second-file failure/);
+ t.mock.timers.tick(90000);session.abort();assert.equal(completed.aborted,false);assert.equal(transport.aborted,false);assert.equal(calls,2);
 });
 
 test('overlapping transcript pages reconcile acknowledged messages without duplicates or unsafe ID ordering',()=>{

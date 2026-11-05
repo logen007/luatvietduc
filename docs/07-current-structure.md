@@ -48,6 +48,10 @@ giao dịch và API thực tế nằm trong CMS.
 
 ## Nơi sửa
 
+Sau lỗi lệch phiên bản kết nối, thẻ cài đặt có nút tải lại cấu hình an toàn.
+Lượt đọc giữ ô đã sửa và khóa chỉ có trong bản nháp, cập nhật các ô chưa sửa;
+lưu, kiểm tra và bật kết nối tiếp tục là các thao tác riêng do admin chọn.
+
 | Phần | Module |
 |---|---|
 | Danh tính, logo, menu, footer công khai | `modules/shared/public-shell.mjs`, `Header.tsx`, `Footer.tsx` |
@@ -89,12 +93,17 @@ Gửi/tải tệp/chuyển trạng thái dùng khóa thao tác đồng bộ ở 
 đọc transcript hiện có được đánh thức, không tải lại toàn bộ lịch sử sau mỗi tin.
 Kiểm tra nhóm tệp ở client diễn ra trước lượt tải đầu tiên; kiểm tra nội dung và
 quyền tại server vẫn là bắt buộc. Helper client ở `modules/chat/client-operations.ts`.
+Transport tệp ở `modules/chat/client-upload.ts` giới hạn mỗi lượt tải và đọc phản
+hồi trong 90 giây, hủy khi workspace bị đóng/thay phiên. Lỗi ở tệp sau vẫn giữ
+tệp đã hoàn tất và bản nháp; không tự gửi lại yêu cầu tải.
 Đây là polling thích nghi, chưa phải WebSocket/SSE. Worker chỉ bật ở production,
 được tắt trong build/CI/candidate; không mở thêm cổng hay bật dịch vụ trả phí.
 
 ## CSS và phát hành
 
 `presentation/modules.json` quản lý nguồn bundle; không sửa bundle riêng.
+Video hero chỉ gắn nguồn MP4 sau khi observer xác nhận đang hiển thị, tránh
+đọc tệp video trước callback đầu tiên khi trang mở ở vị trí đã cuộn xuống dưới.
 `live.css` là khung dùng chung; `customer-chat.css` chỉ trang chat tải;
 `specialist-inbox.css` phục vụ hộp thư; `admin-theme.css` sinh từ CSS admin;
 `editorial-ui.css` phục vụ các trang công khai; `09-native-pages.css` chỉ bổ sung bố cục trong `.lvd-public-site`.

@@ -5,6 +5,7 @@ import {canEnterAdmin} from '../identity/permissions';
 import {visiblePoll} from "../shared/polling";
 import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
 import {createMessageOutbox,createOperationGate,mergeMessages,rememberCreatedConversation,validateAttachmentBatch,type MessageReceipt} from './client-operations';
+import {uploadChatAttachment} from './client-upload';
 import type {Conversation,Message,Transcript,Attachment,TransitionReceipt} from './contracts';
 import {initialChatQuestion} from './intake';
 import {applyTransitionReceipt} from './transition-receipt';
@@ -31,7 +32,7 @@ export function useWorkspace(staff=false,manageList=true){
   const [maxLength, setMaxLength] = useState(2000);
   const stickToBottom=useRef(true),revision=useRef(0),listRevision=useRef(0),wakeTranscript=useRef<(reset?:boolean)=>void>(()=>{});
   const mode=useRef(staff);mode.current=staff;
-  const operations=useRef(createOperationGate()),selection=useRef('');
+  const operations=useRef(createOperationGate()),selection=useRef(''),uploadRequest=useRef<AbortController|null>(null);
   const drafts=useRef(createDraftBook());
   const outbox=useRef(createMessageOutbox((id,draft)=>api<MessageReceipt>(`conversations/${id}/messages`,{...draft,...(!mode.current?{aiConsentVersion:'gemini-rag-v1'}:{})}))),
     log = useRef<HTMLDivElement>(null),
@@ -128,6 +129,7 @@ export function useWorkspace(staff=false,manageList=true){
     return () => {
       active = false;
       operations.current.reset();outbox.current.reset();
+      uploadRequest.current?.abort();uploadRequest.current=null;
       drafts.current.clear();
     };
   }, [staff,manageList,session.revision,session.status,intakeAttempt]);
@@ -273,18 +275,18 @@ export function useWorkspace(staff=false,manageList=true){
     try{validateAttachmentBatch(files,attachments.length);}catch(error){setError((error as Error).message);return;}
     const operation=operations.current.begin();if(!operation)return;
     const valid=()=>current()&&operations.current.isCurrent(operation);
+    const request=new AbortController();uploadRequest.current=request;
     setUploading(true);setError('');
     try{
       let id=selected;
       if(!id){const c=await api<{id:string}>('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});if(!valid())return;id=c.id;rememberCreated(id);drafts.current.remove('');changeSelection(id);}
       for(const file of files){
         if(!valid())return;
-        const response=await fetch(`/service/conversations/${id}/files`,{method:'POST',headers:{'content-type':'application/octet-stream','x-file-name':encodeURIComponent(file.name)},body:file});
-        const value=await response.json();if(!response.ok)throw new Error(value.error||'Chưa tải được tệp.');
+        const value=await uploadChatAttachment(id,file,request.signal);
         if(!valid())return;
         setAttachments(previous=>[...previous,value]);
       }
-    }catch(error){if(valid())setError((error as Error).message);}finally{if(operations.current.end(operation)&&current())setUploading(false);}
+    }catch(error){if(valid())setError((error as Error).message);}finally{if(uploadRequest.current===request)uploadRequest.current=null;if(operations.current.end(operation)&&current())setUploading(false);}
   }
   const staffAllowed =
     canEnterAdmin(me?.user);

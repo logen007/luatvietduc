@@ -58,7 +58,7 @@ export async function testChatReview({page,base,owner}){
 
 export async function testCustomerHistoryRecovery({page,base}){
  const origin=new URL(base).origin;assert.ok(['localhost','127.0.0.1'].includes(new URL(origin).hostname));
- const viewport=page.viewportSize(),id='44444444-4444-4444-8444-444444444444',fileId='55555555-5555-4555-8555-555555555555';let created=false,failedHistory=0,sent=null;
+ const viewport=page.viewportSize(),id='44444444-4444-4444-8444-444444444444',fileId='55555555-5555-4555-8555-555555555555';let created=false,failedHistory=0,sent=null,uploads=0;
  const session=route=>route.fulfill({json:{user:null,connections:{google:false}}});
  const matches=url=>url.origin===origin&&(url.pathname==='/service/conversations'||url.pathname.startsWith('/service/conversations/'+id));
  const handler=route=>{
@@ -69,14 +69,14 @@ export async function testCustomerHistoryRecovery({page,base}){
    return route.fulfill({json:[]});
   }
   if(path.endsWith('/messages')){sent=request.postDataJSON();return route.fulfill({json:{id:'301',role:'user'}});}
-  if(path.endsWith('/files'))return route.fulfill({json:{id:fileId,name:'Synthetic retained.txt',mimeType:'text/plain',size:10,url:'/service/chat-files/'+fileId}});
+  if(path.endsWith('/files')){uploads++;return uploads===2?route.fulfill({status:503,json:{error:'Synthetic second upload unavailable'}}):route.fulfill({json:{id:fileId,name:'Synthetic retained.txt',mimeType:'text/plain',size:10,url:'/service/chat-files/'+fileId}});}
   assert.equal(request.method(),'GET');return route.fulfill({json:{conversation:{id,title:'Synthetic acknowledged chat',state:'queued',version:1,aiEnabled:false},messages:sent?[{id:'301',role:'user',body:sent.body,client_key:sent.key,created_at:'2026-11-05T00:00:00Z'}]:[]}});
  };
  try{
   await page.route('**/service/me',session);await page.route(matches,handler);await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/tro-chuyen');
   const question=page.getByRole('textbox',{name:'Câu hỏi của bạn',exact:true});await page.waitForFunction(()=>!document.querySelector('.chat-compose textarea')?.disabled);await question.fill('Synthetic sent question');
   const historyFailure=page.waitForResponse(r=>new URL(r.url()).pathname==='/service/conversations'&&r.status()===503);await page.getByRole('button',{name:'Gửi câu hỏi',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.chat-compose textarea')?.value==='');await historyFailure;
-  await question.fill('Synthetic retained draft');await page.locator('.chat-compose input[type=file]').setInputFiles({name:'Synthetic retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic!')});await page.getByRole('button',{name:'Bỏ tệp Synthetic retained.txt',exact:true}).waitFor();
+  await question.fill('Synthetic retained draft');await page.locator('.chat-compose input[type=file]').setInputFiles([{name:'Synthetic retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic!')},{name:'Synthetic rejected.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic!')}]);await page.getByRole('button',{name:'Bỏ tệp Synthetic retained.txt',exact:true}).waitFor();await page.getByRole('alert').filter({hasText:'Synthetic second upload unavailable'}).waitFor();assert.equal(uploads,2,'Failed uploads never retry automatically');assert.equal(await question.inputValue(),'Synthetic retained draft');assert.equal(await page.getByRole('button',{name:'Gửi câu hỏi',exact:true}).isEnabled(),true,'Partial failure releases the composer while preserving the first attachment');
   const sidebar=page.locator('.chat-sidebar');await sidebar.getByRole('button',{name:'Cuộc trò chuyện mới',exact:true}).click();await sidebar.locator('.chat-history-list').getByRole('button',{name:/Synthetic acknowledged chat/}).click();
   await page.waitForFunction(()=>document.querySelector('.chat-compose textarea')?.value==='Synthetic retained draft');await page.getByRole('button',{name:'Bỏ tệp Synthetic retained.txt',exact:true}).waitFor();assert.ok(failedHistory>0);
   console.log('Customer history browser checks passed: acknowledged chat remains reachable with draft/files after history failure');

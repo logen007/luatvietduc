@@ -5,7 +5,7 @@ import {Arrow,ArticleCards,GroupGrid,usePublicCopy} from './ui';
 function HeroVideo(){
  const l=usePublicCopy(),video=useRef<HTMLVideoElement>(null),choice=useRef<'play'|'pause'|null>(null),[paused,setPaused]=useState(true);
  useEffect(()=>{
-  const el=video.current;if(!el)return;let visible=true;
+  const el=video.current;if(!el)return;let visible=false;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)'),connection=(navigator as Navigator&{connection?:EventTarget&{saveData?:boolean}}).connection;
   const sync=()=>{if(document.hidden||!visible||choice.current==='pause'||(choice.current!=='play'&&(reduced.matches||connection?.saveData))){el.pause();return;}if(!el.getAttribute('src')){el.src='/media/legal-hero-montage-v2.mp4';el.load();}void el.play().catch(()=>setPaused(true));};
   const onPlay=()=>setPaused(false),onPause=()=>setPaused(true),observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;sync();});

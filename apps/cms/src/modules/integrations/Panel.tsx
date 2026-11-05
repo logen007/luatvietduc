@@ -2,21 +2,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { integrationCatalog, type Provider, type Values } from './catalog';
 import {ConnectionInstructions} from './Instructions';
-import {ConnectionError,requestConnection as request} from './client';
+import {ConnectionError,mergeConnectionDraft,requestConnection as request} from './client';
 import {useUnsavedChanges} from '../shared/unsaved-changes';
 import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
 import {createOperationGate} from '../chat/client-operations';
 type Connection={provider:Provider;values:Values;stored:Record<string,boolean>;version:number;enabled:boolean;checkState:string;checkedAt:string|null};
 const labels:Record<string,string>={untested:'Chưa kiểm tra',passed:'Kiểm tra đạt',failed:'Kiểm tra chưa đạt',configured:'Định dạng hợp lệ · cần thử đăng nhập'};
 function ConnectionForm({initial,revision}:{initial:Connection;revision:number}){
-  const [connection,setConnection]=useState(initial),[values,setValues]=useState<Values>(initial.values),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
+  const [connection,setConnection]=useState(initial),[values,setValues]=useState<Values>(initial.values),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[conflict,setConflict]=useState(false);
   const dirty=JSON.stringify(values)!==JSON.stringify(connection.values);
   const gate=useRef(createOperationGate());
   useEffect(()=>()=>gate.current.reset(),[]);
   useUnsavedChanges(dirty);
   const definition=integrationCatalog[connection.provider];
   async function act(action:'save'|'test'|'toggle'){
-    if(!isPublicSessionCurrent(revision)||(action!=='save'&&dirty))return;
+    if(!isPublicSessionCurrent(revision)||conflict||(action!=='save'&&dirty))return;
     const ticket=gate.current.begin();if(!ticket)return;
     const current=()=>isPublicSessionCurrent(revision)&&gate.current.isCurrent(ticket);
     setBusy(true);setError('');setMessage('');
@@ -25,6 +25,18 @@ function ConnectionForm({initial,revision}:{initial:Connection;revision:number})
       if(!current())return;
       setConnection(result.connection);setValues(result.connection.values);
       setMessage(result.message||(action==='save'?'Đã lưu. Kiểm tra rồi bật để sử dụng.':result.connection.enabled?'Đã bật kết nối.':'Đã tắt kết nối.'));
+    }catch(e){if(current()){setError((e as Error).message);if(e instanceof ConnectionError&&e.status===409)setConflict(true);}}finally{if(gate.current.end(ticket)&&isPublicSessionCurrent(revision))setBusy(false);}
+  }
+  async function reload(){
+    if(!isPublicSessionCurrent(revision))return;
+    const ticket=gate.current.begin();if(!ticket)return;
+    const current=()=>isPublicSessionCurrent(revision)&&gate.current.isCurrent(ticket);
+    setBusy(true);setMessage('');
+    try{
+      const result=await request(),fresh:Connection|undefined=result.connections.find((item:Connection)=>item.provider===connection.provider);
+      if(!fresh)throw new ConnectionError('Chưa đọc được cấu hình. Vui lòng thử lại.');
+      if(!current())return;
+      setValues(draft=>mergeConnectionDraft(connection.values,draft,fresh.values,definition.fields));setConnection(fresh);setConflict(false);setError('');setMessage('Đã tải cấu hình mới.');
     }catch(e){if(current())setError((e as Error).message);}finally{if(gate.current.end(ticket)&&isPublicSessionCurrent(revision))setBusy(false);}
   }
   return <section className="live-card integration-card">
@@ -39,14 +51,14 @@ function ConnectionForm({initial,revision}:{initial:Connection;revision:number})
           autoComplete={field.secret?'new-password':'off'} spellCheck={false} maxLength={4096} disabled={busy}/>
       </label>)}
       <div className="integration-actions">
-        <button className="button" disabled={busy||(!dirty&&connection.version>0)}>Lưu cấu hình</button>
-        <button type="button" className="button secondary" disabled={busy||dirty||!connection.version} onClick={()=>void act('test')}>{connection.provider==='email'?'Gửi email kiểm tra':'Kiểm tra kết nối'}</button>
-        <button type="button" className="button secondary" disabled={busy||dirty||!connection.version||(!connection.enabled&&!['passed','configured'].includes(connection.checkState))} onClick={()=>void act('toggle')}>{connection.enabled?'Tắt kết nối':'Bật sử dụng'}</button>
+        <button className="button" disabled={busy||conflict||(!dirty&&connection.version>0)}>Lưu cấu hình</button>
+        <button type="button" className="button secondary" disabled={busy||conflict||dirty||!connection.version} onClick={()=>void act('test')}>{connection.provider==='email'?'Gửi email kiểm tra':'Kiểm tra kết nối'}</button>
+        <button type="button" className="button secondary" disabled={busy||conflict||dirty||!connection.version||(!connection.enabled&&!['passed','configured'].includes(connection.checkState))} onClick={()=>void act('toggle')}>{connection.enabled?'Tắt kết nối':'Bật sử dụng'}</button>
       </div>
     </form>
     <p className="integration-check">{busy?'Đang xử lý…':labels[connection.checkState]||'Chưa kiểm tra'}{connection.checkedAt?' · '+new Date(connection.checkedAt).toLocaleString('vi-VN'):''}</p>
     {message&&<p className="integration-message" role="status">{message}</p>}
-    {error&&<p className="live-error" role="alert">{error}</p>}
+    {error&&<p className="live-error" role="alert">{error}{conflict&&<> <button type="button" disabled={busy} onClick={()=>void reload()}>Tải lại cấu hình</button></>}</p>}
   </section>;
 }
 export function IntegrationPanel({providers=['google','ai','translation','r2','email']}:{providers?:Provider[]}){

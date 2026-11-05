@@ -1,4 +1,16 @@
 import {invalidatePublicSession} from '../shared/session-client';
+import type {Values} from './catalog';
+// Refresh public fields without losing an edited value or accepting a secret
+// from the response. Secret inputs belong only to the current component draft.
+export function mergeConnectionDraft(original:Values,draft:Values,fresh:Values,fields:readonly {key:string;secret:boolean}[]):Values{
+ const values:Values={};
+ for(const field of fields){
+  const entered=draft[field.key]||'';
+  if(field.secret){if(entered)values[field.key]=entered;}
+  else values[field.key]=entered!==(original[field.key]||'')?entered:fresh[field.key]||'';
+ }
+ return values;
+}
 export class ConnectionError extends Error{
  constructor(message:string,readonly status=0){super(message);this.name='ConnectionError';}
 }
