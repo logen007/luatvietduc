@@ -28,6 +28,11 @@ try{
  const page=await context.newPage();page.setDefaultTimeout(12000);
  page.on('pageerror',error=>console.error('CMS browser page error:',error.message));
  const fits=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Page overflows horizontally');
+ const menuGeometry=async()=>{
+  const toggle=page.locator('.template-default__nav-toggler');await toggle.waitFor({state:'visible'});
+  const geometry=await toggle.evaluate(button=>{const frame=button.getBoundingClientRect(),icon=button.querySelector('.hamburger svg').getBoundingClientRect(),surface=getComputedStyle(button.querySelector('.hamburger'));return {width:frame.width,height:frame.height,dx:Math.abs(icon.x+icon.width/2-frame.x-frame.width/2),dy:Math.abs(icon.y+icon.height/2-frame.y-frame.height/2),shadow:surface.boxShadow};});
+  assert.equal(geometry.width,44);assert.equal(geometry.height,44);assert.ok(geometry.dx<=1&&geometry.dy<=1,'Menu icon remains centered inside its only button frame');assert.equal(geometry.shadow,'none','No second frame around the icon');
+ };
  const visible=async selector=>{await page.locator(selector).waitFor({state:'visible'});};
  const homeResponse=await page.goto(base);await visible('#pm-title');await fits();
  assert.equal(homeResponse.headers()['x-content-type-options'],'nosniff');
@@ -199,7 +204,12 @@ try{
  const bundledMedia=(await pool.query("SELECT id FROM media WHERE filename='lvd-bundled-assets__berlin-tv-tower.svg' AND legacy_parent_id IS NULL LIMIT 1")).rows[0];assert.ok(bundledMedia);
  await page.goto(base+'/admin/collections/media?where[id][equals]='+bundledMedia.id);await page.locator('.lvd-media-grid').waitFor();
  await page.getByRole('button',{name:'Chọn nhiều',exact:true}).click();
- assert.equal(await page.locator('.lvd-media-grid input[type=checkbox]:disabled').count(),1,'Theme assets cannot enter a delete selection');assert.equal(await page.locator('.lvd-media-readonly').count(),0,'The grid has no interface-asset badge');
+ assert.equal(await page.locator('.lvd-media-grid input[type=checkbox]:disabled').count(),0,'Selection is independent of deletion protection');assert.equal(await page.locator('.lvd-media-readonly').count(),0,'The grid has no interface-asset badge');
+ const beforeProtectedSelection=mediaDeleteRequests;await page.getByRole('checkbox',{name:'Chọn berlin-tv-tower.svg',exact:true}).check();
+ await page.locator('.lvd-media-status').getByText('1 đã chọn',{exact:true}).waitFor();await page.locator('.lvd-media-status').getByText('1 tệp được bảo vệ, không thể xóa.',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Xóa tệp đã chọn',exact:true}).isDisabled(),true);
+ await page.getByRole('button',{name:'Xem dạng danh sách',exact:true}).click();await page.locator('.lvd-media-table').waitFor();assert.equal(await page.locator('.lvd-media-table tbody input:checked').count(),1,'Protected selection survives changing view');
+ await page.getByRole('checkbox',{name:'Chọn cả trang',exact:true}).uncheck();await page.getByRole('checkbox',{name:'Chọn cả trang',exact:true}).check();await page.getByRole('combobox',{name:'Thao tác hàng loạt',exact:true}).selectOption('delete');assert.equal(await page.getByRole('button',{name:'Áp dụng',exact:true}).isDisabled(),true,'Selecting protected files never enables deletion');assert.equal(mediaDeleteRequests,beforeProtectedSelection);
+ await page.getByRole('button',{name:'Xem dạng lưới',exact:true}).click();assert.equal(await page.locator('.lvd-media-grid input:checked').count(),1);
  await page.getByRole('button',{name:'Hủy chọn',exact:true}).click();
  await page.locator('.lvd-media-grid a[href="/admin/collections/media/'+bundledMedia.id+'"]').click();await page.getByRole('dialog',{name:'Chi tiết tệp',exact:true}).waitFor();
  const detailTitle=page.getByRole('textbox',{name:'Tiêu đề tệp',exact:true});await detailTitle.waitFor();const oldMediaTitle=await detailTitle.inputValue();await fits();await page.screenshot({path:'test-results/cms-browser/media-details-mobile.png'});await page.setViewportSize({width:1280,height:900});await fits();await page.screenshot({path:'test-results/cms-browser/media-details-desktop.png'});await page.setViewportSize({width:390,height:844});
@@ -267,12 +277,17 @@ try{
  // Native CMS pages, not the old prototype, at desktop and phone widths.
  for(const viewport of [{width:390,height:844},{width:1280,height:900}]){
   await page.setViewportSize(viewport);
+  await page.goto(base+'/admin');await visible('.template-default--nav-hydrated');assert.equal(await page.locator('.app-header:visible').count(),0);
   if(viewport.width===390){
-   await page.goto(base+'/admin');
+   if(await page.locator('.nav.nav--nav-open').count())await page.locator('.nav.nav--nav-open').getByRole('button',{name:'Đóng Menu',exact:true}).click();
+   await menuGeometry();
    if(await page.getByRole('button',{name:'Mở Menu',exact:true}).count())await page.getByRole('button',{name:'Mở Menu',exact:true}).click();
    await page.waitForFunction(()=>{const box=document.querySelector('.nav.nav--nav-open')?.getBoundingClientRect();return box&&box.left>=0&&box.width<=innerWidth-40;});
    await page.screenshot({path:'test-results/cms-browser/admin-drawer-mobile.png'});
    await page.locator('.nav.nav--nav-open').getByRole('button',{name:'Đóng Menu',exact:true}).click();
+   await menuGeometry();
+  }else{
+   await menuGeometry();await page.locator('.template-default__nav-toggler').click();await menuGeometry();await page.locator('.template-default__nav-toggler').click();await menuGeometry();
   }
   for(const path of ['/admin','/admin/collections/articles','/admin/collections/media','/admin/collections/quick-replies','/admin/inbox','/admin/settings','/admin/account']){console.log('CMS page check:',viewport.width,path);await page.goto(base+path);await visible('.template-default');await fits();}
  }
