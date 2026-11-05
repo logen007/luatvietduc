@@ -142,6 +142,7 @@ try{
  await page.locator('.operator-conversation-header').getByText('Đã hoàn tất',{exact:false}).waitFor();
  // Drafts follow the selected customer conversation and survive explicit account
  // navigation. All endpoints below are synthetic and cannot call a provider.
+ await page.setViewportSize({width:1280,height:900});
  const draftA=crypto.randomUUID(),draftB=crypto.randomUUID();
  const draftRows=[{id:draftA,title:'Draft conversation A',state:'human',version:1,aiEnabled:false},{id:draftB,title:'Draft conversation B',state:'human',version:1,aiEnabled:false}];
  await page.route('**/service/conversations',route=>route.fulfill({json:draftRows}));
