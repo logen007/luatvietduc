@@ -202,3 +202,16 @@ html.lvd-admin .payload-settings::before,html.lvd-admin .payload-settings::after
 
 /* Dashboard navigation remains in the sidebar; omit the duplicate shortcut block. */
 html.lvd-admin .lvd-admin-welcome :is(.lvd-dashboard-section-title,.lvd-admin-destinations,.lvd-admin-workflow){display:none}
+
+/* Desktop collapse keeps the same navigation as a compact, clickable icon rail. */
+@media(min-width:1025px){
+ html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open){grid-template-columns:64px minmax(0,1fr)}
+ html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .nav{display:block;width:64px;opacity:1;pointer-events:auto;transform:none}
+ html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .template-default__wrap{grid-column:2;min-width:0}
+ html.lvd-admin:has(.template-default--nav-hydrated:not(.template-default--nav-open)) .template-default__nav-toggler-wrapper{width:64px;justify-content:center}
+ html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .nav__scroll{padding-inline:8px}
+ html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-menu-main{min-height:44px}
+ html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-menu-main>a{justify-content:center;padding:0;min-height:44px}
+ html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-menu-main>a>svg{width:20px;height:20px}
+ html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) :is(.lvd-menu-main>a>span,.lvd-menu-main>button,.lvd-menu-children,.lvd-sidebar-footer){display:none}
+}
