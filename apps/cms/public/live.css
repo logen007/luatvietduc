@@ -382,6 +382,14 @@
 
 /* Links use color/focus feedback without text underlines in any state. */
 html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decoration:none!important}
+
+/* Recovery screens share the public typography and real onward actions. */
+.native-notice{min-height:55vh;padding-top:64px;padding-bottom:72px;font-family:var(--lvd-font,Inter,sans-serif)}
+.native-notice h1{max-width:20ch;font:500 clamp(36px,5vw,64px)/1.12 var(--lvd-display,Inter,sans-serif);letter-spacing:-.025em}
+.native-notice .page-heading>p:last-child{max-width:60ch;color:#666;line-height:1.65}
+.native-notice .button-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.native-notice .button{min-height:48px}
+.native-notice :is(a,button):focus-visible{outline:2px solid currentColor;outline-offset:3px}
 /* Black directory footer — the same source geometry as the public reference. */
 .live-footer {
   background: #000;

@@ -189,3 +189,14 @@ html.lvd-admin .doc-header__header{align-items:center;gap:12px}
 @media(max-width:650px){html.lvd-admin .doc-header{padding-top:20px}}
 
 html.lvd-admin .lvd-user-role-tabs a[aria-current='page']{color:var(--admin-text);font-weight:600;text-decoration:underline;text-underline-offset:6px}
+
+/* Long account/document timestamps wrap inside the phone viewport. */
+html.lvd-admin .doc-controls__meta{flex-wrap:wrap;row-gap:6px;max-width:100%}
+html.lvd-admin .doc-controls__meta>li{min-width:0;max-width:100%;white-space:normal}
+html.lvd-admin .doc-controls__meta .doc-controls__value{white-space:normal;overflow-wrap:anywhere}
+@media(max-width:760px){
+ html.lvd-admin :is(.field-type,.lvd-admin-page) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),textarea,select){font-size:16px}
+ html.lvd-admin :is(.list-header,.list-controls,.doc-controls) .btn{min-height:44px}
+}
+/* Payload's preference separators used a fixed 100px bleed on narrow screens. */
+html.lvd-admin .payload-settings::before,html.lvd-admin .payload-settings::after{left:0;right:0;width:auto}

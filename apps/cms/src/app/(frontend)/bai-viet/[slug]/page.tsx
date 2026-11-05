@@ -55,7 +55,7 @@ export default async function Page({
               {a.sourceUrl && <a href="#nguon-tham-khao"> <LocaleText text="Nguồn tham khảo"/></a>}
               <span className="live-aside-line"></span>
               <p> <LocaleText text="Bạn cần làm rõ vấn đề trong trường hợp cụ thể?"/></p>
-              <a className="live-text-action" href="/tro-chuyen"> <LocaleText text="Hỏi chuyên viên ↗"/> </a>
+              <a className="live-text-action" href="/tro-chuyen"> <LocaleText text="Mở trò chuyện"/> <span aria-hidden="true">↗</span> </a>
             </aside>
             <article className="live-reading-content">
               <div id="noi-dung" className="live-body" lang={a.language==='de'?'de':'vi'}>
@@ -72,7 +72,7 @@ export default async function Page({
               <section className="live-reading-cta">
                 <span className="live-eyebrow"> <LocaleText text="TIẾP NỐI CÂU HỎI CỦA BẠN"/></span>
                 <h2> <LocaleText text="Mỗi vấn đề đều có"/> <br /> <LocaleText text="bối cảnh riêng."/> </h2>
-                <a className="button" href="/tro-chuyen"> <LocaleText text="Trao đổi với chuyên viên"/> <span aria-hidden="true">↗</span>
+                <a className="button" href="/tro-chuyen"> <LocaleText text="Mở trò chuyện"/> <span aria-hidden="true">↗</span>
                 </a>
               </section>
             </article>

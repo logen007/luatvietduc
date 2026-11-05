@@ -19,6 +19,6 @@ export function ChatComposer({state}:{state:WorkspaceState}){
     <button className="chat-submit" type="submit" aria-label={t("Gửi câu hỏi")} disabled={disabled||(!state.text.trim()&&!state.attachments.length)}>{state.busy?<span className="live-spinner"/>:<ChatIcon name="send"/>}</button>
    </div>
   </form>
-  {!state.attachments.length&&<p className="chat-provider-label">{t("Gửi câu hỏi qua")} <a href="/quyen-rieng-tu">Google Gemini</a></p>}
+  {!state.attachments.length&&state.conversation?.aiEnabled!==false&&state.conversation?.state!=='closed'&&<p className="chat-provider-label">{t("Gửi câu hỏi qua")} <a href="/quyen-rieng-tu">Google Gemini</a></p>}
  </div>;
 }

@@ -67,6 +67,7 @@ try{
  const nav=page.locator('.live-menu-dialog');await page.getByRole('button',{name:'Mở menu',exact:true}).click();await nav.waitFor({state:'visible'});
  assert.equal(await nav.getByRole('link',{name:'Đăng nhập',exact:true}).count(),0);await page.getByRole('button',{name:'Đóng menu',exact:true}).click();
  await page.setViewportSize({width:1280,height:900});
+ await page.goto(base+'/tin-tuc');assert.ok((await page.locator('#news-query').boundingBox()).width>240,'Desktop news search must remain usable beside its filters');
  // Test recoverable connection errors independently of real credentials.
  let connectionAttempt=0;
  const connection={provider:'google',values:{clientId:'synthetic.apps.googleusercontent.com'},stored:{clientSecret:false},version:1,enabled:false,checkState:'untested',checkedAt:null};
@@ -116,7 +117,7 @@ try{
    await page.screenshot({path:'test-results/cms-browser/admin-drawer-mobile.png'});
    await page.locator('.nav.nav--nav-open').getByRole('button',{name:'Đóng Menu',exact:true}).click();
   }
-  for(const path of ['/admin','/admin/collections/articles','/admin/collections/media','/admin/inbox','/admin/settings']){console.log('CMS page check:',viewport.width,path);await page.goto(base+path);await visible('.template-default');await fits();}
+  for(const path of ['/admin','/admin/collections/articles','/admin/collections/media','/admin/inbox','/admin/settings','/admin/account']){console.log('CMS page check:',viewport.width,path);await page.goto(base+path);await visible('.template-default');await fits();}
  }
  // A transition acknowledged by the server survives a failed follow-up read.
  const threadId=crypto.randomUUID();
@@ -130,7 +131,7 @@ try{
   }
   return route.fulfill(failTranscript?{status:503,json:{error:'Synthetic transcript unavailable'}}:{json:{conversation:thread,messages:[]}});
  });
- await page.goto(base+'/admin/inbox?conversation='+threadId);
+ await page.setViewportSize({width:390,height:844});await page.goto(base+'/admin/inbox?conversation='+threadId);
  await page.getByRole('heading',{name:'Synthetic customer',exact:true}).waitFor();
  await page.getByRole('button',{name:'✓ Hoàn tất',exact:true}).click();
  await page.locator('.operator-error').waitFor();assert.match(await page.locator('.operator-error').innerText(),/Synthetic transcript unavailable/);
@@ -147,6 +148,7 @@ try{
  for(const item of draftRows)await page.route(new RegExp('/service/conversations/'+item.id+'(?:[?]|$)'),route=>route.fulfill({json:{conversation:item,messages:[]}}));
  await page.goto(base+'/tro-chuyen?conversation='+draftA);const question=page.getByRole('textbox',{name:'Câu hỏi của bạn',exact:true});
  await question.waitFor();await page.waitForFunction(()=>!document.querySelector('textarea')?.disabled);
+ await page.getByRole('heading',{name:'Đang trao đổi với chuyên viên',exact:true}).waitFor();assert.equal(await page.locator('.chat-provider-label').count(),0,'Human conversations must not claim to send questions to Gemini');
  await question.fill('Synthetic draft A');await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation B/}).click();await question.fill('Synthetic draft B');
  await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation A/}).click();assert.equal(await question.inputValue(),'Synthetic draft A');
  await page.locator('.chat-sidebar .chat-account').click();await page.waitForURL('**/tai-khoan?conversation='+draftA);
@@ -166,6 +168,7 @@ try{
  assert.equal(backupWrites,1);assert.equal(await page.getByRole('button',{name:'Đã có tác vụ đang xử lý',exact:true}).isDisabled(),true);
  // A German keyword search with no approved content has a real empty state.
  await page.goto(base+'/phap-luat/duc?q=synthetic-no-results-'+suffix);await page.locator('.native-empty').waitFor();await fits();
+ await page.goto(base+'/review-missing-'+suffix);await page.getByRole('heading',{name:'Không tìm thấy trang.',exact:true}).waitFor();await page.getByRole('link',{name:'Mở thư viện',exact:false}).waitFor();await fits();
  console.log('CMS browser checks passed: public VI/DE, mobile fit, session loading, signed-in menu, retry, unsaved changes and native admin pages.');
 }catch(error){console.error('CMS browser check failed:',error);throw error;}finally{
  await browser?.close();
