@@ -461,3 +461,13 @@ tệp đóng gói và size cũ có thể gỡ bằng quyền Admin; file giao di
 Đăng nhập quản trị dùng form native gọn và đăng nhập Google; hồ sơ ở
 `/admin/account`. Link Đăng nhập công khai mở đúng mode signin, có liên kết
 đăng ký và quên mật khẩu.
+
+
+## Sửa lưu nháp và nội dung bảng — 01.30.03
+
+Trình soạn giữ cấu trúc bảng dù các ô chưa có chữ, kể cả khi lưu nháp, mở lại
+và hoàn tác. Các đoạn văn rỗng thông thường vẫn được chuẩn hóa về nội dung rỗng.
+Khóa bài viết giữ main-row FOR UPDATE làm mutex, sau đó đọc latest version
+trong câu lệnh riêng. So timestamp mới hơn giữa main và version với snapshot
+Payload đã đọc; Save draft không cập nhật timestamp của main. Cách này giữ
+chặn ghi đè từ bản cũ và đồng bộ SQL, đồng thời cho lưu nháp/xuất bản liên tiếp.

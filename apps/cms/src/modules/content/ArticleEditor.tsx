@@ -19,7 +19,14 @@ function editorHTML(value: string) {
   return value ? value.replace(/\r\n?/g, '\n').split(/\n{2,}/).map(part => '<p>' + escapeHTML(part).replace(/\n/g, '<br>') + '</p>').join('') : '<p></p>';
 }
 function storedHTML(editor: Editor) {
-  return editor.isEmpty ? '' : MARKER + editor.getHTML() + '</div>';
+  // Tiptap checks descendant text for emptiness, so a newly inserted table
+  // with blank cells is "empty" even though it is meaningful article content.
+  let structural = false;
+  if (editor.isEmpty) editor.state.doc.descendants(node => {
+    if (['table', 'image', 'horizontalRule'].includes(node.type.name)) structural = true;
+    return !structural;
+  });
+  return editor.isEmpty && !structural ? '' : MARKER + editor.getHTML() + '</div>';
 }
 function safeURL(input: string, media = false) {
   const value = input.trim();

@@ -56,7 +56,20 @@ export const articleLock: CollectionBeforeChangeHook = async ({
     const result = await tx.execute(
       sql`SELECT updated_at FROM ${sql.identifier(table)} WHERE id=${originalDoc.id} FOR UPDATE`,
     );
-    const timestamp = result.rows[0]?.updated_at;
+    let timestamp = result.rows[0]?.updated_at;
+    if(timestamp&&collection.versions){
+      // Payload reads the latest draft version before calling this hook. Save
+      // draft advances that version without updating the published main row.
+      // Read it AFTER the main-row lock: a competing draft can commit while
+      // this request waits, and must invalidate the snapshot we already read.
+      const versionsTable=table==='knowledge'?'_knowledge_v':'_articles_v';
+      const latest=await tx.execute(sql`SELECT version_updated_at FROM ${sql.identifier(versionsTable)} WHERE parent_id=${originalDoc.id} AND latest=true ORDER BY updated_at DESC LIMIT 1`);
+      const versionTimestamp=latest.rows[0]?.version_updated_at;
+      // Direct SQL synchronization may advance the main row independently.
+      // Both paths must invalidate older snapshots.
+      const milliseconds=(value:unknown)=>value instanceof Date?value.getTime():new Date(String(value)).getTime();
+      if(versionTimestamp&&milliseconds(versionTimestamp)>milliseconds(timestamp))timestamp=versionTimestamp;
+    }
     if (
       !timestamp ||
       (timestamp instanceof Date

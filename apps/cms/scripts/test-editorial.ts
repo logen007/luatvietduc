@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import {ValidationError,type Payload} from 'payload';
+import {ValidationError,type Payload,type CollectionBeforeChangeHook} from 'payload';
 import type {User} from '../src/payload-types';
 import {pool} from '../src/modules/shared/db';
 import {eligible,findFaq,faqBody,publicFaq} from '../src/modules/assistant/faq';
 import seeds from '../src/modules/taxonomy/seeds.json';
 import legacyPosts from '../src/modules/legacy/posts.json';
 import {bundledFiles} from '../src/modules/storage/bundled';
+import {articleLock} from '../src/modules/content/audit';
 export async function testEditorial(payload:Payload,owner:User,specialist:User){
  const database=new URL(process.env.DATABASE_URL||'');if(!['localhost','127.0.0.1'].includes(database.hostname)||database.pathname!=='/lvd_test')throw new Error('Isolated CI database only');
  for(const file of bundledFiles){const row=(await pool.query('SELECT id FROM media WHERE filename=$1',[file.filename])).rows[0];assert.ok(row);const doc=await payload.findByID({collection:'media',id:row.id,user:owner,overrideAccess:false});assert.equal(doc.url,file.url);assert.equal(doc.visibility,'public');}
@@ -39,5 +40,49 @@ export async function testEditorial(payload:Payload,owner:User,specialist:User){
  const richSource=(await pool.query('SELECT * FROM knowledge WHERE article_origin_id=$1',[rich.id])).rows[0];assert.ok(eligible(richSource));assert.ok(!faqBody(richSource).includes('<'));assert.deepEqual(publicFaq(richSource).paragraphs,['Heading','Approved rich answer with complete conditions.','Mandatory exception stays with this answer.']);
  await assert.rejects(()=>payload.update({collection:'articles',id:rich.id,user:owner,overrideAccess:false,data:{body:'<div data-lvd-richtext="1"><p></p></div>',_status:'published'}}),error=>error instanceof ValidationError&&error.data.errors.some(item=>item.path==='body'&&item.message.includes('Nhập nội dung')));
  await payload.delete({collection:'articles',id:rich.id,user:owner,overrideAccess:false});
- console.log('Editorial checks passed: 16 seeded parent categories, news tree, tags, native relations/versions, hierarchy rename/cycle/delete, AI opt-in/uncheck/draft/delete and specialist self-publication');
+ const lifecycle=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic native draft lifecycle '+suffix,slug:'',jurisdiction:'BOTH',language:'vi',body:'Initial draft content.',_status:'draft'}});
+ try{
+  const mainBefore=(await pool.query('SELECT body,updated_at FROM articles WHERE id=$1',[lifecycle.id])).rows[0];
+  const firstDraft=await payload.update({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false,draft:true,data:{body:'First saved native draft.',_status:'draft'}});
+  const mainAfter=(await pool.query('SELECT body,updated_at FROM articles WHERE id=$1',[lifecycle.id])).rows[0];
+  assert.equal(mainAfter.body,mainBefore.body,'Native Save draft changes the version, not the main-table body');
+  assert.equal(new Date(mainAfter.updated_at).getTime(),new Date(mainBefore.updated_at).getTime(),'Native Save draft leaves the main-table timestamp unchanged');
+  assert.equal((await payload.findByID({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false,draft:true})).body,firstDraft.body);
+  const secondDraft=await payload.update({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false,draft:true,data:{body:'Second saved native draft.',_status:'draft'}});
+  assert.equal(secondDraft.body,'Second saved native draft.','A second Save draft accepts the latest version timestamp');
+  const published=await payload.update({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false,data:{_status:'published',aiAllowed:false}});
+  assert.equal(published.body,secondDraft.body);assert.equal(published._status,'published');assert.equal(published.reviewState,'approved');
+  assert.equal((await payload.findByID({collection:'articles',id:lifecycle.id,overrideAccess:false,draft:false})).body,secondDraft.body,'Publish uses the saved draft instead of the old main-table body');
+
+  const hooks=payload.collections.articles.config.hooks.beforeChange;
+  assert.ok(hooks);const lockIndex=hooks.indexOf(articleLock);assert.notEqual(lockIndex,-1);
+  const snapshots:string[]=[];let release!:()=>void,reject!:(error:Error)=>void,timer:ReturnType<typeof setTimeout>|undefined;
+  const barrier=new Promise<void>((resolve,fail)=>{release=resolve;reject=fail;});
+  const pause:CollectionBeforeChangeHook=async({data,originalDoc,context})=>{
+   if(originalDoc?.id===lifecycle.id&&context.editorialDraftRace===suffix){
+    snapshots.push(String(originalDoc.updatedAt));
+    if(snapshots.length===1)timer=setTimeout(()=>reject(new Error('Concurrent draft snapshots did not reach the barrier')),10000);
+    if(snapshots.length===2)release();
+    await barrier;
+   }
+   return data;
+  };
+  hooks.splice(lockIndex,0,pause);
+  let winner='';
+  try{
+   const race=await Promise.allSettled(['First competing native draft.','Second competing native draft.'].map(body=>payload.update({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false,draft:true,context:{editorialDraftRace:suffix},data:{body,_status:'draft'}})));
+   assert.equal(snapshots.length,2);assert.equal(snapshots[0],snapshots[1],'Both draft writers must read the same version before either takes the lock');
+   const fulfilled=race.filter(result=>result.status==='fulfilled'),rejected=race.filter(result=>result.status==='rejected');
+   assert.equal(fulfilled.length,1,'Competing drafts must not overwrite each other even though neither changes the main-table timestamp');assert.equal(rejected.length,1);
+   assert.match(rejected[0].reason.message,/Article changed concurrently\. Reload before saving\./);
+   winner=fulfilled[0].value.body;
+   assert.equal((await payload.findByID({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false,draft:true})).body,winner,'The rejected draft cannot overwrite the winner');
+   assert.equal((await pool.query('SELECT body FROM articles WHERE id=$1',[lifecycle.id])).rows[0].body,published.body,'Draft races never replace the published main-table content');
+  }finally{clearTimeout(timer);const index=hooks.indexOf(pause);if(index>=0)hooks.splice(index,1);}
+  const afterConflict=await payload.update({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false,data:{_status:'published',aiAllowed:false}});
+  assert.equal(afterConflict.body,winner,'A fresh Publish succeeds after the stale draft writer was rejected');
+  await pool.query("UPDATE articles SET updated_at=updated_at+interval '1 second' WHERE id=$1",[lifecycle.id]);
+  await assert.rejects(()=>payload.update({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false,draft:true,data:{body:'Stale version must not overwrite a newer SQL revision.'}}),/Article changed concurrently/,'A newer main-table revision still invalidates an older native version');
+ }finally{await payload.delete({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false});}
+ console.log('Editorial checks passed: 16 seeded parent categories, news tree, tags, native relations/versions, hierarchy rename/cycle/delete, AI opt-in/uncheck/draft/delete, specialist self-publication, native Save draft/publish and stale draft rejection');
 }

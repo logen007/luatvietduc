@@ -21,8 +21,8 @@ def main():
     sha = args.approved_sha
     module.require(module.valid_sha(sha), 'A full reviewed commit is required')
     # Reviewed media lifecycle and article editing security; no data fields or migration change.
-    allowed = {'apps/cms/src/modules/storage/collection.ts','apps/cms/src/modules/content/audit.ts'}
-    reviewed = sorted(allowed | {'apps/cms/src/modules/admin/presentation.ts','apps/cms/src/modules/storage/MediaLibrary.tsx','apps/cms/src/modules/storage/media-view.ts','apps/cms/src/modules/integrations/storage.ts','apps/cms/scripts/test-media-library.ts','apps/cms/test/media-view.test.mjs','apps/cms/src/modules/content/article-body.ts','apps/cms/src/modules/content/ArticleEditor.tsx','apps/cms/src/modules/content/translation-provider.ts','apps/cms/src/modules/assistant/faq.ts','apps/cms/src/modules/rag/indexer.ts','apps/cms/src/modules/rag/retrieve.ts','apps/cms/package.json','apps/cms/package-lock.json'})
+    allowed = {'apps/cms/src/modules/content/audit.ts'}
+    reviewed = sorted(allowed | {'apps/cms/src/modules/storage/collection.ts','apps/cms/src/modules/admin/presentation.ts','apps/cms/src/modules/storage/MediaLibrary.tsx','apps/cms/src/modules/storage/media-view.ts','apps/cms/src/modules/integrations/storage.ts','apps/cms/scripts/test-media-library.ts','apps/cms/test/media-view.test.mjs','apps/cms/src/modules/content/article-body.ts','apps/cms/src/modules/content/ArticleEditor.tsx','apps/cms/src/modules/content/translation-provider.ts','apps/cms/src/modules/assistant/faq.ts','apps/cms/src/modules/rag/indexer.ts','apps/cms/src/modules/rag/retrieve.ts','apps/cms/package.json','apps/cms/package-lock.json'})
     state_dir = pathlib.Path(config['state_dir'])
     with (state_dir / 'deploy.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)

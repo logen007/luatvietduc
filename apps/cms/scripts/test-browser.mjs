@@ -10,12 +10,12 @@ const base='http://127.0.0.1:3047';process.env.APP_URL=base;process.env.LVD_WORK
 const {getPayload}=await import('payload'),{default:config}=await import('../src/payload.config.ts'),{pool}=await import('../src/modules/shared/db.ts');
 const {seal}=await import('../src/modules/integrations/crypto.ts');
 const {chromium}=await import('playwright'),payload=await getPayload({config});
-let server,browser,mediaStorageFixture=false;const suffix=crypto.randomUUID(),password=crypto.randomUUID(),ids=[],translationArticleIds=[],mediaFixtureIds=[];
+let server,browser,serverLog='',mediaStorageFixture=false;const suffix=crypto.randomUUID(),password=crypto.randomUUID(),ids=[],translationArticleIds=[],mediaFixtureIds=[];
 await mkdir('test-results/cms-browser',{recursive:true});
 try{
  const owner=await payload.create({collection:'users',overrideAccess:true,context:{bootstrapOwner:true},data:{name:'Browser test admin',email:`browser-${suffix}@example.invalid`,password,role:'owner'}});ids.push(owner.id);
- server=spawn(process.execPath,['node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port','3047'],{stdio:['ignore','ignore','pipe'],env:process.env});
- let serverLog='';server.stderr.on('data',data=>{serverLog=(serverLog+data).slice(-3000);});
+ server=spawn(process.execPath,['node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port','3047'],{stdio:['ignore','pipe','pipe'],env:process.env});
+ const captureServer=data=>{serverLog=(serverLog+data).slice(-8000);};server.stdout.on('data',captureServer);server.stderr.on('data',captureServer);
  let ready=false;for(let attempt=0;attempt<80;attempt++){
   if(server.exitCode!==null)throw new Error('Test server exited: '+serverLog);
   try{if((await fetch(base+'/health/ready')).ok){ready=true;break;}}catch{}
@@ -181,6 +181,37 @@ try{
  assert.match(publishedDraft.body,/<strong>Synthetic formatted publication.<\/strong>/);assert.match(publishedDraft.body,/<table>/);
  await page.reload();await richEditor.locator('table').waitFor();assert.equal(await richEditor.locator('strong').innerText(),'Synthetic formatted publication.');
  await page.goto(base+'/bai-viet/'+publishedDraft.slug);await page.locator('#noi-dung table').waitFor();assert.equal(await page.locator('#noi-dung strong').innerText(),'Synthetic formatted publication.');assert.equal(await page.locator('.live-toc').count(),0);await fits();
+ // A blank table is structural content even before the specialist types into
+ // its cells. Exercise the real toolbar, Payload field, persistence and history.
+ const tableDraft=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic table persistence '+suffix,body:'Synthetic table starting content.',slug:'',language:'vi',jurisdiction:'BOTH',_status:'draft'}});translationArticleIds.push(tableDraft.id);
+ await page.goto(base+'/admin/collections/articles/'+tableDraft.id);await richEditor.waitFor();
+ await richEditor.fill('');await page.waitForFunction(()=>document.querySelector('#field-body')?.value==='');
+ await page.getByRole('button',{name:'Bảng',exact:true}).click();await page.getByRole('button',{name:'Chèn bảng 3 × 3',exact:true}).click();
+ await richEditor.locator('table').waitFor();await page.waitForFunction(()=>document.querySelector('#field-body')?.value.includes('<table>'));
+ assert.equal(await richEditor.locator('tr').count(),3);assert.equal((await richEditor.locator('table').textContent()).trim(),'','The table starts with empty cells');
+ const emptyTableSave=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/articles/'+tableDraft.id&&response.request().method()==='PATCH');await page.getByRole('button',{name:'Lưu bản nháp',exact:true}).click();assert.equal((await emptyTableSave).status(),200,'An empty table can be saved as a draft');
+ await page.reload();await richEditor.locator('table').waitFor();assert.match(await page.locator('#field-body').inputValue(),/<table>/,'Reload retains the empty table in the canonical field');
+ await richEditor.locator('tr').first().locator('th,td').first().click();await page.getByRole('button',{name:'Bảng',exact:true}).click();await page.getByRole('button',{name:'Xóa bảng',exact:true}).click();
+ await richEditor.locator('table').waitFor({state:'detached'});await page.waitForFunction(()=>document.querySelector('#field-body')?.value==='');
+ await page.getByRole('button',{name:'Hoàn tác',exact:true}).click();await richEditor.locator('table').waitFor();await page.waitForFunction(()=>document.querySelector('#field-body')?.value.includes('<table>'));
+ await page.getByRole('button',{name:'Làm lại',exact:true}).click();await richEditor.locator('table').waitFor({state:'detached'});await page.waitForFunction(()=>document.querySelector('#field-body')?.value==='');
+ await page.getByRole('button',{name:'Hoàn tác',exact:true}).click();await richEditor.locator('table').waitFor();await page.waitForFunction(()=>document.querySelector('#field-body')?.value.includes('<table>'));
+ await richEditor.locator('tr').first().locator('th,td').first().click();await page.keyboard.type('Synthetic table cell for publication.');await page.waitForFunction(()=>document.querySelector('#field-body')?.value.includes('Synthetic table cell for publication.'));
+ const tablePublish=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/articles/'+tableDraft.id&&response.request().method()==='PATCH');await page.getByRole('button',{name:'Xuất bản',exact:true}).click();const tablePublishResponse=await tablePublish;assert.equal(tablePublishResponse.status(),200,await tablePublishResponse.text());
+ const tablePublished=await payload.findByID({collection:'articles',id:tableDraft.id,user:owner,overrideAccess:false});assert.equal(tablePublished._status,'published');assert.match(tablePublished.body,/<table>/);assert.match(tablePublished.body,/Synthetic table cell for publication\./);
+ await page.goto(base+'/bai-viet/'+tablePublished.slug);await page.locator('#noi-dung table').getByText('Synthetic table cell for publication.',{exact:true}).waitFor();
+ // Verify the actual ProseMirror selection, rather than trusting a DOM caret
+ // left behind by a blurred link popover or platform-specific End shortcuts.
+ await page.goto(base+'/admin/collections/articles/'+tableDraft.id);await richEditor.waitFor();await page.getByRole('button',{name:'HTML',exact:true}).click();
+ await richHTML.fill('<p><a href="/thu-vien">Synthetic preserved article link</a></p><p></p>');await page.getByRole('button',{name:'Trực quan',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('#field-body')?.value.includes('Synthetic preserved article link'));await richEditor.locator(':scope > p').last().click();
+ const beforeTableSelection=await richEditor.evaluate(element=>{const state=element.editor.state,selection=state.selection;return {empty:selection.empty,parent:selection.$from.parent.type.name,text:selection.$from.parent.textContent,linked:selection.$from.marks().some(mark=>mark.type.name==='link')};});
+ assert.deepEqual(beforeTableSelection,{empty:true,parent:'paragraph',text:'',linked:false},'Table insertion starts at a verified collapsed selection outside the link');
+ await page.getByRole('button',{name:'Bảng',exact:true}).click();await page.getByRole('button',{name:'Chèn bảng 3 × 3',exact:true}).click();await richEditor.locator('table').waitFor();
+ await page.waitForFunction(()=>{const body=document.querySelector('#field-body')?.value||'';return body.includes('<table>')&&body.includes('Synthetic preserved article link');});
+ assert.equal(await richEditor.locator('a[href="/thu-vien"]').innerText(),'Synthetic preserved article link','Toolbar insertion preserves the preceding linked paragraph');
+ console.log('Article structural-content checks passed: empty table save/reload, delete, undo/redo, typed-cell publication and linked-paragraph preservation');
+ page.once('dialog',dialog=>dialog.accept());
  const {articleTranslation}=await import('../src/modules/content/translations.ts');
  const translationSource=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic bilingual '+suffix,body:'Synthetic source body.',slug:'',language:'vi',jurisdiction:'BOTH'}});translationArticleIds.push(translationSource.id);
  const translationCopy=await articleTranslation(payload,owner,{id:translationSource.id,language:'de',updatedAt:translationSource.updatedAt,mode:'copy'});translationArticleIds.push(translationCopy.id);
@@ -431,7 +462,7 @@ try{
  const mixedLogout=await context.request.post(base+'/api/users/LoGoUt',{headers:{origin:base},data:{}});assert.equal(mixedLogout.status(),200);
  assert.equal((await(await context.request.get(base+'/service/me')).json()).user,null,'Mixed-case native logout uses shared revocation');
  console.log('CMS browser checks passed: public VI/DE, mobile fit, session loading, signed-in menu, retry, unsaved changes and native admin pages.');
-}catch(error){console.error('CMS browser check failed:',error);throw error;}finally{
+}catch(error){console.error('CMS browser check failed:',error,'Server diagnostics:',serverLog);throw error;}finally{
  await browser?.close();
  if(server&&server.exitCode===null)await new Promise(resolve=>{const timeout=setTimeout(()=>server.kill('SIGKILL'),5000);server.once('exit',()=>{clearTimeout(timeout);resolve();});server.kill('SIGTERM');});
  if(mediaStorageFixture)await pool.query("DELETE FROM lvd_integrations WHERE provider='r2'");
