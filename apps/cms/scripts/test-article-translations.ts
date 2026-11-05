@@ -52,6 +52,15 @@ export async function testArticleTranslations(payload:Payload,owner:User){
   await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'}),(e:any)=>e.status===409,'Source changes during generation reject the response');
   const second=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic manual '+suffix,body:'Manual translation source',slug:'',language:'de',jurisdiction:'BOTH'}});articles.push(second.id);
   const copy=await articleTranslation(payload,owner,{id:second.id,language:'vi',updatedAt:second.updatedAt,mode:'copy'});assert.ok('id' in copy);articles.push(copy.id!);assert.equal((await payload.findByID({collection:'articles',id:copy.id!,draft:true})).body,second.body);
+  globalThis.fetch=provider as typeof fetch;
+  const manualSource=await payload.create({collection:'articles',user:owner,overrideAccess:false,draft:true,data:{title:'Synthetic manual-first '+suffix,body:'Manually authored source',slug:'',language:'vi',jurisdiction:'BOTH'}});articles.push(manualSource.id);
+  const beforeManual=calls;
+  const manual=await articleTranslation(payload,owner,{id:manualSource.id,language:'de',updatedAt:manualSource.updatedAt,mode:'manual'});assert.ok('id' in manual);articles.push(manual.id!);
+  const blank=await payload.findByID({collection:'articles',id:manual.id!,draft:true});assert.equal(blank.title,'');assert.equal(blank.body,'');assert.equal(blank.language,'de');assert.equal(blank.translationGroup,manualSource.translationGroup);assert.equal(calls,beforeManual,'Language switching creates a private manual draft without calling AI');
+  const beforeDraft=await payload.count({collection:'articles',overrideAccess:true});
+  const draft=await articleTranslation(payload,owner,{mode:'draft',language:'de',title:'Unsaved source',body:'Unsaved source body'});assert.deepEqual('translation' in draft&&draft.translation,fakeTranslation);assert.equal((await payload.count({collection:'articles',overrideAccess:true})).totalDocs,beforeDraft.totalDocs,'Translating unsaved form text never saves or publishes it');
+  await assert.rejects(()=>articleTranslation(payload,member,{mode:'draft',language:'de',title:'Forbidden',body:'Forbidden'}),(e:any)=>e.status===403);
+  await assert.rejects(()=>articleTranslation(payload,owner,{mode:'draft',language:'de',title:'Missing body',body:''}),(e:any)=>e.status===400);
   console.log('Article translation checks passed: isolated encrypted key, private draft, no AI eligibility, idempotent retry, immutable source/group, incomplete output rejection and stale source protection.');
  }finally{
   globalThis.fetch=originalFetch;

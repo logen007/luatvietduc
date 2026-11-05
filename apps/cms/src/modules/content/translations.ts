@@ -25,7 +25,13 @@ export async function articleLanguages(payload:Payload,user:User|null,id:number)
 }
 export async function articleTranslation(payload:Payload,user:User|null,input:Record<string,unknown>,signal?:AbortSignal){
  requireArticleEditor(user);
- if(!Number.isSafeInteger(input.id)||Number(input.id)<1||!['vi','de'].includes(String(input.language))||!['copy','ai','preview'].includes(String(input.mode))||typeof input.updatedAt!=='string')throw new HttpError(400,'Yêu cầu dịch chưa hợp lệ.');
+ if(input.mode==='draft'){
+  if(!['vi','de'].includes(String(input.language))||typeof input.title!=='string'||typeof input.body!=='string'||!input.title.trim()||!input.body.trim()||input.title.length>240||input.body.length>16000||/[\u0000]/.test(input.title+input.body))throw new HttpError(400,'Nhập tiêu đề và nội dung hợp lệ trước khi dịch.');
+  const connection=await activeValues('translation');
+  if(!connection)throw new HttpError(503,'Chưa bật AI dịch bài viết. Admin thêm khóa riêng tại Cài đặt → Kết nối dịch vụ → Dịch bài viết.');
+  return {translation:await translateArticleText({title:input.title,body:input.body},input.language as ArticleLanguage,connection,signal)};
+ }
+ if(!Number.isSafeInteger(input.id)||Number(input.id)<1||!['vi','de'].includes(String(input.language))||!['copy','manual','ai','preview'].includes(String(input.mode))||typeof input.updatedAt!=='string')throw new HttpError(400,'Yêu cầu dịch chưa hợp lệ.');
  const source=await editableArticle(payload,user,Number(input.id)),language=input.language as ArticleLanguage;
  if(source.language===language)throw new HttpError(400,'Chọn ngôn ngữ khác với bản gốc.');
  if(source.updatedAt!==input.updatedAt)throw new HttpError(409,'Bài gốc đã thay đổi. Tải lại trước khi dịch.');
@@ -37,7 +43,7 @@ export async function articleTranslation(payload:Payload,user:User|null,input:Re
   const existing=(await payload.find({collection:'articles',user,overrideAccess:false,draft:true,depth:0,limit:1,where:{and:[{translationGroup:{equals:source.translationGroup}},{language:{equals:language}}]}})).docs[0];
   if(existing&&input.mode!=='preview')return {id:existing.id,existing:true};
   let text={title:source.title,body:source.body};
-  if(input.mode!=='copy'){
+  if(!['copy','manual'].includes(String(input.mode))){
    const connection=await activeValues('translation');
    if(!connection)throw new HttpError(503,'Chưa bật AI dịch bài viết. Admin thêm khóa riêng tại Cài đặt → Kết nối dịch vụ → Dịch bài viết.');
    text=await translateArticleText(text,language,connection,signal);
@@ -57,7 +63,8 @@ export async function articleTranslation(payload:Payload,user:User|null,input:Re
    }
    setTranslationGroup(req,source.translationGroup!);
    const ids=(items:Article['categories'])=>(items||[]).map(item=>typeof item==='object'?item.id:item);
-   const doc=await payload.create({collection:'articles',user:freshUser,overrideAccess:false,req,draft:true,data:{...text,slug:permalink(text.title)+'-'+language+'-'+source.id,language,jurisdiction:source.jurisdiction,kind:source.kind,categories:ids(source.categories),tags:ids(source.tags),sourceUrl:source.sourceUrl,legalField:source.legalField,effectiveFrom:source.effectiveFrom,reviewDueAt:source.reviewDueAt,reviewState:'draft',_status:'draft',aiAllowed:false}});
+   if(input.mode==='manual')text={title:'',body:''};
+   const doc=await payload.create({collection:'articles',user:freshUser,overrideAccess:false,req,draft:true,data:{...text,slug:(permalink(text.title)||'bai-viet')+'-'+language+'-'+source.id,language,jurisdiction:source.jurisdiction,kind:source.kind,categories:ids(source.categories),tags:ids(source.tags),sourceUrl:source.sourceUrl,legalField:source.legalField,effectiveFrom:source.effectiveFrom,reviewDueAt:source.reviewDueAt,reviewState:'draft',_status:'draft',aiAllowed:false}});
    await payload.db.commitTransaction(tx);return {id:doc.id,existing:false};
   }catch(error){await payload.db.rollbackTransaction(tx);throw error;}
  }finally{try{if(acquired)await lock.query('SELECT pg_advisory_unlock(hashtext($1))',['article-translation:'+source.translationGroup]);}finally{lock.release();}}

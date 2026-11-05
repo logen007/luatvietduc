@@ -181,12 +181,18 @@ Resend cần được kiểm tra và bật trong `/admin/settings/connections` �
 
 Schema đi qua `release-reviewed-email-accounts.py`, ghim commit/manifest, kiểm tra CI, sao lưu và migration trước candidate; không đổi policy tự cập nhật. Quay lại mã cũ có thể giữ hai cột bổ sung. Down migration từ chối khi còn tài khoản chưa xác minh. Đã kiểm tra hệ thống với hộp thư giả: User-only, xác minh, cookie, nối đúng khách, CSRF, mật khẩu cũ bị từ chối sau reset và không tái dùng token.
 
-## Bài viết Việt–Đức — 01.21
+## Bài viết Việt–Đức — 01.25
 
 Mỗi bài có nhóm ngôn ngữ bất biến và tối đa một bản cho mỗi VI/DE. Hai bản giữ
 permalink, lịch sử, xuất bản và quyền AI riêng. Trình viết bài dùng
-`content/ArticleLanguages.tsx`; bản chưa tồn tại có thể sao chép nháp hoặc dịch
-bằng Gemini. Dịch lại chỉ điền vào form, cần lưu; không ghi đè âm thầm.
+`content/ArticleLanguages.tsx`; một nút cờ VI/DE ở thanh điều khiển mở bản nhập
+tay, tự lưu thay đổi hiện tại thành bản nháp trước khi chuyển bài đã lưu. Bản
+ngôn ngữ mới được tạo nháp rỗng, không gọi AI. Bài mới chưa lưu đổi trường ngôn
+ngữ ngay và giữ nội dung đang nhập. Chỉ nút “Dịch bằng AI” gửi nội dung; kết quả
+điền vào form và cần lưu, không ghi đè nếu form đã thay đổi trong lúc dịch.
+`content/PermalinkField.tsx` sinh đường dẫn từ tiêu đề, chỉ chỉnh khi bấm Sửa;
+permalink đã sửa tay hoặc đã lưu không tự thay theo tiêu đề. Các nhãn ô nhập
+được ẩn trực quan, giữ tên truy cập và dùng placeholder.
 Nhóm “Thông tin bổ sung” được bỏ khỏi form; các trường đã lưu và điều kiện hết
 hạn vẫn được giữ. Nút VI/DE thay select ngôn ngữ của bài đã lưu.
 

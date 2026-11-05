@@ -180,18 +180,9 @@ export interface Article {
   id: number;
   translationGroup?: string | null;
   title: string;
-  /**
-   * Địa chỉ bài viết: https://luatvietduc.com/bai-viet/ + permalink. Để trống để tự tạo từ tiêu đề.
-   */
   slug: string;
   body: string;
-  /**
-   * Chọn một hoặc nhiều danh mục. Quản lý danh mục cha–con trong Bài viết → Danh mục.
-   */
   categories?: (number | Category)[] | null;
-  /**
-   * Vietnam, Germany hoặc tag do anh tạo thêm.
-   */
   tags?: (number | Tag)[] | null;
   kind?: ('article' | 'news' | 'question') | null;
   legalField?: string | null;

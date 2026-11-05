@@ -127,17 +127,25 @@ try{
  let releaseTranslation;const translationPending=new Promise(resolve=>{releaseTranslation=resolve;});let translationsRequested=0,notifyTranslation;const translationStarted=new Promise(resolve=>{notifyTranslation=resolve;});
  await page.route('**/service/articles/translations?*',route=>route.fulfill({json:{articles:[{id:translationSource.id,language:'vi'},{id:translationCopy.id,language:'de'}],translationReady:true}}));
  await page.route('**/service/articles/translations',async route=>{translationsRequested++;notifyTranslation();await translationPending;await route.fulfill({json:{translation:{title:'Synthetischer Titel',body:'Vollständiger synthetischer Text.'}}});});
- await page.goto(base+'/admin/collections/articles/'+translationSource.id);await page.locator('.lvd-article-languages').waitFor();
+ await page.goto(base+'/admin/collections/articles/'+translationSource.id);await page.locator('.lvd-article-language-actions').waitFor();
  assert.equal(await page.getByText('Thông tin bổ sung',{exact:true}).count(),0);
- await page.locator('.lvd-article-languages').getByRole('button',{name:'DE',exact:true}).click();await page.waitForURL('**/admin/collections/articles/'+translationCopy.id);
- await page.getByRole('button',{name:'Dịch từ VI bằng AI',exact:true}).click();await page.getByRole('progressbar',{name:'Đang dịch bài viết'}).waitFor();
- assert.equal(await page.getByRole('button',{name:'Dịch từ VI bằng AI',exact:true}).isDisabled(),true);await Promise.race([translationStarted,pause(12000).then(()=>{throw new Error('Translation request did not start');})]);assert.equal(translationsRequested,1);
+ await page.getByRole('button',{name:'Chuyển bài viết sang Tiếng Đức',exact:true}).click();assert.equal(translationsRequested,0,'Switching to an existing language never invokes AI');await page.waitForURL('**/admin/collections/articles/'+translationCopy.id);
+ await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).click();await page.getByRole('progressbar',{name:'Đang dịch bài viết'}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).isDisabled(),true);await Promise.race([translationStarted,pause(12000).then(()=>{throw new Error('Translation request did not start');})]);assert.equal(translationsRequested,1);
  await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/article-translation-loading-mobile.png'});
  releaseTranslation();await page.getByText('Đã dịch. Lưu bản nháp sau khi đọc lại.',{exact:true}).waitFor();
  assert.equal(await page.locator('#field-title').inputValue(),'Synthetischer Titel');assert.equal(await page.locator('#field-body').inputValue(),'Vollständiger synthetischer Text.');
- await page.locator('.lvd-article-languages').getByRole('button',{name:'VI',exact:true}).click();await page.getByText('Lưu thay đổi trước khi chuyển ngôn ngữ.',{exact:true}).waitFor();
- assert.ok(page.url().endsWith('/'+translationCopy.id));page.once('dialog',dialog=>dialog.accept());await page.goto(base+'/admin');
+ await page.getByRole('button',{name:'Chuyển bài viết sang Tiếng Việt',exact:true}).click();await page.waitForURL('**/admin/collections/articles/'+translationSource.id);assert.equal(translationsRequested,1,'Manual switching never starts another translation');
+ const savedTranslation=await payload.findByID({collection:'articles',id:translationCopy.id,draft:true});assert.equal(savedTranslation.title,'Synthetischer Titel','Switching preserves edited text as a draft');await page.goto(base+'/admin');
  await page.unroute('**/service/articles/translations');await page.unroute('**/service/articles/translations?*');
+ await page.goto(base+'/admin/collections/articles/create');
+ await page.getByPlaceholder('Tiêu đề bài viết',{exact:true}).fill('Bài thử permalink');
+ await page.getByPlaceholder('Viết nội dung bài viết…',{exact:true}).fill('Nội dung nhập tay');
+ await page.waitForFunction(()=>document.querySelector('.lvd-post-permalink__url')?.textContent.includes('bai-thu-permalink'));
+ await page.getByRole('button',{name:'Chuyển bài viết sang Tiếng Đức',exact:true}).click();assert.equal(await page.locator('#field-title').inputValue(),'Bài thử permalink','Switching the language does not translate or discard unsaved text');
+ await page.locator('.lvd-post-permalink').getByRole('button',{name:'Sửa',exact:true}).click();await page.getByRole('textbox',{name:'Permalink',exact:true}).fill('duong-dan-rieng');await page.getByRole('button',{name:'Xong',exact:true}).click();
+ await page.getByPlaceholder('Tiêu đề bài viết',{exact:true}).fill('Tiêu đề mới');assert.ok((await page.locator('.lvd-post-permalink__url').innerText()).endsWith('duong-dan-rieng'));
+ page.once('dialog',dialog=>dialog.accept());await page.goto(base+'/admin');
  // Media library uses native permissions/bulk controls in both presentation modes.
  for(const index of [1,2,3]){const mime=index===3?'application/pdf':'image/svg+xml',filename='synthetic-media-'+suffix+'-'+index+(index===3?'.pdf':'.svg');const row=(await pool.query("INSERT INTO media(alt,filename,mime_type,filesize,visibility) VALUES($1,$2,$3,120,'private') RETURNING id",['Synthetic media '+index,filename,mime])).rows[0];mediaFixtureIds.push(row.id);}
  await page.route('**/api/media/file/synthetic-media-*',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="white"/></svg>'}));
