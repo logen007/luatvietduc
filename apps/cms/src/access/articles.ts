@@ -87,6 +87,11 @@ export const articleWorkflow: CollectionBeforeChangeHook = ({
     }
     return data;
   }
+  // The owner's explicit Publish action is also their approval. Ordinary
+  // edits and Save draft still follow the existing withdrawal rules.
+  if(isOwner&&data._status==='published'&&(data.reviewState??originalDoc?.reviewState)!=='withdrawn'){
+    data.reviewState='approved';data.reviewedBy=req.user?.id;data.reviewedAt=new Date().toISOString();
+  }
   const explicitOwnerReview=isOwner&&data._status==='published'&&data.reviewState==='approved';
   if (!isOwner && role !== "editor" && (!originalDoc || changed))
     throw new Error("Content editing restricted");

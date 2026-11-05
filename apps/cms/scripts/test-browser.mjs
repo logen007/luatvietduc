@@ -157,6 +157,10 @@ try{
  page.once('dialog',dialog=>dialog.accept());
  await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/knowledge-mobile.png'});
  // Native article language controls: preserve edits and show real pending state.
+ const publishDraft=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic native publish '+suffix,body:'Synthetic publication check.',slug:'',language:'vi',jurisdiction:'BOTH',reviewState:'draft',_status:'draft'}});translationArticleIds.push(publishDraft.id);
+ await page.goto(base+'/admin/collections/articles/'+publishDraft.id);await page.getByRole('checkbox',{name:'AI',exact:true}).check();
+ const publishResult=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/articles/'+publishDraft.id&&response.request().method()==='PATCH');await page.getByRole('button',{name:'Xuất bản',exact:true}).click();assert.equal((await publishResult).status(),200,'Native Publish must not fail because its review selector still says Draft');
+ const publishedDraft=await payload.findByID({collection:'articles',id:publishDraft.id,user:owner,overrideAccess:false});assert.equal(publishedDraft._status,'published');assert.equal(publishedDraft.reviewState,'approved');assert.equal(publishedDraft.aiAllowed,true);
  const {articleTranslation}=await import('../src/modules/content/translations.ts');
  const translationSource=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic bilingual '+suffix,body:'Synthetic source body.',slug:'',language:'vi',jurisdiction:'BOTH'}});translationArticleIds.push(translationSource.id);
  const translationCopy=await articleTranslation(payload,owner,{id:translationSource.id,language:'de',updatedAt:translationSource.updatedAt,mode:'copy'});translationArticleIds.push(translationCopy.id);

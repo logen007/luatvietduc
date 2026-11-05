@@ -19,7 +19,8 @@ export async function testEditorial(payload:Payload,owner:User,specialist:User){
  await assert.rejects(()=>payload.update({collection:'categories',id:child.id,user:owner,overrideAccess:false,data:{parent:child.id}}));
  await payload.update({collection:'categories',id:parent.id,user:owner,overrideAccess:false,data:{name:'Renamed synthetic parent'}});
  assert.equal((await payload.findByID({collection:'categories',id:child.id})).label,'Renamed synthetic parent > Synthetic child');
- const post=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic editorial '+suffix,slug:'',jurisdiction:'BOTH',language:'vi',body:'Synthetic public text.\n\nMandatory condition remains attached.',categories:[child.id],tags:[vietnam.id,germany.id],reviewState:'approved',_status:'published',aiAllowed:true}});
+ const draft=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic editorial '+suffix,slug:'',jurisdiction:'BOTH',language:'vi',body:'Synthetic public text.\n\nMandatory condition remains attached.',categories:[child.id],tags:[vietnam.id,germany.id],reviewState:'draft',_status:'draft'}});
+ const post=await payload.update({collection:'articles',id:draft.id,user:owner,overrideAccess:false,data:{reviewState:'draft',_status:'published',aiAllowed:true}});assert.equal(post.reviewState,'approved');assert.equal(typeof post.reviewedBy==='object'?post.reviewedBy?.id:post.reviewedBy,owner.id);
  assert.ok(post.slug?.startsWith('synthetic-editorial-'));assert.equal(post.tags?.length,2);assert.equal(post.categories?.length,1);assert.equal(post.jurisdiction,'BOTH');
  const readSource=async()=>((await pool.query('SELECT * FROM knowledge WHERE article_origin_id=$1',[post.id])).rows[0]);
  let source=await readSource();assert.ok(source&&eligible(source));assert.ok(source.source_url.endsWith('/bai-viet/'+post.slug));assert.equal((await findFaq('BOTH',post.title))?.id,source.id);
