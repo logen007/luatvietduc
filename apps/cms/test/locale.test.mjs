@@ -10,7 +10,7 @@ test('locale preserves original messages and interpolates names',()=>{
  assert.equal(translate('Original customer message','de'),'Original customer message');
 });
 test('public interface has no Vietnamese text nodes or static labels outside translation calls',()=>{
- const files=['app/(frontend)/tai-khoan/page.tsx','modules/shared/Header.tsx','modules/shared/Footer.tsx','modules/shared/SocialLinks.tsx','modules/chat/CustomerWorkspace.tsx',...['Composer','History','Messages'].map(n=>'modules/chat/ui/'+n+'.tsx')];
+ const files=['app/(frontend)/tai-khoan/page.tsx','modules/identity/AccountForm.tsx','modules/shared/Header.tsx','modules/shared/Footer.tsx','modules/shared/SocialLinks.tsx','modules/chat/CustomerWorkspace.tsx',...['Composer','History','Messages'].map(n=>'modules/chat/ui/'+n+'.tsx')];
  const brand=new Set(['Luật Việt Đức','LUẬT VIỆT ĐỨC','© Luật Việt Đức. · v','×']);
  for(const file of files){const ast=ts.createSourceFile(file,fs.readFileSync(new URL('../src/'+file,import.meta.url),'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
   function visit(node){

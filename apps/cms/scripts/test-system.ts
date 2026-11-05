@@ -1,3 +1,4 @@
+import {testEmailAccounts} from './test-email-accounts';
 import {testAnswerQueue} from './test-answer-queue';
 import {testPublicContent} from './test-public-content';
 import {testThreeRoles} from './test-three-roles';
@@ -39,6 +40,7 @@ try {
       role: "owner",
     },
   });
+  await testEmailAccounts(payload,owner);
   await testThreeRoles(payload,owner);
   await testPublicContent(payload,owner);
   // Vault tests run only in the isolated CI database; no provider request is made.

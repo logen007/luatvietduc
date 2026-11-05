@@ -73,6 +73,12 @@ export async function GET(req: Request) {
         overrideAccess: true,
         limit: 1,
       });
+      // An unverified password signup must not retain a password chosen before
+      // the verified Google owner first signs in with this email address.
+      if(users.docs[0]&&(users.docs[0] as { _verified?:boolean })._verified===false){
+        await payload.update({collection:'users',id:users.docs[0].id,overrideAccess:true,context:{googleVerified:true},data:{password:randomBytes(48).toString('base64url')}});
+        await pool.query('DELETE FROM lvd_sessions WHERE user_id=$1',[users.docs[0].id]);
+      }
       const user =
         users.docs[0] ||
         (await payload.create({

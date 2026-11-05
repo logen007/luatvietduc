@@ -61,7 +61,14 @@ try{
  await page.waitForFunction(()=>!document.querySelector('textarea')?.disabled);await fits();
  assert.equal(await page.getByRole('button',{name:'Choose Files',exact:true}).count(),0,'Hidden file input must not duplicate the accessible attachment action');
  await page.screenshot({path:'test-results/cms-browser/chat-mobile.png'});
- const logged=await context.request.post(base+'/api/users/login',{data:{email:owner.email,password}});assert.equal(logged.status(),200);
+ await page.goto(base+'/tai-khoan');await page.getByRole('heading',{name:'Create your account',exact:true}).waitFor();await page.getByLabel('Email address',{exact:true}).waitFor();await fits();
+ assert.equal(await page.locator('.live-auth-panel').evaluate(element=>getComputedStyle(element).backgroundColor),'rgb(11, 11, 11)');
+ assert.equal(await page.locator('.live-staff-link,.live-auth-privacy').count(),0);
+ await page.screenshot({path:'test-results/cms-browser/account-registration-mobile.png'});
+ await page.getByLabel('Email address',{exact:true}).fill(owner.email);await page.locator('.live-auth-switch a').click();
+ await page.getByRole('heading',{name:'Sign in',exact:true}).waitFor();assert.equal(await page.getByLabel('Email address',{exact:true}).inputValue(),owner.email);
+ await page.getByLabel('Password',{exact:true}).fill(password);await page.getByRole('button',{name:'Sign in',exact:true}).click();
+ await page.getByText('Browser test admin',{exact:false}).first().waitFor();
  const accountResponse=await page.goto(base+'/tai-khoan');await page.getByText('Browser test admin',{exact:false}).first().waitFor();
  assert.match(accountResponse.headers()['cache-control'],/no-store/);assert.equal(accountResponse.headers()['referrer-policy'],'no-referrer');
  const nav=page.locator('.live-menu-dialog');await page.getByRole('button',{name:'Mở menu',exact:true}).click();await nav.waitFor({state:'visible'});

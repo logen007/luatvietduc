@@ -1,5 +1,5 @@
 import {transaction} from '../shared/db';
-// Called only after OAuth identity validation. The HttpOnly guest cookie proves
+// Called only after verified OAuth or password authentication. The HttpOnly guest cookie proves
 // which anonymous conversations belong to this browser; never link by email.
 export async function linkGuestConversations(userId:number,guestHash:string){
  if(!Number.isSafeInteger(userId)||userId<1||!/^[a-f0-9]{64}$/.test(guestHash))throw new Error("Invalid guest account link");

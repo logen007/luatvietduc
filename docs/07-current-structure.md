@@ -168,3 +168,14 @@ Kiểm tra mới gồm unit cho chính sách và HTTP trong browser CI trên tra
 Đợt tiếp theo khóa riêng `@esbuild-kit/core-utils > esbuild` ở0.25.12, bỏ bản0.18.20 lồng bên trong. Loader chỉ dùng transformSync/transform trong đường mã đã đọc; unit tương thích kiểm tra cả hai kiểu biên dịch TypeScript, cùng các bước migration/system/build hiện có trong CI. Không đổi drizzle-kit/Payload hay dùng bản fork không chính thức. Kiểm tra metadata npm lock hiện còn0moderate/high/critical và9 mục package mức low, cùng phát sinh từ một advisory deepmerge chưa có bản vá. Đây không phải kết luận không còn lỗ hổng ứng dụng.
 
 `backup/useBackups.ts` tách đọc trạng thái và xác nhận ghi, có giới hạn chờ GET, chốt thao tác và ranh giới phiên owner. `integrations/Panel.tsx` cũng che form ngay khi đổi/mất phiên và bỏ kết quả bất đồng bộ cũ. `chat/drafts.ts` sở hữu nháp theo hội thoại và cầu nối tạm thời qua trang tài khoản; chỉ khôi phục sau danh sách hội thoại do server xác nhận quyền. Chi tiết và giới hạn nằm trong `09-ux-review-20261105.md`.
+
+
+## Tài khoản email — 01.20
+
+Trang `/tai-khoan` dùng form nền đen, Google và email/mật khẩu; mặc định Create your account, chuyển Sign in trong cùng trang. `modules/identity/AccountForm.tsx` giữ phần form, `account-input.ts` lọc dữ liệu, `account-email.ts` tạo email VI/DE; POST `/service/auth/{action}` xử lý đăng ký, đăng nhập, xác minh, gửi lại và đặt lại mật khẩu. Mật khẩu dùng bộ hash và hạn chế đăng nhập của Payload; token đăng nhập chỉ được đặt trong cookie HttpOnly.
+
+Đăng ký công khai chỉ tạo User chưa xác minh. Hai cột bổ sung giữ tài khoản cũ đã xác minh; Google cấp mới được xác minh theo danh tính Google. Một đăng ký email chưa xác minh không giữ lại mật khẩu cũ khi chủ email đăng nhập bằng Google. Chỉ cookie khách HttpOnly của trình duyệt hiện tại được dùng để nối hội thoại sau đăng nhập; mã hội thoại không tự cấp quyền.
+
+Resend cần được kiểm tra và bật trong `/admin/settings/connections` để gửi email xác minh/đặt lại mật khẩu. Khi chưa bật, API báo chưa sẵn sàng, không báo gửi thành công. Chủ hệ thống chọn tự gửi email thử; địa chỉ gửi đã sửa sang tên miền mail.luatvietduc.com đã xác minh, kết nối vẫn tắt chờ thao tác này. Không gửi email thật trong kiểm tra tự động.
+
+Schema đi qua `release-reviewed-email-accounts.py`, ghim commit/manifest, kiểm tra CI, sao lưu và migration trước candidate; không đổi policy tự cập nhật. Quay lại mã cũ có thể giữ hai cột bổ sung. Down migration từ chối khi còn tài khoản chưa xác minh. Đã kiểm tra hệ thống với hộp thư giả: User-only, xác minh, cookie, nối đúng khách, CSRF, mật khẩu cũ bị từ chối sau reset và không tái dùng token.
