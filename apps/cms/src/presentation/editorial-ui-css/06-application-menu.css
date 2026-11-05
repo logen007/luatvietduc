@@ -6,8 +6,12 @@
 .live-header-login { color:#0b0b0b; text-decoration:none; white-space:nowrap; font:400 14px/20px var(--lvd-font); }
 .live-header .live-header-login-button { min-height:40px; padding:9px 16px; border-radius:4px; font:500 14px/20px var(--lvd-font); white-space:nowrap; }
 .live-header .live-header-login-button svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.5; }
-.live-menu-button { display:none; align-items:center; justify-content:center; width:40px; height:40px; padding:8px; border:0; background:none; color:inherit; cursor:pointer; }
+.site-header .live-menu-button { display:none; align-items:center; justify-content:center; flex-shrink:0; box-sizing:border-box; width:48px; min-width:48px; height:48px; padding:8px; border:0; border-radius:4px; background:none; color:#0b0b0b; cursor:pointer; }
 .live-menu-button svg,.live-menu-dialog svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.5; }
+.site-header .live-menu-button svg { display:block; flex-shrink:0; width:32px; height:32px; stroke-width:2; stroke-linecap:round; }
+.site-header .live-menu-button:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+.lvd-redesign.pm-home:not(.pm-scrolled) .site-header .live-menu-button { color:#fff; }
+.lvd-redesign.pm-home:not(.pm-scrolled) .site-header .live-menu-button svg { filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
 .live-menu-dialog { width:min(560px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); margin:auto; padding:32px; border:1px solid #dedede; border-radius:4px; background:#fff; color:#0b0b0b; font-family:var(--lvd-font); }
 .live-menu-dialog::backdrop { background:rgba(0,0,0,.4); backdrop-filter:blur(4px); }
 .live-menu-heading { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:32px; }
@@ -19,7 +23,7 @@
 .live-menu-dialog nav>a svg { flex-shrink:0; }
 @media(max-width:1100px) {
  .live-header .live-nav { display:none; }
- .live-menu-button { display:inline-flex; }
+ .site-header .live-menu-button { display:inline-flex; }
 }
 @media(max-width:760px) {
  .live-header .live-header-inner { gap:16px; padding-inline:24px; }
