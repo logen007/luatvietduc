@@ -22,7 +22,7 @@ export function Footer() {
         {footerColumns.map((column) => (
           <nav
             className="live-footer-column"
-            key={t(column.title)}
+            key={column.title}
             aria-label={t(column.title)}
           >
             <h2>{t(column.title)}</h2>

@@ -3,7 +3,7 @@ import {asciiFrame} from './ascii';
 let cancelActive=()=>{};
 const duration=350;
 const excluded='script,style,noscript,template,svg,canvas,input,textarea,select,option,[contenteditable],[data-no-locale-animation],.sr-only,[aria-hidden="true"]';
-type Visual={overlay:HTMLSpanElement;text:string;current:()=>boolean};
+type Visual={overlay:HTMLSpanElement;text:string;current:()=>boolean;measure:()=>DOMRect};
 function paintStyle(style:CSSStyleDeclaration){return {fontFamily:style.fontFamily,fontSize:style.fontSize,fontWeight:style.fontWeight,fontStyle:style.fontStyle,lineHeight:style.lineHeight,letterSpacing:style.letterSpacing,textAlign:style.textAlign,textTransform:style.textTransform,whiteSpace:style.whiteSpace,color:style.color,opacity:style.opacity};}
 type PaintStyle=ReturnType<typeof paintStyle>;
 const visible=(box:DOMRect)=>box.width>0&&box.height>0&&box.bottom>0&&box.top<innerHeight&&box.right>0&&box.left<innerWidth;
@@ -17,6 +17,9 @@ export function withAsciiTransition(update:()=>void){
  if(reduced.matches||document.hidden||typeof Highlight==='undefined'||!CSS.highlights)return;
  let frame=0,lastDraw=-Infinity,visuals:Visual[]=[];
  const layers=new Map<HTMLElement,HTMLSpanElement>(),fields=new Set<HTMLElement>();
+ // A translated page can adjust its scroll anchor near the footer. Keep the
+ // decorative copy aligned; only an actual user gesture cancels the effect.
+ const align=()=>{for(const visual of visuals){if(!visual.current())continue;const box=visual.measure();Object.assign(visual.overlay.style,{left:box.left+'px',top:box.top+'px',width:box.width+'px',height:box.height+'px',visibility:visible(box)?'visible':'hidden'});}};
  const sheet=document.createElement('style');
  sheet.textContent='::highlight(lvd-ascii){color:transparent}[data-lvd-ascii-field="placeholder"]::placeholder{color:transparent!important;-webkit-text-fill-color:transparent!important}[data-lvd-ascii-field="label"]{color:transparent!important;-webkit-text-fill-color:transparent!important}';
  const stop=()=>{
@@ -24,19 +27,19 @@ export function withAsciiTransition(update:()=>void){
   for(const layer of layers.values())layer.remove();
   for(const field of fields)field.removeAttribute('data-lvd-ascii-field');
   layers.clear();fields.clear();visuals=[];
-  window.removeEventListener('scroll',stop,true);window.removeEventListener('resize',stop);
+  window.removeEventListener('scroll',align,true);window.removeEventListener('wheel',stop,true);window.removeEventListener('touchmove',stop,true);window.removeEventListener('resize',stop);
   window.removeEventListener('pagehide',stop);document.removeEventListener('pointerdown',stop,true);
   document.removeEventListener('keydown',stop,true);document.removeEventListener('input',stop,true);
   document.removeEventListener('visibilitychange',stop);reduced.removeEventListener('change',stop);
   if(cancelActive===stop)cancelActive=()=>{};
  };
  cancelActive=stop;
- window.addEventListener('scroll',stop,{capture:true,passive:true});window.addEventListener('resize',stop);
+ window.addEventListener('scroll',align,{capture:true,passive:true});window.addEventListener('wheel',stop,{capture:true,passive:true});window.addEventListener('touchmove',stop,{capture:true,passive:true});window.addEventListener('resize',stop);
  window.addEventListener('pagehide',stop);document.addEventListener('pointerdown',stop,true);
  document.addEventListener('keydown',stop,true);document.addEventListener('input',stop,true);
  document.addEventListener('visibilitychange',stop);reduced.addEventListener('change',stop);
  frame=requestAnimationFrame(()=>{
-  const ranges:Range[]=[],ready:{node:Node;box:DOMRect;style:PaintStyle;text:string;current:()=>boolean}[]=[];
+  const ranges:Range[]=[],ready:{node:Node;box:DOMRect;style:PaintStyle;text:string;current:()=>boolean;measure:()=>DOMRect}[]=[];
   const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
   let next:Node|null;
   while((next=walker.nextNode())){
@@ -52,7 +55,7 @@ export function withAsciiTransition(update:()=>void){
     if(boxes.length>1&&end-start>1){let middle=Math.floor((start+end)/2);if(middle<end&&/[\uDC00-\uDFFF]/.test(text[middle]))middle++;if(middle<end){collect(start,middle);collect(middle,end);return;}}
     const box=range.getBoundingClientRect(),content=text.slice(start,end);
     if(!visible(box)||!content.trim())return;
-    ranges.push(range);ready.push({node,box,style:paintStyle(style),text:content,current:()=>node.isConnected&&node.data===text});
+    ranges.push(range);ready.push({node,box,style:paintStyle(style),text:content,current:()=>node.isConnected&&node.data===text,measure:()=>range.getBoundingClientRect()});
    }
    collect(0,text.length);
   }
@@ -69,9 +72,9 @@ export function withAsciiTransition(update:()=>void){
    const style=kind==='placeholder'?getComputedStyle(field,'::placeholder'):base;
    const left=parseFloat(base.paddingLeft)+parseFloat(base.borderLeftWidth),right=parseFloat(base.paddingRight)+parseFloat(base.borderRightWidth);
    const top=parseFloat(base.paddingTop)+parseFloat(base.borderTopWidth),bottom=parseFloat(base.paddingBottom)+parseFloat(base.borderBottomWidth);
-   const contentBox=new DOMRect(box.left+left,box.top+top,Math.max(0,box.width-left-right),Math.max(0,box.height-top-bottom));
+   const measure=()=>{const current=field.getBoundingClientRect();return new DOMRect(current.left+left,current.top+top,Math.max(0,current.width-left-right),Math.max(0,current.height-top-bottom));},contentBox=measure();
    const value=field.value;
-   ready.push({node:field,box:contentBox,style:paintStyle(style),text,current:()=>field.isConnected&&field.value===value&&(field instanceof HTMLSelectElement?(field.selectedOptions[0]?.textContent||'')===text:kind==='placeholder'?field.placeholder===text:field.value===text)});
+   ready.push({node:field,box:contentBox,style:paintStyle(style),text,measure,current:()=>field.isConnected&&field.value===value&&(field instanceof HTMLSelectElement?(field.selectedOptions[0]?.textContent||'')===text:kind==='placeholder'?field.placeholder===text:field.value===text)});
    fields.add(field);field.dataset.lvdAsciiField=kind;
   }
   if(!ready.length){stop();return;}
@@ -89,7 +92,7 @@ export function withAsciiTransition(update:()=>void){
     whiteSpace:item.node instanceof HTMLTextAreaElement?'pre-wrap':style.whiteSpace==='pre'||style.whiteSpace==='pre-wrap'?'pre':'nowrap',overflow:'hidden',
     color:style.color,webkitTextFillColor:style.color,opacity:style.opacity,margin:'0',padding:'0',border:'0',
    });
-   overlay.textContent=asciiFrame(item.text,0);layer.append(overlay);visuals.push({overlay,text:item.text,current:item.current});
+   overlay.textContent=asciiFrame(item.text,0);layer.append(overlay);visuals.push({overlay,text:item.text,current:item.current,measure:item.measure});
   }
   const start=performance.now();
   const draw=(now:number)=>{
