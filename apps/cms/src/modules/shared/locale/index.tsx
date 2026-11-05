@@ -1,13 +1,15 @@
 'use client';
 import {useEffect,useSyncExternalStore} from 'react';
 import translations from './de.json';
+import vietnamese from './vi.json';
 import {withAsciiTransition} from './ascii-transition';
 type Language='vi'|'de';
 const dictionary:Record<string,string>=translations;
+const vietnameseCopy:Record<string,string>=vietnamese;
 let fallback:Language='vi';
 function snapshot():Language{try{const saved=sessionStorage.getItem('lvd-lang');return saved==='de'||saved==='vi'?saved:fallback;}catch{return fallback;}}
 function subscribe(notify:()=>void){document.addEventListener('lvd:languagechange',notify);window.addEventListener('storage',notify);return()=>{document.removeEventListener('lvd:languagechange',notify);window.removeEventListener('storage',notify);};}
-export function translate(text:string,language:Language,values:Record<string,string|number>={}){const value=language==='de'?(dictionary[text]||text):text;return value.replace(/\{(\w+)\}/g,(match,key)=>String(values[key]??match));}
+export function translate(text:string,language:Language,values:Record<string,string|number>={}){const value=language==='de'?(dictionary[text]||text):(vietnameseCopy[text]||text);return value.replace(/\{(\w+)\}/g,(match,key)=>String(values[key]??match));}
 export function setLanguage(language:Language){if(snapshot()===language)return;withAsciiTransition(()=>{fallback=language;try{sessionStorage.setItem('lvd-lang',language);}catch{}document.documentElement.lang=language;document.dispatchEvent(new CustomEvent('lvd:languagechange',{detail:{lang:language}}));});}
 export function useLocale(){const language=useSyncExternalStore(subscribe,snapshot,()=> 'vi' as Language);useEffect(()=>{document.documentElement.lang=language;},[language]);return {language,setLanguage,t:(text:string,values?:Record<string,string|number>)=>translate(text,language,values)};}
 export function LocaleText({text}:{text:string}){const {t}=useLocale();return <>{t(text)}</>;}
