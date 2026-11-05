@@ -9,6 +9,6 @@ test('legacy migration loader uses patched esbuild and still transforms TypeScri
  assert.ok(version[0]>0||version[1]>=25,'Loader must not resolve the vulnerable nested esbuild');
  const loader=require(path),source='export const answer: number = 40 + 2;';
  for(const result of [loader.transformSync(source,'synthetic.ts'),await loader.transform(source,'synthetic.ts',{format:'cjs'})]){
-  const exports={};runInNewContext(result.code,{exports},{timeout:1000});assert.equal(exports.answer,42);assert.ok(result.map);
+  const module={exports:{}};runInNewContext(result.code,{module,exports:module.exports},{timeout:1000});assert.equal(module.exports.answer,42);assert.ok(result.map);
  }
 });
