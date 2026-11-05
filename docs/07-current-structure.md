@@ -136,7 +136,7 @@ Bundle editorial-ui.js chỉ còn adapter bookmark native; giữ tên tệp/vers
 
 ## Chuyển ngôn ngữ và ngữ cảnh câu hỏi
 
-`shared/locale/ascii-transition.ts` tạo lớp chữ ASCII trang trí cho các nhãn vừa đổi VI/DE, giữ nguyên DOM bản dịch và accessible name; chỉ các chữ đang nhìn thấy được xử lý. Hiệu ứng 350ms được hủy khi thao tác tiếp, cuộn, đổi kích thước hoặc ẩn tab, và bỏ qua khi bật reduced motion. `ascii.ts` chứa bộ sinh khung chữ có kiểm tra riêng.
+`shared/locale/ascii-transition.ts` đổi ký tự trực tiếp trên các text node đang nhìn thấy trong 350ms, rồi khôi phục chính xác bản dịch. Không tạo lớp chữ phủ hay CSS highlight. Ký tự ASCII có độ rộng gần với chữ đích; thay đổi từ React hoặc tin nhắn mới được ưu tiên. Ô nhập chỉ đổi placeholder khi rỗng; nhãn select giữ nguyên giá trị. Hiệu ứng dừng khi người dùng thao tác, đổi kích thước, ẩn tab hoặc bật reduced motion. `ascii.ts` chứa bộ sinh khung chữ. Cơ chế cuộn tự động của trình duyệt không hủy hiệu ứng ở footer.
 
 Menu admin dùng nút mở cố định của template ở mọi kích thước, giữ hỗ trợ bàn phím; nút mobile trùng lặp trong header được ẩn.
 Quy tắc mobile hiện biểu tượng và vùng bấm 44px của nút cố định, ghi đè việc thư viện gốc ẩn biểu tượng dưới 768px.
