@@ -1,6 +1,7 @@
 import { S3Client, HeadBucketCommand } from '@aws-sdk/client-s3';
 import type { Provider, Values } from './catalog';
 import { validateValues } from './validation';
+import {checkGeminiConnection} from './gemini';
 export function r2Client(v: Values) {
   validateValues('r2', v);
   return new S3Client({ region: 'auto', endpoint: v.endpoint, forcePathStyle: true,
@@ -29,10 +30,7 @@ export async function checkConnection(provider: Provider, v: Values, email: stri
     }catch{return {state:'failed',message:'Chưa đọc được danh sách model Groq. Thử lại sau.'};}
   }
   if (provider === 'ai') {
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(v.model), {
-      headers: { 'x-goog-api-key': v.apiKey }, signal: AbortSignal.timeout(10000), redirect: 'error', cache: 'no-store' });
-    if (!response.ok) return { state: 'failed', message: 'Chưa truy cập được API hoặc model. Kiểm tra khóa, model và quyền trong tài khoản Google AI.' };
-    return { state: 'passed', message: 'API key và model truy cập được. Chưa kiểm tra hạn mức tạo nội dung; AI cho khách vẫn tắt.' };
+    return checkGeminiConnection(v.apiKey,v.model);
   }
   if (provider === 'r2') {
     const client = r2Client(v);

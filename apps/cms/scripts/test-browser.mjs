@@ -54,8 +54,13 @@ try{
  assert.equal(await page.evaluate(()=>window.__asciiSeen),false);await page.getByRole('button',{name:'Chuyển sang tiếng Đức'}).first().click();await page.evaluate(()=>window.__stopAsciiObservation());await page.emulateMedia({reducedMotion:'no-preference'});
  await page.getByRole('button',{name:'Zu Vietnamesisch wechseln'}).first().waitFor();
  await page.screenshot({path:'test-results/cms-browser/home-mobile-de.png'});
- await page.goto(base+'/thu-vien');await page.getByRole('heading',{name:'Bibliothek',level:1,exact:true}).waitFor();await fits();
- await page.getByRole('button',{name:'Zu Vietnamesisch wechseln'}).first().click();
+ await page.goto(base+'/thu-vien');await page.getByRole('heading',{name:'Vietnamesisches Recht',level:1,exact:true}).waitFor();await fits();
+ assert.equal(await page.locator('.lvd-country-tabs [aria-current="page"]').getAttribute('href'),'/phap-luat/viet-nam','Library defaults to Vietnam');
+ assert.equal(await page.locator('.catalog-page .breadcrumb').count(),0,'Country root does not repeat a home breadcrumb');
+ await page.locator('.lvd-country-tabs a[href="/phap-luat/duc"]').click();await page.getByRole('heading',{name:'Deutsches Recht',level:1,exact:true}).waitFor();
+ assert.equal(await page.locator('.lvd-country-tabs [aria-current="page"]').getAttribute('href'),'/phap-luat/duc');
+ await page.getByRole('button',{name:'Zu Vietnamesisch wechseln'}).first().click();await page.getByRole('heading',{name:'Pháp luật Đức',level:1,exact:true}).waitFor();
+ await page.goto(base+'/thu-vien');await page.getByRole('heading',{name:'Pháp luật Việt Nam',level:1,exact:true}).waitFor();
  // Session is deliberately delayed to verify the loading state, not a fake guest.
  let releaseSession;const heldSession=new Promise(resolve=>{releaseSession=resolve;});
  await page.route('**/service/me',async route=>{await heldSession;await route.continue();});
