@@ -275,7 +275,11 @@ export interface Knowledge {
  */
 export interface Media {
   id: number;
-  alt: string;
+  title?: string | null;
+  alt?: string | null;
+  caption?: string | null;
+  description?: string | null;
+  uploadedBy?: (number | null) | User;
   visibility?: ('private' | 'public') | null;
   prefix?: string | null;
   _objectKey?: string | null;
@@ -528,7 +532,11 @@ export interface KnowledgeSelect<T extends boolean = true> {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
+  title?: T;
   alt?: T;
+  caption?: T;
+  description?: T;
+  uploadedBy?: T;
   visibility?: T;
   prefix?: T;
   _objectKey?: T;

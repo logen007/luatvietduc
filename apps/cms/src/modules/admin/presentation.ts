@@ -6,7 +6,7 @@ type Presentation={singular?:string;plural?:string;description?:string;fields?:R
 export const adminDateFormat='dd/MM/yyyy HH:mm';
 export const presentation:Record<string,Presentation>={
  articles:{singular:'Bài viết',plural:'Bài viết',fields:{title:{label:'Tiêu đề',placeholder:'Tiêu đề bài viết'},slug:{label:'Permalink',description:''},body:{label:'Nội dung',placeholder:'Viết nội dung bài viết…'},categories:{label:'Danh mục',placeholder:'Danh mục',description:''},tags:{label:'Tag',placeholder:'Tag',description:''},kind:{placeholder:'Loại nội dung'},reviewState:{placeholder:'Trạng thái duyệt'},sourceUrl:{placeholder:'Nguồn tham khảo (https://…)'},aiAllowed:{label:'Cho phép dùng cho AI'}}},
- media:{singular:'Tệp',plural:'Thư viện tệp',description:'',fields:{alt:{label:'Mô tả tệp'},visibility:{label:'Phạm vi'}}},
+ media:{singular:'Tệp',plural:'Thư viện tệp',description:'',fields:{alt:{label:'Văn bản thay thế'},visibility:{label:'Phạm vi'}}},
  'audit-events':{singular:'Sự kiện',plural:'Nhật ký hoạt động',fields:{action:{label:'Thao tác'},recordId:{label:'Mã bản ghi'},actor:{label:'Người thực hiện'},details:{label:'Chi tiết'}}},
  users:{singular:'Người dùng',plural:'Người dùng'},
  categories:{singular:'Danh mục',plural:'Danh mục'},
@@ -24,5 +24,5 @@ function fieldsCopy(fields:Field[],copy:Record<string,FieldCopy>):Field[]{
 }
 export function withAdminPresentation<T extends CollectionConfig|GlobalConfig>(config:T):T{
  const copy=presentation[config.slug];if(!copy)return config;
- return {...config,...('labels' in config?{labels:{singular:copy.singular,plural:copy.plural}}:{}),admin:{...config.admin,...(config.slug==='media'?{listSearchableFields:['filename','alt'],pagination:{defaultLimit:48,limits:[24,48,96]},components:{...config.admin?.components,views:{...config.admin?.components?.views,list:{Component:'./modules/storage/MediaLibrary#MediaLibrary'}}}}:{}),...(copy.description!==undefined?{description:copy.description}:{})},fields:fieldsCopy(config.fields,copy.fields||{})};
+ return {...config,...('labels' in config?{labels:{singular:copy.singular,plural:copy.plural}}:{}),admin:{...config.admin,...(config.slug==='media'?{listSearchableFields:['filename','title','alt','caption','description'],pagination:{defaultLimit:48,limits:[24,48,96]},components:{...config.admin?.components,views:{...config.admin?.components?.views,list:{Component:'./modules/storage/MediaLibrary#MediaLibrary'}}}}:{}),...(copy.description!==undefined?{description:copy.description}:{})},fields:fieldsCopy(config.fields,copy.fields||{})};
 }

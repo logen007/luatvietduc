@@ -8,8 +8,9 @@ const db=new URL(process.env.DATABASE_URL||'');
 if(!['localhost','127.0.0.1'].includes(db.hostname)||db.pathname!=='/lvd_test')throw new Error('Isolated browser database only');
 const base='http://127.0.0.1:3047';process.env.APP_URL=base;process.env.LVD_WORKERS_DISABLED='1';
 const {getPayload}=await import('payload'),{default:config}=await import('../src/payload.config.ts'),{pool}=await import('../src/modules/shared/db.ts');
+const {seal}=await import('../src/modules/integrations/crypto.ts');
 const {chromium}=await import('playwright'),payload=await getPayload({config});
-let server,browser;const suffix=crypto.randomUUID(),password=crypto.randomUUID(),ids=[],translationArticleIds=[],mediaFixtureIds=[];
+let server,browser,mediaStorageFixture=false;const suffix=crypto.randomUUID(),password=crypto.randomUUID(),ids=[],translationArticleIds=[],mediaFixtureIds=[];
 await mkdir('test-results/cms-browser',{recursive:true});
 try{
  const owner=await payload.create({collection:'users',overrideAccess:true,context:{bootstrapOwner:true},data:{name:'Browser test admin',email:`browser-${suffix}@example.invalid`,password,role:'owner'}});ids.push(owner.id);
@@ -146,12 +147,35 @@ try{
  await page.locator('.lvd-post-permalink').getByRole('button',{name:'Sửa',exact:true}).click();await page.getByRole('textbox',{name:'Permalink',exact:true}).fill('duong-dan-rieng');await page.getByRole('button',{name:'Xong',exact:true}).click();
  await page.getByPlaceholder('Tiêu đề bài viết',{exact:true}).fill('Tiêu đề mới');assert.ok((await page.locator('.lvd-post-permalink__url').innerText()).endsWith('duong-dan-rieng'));
  page.once('dialog',dialog=>dialog.accept());await page.goto(base+'/admin');
+ await pool.query("INSERT INTO lvd_integrations(provider,encrypted_values,enabled,check_state) VALUES('r2',$1,true,'passed')",[seal('r2',{endpoint:'https://'+'a'.repeat(32)+'.r2.cloudflarestorage.com',bucket:'synthetic-media',accessKeyId:'synthetic-only',secretAccessKey:'synthetic-only'})]);mediaStorageFixture=true;
  // Media library uses native permissions/bulk controls in both presentation modes.
  for(const index of [1,2,3]){const mime=index===3?'application/pdf':'image/svg+xml',filename='synthetic-media-'+suffix+'-'+index+(index===3?'.pdf':'.svg');const row=(await pool.query("INSERT INTO media(alt,filename,mime_type,filesize,visibility) VALUES($1,$2,$3,120,'private') RETURNING id",['Synthetic media '+index,filename,mime])).rows[0];mediaFixtureIds.push(row.id);}
  await page.route('**/api/media/file/synthetic-media-*',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="white"/></svg>'}));
  await page.goto(base+'/admin/collections/media');await page.locator('.lvd-media-grid').waitFor();
+ await page.getByRole('button',{name:'Chọn nhiều',exact:true}).click();
+ assert.equal(await page.locator('.lvd-media-grid input[type=checkbox]:disabled').count(),0,'Interface assets can be selected for metadata edits');
+ await page.getByRole('button',{name:'Hủy chọn',exact:true}).click();
+ await page.locator('.lvd-media-grid .lvd-media-tile:has(.lvd-media-readonly) .lvd-media-tile-link').first().click();await page.getByRole('dialog',{name:'Chi tiết tệp',exact:true}).waitFor();
+ const detailTitle=page.getByRole('textbox',{name:'Tiêu đề tệp',exact:true});await detailTitle.waitFor();const oldMediaTitle=await detailTitle.inputValue();await fits();await page.screenshot({path:'test-results/cms-browser/media-details-mobile.png'});await page.setViewportSize({width:1280,height:900});await fits();await page.screenshot({path:'test-results/cms-browser/media-details-desktop.png'});await page.setViewportSize({width:390,height:844});
+ await detailTitle.fill('Browser metadata '+suffix);await page.waitForFunction(()=>document.querySelector('.lvd-media-detail-state')?.textContent==='Đã lưu');
+ assert.ok((await page.getByRole('textbox',{name:'URL tệp',exact:true}).inputValue()).startsWith(base+'/assets/'),'Original interface URL is preserved');
+ await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.__mediaCopied=text;}}}));await page.getByRole('button',{name:'Sao chép URL',exact:true}).click();assert.ok((await page.evaluate(()=>window.__mediaCopied)).startsWith(base+'/assets/'));
+ await detailTitle.fill(oldMediaTitle);await page.waitForFunction(()=>document.querySelector('.lvd-media-detail-state')?.textContent==='Đã lưu');
+ await page.getByRole('button',{name:'Đóng chi tiết tệp',exact:true}).click();await page.locator('.lvd-media-details').waitFor({state:'detached'});
+ await page.getByRole('button',{name:'Tải tệp',exact:true}).click();await page.locator('.lvd-media-upload').waitFor();
+ let syntheticUploadId;
+ await page.route('**/api/media',async route=>{if(route.request().method()!=='POST')return route.continue();const filename='browser-upload-'+suffix+'.svg';syntheticUploadId=(await pool.query("INSERT INTO media(title,alt,filename,mime_type,filesize,visibility,uploaded_by_id) VALUES($1,'',$2,'image/svg+xml',100,'private',$3) RETURNING id",['Browser uploaded SVG',filename,owner.id])).rows[0].id;mediaFixtureIds.push(syntheticUploadId);return route.fulfill({status:201,json:{doc:{id:syntheticUploadId,filename}}});});
+ await page.locator('.lvd-media-upload input[type=file]').setInputFiles({name:'browser-upload-'+suffix+'.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0h10v10H0Z"/></svg>')});
+ await page.locator('.lvd-media-upload').getByText('Đã tải',{exact:true}).waitFor();assert.ok(syntheticUploadId);await page.unroute('**/api/media');
+ await page.getByRole('button',{name:'Tải tệp',exact:true}).click();
+ await page.route('**/api/media/file/browser-upload-*',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"/>'}));
+ await page.locator('.lvd-media-grid a[href="/admin/collections/media/'+syntheticUploadId+'"]').click();await page.getByRole('button',{name:'Xóa vĩnh viễn',exact:true}).waitFor();
+ await page.route('**/api/media/'+syntheticUploadId,async route=>{if(route.request().method()!=='DELETE')return route.continue();await pool.query('DELETE FROM media WHERE id=$1',[syntheticUploadId]);return route.fulfill({json:{id:syntheticUploadId}});});
+ await page.getByRole('button',{name:'Xóa vĩnh viễn',exact:true}).click();await page.getByRole('button',{name:'Xóa tệp',exact:true}).click();await page.locator('.lvd-media-details').waitFor({state:'detached'});assert.equal((await pool.query('SELECT id FROM media WHERE id=$1',[syntheticUploadId])).rowCount,0);mediaFixtureIds.splice(mediaFixtureIds.indexOf(syntheticUploadId),1);
+ await page.reload();await page.locator('.lvd-media-grid').waitFor();
+
  assert.equal(await page.getByText('Quản lý ảnh, logo, video và tài liệu. Kết nối R2 trong Cài đặt để tải thêm tệp.',{exact:true}).count(),0);
- await page.getByRole('button',{name:'Chọn nhiều',exact:true}).click();assert.ok(await page.locator('.lvd-media-grid input[type=checkbox]:disabled').count()>0,'Interface assets cannot be selected for destructive operations');
+ await page.getByRole('button',{name:'Chọn nhiều',exact:true}).click();assert.equal(await page.locator('.lvd-media-grid input[type=checkbox]:disabled').count(),0,'Interface assets support metadata selection');
  await page.getByRole('button',{name:'Hủy chọn',exact:true}).click();await page.getByRole('searchbox',{name:'Tìm tệp',exact:true}).fill(suffix);
  await page.waitForFunction(()=>document.querySelectorAll('.lvd-media-grid .lvd-media-tile').length===3);
  await page.getByRole('button',{name:'Chọn nhiều',exact:true}).click();await page.getByRole('button',{name:'Chọn cả trang',exact:true}).click();
@@ -253,6 +277,7 @@ try{
 }catch(error){console.error('CMS browser check failed:',error);throw error;}finally{
  await browser?.close();
  if(server&&server.exitCode===null)await new Promise(resolve=>{const timeout=setTimeout(()=>server.kill('SIGKILL'),5000);server.once('exit',()=>{clearTimeout(timeout);resolve();});server.kill('SIGTERM');});
+ if(mediaStorageFixture)await pool.query("DELETE FROM lvd_integrations WHERE provider='r2'");
  if(mediaFixtureIds.length)await pool.query('DELETE FROM media WHERE id=ANY($1::int[])',[mediaFixtureIds]);
  for(const id of translationArticleIds.reverse())await payload.delete({collection:'articles',id,user:await payload.findByID({collection:'users',id:ids[0],overrideAccess:true}),overrideAccess:false});
  for(const id of ids)await payload.delete({collection:'users',id,overrideAccess:true});

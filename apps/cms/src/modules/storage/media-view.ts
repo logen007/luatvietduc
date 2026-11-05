@@ -25,3 +25,8 @@ export function mediaWhere(previous:Where|undefined,kind:MediaKind,month:string)
  }
  return where;
 }
+
+export function mediaEditable(doc:{uploadedBy?:unknown},user?:{id?:unknown;role?:string}|null){
+ const uploader=doc.uploadedBy&&typeof doc.uploadedBy==='object'?(doc.uploadedBy as {id?:unknown}).id:doc.uploadedBy;
+ return user?.role==='owner'||Boolean(user?.role==='support'&&user.id!=null&&uploader!=null&&String(uploader)===String(user.id));
+}

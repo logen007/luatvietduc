@@ -1,6 +1,7 @@
+import {mediaMetadataGuard} from './metadata-guard';
 import {bundledNames,bundledURL} from './bundled';
 import {mediaWriteGuard} from "../backup/media-lock";
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig,Where } from "payload";
 import { activeValues } from "../integrations/store";
 export const storageReady = async () => Boolean(await activeValues("r2"));
 export const Media: CollectionConfig = {
@@ -16,17 +17,21 @@ export const Media: CollectionConfig = {
       req.user && ["owner", "support", "editor", "reviewer"].includes(req.user.role)
         ? true
         : { visibility: { equals: "public" } },
-    update: ({req})=>req.user?.role==="owner"?{filename:{not_in:bundledNames}}:false,
-    delete: ({req})=>req.user?.role==="owner"?{filename:{not_in:bundledNames}}:false,
+    update: ({req})=>req.user?.role==="owner"?true:req.user?.role==="support"?{uploadedBy:{equals:req.user.id}}:false,
+    delete: ({req}):boolean|Where=>req.user?.role==="owner"?{filename:{not_in:bundledNames}}:req.user?.role==="support"?{and:[{uploadedBy:{equals:req.user.id}},{filename:{not_in:bundledNames}}]}:false,
   },
-  hooks:{afterRead:[({doc})=>bundledURL(doc)],beforeChange:[mediaWriteGuard],beforeDelete:[mediaWriteGuard]},
+  hooks:{afterRead:[({doc})=>bundledURL(doc)],beforeChange:[mediaMetadataGuard],beforeDelete:[mediaWriteGuard]},
   upload: {
     disableLocalStorage: true,
-    mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/svg+xml", "application/pdf"],
+    mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/svg+xml", "application/pdf", "video/mp4", "video/webm", "audio/mpeg", "audio/wav", "audio/ogg"],
     staticDir: "private-media",
   },
   fields: [
-    { name: "alt", label: "Mô tả tệp", type: "text", required: true },
+    {name:'title',label:'Tiêu đề',type:'text',maxLength:200},
+    {name:'alt',label:'Văn bản thay thế',type:'text',maxLength:500},
+    {name:'caption',label:'Chú thích',type:'textarea',maxLength:2000},
+    {name:'description',label:'Mô tả',type:'textarea',maxLength:6000},
+    {name:'uploadedBy',label:'Người tải lên',type:'relationship',relationTo:'users',admin:{readOnly:true}},
     {
       name: "visibility",
       label: "Phạm vi",

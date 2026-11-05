@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mediaFilters,mediaWhere,mediaName,mediaReadOnly,mediaURL} from '../src/modules/storage/media-view.ts';
+import {mediaFilters,mediaWhere,mediaName,mediaReadOnly,mediaURL,mediaEditable} from '../src/modules/storage/media-view.ts';
 import {bundledFiles} from '../src/modules/storage/bundled.ts';
 test('media filters replace only their own criteria and keep unrelated access filters',()=>{
  const base={visibility:{equals:'private'},mimeType:{equals:'application/pdf'}};
@@ -13,4 +13,10 @@ test('media cards use actual bundled filenames and protect interface assets',()=
 test('media previews reject executable and credential-bearing URLs',()=>{
  for(const url of ['javascript:alert(1)','data:image/svg+xml,unsafe','//attacker.invalid/a.svg','https://user:secret@example.invalid/a.svg'])assert.equal(mediaURL(url),'');
  assert.equal(mediaURL('/assets/logo.svg'),'/assets/logo.svg');
+});
+
+test('media editing allows admin and only the specialist who uploaded the file',()=>{
+ assert.equal(mediaEditable({uploadedBy:2},{id:1,role:'owner'}),true);
+ assert.equal(mediaEditable({uploadedBy:{id:2}},{id:2,role:'support'}),true);
+ for(const user of [{id:3,role:'support'},{id:2,role:'member'},null])assert.equal(Boolean(mediaEditable({uploadedBy:2},user)),false);
 });

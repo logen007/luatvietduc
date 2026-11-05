@@ -217,29 +217,30 @@ candidate của engine đang cài, không sửa policy phát hành. Code rollbac
 cột mới; down từ chối xóa nếu đã có bài liên kết hoặc khóa dịch. Kiểm tra hệ
 thống dùng khóa/AI giả, không phát sinh gửi bài thật hoặc email.
 
-## Thư viện tệp — 01.22
+## Thư viện tệp — 01.26
 
-`storage/MediaLibrary.tsx` cung cấp lưới/danh sách, nhớ chế độ xem, tìm theo tên
-hoặc mô tả, lọc loại/tháng, sắp xếp và phân trang. Bố cục tham khảo
-[Media Library của WordPress](https://wordpress.org/documentation/article/media-library-screen/),
-giữ theme đen/xám/trắng của admin. `media-view.ts` giữ tên tệp, URL preview và
-các bộ lọc dùng chung. Chỉ tải ảnh thumbnail khi cần; video/tài liệu dùng biểu tượng.
-Không dựng SVG bằng innerHTML.
+`storage/MediaLibrary.tsx` bọc ListQuery/Selection và EditMany/DeleteMany của Payload:
+lưới/danh sách, lọc loại/ngày, tìm kiếm và chọn từng tệp/cả trang. Không chọn ngầm
+các trang khác. `MediaUploader.tsx` tải nhiều tệp bằng chọn/kéo thả, có tiến độ và
+báo lỗi từng tệp, tối đa 10 MB; dùng API upload và kiểm tra SVG của Payload.
 
-Component bọc DefaultListView và dùng ListQueryProvider/SelectionProvider cùng
-EditMany/DeleteMany native của Payload. Không tạo API lưu/xóa khác. Bộ chọn tệp
-trong các form khác vẫn dùng giao diện native. Chọn cả trang chỉ chọn tệp được
-phép sửa; tệp giao diện đóng gói vẫn được bảo vệ bởi quyền collection ở server.
-Không chọn ngầm mọi tệp trên các trang khác. Bulk có xác nhận và kết quả lỗi theo
-cơ chế CMS hiện tại; không coi một nhóm thao tác là giao dịch nguyên tử.
+`MediaDetails.tsx` mở hộp chi tiết có xem ảnh/video/audio, chuyển tệp, sửa title,
+alt, caption, description, phạm vi, tự lưu có kiểm tra updatedAt, sao chép URL,
+tải xuống và xóa có xác nhận. Các thao tác ghi vẫn dùng API native và media backup
+lock; không tạo đường lưu/xóa bỏ qua quyền. Client giữ bản nhập khi lỗi hoặc
+có xung đột, không tự ghi đè. Bộ chọn tệp trong các form khác giữ giao diện native.
 
-SVG được thêm vào allowlist; dùng kiểm tra XML/active content sẵn có trong Payload
-3.92.1. Giữ nguyên kiểm tra quyền, giới hạn dung lượng, media backup lock và CSP
-sandbox tại đường đọc R2. Không mở quyền tải/xóa cho người dùng khác. Không thay
-schema hoặc chạy migration trong bản này. Vì collection.ts thuộc nhóm được bảo vệ,
-release-reviewed-media-ui.py ghim commit/manifest và dùng engine có sẵn, không đổi
-policy tự cập nhật. Kiểm tra với dữ liệu/kho tệp giả bao gồm SVG an toàn/độc hại,
-sửa và xóa hàng loạt, bộ lọc, chọn lưới/danh sách và mobile; không gọi R2 thật.
+Admin sửa metadata mọi tệp; chuyên viên tải và sửa/xóa tệp của mình. uploadedBy
+do server gán và không đổi. Tệp đóng gói cho giao diện vẫn chọn được để sửa
+metadata, giữ URL/nội dung/phạm vi công khai và chặn thay nội dung/xóa. Khi có
+các tệp này trong lựa chọn, UI tắt xóa hàng loạt và giải thích lý do.
+
+Migration bổ sung title/caption/description/uploadedBy; helper
+`release-reviewed-media-metadata.py` ghim SHA/manifest và dùng engine/sao lưu
+hiện có, không đổi policy triển khai. Kiểm tra dùng DB/R2 giả; probe production
+riêng chỉ được chạy với cờ rõ ràng, tải một SVG riêng tư tạm, đọc đối chiếu rồi
+xóa đúng tệp đó. Khóa R2 không xuất ra log. Luồng tương tác tham khảo
+[WordPress Media Library](https://wordpress.org/documentation/article/media-library-screen/).
 
 ## Kho riêng cho AI và quy tắc — 01.23
 

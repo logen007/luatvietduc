@@ -1,3 +1,4 @@
+import * as mediaMetadata from './20261105_190000_media_metadata';
 import * as quickReplies from './20261105_170000_quick_replies';
 import * as privateKnowledge from './20261105_150000_private_ai_knowledge';
 import * as articleTranslations from './20261105_130000_article_translations';
@@ -44,4 +45,5 @@ export const migrations = [
  {up:articleTranslations.up,down:articleTranslations.down,name:'20261105_130000_article_translations'},
  {up:privateKnowledge.up,down:privateKnowledge.down,name:'20261105_150000_private_ai_knowledge'},
  {up:quickReplies.up,down:quickReplies.down,name:'20261105_170000_quick_replies'},
+ {up:mediaMetadata.up,down:mediaMetadata.down,name:'20261105_190000_media_metadata'},
 ];
