@@ -9,7 +9,8 @@
     "editorial-ui-css/06-application-menu.css",
     "editorial-ui-css/07-contact-form.css",
     "editorial-ui-css/08-home-insights.css",
-    "editorial-ui-css/09-native-pages.css"
+    "editorial-ui-css/09-native-pages.css",
+    "form-controls.css"
   ],
   "live.css": [
     "live-css/00-shared-shell.css",
@@ -19,7 +20,8 @@
     "live-css/04-articles.css",
     "live-css/05-responsive.css",
     "editorial-ui-css/06-application-menu.css",
-    "live-css/09-public-shell.css"
+    "live-css/09-public-shell.css",
+    "form-controls.css"
   ],
   "editorial-ui.js": [
     "editorial-ui-js/00-native-routing.js"
@@ -37,6 +39,7 @@
   ],
   "admin-theme.css": [
     "../app/(payload)/admin-custom.css",
-    "../app/(payload)/admin-dashboard.css"
+    "../app/(payload)/admin-dashboard.css",
+    "form-controls.css"
   ]
 }
