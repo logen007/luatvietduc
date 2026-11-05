@@ -6,7 +6,7 @@
 .lvd-redesign .pm-story .press-photo { display:block; width:100%; height:100%; aspect-ratio:auto; object-fit:cover; transition:transform .35s; }
 .lvd-redesign .pm-story:hover .press-photo { transform:scale(1.025); }
 .lvd-redesign .pm-story .press-copy { display:flex; flex-direction:column; flex:1; padding:24px 0 0; }
-.lvd-redesign .pm-story h3 { margin:16px 0 24px; font:500 28px/1.18 var(--lvd-display); letter-spacing:-.01em; }
+.lvd-redesign .pm-story h3 { margin:16px 0 24px; font:600 28px/1.18 var(--lvd-display); letter-spacing:-.01em; }
 .lvd-redesign .pm-story h3 a { color:#fff; text-decoration:none; }
 .lvd-redesign .pm-story .press-meta { color:rgba(255,255,255,.65); font:400 12px/20px var(--lvd-font); }
 .lvd-redesign .pm-story .press-meta a { color:inherit; }
