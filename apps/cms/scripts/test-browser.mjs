@@ -74,7 +74,7 @@ try{
  await page.waitForFunction(()=>!document.querySelector('textarea')?.disabled);await fits();
  assert.equal(await page.getByRole('button',{name:'Choose Files',exact:true}).count(),0,'Hidden file input must not duplicate the accessible attachment action');
  await page.screenshot({path:'test-results/cms-browser/chat-mobile.png'});
- await page.goto(base+'/tai-khoan');await page.getByRole('heading',{name:'Create your account',exact:true}).waitFor();await page.getByLabel('Email address',{exact:true}).waitFor();await fits();
+ await page.goto(base+'/tai-khoan');await page.getByRole('heading',{name:'Tạo tài khoản',exact:true}).waitFor();await page.getByLabel('Email address',{exact:true}).waitFor();await fits();
  assert.equal(await page.locator('.live-auth-panel').evaluate(element=>getComputedStyle(element).backgroundColor),'rgb(11, 11, 11)');
  assert.equal(await page.locator('.live-staff-link,.live-auth-privacy').count(),0);
  await page.screenshot({path:'test-results/cms-browser/account-registration-mobile.png'});
@@ -169,9 +169,18 @@ try{
  await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/knowledge-mobile.png'});
  // Native article language controls: preserve edits and show real pending state.
  const publishDraft=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic native publish '+suffix,body:'Synthetic publication check.',slug:'',language:'vi',jurisdiction:'BOTH',reviewState:'draft',_status:'draft'}});translationArticleIds.push(publishDraft.id);
- await page.goto(base+'/admin/collections/articles/'+publishDraft.id);await page.getByRole('checkbox',{name:'AI',exact:true}).check();
+ await page.goto(base+'/admin/collections/articles/'+publishDraft.id);
+ const richEditor=page.getByRole('textbox',{name:'Nội dung bài viết',exact:true});await richEditor.waitFor();assert.equal(await page.locator('#field-body').inputValue(),'Synthetic publication check.','Opening a legacy article does not rewrite its body');
+ await richEditor.fill('Synthetic formatted publication.');await richEditor.press('ControlOrMeta+A');await page.getByRole('button',{name:'Đậm',exact:true}).click();assert.equal(await richEditor.locator('strong').innerText(),'Synthetic formatted publication.');
+ await page.getByRole('button',{name:'HTML',exact:true}).click();const richHTML=page.getByRole('textbox',{name:'Mã HTML nội dung bài viết',exact:true});
+ await richHTML.fill('<h2>Article heading</h2><p><strong>Synthetic formatted publication.</strong></p><p>Mandatory complete condition stays visible.</p><table><tbody><tr><th><p>Column</p></th><td><p>Value</p></td></tr></tbody></table>');
+ await page.getByRole('button',{name:'Trực quan',exact:true}).click();await richEditor.locator('table').waitFor();assert.equal(await richEditor.locator('h2').innerText(),'Article heading');
+ await page.getByRole('checkbox',{name:'AI',exact:true}).check();
  const publishResult=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/articles/'+publishDraft.id&&response.request().method()==='PATCH');await page.getByRole('button',{name:'Xuất bản',exact:true}).click();assert.equal((await publishResult).status(),200,'Native Publish must not fail because its review selector still says Draft');
  const publishedDraft=await payload.findByID({collection:'articles',id:publishDraft.id,user:owner,overrideAccess:false});assert.equal(publishedDraft._status,'published');assert.equal(publishedDraft.reviewState,'approved');assert.equal(publishedDraft.aiAllowed,true);
+ assert.match(publishedDraft.body,/<strong>Synthetic formatted publication.<\/strong>/);assert.match(publishedDraft.body,/<table>/);
+ await page.reload();await richEditor.locator('table').waitFor();assert.equal(await richEditor.locator('strong').innerText(),'Synthetic formatted publication.');
+ await page.goto(base+'/bai-viet/'+publishedDraft.slug);await page.locator('#noi-dung table').waitFor();assert.equal(await page.locator('#noi-dung strong').innerText(),'Synthetic formatted publication.');assert.equal(await page.locator('.live-toc').count(),0);await fits();
  const {articleTranslation}=await import('../src/modules/content/translations.ts');
  const translationSource=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic bilingual '+suffix,body:'Synthetic source body.',slug:'',language:'vi',jurisdiction:'BOTH'}});translationArticleIds.push(translationSource.id);
  const translationCopy=await articleTranslation(payload,owner,{id:translationSource.id,language:'de',updatedAt:translationSource.updatedAt,mode:'copy'});translationArticleIds.push(translationCopy.id);
@@ -199,7 +208,7 @@ try{
  await page.unroute('**/service/articles/translations');await page.unroute('**/service/articles/translations?*');
  await page.goto(base+'/admin/collections/articles/create');
  await page.getByPlaceholder('Tiêu đề bài viết',{exact:true}).fill('Bài thử permalink');
- await page.getByPlaceholder('Viết nội dung bài viết…',{exact:true}).fill('Nội dung nhập tay');
+ await page.getByRole('textbox',{name:'Nội dung bài viết',exact:true}).fill('Nội dung nhập tay');
  await page.waitForFunction(()=>document.querySelector('.lvd-post-permalink__url')?.textContent.includes('bai-thu-permalink'));
  await page.getByRole('button',{name:'Chuyển bài viết sang Tiếng Đức',exact:true}).click();assert.equal(await page.locator('#field-title').inputValue(),'Bài thử permalink','Switching the language does not translate or discard unsaved text');
  await page.locator('.lvd-post-permalink').getByRole('button',{name:'Sửa',exact:true}).click();await page.getByRole('textbox',{name:'Permalink',exact:true}).fill('duong-dan-rieng');await page.getByRole('button',{name:'Xong',exact:true}).click();
@@ -219,14 +228,15 @@ try{
  const bundledMedia=(await pool.query("SELECT id FROM media WHERE filename='lvd-bundled-assets__berlin-tv-tower.svg' AND legacy_parent_id IS NULL LIMIT 1")).rows[0];assert.ok(bundledMedia);
  await page.goto(base+'/admin/collections/media?where[id][equals]='+bundledMedia.id);await page.locator('.lvd-media-grid').waitFor();
  await page.getByRole('button',{name:'Chọn nhiều',exact:true}).click();
- assert.equal(await page.locator('.lvd-media-grid input[type=checkbox]:disabled').count(),0,'Selection is independent of deletion protection');assert.equal(await page.locator('.lvd-media-readonly').count(),0,'The grid has no interface-asset badge');
+ assert.equal(await page.locator('.lvd-media-grid input[type=checkbox]:disabled').count(),0,'Packaged entries remain selectable');assert.equal(await page.locator('.lvd-media-readonly').count(),0,'The grid has no interface-asset badge');
  const beforeProtectedSelection=mediaDeleteRequests;await page.getByRole('checkbox',{name:'Chọn berlin-tv-tower.svg',exact:true}).check();
- await page.locator('.lvd-media-status').getByText('1 đã chọn',{exact:true}).waitFor();await page.locator('.lvd-media-status').getByText('1 tệp được bảo vệ, không thể xóa.',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Xóa tệp đã chọn',exact:true}).isDisabled(),true);
- await page.getByRole('button',{name:'Xem dạng danh sách',exact:true}).click();await page.locator('.lvd-media-table').waitFor();assert.equal(await page.locator('.lvd-media-table tbody input:checked').count(),1,'Protected selection survives changing view');
- await page.getByRole('checkbox',{name:'Chọn cả trang',exact:true}).uncheck();await page.getByRole('checkbox',{name:'Chọn cả trang',exact:true}).check();await page.getByRole('combobox',{name:'Thao tác hàng loạt',exact:true}).selectOption('delete');assert.equal(await page.getByRole('button',{name:'Áp dụng',exact:true}).isDisabled(),true,'Selecting protected files never enables deletion');assert.equal(mediaDeleteRequests,beforeProtectedSelection);
+ await page.locator('.lvd-media-status').getByText('1 đã chọn',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Xóa tệp đã chọn',exact:true}).isEnabled(),true);
+ await page.getByRole('button',{name:'Xem dạng danh sách',exact:true}).click();await page.locator('.lvd-media-table').waitFor();assert.equal(await page.locator('.lvd-media-table tbody input:checked').count(),1,'Selection survives changing view');
+ await page.getByRole('checkbox',{name:'Chọn cả trang',exact:true}).uncheck();await page.getByRole('checkbox',{name:'Chọn cả trang',exact:true}).check();await page.getByRole('combobox',{name:'Thao tác hàng loạt',exact:true}).selectOption('delete');assert.equal(await page.getByRole('button',{name:'Áp dụng',exact:true}).isEnabled(),true,'Admin may remove packaged entries');await confirmMediaDelete(()=>page.getByRole('button',{name:'Áp dụng',exact:true}).click(),false);assert.equal(mediaDeleteRequests,beforeProtectedSelection,'Cancel retains every existing file');
  await page.getByRole('button',{name:'Xem dạng lưới',exact:true}).click();assert.equal(await page.locator('.lvd-media-grid input:checked').count(),1);
  await page.getByRole('button',{name:'Hủy chọn',exact:true}).click();
  await page.locator('.lvd-media-grid a[href="/admin/collections/media/'+bundledMedia.id+'"]').click();await page.getByRole('dialog',{name:'Chi tiết tệp',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Gỡ khỏi thư viện',exact:true}).click();await page.locator('.lvd-media-delete-confirm').waitFor();assert.equal(await page.locator('.lvd-media-protected').count(),0);await page.locator('.lvd-media-delete-confirm').getByRole('button',{name:'Hủy',exact:true}).click();assert.equal(mediaDeleteRequests,beforeProtectedSelection,'Opening/canceling entry removal never deletes data');
  const detailTitle=page.getByRole('textbox',{name:'Tiêu đề tệp',exact:true});await detailTitle.waitFor();const oldMediaTitle=await detailTitle.inputValue();await fits();await page.screenshot({path:'test-results/cms-browser/media-details-mobile.png'});await page.setViewportSize({width:1280,height:900});await fits();await page.screenshot({path:'test-results/cms-browser/media-details-desktop.png'});await page.setViewportSize({width:390,height:844});
  await detailTitle.fill('Browser metadata '+suffix);await page.waitForFunction(()=>document.querySelector('.lvd-media-detail-state')?.textContent==='Đã lưu');
  assert.ok((await page.getByRole('textbox',{name:'URL tệp',exact:true}).inputValue()).startsWith(base+'/assets/'),'Original interface URL is preserved');

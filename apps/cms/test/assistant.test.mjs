@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {eligible,matchesQuestion,normalizeQuestion,publicFaq,requiresHuman,faqRevision} from '../src/modules/assistant/faq.ts';
+import {eligible,faqBody,matchesQuestion,normalizeQuestion,publicFaq,requiresHuman,faqRevision} from '../src/modules/assistant/faq.ts';
 import {validateOutline} from '../src/modules/assistant/format.ts';
 const source={id:1,title:'Điều kiện chung?',body:'Approved answer.\n\nMandatory condition.',question_aliases:'Cần điều kiện gì?',jurisdiction:'VN',source_url:'https://example.invalid/public',updated_at:new Date('2026-01-01'),effective_from:new Date('2026-01-01'),review_due_at:new Date('2027-01-01'),expires_at:null,approved:true,_status:'published'};
 test('only a canonical question or approved alias passes the coverage gate',()=>{
@@ -30,4 +30,12 @@ test('AI output must preserve every approved paragraph once, in its original ord
 });
 test('source fingerprints change even when a timestamp collides',()=>{
  assert.notEqual(faqRevision(source),faqRevision({...source,body:'Changed content'}));assert.notEqual(faqRevision(source),faqRevision({...source,question_aliases:'Different scope'}));
+});
+
+test('rich article evidence uses plain whole paragraphs while private knowledge stays literal',()=>{
+ const body='<div data-lvd-richtext="1"><p><strong>Approved answer.</strong></p><p>Mandatory condition.</p></div>';
+ const article={...source,body,article_origin_id:5};
+ assert.equal(faqBody(article),source.body);assert.deepEqual(publicFaq(article),publicFaq(source));
+ assert.equal(faqRevision(article),faqRevision(source));
+ assert.equal(faqBody({...source,body}),body);
 });

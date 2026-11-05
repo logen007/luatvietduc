@@ -5,7 +5,7 @@ test('account controls cover all states, roles and both languages without false 
  for(const language of ['vi','de']){
   const login=language==='vi'?'Đăng nhập':'Anmelden',account=language==='vi'?'Tài khoản':'Mein Konto';
   for(const status of ['loading','error']){const view=accountView({status,user:null},language);assert.equal(view.label,account);assert.equal(view.management,null);}
-  assert.equal(accountView({status:'ready',user:null},language).label,login);
+  assert.equal(accountView({status:'ready',user:null},language).label,login);assert.equal(accountView({status:'ready',user:null},language).href,'/tai-khoan?mode=signin');
   for(const role of ['owner','support','member','unknown']){const view=accountView({status:'ready',user:{id:1,role}},language);assert.equal(view.label,account);assert.equal(view.href,'/tai-khoan');assert.equal(view.management?.href,role==='owner'?'/admin':role==='support'?'/admin/inbox':undefined);}
  }
 });

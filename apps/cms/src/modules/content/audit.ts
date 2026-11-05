@@ -3,6 +3,8 @@ import type {
   CollectionBeforeChangeHook,
   CollectionAfterChangeHook,
 } from "payload";
+import {ValidationError} from 'payload';
+import {sanitizeArticleBody,isRichBody,articleText} from './article-body';
 import { sql } from "@payloadcms/db-postgres";
 import { owner } from "../shared/access";
 export const Audit: CollectionConfig = {
@@ -28,6 +30,11 @@ export const articleLock: CollectionBeforeChangeHook = async ({
   req,
   collection,
 }) => {
+  if(collection.slug==='articles'&&typeof data.body==='string'){
+    data.body=sanitizeArticleBody(data.body);
+    if(isRichBody(data.body)&&!articleText(data.body).trim()&&!/<img\s/.test(data.body)&&(data._status??originalDoc?._status)==='published')throw new ValidationError({errors:[{path:'body',message:'Nhập nội dung trước khi xuất bản.'}]});
+    if(data.body.length>16000)throw new ValidationError({errors:[{path:'body',message:'Nội dung vượt giới hạn 16.000 ký tự. Hãy chia bài thành các phần.'}]});
+  }
   if (originalDoc?.id) {
     if (!req.transactionID) throw new Error("Editorial transaction required");
     const id = await req.transactionID;

@@ -23,7 +23,7 @@ export function AccountForm({google,conversation,recoveryLink,onRecoveryLink}:{g
   finally{gate.current=false;setBusy(false);}
  }
  const regular=mode==='register'||mode==='signin',emailOnly=mode==='forgot',passwordMode=regular||mode==='reset';
- const title=mode==='register'?'Create your account':mode==='signin'?'Sign in':mode==='forgot'?'Reset your password':mode==='reset'?'Choose a new password':mode==='verify'?'Verify your email':'Check your email';
+ const title=mode==='register'?'Tạo tài khoản':mode==='signin'?'Sign in':mode==='forgot'?'Reset your password':mode==='reset'?'Choose a new password':mode==='verify'?'Verify your email':'Check your email';
  return <div className="live-account-form-view"><h1 ref={heading} tabIndex={-1}>{t(title)}</h1>
   {(regular||emailOnly||mode==='reset')&&<form className="live-credentials-form" key={mode} onSubmit={event=>{event.preventDefault();const data=new FormData(event.currentTarget);void request(mode==='register'?'register':mode==='signin'?'login':mode==='forgot'?'forgot':'reset',String(data.get('password')||''));}} aria-busy={busy}>
    {(regular||emailOnly)&&<input id="account-email" name="email" aria-label={t('Email address')} placeholder={t('Email address')} type="email" autoComplete="email" required maxLength={254} value={email} onChange={event=>setEmail(event.target.value)} disabled={busy}/>}

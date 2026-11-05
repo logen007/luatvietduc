@@ -1,5 +1,5 @@
 import {mediaMetadataGuard} from './metadata-guard';
-import {bundledNames,bundledURL} from './bundled';
+import {bundledURL} from './bundled';
 import {mediaWriteGuard} from "../backup/media-lock";
 import {mediaRootEnumeration} from './media-enumeration';
 import {captureMediaOwnedFiles,deleteMediaOwnedFiles} from '../integrations/storage';
@@ -22,7 +22,7 @@ export const Media: CollectionConfig = {
         ? true
         : { visibility: { equals: "public" } },
     update: ({req})=>req.user?.role==="owner"?true:req.user?.role==="support"?{uploadedBy:{equals:req.user.id}}:false,
-    delete: ({req}):boolean|Where=>req.user?.role==="owner"?{filename:{not_in:bundledNames}}:req.user?.role==="support"?{and:[{uploadedBy:{equals:req.user.id}},{filename:{not_in:bundledNames}}]}:false,
+    delete: ({req}):boolean|Where=>req.user?.role==="owner"?true:req.user?.role==="support"?{uploadedBy:{equals:req.user.id}}:false,
   },
   hooks:{beforeOperation:[mediaRootEnumeration,mediaStorageCoordinates],afterRead:[({doc})=>bundledURL(doc),originalMediaView],beforeChange:[mediaMetadataGuard],beforeDelete:[mediaWriteGuard,captureMediaOwnedFiles],afterDelete:[deleteMediaOwnedFiles]},
   upload: {

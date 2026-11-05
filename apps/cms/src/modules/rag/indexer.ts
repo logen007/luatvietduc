@@ -1,7 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {pool,transaction} from '../shared/db';
 import {activeValues,readRow} from '../integrations/store';
-import {eligible,faqRevision,type Faq} from '../assistant/faq';
+import {eligible,faqBody,faqRevision,type Faq} from '../assistant/faq';
 import {chunks,pointId,vector} from './core';
 import {embed} from './provider';
 import {ensureCollection,vectorRequest} from './vectors';
@@ -26,7 +26,7 @@ export async function indexNext(){
    const providerVersion=(await readRow('ai'))?.version;
    const source=(await pool.query('SELECT * FROM knowledge WHERE id=$1',[job.source_id])).rows[0] as Faq|undefined;
    const revision=source&&eligible(source)?faqRevision(source):null;
-   const pieces=revision?chunks(source!.body):[];
+   const pieces=revision?chunks(faqBody(source!)):[];
    const points:{id:string;vector:number[];payload:{source_id:number;revision:string|null;jurisdiction:string}}[]=[];
    for(let i=0;i<pieces.length;i++){
     const id=pointId(job.source_id,revision!,i);

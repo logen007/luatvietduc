@@ -1,3 +1,4 @@
+import {articleText} from '../content/article-body';
 import {pool} from '../shared/db';
 import {sourceScopes} from './scope';
 import {createHash} from 'node:crypto';
@@ -12,14 +13,15 @@ export function requiresHuman(text:string){
   ||/\b(mein(?:e|er|en|em)? (?:akte|akten|fall|unterlagen|dokumente)|personliche (?:rechts)?beratung)\b/.test(question)
   ||/\b(?:ich (?:mochte|will)|(?:kann|konnte) ich) (?:bitte |gerne? )?(?:mit (?:einem |einer )?|(?:einen |eine )?)(?:menschen|mitarbeiter(?:in)?|berater(?:in)?|anwalt(?:in)?|fachkraft) (?:sprechen|reden|chatten)\b/.test(question);
 }
-export function faqRevision(faq:Faq){const fields:unknown[]=[faq.title,faq.body,faq.question_aliases,faq.jurisdiction,faq.source_url,faq.effective_from,faq.expires_at,faq.review_due_at,faq.updated_at];if(faq.entry_type==='rule')fields.push('rule');return createHash('sha256').update(JSON.stringify(fields)).digest('hex');}
+export function faqBody(faq:Faq){return faq.article_origin_id?articleText(faq.body):faq.body;}
+export function faqRevision(faq:Faq){const fields:unknown[]=[faq.title,faqBody(faq),faq.question_aliases,faq.jurisdiction,faq.source_url,faq.effective_from,faq.expires_at,faq.review_due_at,faq.updated_at];if(faq.entry_type==='rule')fields.push('rule');return createHash('sha256').update(JSON.stringify(fields)).digest('hex');}
 export function matchesQuestion(question:string,faq:Question){const key=normalizeQuestion(question);return [faq.title,...(faq.question_aliases||'').split('\n')].some(value=>key&&normalizeQuestion(value)===key);}
 export function eligible(faq:Faq,now=Date.now()){
  return faq.entry_type!=='rule'&&faq.approved&&faq._status==='published'&&new Date(faq.effective_from).getTime()<=now&&new Date(faq.review_due_at).getTime()>now&&(!faq.expires_at||new Date(faq.expires_at).getTime()>now);
 }
 export function publicFaq(faq:Faq){
  // This is the complete model payload: no customer question, identity, transcript or files.
- return {title:faq.title,jurisdiction:faq.jurisdiction,paragraphs:faq.body.trim().split(/\n\s*\n/).filter(Boolean)};
+ return {title:faq.title,jurisdiction:faq.jurisdiction,paragraphs:faqBody(faq).trim().split(/\n\s*\n/).filter(Boolean)};
 }
 // Compatibility hook; no process-wide catalog of private/source bodies is retained.
 export function clearFaqCatalog(){}
@@ -32,7 +34,7 @@ export async function findFaq(country:string,question:string):Promise<Faq|null>{
  // Ambiguous sources hand off; an index finds a key across the whole corpus, without a latest-1000 cutoff.
  if(matches.length!==1)return null;
  const row=matches[0];
- if(!eligible(row)||!matchesQuestion(question,row)||!row.body?.trim()||row.body.length>16000)return null;
+ if(!eligible(row)||!matchesQuestion(question,row)||!faqBody(row)?.trim()||faqBody(row).length>16000)return null;
  try{if(new URL(row.source_url).protocol!=='https:')return null;}catch{return null;}
  return row;
 }

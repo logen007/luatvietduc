@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
-import type {Payload} from 'payload';
+import {ValidationError,type Payload} from 'payload';
 import type {User} from '../src/payload-types';
 import {pool} from '../src/modules/shared/db';
-import {eligible,findFaq} from '../src/modules/assistant/faq';
+import {eligible,findFaq,faqBody,publicFaq} from '../src/modules/assistant/faq';
 import seeds from '../src/modules/taxonomy/seeds.json';
 import legacyPosts from '../src/modules/legacy/posts.json';
 import {bundledFiles} from '../src/modules/storage/bundled';
 export async function testEditorial(payload:Payload,owner:User,specialist:User){
  const database=new URL(process.env.DATABASE_URL||'');if(!['localhost','127.0.0.1'].includes(database.hostname)||database.pathname!=='/lvd_test')throw new Error('Isolated CI database only');
- for(const file of bundledFiles){const row=(await pool.query('SELECT id FROM media WHERE filename=$1',[file.filename])).rows[0];assert.ok(row);const doc=await payload.findByID({collection:'media',id:row.id,user:owner,overrideAccess:false});assert.equal(doc.url,file.url);assert.equal(doc.visibility,'public');await assert.rejects(()=>payload.delete({collection:'media',id:doc.id,user:owner,overrideAccess:false}));}
+ for(const file of bundledFiles){const row=(await pool.query('SELECT id FROM media WHERE filename=$1',[file.filename])).rows[0];assert.ok(row);const doc=await payload.findByID({collection:'media',id:row.id,user:owner,overrideAccess:false});assert.equal(doc.url,file.url);assert.equal(doc.visibility,'public');}
  for(const post of legacyPosts){const found=await payload.find({collection:'articles',draft:true,user:owner,overrideAccess:false,where:{slug:{equals:post.slug}},limit:1,depth:0});assert.equal(found.totalDocs,1);assert.equal(found.docs[0]._status,'draft');assert.equal(found.docs[0].aiAllowed,false);assert.equal(found.docs[0].body,post.body);if(post.category)assert.ok(found.docs[0].categories?.length);}
  for(const category of seeds.legal)assert.equal((await payload.find({collection:'categories',where:{slug:{equals:category.slug}},overrideAccess:false,limit:1})).totalDocs,1);
  const vietnam=(await payload.find({collection:'tags',where:{slug:{equals:'vietnam'}},overrideAccess:false})).docs[0],germany=(await payload.find({collection:'tags',where:{slug:{equals:'germany'}},overrideAccess:false})).docs[0];assert.ok(vietnam&&germany);
@@ -34,5 +34,10 @@ export async function testEditorial(payload:Payload,owner:User,specialist:User){
  await payload.delete({collection:'articles',id:post.id,user:owner,overrideAccess:false});assert.equal(await readSource(),undefined,'Deleting article removes derived knowledge');
  const specialistPost=await payload.create({collection:'articles',user:specialist,overrideAccess:false,data:{title:'Synthetic specialist article '+suffix,slug:'',jurisdiction:'BOTH',language:'vi',body:'Synthetic specialist public text.',reviewState:'approved',_status:'published',aiAllowed:true}});assert.equal(specialistPost._status,'published');assert.equal(specialistPost.aiAllowed,true);
  await payload.delete({collection:'articles',id:specialistPost.id,user:owner,overrideAccess:false});
+ const rich=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic rich editor '+suffix,slug:'',jurisdiction:'BOTH',language:'vi',body:'<div data-lvd-richtext="1"><h2>Heading</h2><p><strong>Approved rich answer with complete conditions.</strong></p><p>Mandatory exception stays with this answer.</p><script>unsafe()</script><img src="javascript:unsafe" onerror="unsafe()"></div>',reviewState:'approved',_status:'published',aiAllowed:true}});
+ assert.ok(!rich.body.includes('unsafe'));assert.match(rich.body,/<strong>/);
+ const richSource=(await pool.query('SELECT * FROM knowledge WHERE article_origin_id=$1',[rich.id])).rows[0];assert.ok(eligible(richSource));assert.ok(!faqBody(richSource).includes('<'));assert.deepEqual(publicFaq(richSource).paragraphs,['Heading','Approved rich answer with complete conditions.','Mandatory exception stays with this answer.']);
+ await assert.rejects(()=>payload.update({collection:'articles',id:rich.id,user:owner,overrideAccess:false,data:{body:'<div data-lvd-richtext="1"><p></p></div>',_status:'published'}}),error=>error instanceof ValidationError&&error.data.errors.some(item=>item.path==='body'&&item.message.includes('Nhập nội dung')));
+ await payload.delete({collection:'articles',id:rich.id,user:owner,overrideAccess:false});
  console.log('Editorial checks passed: 16 seeded parent categories, news tree, tags, native relations/versions, hierarchy rename/cycle/delete, AI opt-in/uncheck/draft/delete and specialist self-publication');
 }

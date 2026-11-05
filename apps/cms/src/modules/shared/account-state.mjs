@@ -3,7 +3,7 @@
 export function accountView(session,language='vi'){
  const de=language==='de',ready=session?.status==='ready',user=ready?session.user:null;
  const management=user?.role==='owner'?{href:'/admin',label:de?'Verwaltung':'Quản trị'}:user?.role==='support'?{href:'/admin/inbox',label:de?'Postfach':'Hộp thư'}:null;
- return {href:'/tai-khoan',label:ready&&!user?(de?'Anmelden':'Đăng nhập'):(de?'Mein Konto':'Tài khoản'),management};
+ return {href:ready&&!user?'/tai-khoan?mode=signin':'/tai-khoan',label:ready&&!user?(de?'Anmelden':'Đăng nhập'):(de?'Mein Konto':'Tài khoản'),management};
 }
 export function createSessionStore(request,now=Date.now){
  let state={status:'loading',user:null,data:null,revision:0},pending=null,generation=0,expires=0;

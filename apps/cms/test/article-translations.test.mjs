@@ -80,3 +80,17 @@ test('Groq connection check reads bounded active-model metadata without generati
   assert.equal(calls,2);
  }finally{globalThis.fetch=original;}
 });
+
+test('rich translation preserves markup and media URLs and rejects a reformatted or replaced source',async()=>{
+ const original=globalThis.fetch;
+ const rich={title:'Rich title',body:'<div data-lvd-richtext="1"><h2>Heading</h2><p><strong>Text</strong> <a href="https://example.invalid/source">Source</a></p><img src="/assets/image.webp" alt="Image" /></div>'};
+ const good={title:'Überschrift',body:rich.body.replace('Heading','Überschrift').replace('Text','Inhalt').replace('Source</a>','Quelle</a>').replace('alt="Image"','alt="Bild"')};
+ try{
+  globalThis.fetch=async(_url,options)=>{assert.match(JSON.parse(options.body).messages[0].content,/preserve the exact wrapper/);return Response.json(result(good));};
+  const value=await translateArticleText(rich,'de',connection);assert.match(value.body,/<strong>Inhalt<\/strong>/);assert.match(value.body,/src="\/assets\/image.webp"/);
+  for(const body of [good.body.replace('<strong>Inhalt</strong>','Inhalt'),good.body.replace('https://example.invalid/source','https://attacker.invalid'),good.body.replace('src="/assets/image.webp"','src="/other.webp"'),'Missing rich text structure']){
+   globalThis.fetch=async()=>Response.json(result({...good,body}));
+   await assert.rejects(()=>translateArticleText(rich,'de',connection),error=>error.status===502);
+  }
+ }finally{globalThis.fetch=original;}
+});

@@ -1,5 +1,5 @@
 import {pool} from '../shared/db';
-import {faqRevision,eligible,type Faq} from '../assistant/faq';
+import {faqRevision,faqBody,eligible,type Faq} from '../assistant/faq';
 import {sourceScopes} from '../assistant/scope';
 import type {Values} from '../integrations/catalog';
 import {embed} from './provider';
@@ -16,8 +16,8 @@ export async function retrieve(question:string,country:string,connection:Values)
   if(!source||!eligible(source)||faqRevision(source)!==source.indexed_revision||hit.score<MIN_SCORE||sources.some(s=>s.id===source.id))continue;
   try{const url=new URL(source.source_url);if(url.protocol!=='https:'||url.username||url.password)continue;}catch{continue;}
   // Retrieval is by small chunks; generation sees the entire selected article to retain exceptions and conditions.
-  if(!source.body.trim()||source.body.length>16000)continue;
-  sources.push(source);evidence.push({key:'source-'+source.id,sourceId:source.id,title:source.title,text:source.body,revision:source.indexed_revision,score:hit.score});
+  const text=faqBody(source);if(!text.trim()||text.length>16000)continue;
+  sources.push(source);evidence.push({key:'source-'+source.id,sourceId:source.id,title:source.title,text,revision:source.indexed_revision,score:hit.score});
   if(sources.length===3)break;
  }
  return {sources,evidence};

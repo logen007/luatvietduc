@@ -23,7 +23,7 @@ function useMediaSelection(){
  const docs=(data?.docs||[]) as MediaDoc[],canEdit=['owner','support'].includes(user?.role||'');
  const mutable=docs.filter(doc=>mediaEditable(doc,user)&&(!doc._isLocked||doc._userEditing?.id===user?.id));
  function clear(){for(const id of selection.getSelectedIds())selection.setSelection(id);}
- return {...selection,docs,mutable,canEdit,deletable:mutable.filter(doc=>!mediaReadOnly(doc)),clear};
+ return {...selection,docs,mutable,canEdit,deletable:mutable,clear};
 }
 function MediaToolbar(props:ListViewClientProps){
  const {mode,setMode,bulk,setBulk,busy,setBusy}=useContext(ViewContext),{query,refineListData,data}=useListQuery(),{user}=useAuth();
@@ -34,13 +34,13 @@ function MediaToolbar(props:ListViewClientProps){
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null),latest=useRef(refineListData);latest.current=refineListData;
  useEffect(()=>{if(!timer.current)setSearch(query.search||'');},[query.search]);
  useEffect(()=>()=>{if(timer.current)clearTimeout(timer.current);},[]);
- const selectedCount=selection.mutable.filter(doc=>selection.selected.get(doc.id)).length,selectedDocs=selection.deletable.filter(doc=>selection.selected.get(doc.id)),protectedCount=selectedCount-selectedDocs.length,[action,setAction]=useState(''),[deleteStatus,setDeleteStatus]=useState(''),[deleteError,setDeleteError]=useState(''),gate=useRef(false),mounted=useRef(true),account=String(user?.id)+':'+user?.role,accountRef=useRef(account),selectionRef=useRef(selection);accountRef.current=account;selectionRef.current=selection;
+ const selectedCount=selection.mutable.filter(doc=>selection.selected.get(doc.id)).length,selectedDocs=selection.deletable.filter(doc=>selection.selected.get(doc.id)),[action,setAction]=useState(''),[deleteStatus,setDeleteStatus]=useState(''),[deleteError,setDeleteError]=useState(''),gate=useRef(false),mounted=useRef(true),account=String(user?.id)+':'+user?.role,accountRef=useRef(account),selectionRef=useRef(selection);accountRef.current=account;selectionRef.current=selection;
  useUnsavedChanges(busy);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  async function removeSelected(){
   if(gate.current||uploadBusy||!props.hasDeletePermission||props.disableBulkDelete||!selectedDocs.length)return;
   const docs=[...selectedDocs],owner=account;
-  if(!window.confirm('Xóa vĩnh viễn '+docs.length+' tệp đã chọn?'))return;
+  if(!window.confirm('Xóa '+docs.length+' tệp đã chọn?'+(docs.some(mediaReadOnly)?' Ảnh đi kèm giao diện chỉ được gỡ khỏi Thư viện.':' Thao tác này không thể hoàn tác.')))return;
   if(timer.current){clearTimeout(timer.current);timer.current=null;setSearch(query.search||'');}
   gate.current=true;setBusy(true);setDeleteError('');setDeleteStatus('Đang xóa…');let removed=0,failed=0;
   try{
@@ -78,7 +78,7 @@ function MediaToolbar(props:ListViewClientProps){
    <input className="lvd-media-search" type="search" aria-label="Tìm tệp" placeholder="Tìm tệp…" value={search} onChange={e=>changeSearch(e.target.value)}/>
   </fieldset>
   {uploadOpen&&<MediaUploader onBusyChange={setUploadBusy} onDone={()=>{if(timer.current){clearTimeout(timer.current);timer.current=null;}reset();setSearch('');setDateAttempt(v=>v+1);void latest.current({...query,search:undefined,page:1,sort:'-createdAt',where:mediaWhere(query.where,'','')});router.refresh();}}/>}
-  <div className="lvd-media-status"><span role="status">{busy?deleteStatus:isTransitioning?'Đang tải…':(data?.totalDocs||0)+' tệp'}</span>{selectedCount>0&&<span>{selectedCount} đã chọn</span>}{protectedCount>0&&<span>{protectedCount} tệp được bảo vệ, không thể xóa.</span>}</div>
+  <div className="lvd-media-status"><span role="status">{busy?deleteStatus:isTransitioning?'Đang tải…':(data?.totalDocs||0)+' tệp'}</span>{selectedCount>0&&<span>{selectedCount} đã chọn</span>}</div>
   {mode==='list'&&selection.canEdit&&<div className="lvd-media-list-actions"><select aria-label="Thao tác hàng loạt" value={action} disabled={busy} onChange={event=>setAction(event.target.value)}><option value="">Thao tác hàng loạt</option>{props.hasDeletePermission&&!props.disableBulkDelete&&<option value="delete">Xóa vĩnh viễn</option>}</select><button type="button" disabled={busy||uploadBusy||action!=='delete'||!selectedDocs.length} onClick={()=>void removeSelected()}>Áp dụng</button></div>}
   {!busy&&deleteStatus&&<p className="lvd-media-delete-status" role="status">{deleteStatus}</p>}
   {deleteError&&<p className="lvd-media-delete-error" role="alert">{deleteError} <button type="button" disabled={busy||uploadBusy||!selectedDocs.length} onClick={()=>void removeSelected()}>Thử lại</button></p>}

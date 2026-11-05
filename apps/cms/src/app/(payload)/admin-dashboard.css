@@ -41,7 +41,9 @@ html.lvd-admin .lvd-menu-children>a{padding:8px 10px;border-radius:6px;color:var
 html.lvd-admin .lvd-menu-children>a:hover{color:var(--admin-text);background:var(--admin-raised)}
 html.lvd-admin .lvd-menu-children>a[aria-current='page']{color:var(--admin-accent);background:#fafafa0a;font-weight:550}
 html.lvd-admin .lvd-menu-settings{margin:0;padding:0;border:0}
-html.lvd-admin .lvd-sidebar-account{display:flex;align-items:center;gap:10px;min-height:56px;margin:0;border:0;padding:8px 54px 8px 10px}
+html.lvd-admin .lvd-sidebar-account{display:flex;align-items:center;gap:10px;min-height:56px;margin:0;border:0;border-radius:8px;padding:8px 54px 8px 10px;color:var(--admin-text);text-decoration:none}
+html.lvd-admin .lvd-sidebar-account:hover{background:var(--admin-raised);color:var(--admin-accent)}
+html.lvd-admin .lvd-sidebar-account:focus-visible{outline:2px solid var(--admin-accent);outline-offset:-2px}
 html.lvd-admin .lvd-sidebar-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--admin-raised);border:1px solid var(--admin-line);font-size:calc(13px * var(--lvd-admin-font-scale, 1));flex-shrink:0}
 html.lvd-admin .lvd-sidebar-avatar{overflow:hidden}
 html.lvd-admin .lvd-sidebar-avatar :is(img,svg){display:block;width:100%;height:100%;object-fit:cover}

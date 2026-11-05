@@ -1,3 +1,5 @@
+import {articleText} from '../content/article-body';
+import {pool} from '../shared/db';
 import {cache} from 'react';
 import {getPayload,type Where} from 'payload';
 import config from '../../payload.config';
@@ -24,6 +26,35 @@ export const publicLegacyNews=cache(async():Promise<LegacyNews[]>=>{
  const mirrors=await (await publicPayload()).find({collection:'articles',overrideAccess:true,depth:0,limit:content.newsSlugs.length,where:{slug:{in:content.newsSlugs}},select:{slug:true,title:true,body:true,kind:true,jurisdiction:true,sourceUrl:true,reviewState:true,reviewedAt:true,aiAllowed:true,_status:true}});
  return content.newsStories.filter(story=>keepsLegacyCopy(mirrors.docs.find(mirror=>mirror.slug===story.id),originalPosts.find(post=>post.slug===story.id)));
 });
+async function publicSearchIds(query:string){
+ // Retrieve identifiers only. Native Payload filters below remain the final
+ // authority for public access, taxonomy, country, ordering and pagination.
+ const pattern='%'+query.replace(/[!%_]/g,'!$&')+'%';
+ const result=await pool.query<{id:number}>(`WITH public_bodies AS (
+  SELECT id,title,body LIKE $2 AS rich,
+   CASE WHEN body LIKE $2 THEN regexp_replace(regexp_replace(body,$3,' ','gi'),'<[^>]*>','','g') ELSE body END AS body_text
+  FROM articles WHERE _status='published' AND review_state='approved'
+ ), decoded AS (
+  SELECT id,title,rich,CASE WHEN rich THEN
+   regexp_replace(
+    regexp_replace(
+     regexp_replace(
+      regexp_replace(
+       regexp_replace(
+        regexp_replace(body_text,'&(nbsp|#0*160|#x0*a0);',' ','gi'),
+        '&(lt|#0*60|#x0*3c);','<','gi'),
+       '&(gt|#0*62|#x0*3e);','>','gi'),
+      '&(quot|#0*34|#x0*22);','"','gi'),
+     '&(apos|#0*39|#x0*27);',chr(39),'gi'),
+    '&(amp|#0*38|#x0*26);','&','gi')
+   ELSE body_text END AS body_text FROM public_bodies
+ ) SELECT id FROM decoded WHERE title ILIKE $1 ESCAPE '!'
+  OR (CASE WHEN rich THEN regexp_replace(replace(body_text,chr(160),' '),'[[:space:]]+',' ','g') ELSE body_text END) ILIKE $1 ESCAPE '!'`,[
+   pattern,'<div data-lvd-richtext="1">%',
+   '<[[:space:]]*/?[[:space:]]*(p|h[2-4]|div|blockquote|ul|ol|li|hr|br|table|thead|tbody|tr|th|td)([[:space:]][^>]*)?/?>',
+  ]);
+ return result.rows.map(row=>row.id);
+}
 export async function publicNewsList({query='',group='',editorialType='',page=1,limit=12}={}){
  const [cms,archive]=await Promise.all([publicArticleList({kind:'news',query,group:group?'tin-'+group:'',editorialType,page,limit}),publicLegacyNews()]);
  const legacy=archive.filter(story=>(!group||story.category===group)&&(!editorialType||story.type===editorialType)&&(!query||normalize(story.title+' '+story.summary).includes(normalize(query))));
@@ -33,11 +64,12 @@ export async function publicNewsList({query='',group='',editorialType='',page=1,
 }
 export async function publicArticleList({kind='legal',query='',group='',country='',editorialType='',order='source',page=1,limit=12}:{kind?:'legal'|'news';query?:string;group?:string;country?:string;editorialType?:string;order?:string;page?:number;limit?:number}={}):Promise<ArticleList>{
  const where:Where[]=[publicArticles,kind==='news'?{or:[{kind:{equals:'news'}},{slug:{in:content.newsSlugs}}]}:{and:[{kind:{not_equals:'news'}},{slug:{not_in:content.newsSlugs}}]}];
- if(query)where.push({or:[{title:{contains:query}},{body:{contains:query}}]});
+ const keyword=query.trim().replace(/\s+/g,' ');
+ if(keyword){const ids=await publicSearchIds(keyword);if(!ids.length)return {docs:[],totalDocs:0,totalPages:1,page};where.push({id:{in:ids}});}
  if(kind==='news'&&editorialType==='guide')where.push({kind:{not_equals:'news'}});
  if(kind==='news'&&editorialType==='news')where.push({kind:{equals:'news'}});
  if(country)where.push({jurisdiction:{in:[country,'BOTH']}});
  if(group){const category=(await publicCategories()).find(category=>category.slug===group);if(!category)return {docs:[],totalDocs:0,totalPages:1,page};where.push({categories:{in:[category.id]}});}
  const result=await (await publicPayload()).find({collection:'articles',overrideAccess:false,draft:false,where:{and:where},sort:order==='a-z'?['title','id']:['-updatedAt','id'],depth:0,page,limit,select:{id:true,slug:true,title:true,body:true,language:true,kind:true}});
- return {docs:result.docs.map(article=>({id:article.id,slug:article.slug,title:article.title,summary:String(article.body||'').replace(/\s+/g,' ').trim().slice(0,180),kind:article.kind||'article',language:article.language,photo:photoForArticle(article)})),page:result.page||page,totalPages:result.totalPages,totalDocs:result.totalDocs};
+ return {docs:result.docs.map(article=>({id:article.id,slug:article.slug,title:article.title,summary:articleText(article.body||'').replace(/\s+/g,' ').trim().slice(0,180),kind:article.kind||'article',language:article.language,photo:photoForArticle(article)})),page:result.page||page,totalPages:result.totalPages,totalDocs:result.totalDocs};
 }

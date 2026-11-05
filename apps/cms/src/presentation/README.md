@@ -43,6 +43,7 @@ Batch related requests into one push. Do not interrupt an already running releas
 | Public settings request | src/modules/settings/client.ts; view.ts |
 | Contact form and submit interaction | src/modules/public-site/Contact.tsx; src/presentation/editorial-ui-css/07-contact-form.css |
 | Library / news / information pages | src/modules/public-site/Library.tsx; News.tsx; Information.tsx |
+| Article content editor / safe body | src/modules/content/ArticleEditor.tsx; article-body.ts; article-editor.css |
 | Public reads / routes / metadata | src/modules/public-site/server.ts; routes.ts; seo.ts |
 | Native public page layout | src/presentation/editorial-ui-css/09-native-pages.css |
 | Contact email validation and sending | src/modules/contact/; recipient in Resend connection settings |

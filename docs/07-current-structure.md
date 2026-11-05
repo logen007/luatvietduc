@@ -295,8 +295,8 @@ có xung đột, không tự ghi đè. Bộ chọn tệp trong các form khác g
 
 Admin sửa metadata mọi tệp; chuyên viên tải và sửa/xóa tệp của mình. uploadedBy
 do server gán và không đổi. Tệp đóng gói cho giao diện vẫn chọn được để sửa
-metadata, giữ URL/nội dung/phạm vi công khai và chặn thay nội dung/xóa. Khi có
-các tệp này trong lựa chọn, UI tắt xóa hàng loạt và giải thích lý do.
+metadata, giữ URL/nội dung/phạm vi công khai. Admin có thể gỡ bản ghi và các
+size liên quan khỏi thư viện bằng thao tác xóa; tệp giao diện trong mã vẫn giữ nguyên.
 
 Migration bổ sung title/caption/description/uploadedBy; helper
 `release-reviewed-media-metadata.py` ghim SHA/manifest và dùng engine/sao lưu
@@ -426,7 +426,7 @@ Sharp sinh size không phóng lớn; cấu hình lần lượt 150×150 crop, t�
 1200×1200 giữ tỷ lệ. `bundled-families.json` xác nhận9 nhóm ảnh cũ bằng tên và kích
 thước thực:43 ID/URL được giữ,17 alias được gắn `legacyParent`,26 mục được liệt kê.
 `media-enumeration.ts` chỉ lọc list/count ngoài cùng; đọc ID và quan hệ cũ vẫn chạy.
-Tài nguyên đóng gói trong mã giữ bảo vệ xóa/thay nội dung vì các trang/CSS đang dùng.
+Admin có thể tự gỡ bản ghi tệp đóng gói và các size khỏi Thư viện; tệp giao diện trong mã vẫn giữ nguyên. Giữ chặn thay nội dung vì các trang/CSS đang dùng.
 
 `image-edit.ts` kiểm tra quyền, phiên bản và khóa backup→bản ghi trước khi xử lý.
 Lần sửa pixel đầu giữ một bản nguồn riêng. Bản nguồn không công khai theo ảnh hiện
@@ -441,3 +441,23 @@ ghi còn lại là biên nhận để dọn tiếp. Không tuyên bố rollback 
 Inventory backup dùng chung `storage/inventory.ts`, gồm tệp chính, mọi size và nguồn
 giữ lại; không chỉ sao lưu filename của media. Migration mở rộng không xóa alias.
 Down từ chối bỏ cột khi có size/nguồn mới; quay lại mã giữ schema để bảo toàn dữ liệu.
+
+
+## Soạn bài định dạng và vòng đời tệp — 01.30
+
+`content/ArticleEditor.tsx` dùng Tiptap, giữ trường body dạng chuỗi hiện có.
+Bài cũ vẫn là văn bản; bài có định dạng dùng wrapper `data-lvd-richtext="1"`.
+`article-body.ts` lọc HTML khi lưu/hiển thị, và cung cấp một bản văn bản thống nhất
+cho mô tả, tìm kiếm, FAQ/RAG và kiểm tra trích dẫn. Dịch Groq phải giữ cấu trúc,
+URL và bảng; lỗi hoặc thiếu nội dung giữ bản gốc. Giới hạn 16.000 ký tự không
+tự cắt nội dung. Thư viện trong trình soạn chỉ cho chèn tệp công khai, không
+tự đổi phạm vi tệp riêng tư. CSS soạn bài nằm riêng trong bundle admin.
+
+Xóa R2 hoàn tất trong beforeDelete, trước khi Payload xóa bản ghi. Nếu xóa
+hàng loạt gặp lỗi giữa chừng, metadata ảnh gốc/size còn để thử lại. Bản ghi
+tệp đóng gói và size cũ có thể gỡ bằng quyền Admin; file giao diện trong mã
+được giữ. Triển khai không tự xóa bản ghi hoặc file nào.
+
+Đăng nhập quản trị dùng form native gọn và đăng nhập Google; hồ sơ ở
+`/admin/account`. Link Đăng nhập công khai mở đúng mode signin, có liên kết
+đăng ký và quên mật khẩu.

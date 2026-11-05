@@ -61,7 +61,21 @@ export async function testMediaFamilies(payload:Payload,owner:User){
    assert.equal(settings.logo.id,child.id);assert.equal(settings.logo.url,records.find(record=>record.filename===child.filename)?.url);
   }finally{await payload.db.rollbackTransaction(tx);}
   assert.equal((await pool.query('SELECT count(*)::int AS n FROM media WHERE filename=ANY($1::text[])',[names])).rows[0].n,43);
+  // Admin can remove a packaged library entry and all its size records. Test
+  // both native delete APIs, then rollback: keep every existing fixture/asset.
+  for(const bulk of [false,true]){
+   const targets=families.slice(0,bulk?2:1).map(family=>{const root=byName.get(family.primary.filename);assert.ok(root);return root.id;}),owned=raw.filter(row=>targets.includes(row.id)||targets.includes(row.legacy_parent_id));
+   const deletionTx=await payload.db.beginTransaction();assert.ok(deletionTx);
+   try{
+    const req=await createLocalReq({user:owner},payload);req.transactionID=deletionTx;
+    if(bulk){const result=await payload.delete({collection:'media',where:{id:{in:targets}},user:owner,overrideAccess:false,req});assert.equal(result.errors.length,0);assert.equal(result.docs.length,targets.length);}
+    else await payload.delete({collection:'media',id:targets[0],user:owner,overrideAccess:false,req});
+    const db=await payloadTransaction(req),remaining=(await db.execute(sql`SELECT count(*)::int AS n FROM media WHERE filename IN (${sql.join(names.map(name=>sql`${name}`),sql`, `)})`)).rows[0].n;assert.equal(remaining,43-owned.length,'Only selected roots and their own size records are removed');
+    for(const row of owned){const record=records.find(record=>record.filename===row.filename);assert.ok(record);const source=record.url.startsWith('/assets/')?path.join(repo,record.url.slice(1)):path.join(repo,'apps/cms/public',record.url.slice(1));assert.equal((await stat(source)).size,record.filesize,'Removing a packaged library entry leaves UI files intact');}
+   }finally{await payload.db.rollbackTransaction(deletionTx);}
+  }
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM media WHERE filename=ANY($1::text[])',[names])).rows[0].n,43,'Deletion checks leave all original library entries intact');
   assert.equal(storageCalls,0,'Family enumeration and relationship population need no storage connection');
-  console.log('Media family checks passed: 43 retained IDs/URLs, 26 roots, 17 direct aliases, picker/count filtering, exact master/size metadata and nested Settings.logo alias population; no storage calls');
+  console.log('Media family checks passed: 43 retained IDs/URLs, 26 roots, 17 direct aliases, picker/count filtering, native single/bulk entry deletion with size cleanup and rollback, intact UI files and nested Settings.logo aliases; no storage calls');
  }finally{S3Client.prototype.send=send;}
 }

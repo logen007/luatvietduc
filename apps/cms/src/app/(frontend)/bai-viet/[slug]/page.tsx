@@ -1,4 +1,5 @@
-import {LocaleText,LocaleDate,LocaleNav} from "../../../../modules/shared/locale";
+import {articleHTML,articleText} from '../../../../modules/content/article-body';
+import {LocaleText,LocaleDate} from "../../../../modules/shared/locale";
 import {notFound,permanentRedirect} from "next/navigation";
 import {articleParent} from '../../../../modules/content/navigation';
 import {content,publicArticle,publicSiteSettings} from '../../../../modules/public-site/server';
@@ -15,7 +16,7 @@ async function articleForPage(slug:string){
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}){
  const slug=(await params).slug,a=await articleForPage(slug);
  const settings=await publicSiteSettings();
- return publicMetadata({title:a.title,path:'/bai-viet/'+encodeURIComponent(a.slug),description:String(a.body||'').replace(/\s+/g,' ').slice(0,180),enabled:settings.publicIndexingEnabled===true,indexable:Boolean(a.body?.trim())});
+ return publicMetadata({title:a.title,path:'/bai-viet/'+encodeURIComponent(a.slug),description:articleText(a.body||'').replace(/\s+/g,' ').slice(0,180),enabled:settings.publicIndexingEnabled===true,indexable:Boolean(articleText(a.body).trim())});
 }
 export default async function Page({
   params,
@@ -28,55 +29,36 @@ export default async function Page({
     <PublicFrame revision={revision} section={news?'news':'lookup'}>
       <div className="live-reading-page">
         <div className="container">
-          <LocaleNav className="live-breadcrumb" label="Đường dẫn">
-            <a href="/"> <LocaleText text="Trang chủ"/></a>
-            <span>/</span>
-            <a href={parent.href}> <LocaleText text={parent.label}/></a>
-            <span>/</span>
-            <span aria-current="page">{a.title}</span>
-          </LocaleNav>
-          <header className="live-reading-heading">
-            <p className="live-eyebrow">
-              <LocaleText text={a.kind === "news" ? "TIN TỨC" : "KIẾN THỨC PHÁP LUẬT"}/>
-            </p>
-            <h1>{a.title}</h1>
-            <div className="live-reading-taxonomy">{a.categories?.map(category=>typeof category==='object'&&category?<span key={'category-'+category.id}><LocaleText text={category.name}/></span>:null)}{a.tags?.map(tag=>typeof tag==='object'&&tag?<span key={'tag-'+tag.id}>#{tag.name}</span>:null)}</div>
-            <div className="live-reading-meta">
-              <span>Luật Việt Đức</span>
-              <span aria-hidden="true">·</span>
-              <time dateTime={a.updatedAt}> <LocaleText text="Cập nhật"/> <LocaleDate value={a.updatedAt}/>
-              </time>
-            </div>
-          </header>
-          <div className="live-reading-layout">
-            <aside className="live-reading-aside">
-              <p className="live-eyebrow"> <LocaleText text="TRONG BÀI VIẾT"/></p>
-              <a href="#noi-dung"> <LocaleText text="Nội dung bài viết"/></a>
-              {a.sourceUrl && <a href="#nguon-tham-khao"> <LocaleText text="Nguồn tham khảo"/></a>}
-              <span className="live-aside-line"></span>
-              <p> <LocaleText text="Bạn cần làm rõ vấn đề trong trường hợp cụ thể?"/></p>
-              <a className="live-text-action" href="/tro-chuyen"> <LocaleText text="Mở trò chuyện"/> <span aria-hidden="true">↗</span> </a>
-            </aside>
-            <article className="live-reading-content">
-              <div id="noi-dung" className="live-body" lang={a.language==='de'?'de':'vi'}>
-                {a.body}
+          <article className="live-reading-article" aria-labelledby="article-title">
+            <header className="live-reading-heading">
+              <div className="live-reading-topline">
+                <a className="live-reading-return" href={parent.href}>
+                  <span aria-hidden="true">←</span>
+                  <LocaleText text={parent.label}/>
+                </a>
+                <time className="live-reading-meta" dateTime={a.updatedAt}>
+                  <LocaleText text="Cập nhật"/> <LocaleDate value={a.updatedAt}/>
+                </time>
               </div>
-              {a.sourceUrl && (
-                <div id="nguon-tham-khao" className="live-source-reference">
-                  <p className="live-eyebrow"> <LocaleText text="NGUỒN THAM KHẢO"/></p>
-                  <a href={a.sourceUrl} rel="noopener noreferrer"> <LocaleText text="Xem nguồn gốc của thông tin"/>{" "}
+              <h1 id="article-title">{a.title}</h1>
+              <div className="live-reading-taxonomy">{a.categories?.map(category=>typeof category==='object'&&category?<span key={'category-'+category.id}><LocaleText text={category.name}/></span>:null)}{a.tags?.map(tag=>typeof tag==='object'&&tag?<span key={'tag-'+tag.id}>#{tag.name}</span>:null)}</div>
+            </header>
+            <div className="live-reading-content">
+              <div id="noi-dung" className="live-body" lang={a.language==='de'?'de':'vi'} dangerouslySetInnerHTML={{__html:articleHTML(a.body)}}/>
+              <footer className="live-reading-footer">
+                {a.sourceUrl && (
+                  <a id="nguon-tham-khao" className="live-reading-source" href={a.sourceUrl} rel="noopener noreferrer">
+                    <LocaleText text="Nguồn tham khảo"/>
                     <span aria-hidden="true">↗</span>
                   </a>
-                </div>
-              )}
-              <section className="live-reading-cta">
-                <span className="live-eyebrow"> <LocaleText text="TIẾP NỐI CÂU HỎI CỦA BẠN"/></span>
-                <h2> <LocaleText text="Mỗi vấn đề đều có"/> <br /> <LocaleText text="bối cảnh riêng."/> </h2>
-                <a className="button" href="/tro-chuyen"> <LocaleText text="Mở trò chuyện"/> <span aria-hidden="true">↗</span>
+                )}
+                <a className="live-reading-question" href="/tro-chuyen">
+                  <LocaleText text="Gửi câu hỏi"/>
+                  <span aria-hidden="true">→</span>
                 </a>
-              </section>
-            </article>
-          </div>
+              </footer>
+            </div>
+          </article>
         </div>
       </div>
     </PublicFrame>

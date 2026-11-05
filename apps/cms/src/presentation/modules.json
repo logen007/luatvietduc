@@ -40,6 +40,7 @@
   "admin-theme.css": [
     "../app/(payload)/admin-custom.css",
     "../app/(payload)/admin-dashboard.css",
+    "../modules/content/article-editor.css",
     "form-controls.css"
   ]
 }

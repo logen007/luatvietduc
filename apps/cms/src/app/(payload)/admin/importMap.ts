@@ -1,8 +1,9 @@
 import { UserRoleTabs as UserRoleTabs_842fe956bf5458a0fb52b9687afb590b } from '../../../modules/identity/UserRoleTabs'
 import { ArticleLanguages as ArticleLanguages_c323c3ff49ed7b4dd39156f80a342a27 } from '../../../modules/content/ArticleLanguages'
 import { PermalinkField as PermalinkField_21b75de27a8941a2176c8e747a598968 } from '../../../modules/content/PermalinkField'
+import { ArticleEditor as ArticleEditor_bcd84d5925d8d8b53f208494f25a130e } from '../../../modules/content/ArticleEditor'
 import { CategoryCell as CategoryCell_371b2bedc3d8c9e5aec13f363e363b90 } from '../../../modules/admin/CategoryCell'
-import { AiAllowedCell } from '../../../modules/admin/AiAllowedCell'
+import { AiAllowedCell as AiAllowedCell_aaeb3d4bcbcb938ccfb764f28a8cc75e } from '../../../modules/admin/AiAllowedCell'
 import { MediaImageTools as MediaImageTools_ad55e69361eed082914184cc1975b8e8 } from '../../../modules/storage/MediaImageTools'
 import { MediaLibrary as MediaLibrary_6d3f0492a365f15c11305d4fe54e8552 } from '../../../modules/storage/MediaLibrary'
 import { AuditActionCell as AuditActionCell_f9a0fbb33e4503825a2cda9ae5cd6d45 } from '../../../modules/admin/AuditActionCell'
@@ -23,8 +24,9 @@ export const importMap = {
   "./modules/identity/UserRoleTabs#UserRoleTabs": UserRoleTabs_842fe956bf5458a0fb52b9687afb590b,
   "./modules/content/ArticleLanguages#ArticleLanguages": ArticleLanguages_c323c3ff49ed7b4dd39156f80a342a27,
   "./modules/content/PermalinkField#PermalinkField": PermalinkField_21b75de27a8941a2176c8e747a598968,
+  "./modules/content/ArticleEditor#ArticleEditor": ArticleEditor_bcd84d5925d8d8b53f208494f25a130e,
   "./modules/admin/CategoryCell#CategoryCell": CategoryCell_371b2bedc3d8c9e5aec13f363e363b90,
-  "./modules/admin/AiAllowedCell#AiAllowedCell": AiAllowedCell,
+  "./modules/admin/AiAllowedCell#AiAllowedCell": AiAllowedCell_aaeb3d4bcbcb938ccfb764f28a8cc75e,
   "./modules/storage/MediaImageTools#MediaImageTools": MediaImageTools_ad55e69361eed082914184cc1975b8e8,
   "./modules/storage/MediaLibrary#MediaLibrary": MediaLibrary_6d3f0492a365f15c11305d4fe54e8552,
   "./modules/admin/AuditActionCell#AuditActionCell": AuditActionCell_f9a0fbb33e4503825a2cda9ae5cd6d45,

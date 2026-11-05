@@ -7,7 +7,7 @@ References: [Geist neutral color system](https://vercel.com/geist/colors) and [t
 ## Visual foundations
 
 - Dark canvas #0a0a0a; sidebar #0d0d0d; panel #141414; elevated panel #1c1c1c.
-- Hairline border #303030; body #f5f5f5; secondary text #a3a3a3.
+- Hairline border #303030; body #c7c7c7; secondary text #949494.
 - White #fafafa for primary actions and keyboard focus. Selected destinations use #242424, a white indicator and heavier text. Status and error labels stay explicit; do not rely on hue.
 - Inter throughout the admin. Body 14px/1.55, labels 12–13px, page title 26px/1.2 semibold. No oversized marketing typography.
 - Spacing: 4, 8, 12, 16, 24, 32. Controls at least 40px high. Panel radius 12px; input/button radius 8px.
@@ -22,7 +22,7 @@ At 1024px and below: a fixed 280px drawer, capped at viewport width minus 40px, 
 
 ## Shared action rules
 
-The sidebar footer is one row: avatar, account name and role on the left; native logout icon on the right. Its accessible label and tooltip remain “Đăng xuất”, with a 44px target. Do not show a separate website link, logout text row or branding block. These are the owner's explicit decisions from 2026-11-04. Identity is not a navigation action.
+The sidebar footer is one row: avatar, account name and role on the left; native logout icon on the right. Its accessible label and tooltip remain “Đăng xuất”, with a 44px target. Do not show a separate website link, logout text row or branding block. These are the owner's explicit decisions from 2026-11-04. The avatar/name link opens the native /admin/account profile, with unsaved-change protection; logout stays separate.
 
 For each shared component change, review the default, selected, expanded, disabled and narrow-screen states together. Styling needs one responsible component rather than unrelated fixes on each page.
 
@@ -46,7 +46,7 @@ from another page/tab; a late response must not undo logout. Role shortcuts are
 presentation only; server authorization remains authoritative.
 
 Check each shared change in desktop and mobile, open/closed navigation and
-keyboard focus. Account identity is text, navigation actions have visible labels,
+keyboard focus. Account identity links to the profile, navigation actions have visible labels,
 and logout is the native icon action with an accessible name and tooltip. Avoid adding
 page-specific versions of these controls. Tests of the shared state matrix guard
 against recurrence; no claim of a full visual audit without observing those views.
