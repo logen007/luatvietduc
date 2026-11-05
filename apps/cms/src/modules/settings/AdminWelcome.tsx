@@ -79,11 +79,8 @@ export async function GoogleLogin() {
   const googleConfigured = (await connectionStatus()).google;
   return (
     <section className="lvd-admin-login" aria-labelledby="lvd-admin-login-title">
-      <a href="/" className="lvd-admin-login__brand"><span aria-hidden="true">L</span><strong>Luật Việt Đức</strong></a>
-      <p className="lvd-admin-eyebrow">KHÔNG GIAN QUẢN TRỊ</p>
-      <h1 id="lvd-admin-login-title">Chào mừng trở lại.</h1>
-      <p className="lvd-admin-login__intro">Đăng nhập bằng tài khoản được phân quyền để tiếp tục công việc.</p>
-      {googleConfigured ? <><a className="lvd-admin-google-link" href="/auth/google"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.5 12.2c0-.6-.1-1.2-.2-1.8H12v3.4h4.8c-.2 1.1-.8 2-1.7 2.6v2.2h2.8c1.6-1.5 2.6-3.7 2.6-6.4ZM12 21c2.4 0 4.4-.8 5.9-2.2l-2.8-2.2c-.8.5-1.8.8-3.1.8-2.3 0-4.3-1.6-5-3.7H4.2V16c1.5 3 4.5 5 7.8 5ZM7 13.7a5.4 5.4 0 0 1 0-3.4V8H4.2a9 9 0 0 0 0 8L7 13.7ZM12 6.6c1.4 0 2.6.5 3.5 1.4L18 5.5A8.8 8.8 0 0 0 12 3c-3.3 0-6.3 2-7.8 5L7 10.3c.7-2.1 2.7-3.7 5-3.7Z" /></svg>Tiếp tục bằng Google</a><div className="lvd-admin-login__divider"><span>hoặc dùng tài khoản nhân sự</span></div></> : <p className="lvd-admin-login__notice">Đăng nhập Google đang chờ cấu hình. Vui lòng dùng tài khoản nhân sự bên dưới.</p>}
+      <h1 id="lvd-admin-login-title">Đăng nhập</h1>
+      {googleConfigured && <><a className="lvd-admin-google-link" href="/auth/google"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.5 12.2c0-.6-.1-1.2-.2-1.8H12v3.4h4.8c-.2 1.1-.8 2-1.7 2.6v2.2h2.8c1.6-1.5 2.6-3.7 2.6-6.4ZM12 21c2.4 0 4.4-.8 5.9-2.2l-2.8-2.2c-.8.5-1.8.8-3.1.8-2.3 0-4.3-1.6-5-3.7H4.2V16c1.5 3 4.5 5 7.8 5ZM7 13.7a5.4 5.4 0 0 1 0-3.4V8H4.2a9 9 0 0 0 0 8L7 13.7ZM12 6.6c1.4 0 2.6.5 3.5 1.4L18 5.5A8.8 8.8 0 0 0 12 3c-3.3 0-6.3 2-7.8 5L7 10.3c.7-2.1 2.7-3.7 5-3.7Z" /></svg>Tiếp tục bằng Google</a><div className="lvd-admin-login__divider"><span>hoặc</span></div></>}
     </section>
   );
 }

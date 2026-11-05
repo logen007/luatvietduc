@@ -108,7 +108,17 @@ html.lvd-admin .lvd-admin-page .integration-title h2{font-size:calc(18px * var(-
 html.lvd-admin .lvd-admin-settings-grid{gap:16px}.lvd-admin-settings-grid>section{padding:22px}.lvd-admin-settings-grid h2{font-size:calc(16px * var(--lvd-admin-font-scale, 1))}
 html.lvd-admin .lvd-admin-page .button{border-radius:8px;min-height:40px;font-size:calc(12px * var(--lvd-admin-font-scale, 1))}
 html.lvd-admin .lvd-user-role-tabs{margin:12px 0 20px}.lvd-user-role-tabs a{font-size:calc(12px * var(--lvd-admin-font-scale, 1))}
-html.lvd-admin .lvd-admin-login{background:var(--admin-panel);border:1px solid var(--admin-line);padding:28px;border-radius:14px}.lvd-admin-login h1{font-size:calc(26px * var(--lvd-admin-font-scale, 1))!important;font-family:var(--font-body)!important}
+html.lvd-admin .template-minimal:has(.lvd-admin-login){padding:clamp(32px,10vh,96px) 20px}
+html.lvd-admin .template-minimal__wrap:has(.lvd-admin-login){box-sizing:border-box;width:100%;max-width:420px;min-width:0;padding:0;margin-inline:auto;border:0;border-radius:0;box-shadow:none}
+html.lvd-admin .lvd-admin-login{margin:0 0 24px;padding:0;border:0;border-radius:0;background:transparent}
+html.lvd-admin .lvd-admin-login h1{margin:0 0 24px;font-size:calc(28px * var(--lvd-admin-font-scale, 1));font-family:var(--font-body);font-weight:600;line-height:1.25;color:var(--admin-accent)}
+html.lvd-admin .lvd-admin-login .lvd-admin-google-link{min-height:44px;background:var(--admin-panel);border-color:var(--admin-line);color:var(--admin-text)}
+html.lvd-admin .lvd-admin-login .lvd-admin-google-link:hover{background:var(--admin-raised)}
+html.lvd-admin .lvd-admin-login__divider{margin:20px 0 0;font-size:calc(12px * var(--lvd-admin-font-scale, 1));color:var(--admin-muted)}
+html.lvd-admin .template-minimal__wrap:has(.lvd-admin-login) .login__form__inputWrap{gap:16px;margin-bottom:8px}
+html.lvd-admin .template-minimal__wrap:has(.lvd-admin-login) .field-type{margin-bottom:0}
+html.lvd-admin .template-minimal__wrap:has(.lvd-admin-login) .login__form>.btn{width:100%;min-height:44px;margin:20px 0 0}
+html.lvd-admin .template-minimal__wrap:has(.lvd-admin-login) .login__form>a{display:inline-flex;padding-block:4px;font-size:14px}
 html.lvd-admin .operator-workspace{--op-bg:var(--admin-panel);--op-soft:var(--admin-canvas);--op-line:var(--admin-line);--op-text:var(--admin-text);--op-muted:var(--admin-muted);border-radius:12px}
 html.lvd-admin .operator-eyebrow{letter-spacing:.08em}
 @media(max-width:1200px){html.lvd-admin .lvd-dashboard-stats{gap:12px}.lvd-dashboard-stats>a{padding:18px}.lvd-admin-connection-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
