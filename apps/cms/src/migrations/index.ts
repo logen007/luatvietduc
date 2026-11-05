@@ -1,3 +1,4 @@
+import * as articleTranslations from './20261105_130000_article_translations';
 import * as emailAccounts from './20261105_110000_email_accounts';
 import * as answerQueue from './20261104_130000_answer_queue';
 import * as threeRoles from './20261104_100000_three_user_roles';
@@ -38,4 +39,5 @@ export const migrations = [
  {up:threeRoles.up,down:threeRoles.down,name:'20261104_100000_three_user_roles'},
  {up:answerQueue.up,down:answerQueue.down,name:'20261104_130000_answer_queue'},
  {up:emailAccounts.up,down:emailAccounts.down,name:'20261105_110000_email_accounts'},
+ {up:articleTranslations.up,down:articleTranslations.down,name:'20261105_130000_article_translations'},
 ];

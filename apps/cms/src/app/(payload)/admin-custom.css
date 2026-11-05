@@ -327,3 +327,21 @@ html.lvd-admin .lvd-knowledge-editor .button.secondary{background:var(--theme-el
 
 /* Links use color/focus feedback without text underlines in any state. */
 html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decoration:none!important}
+
+/* Article language controls: native form state, independent translation connection. */
+html.lvd-admin .lvd-article-languages{margin-bottom:24px;padding:16px;border:1px solid var(--theme-elevation-150,#303030);border-radius:10px;background:var(--theme-elevation-50,#141414)}
+html.lvd-admin .lvd-article-languages__row,html.lvd-admin .lvd-article-languages__tabs,html.lvd-admin .lvd-article-languages__actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+html.lvd-admin .lvd-article-languages button{min-height:40px;padding:8px 14px;border:1px solid var(--theme-elevation-200,#3a3a3a);border-radius:7px;background:transparent;color:inherit;cursor:pointer;font:inherit}
+html.lvd-admin .lvd-article-languages button[aria-pressed=true]{background:#ededed;color:#111;border-color:#ededed}
+html.lvd-admin .lvd-article-languages button:disabled{opacity:.45;cursor:default}
+html.lvd-admin .lvd-article-languages .lvd-article-translate{margin-left:auto}
+html.lvd-admin .lvd-article-languages p{margin:12px 0 0;font-size:14px;color:var(--theme-elevation-600,#aaa)}
+html.lvd-admin .lvd-article-languages__empty{margin-top:16px}
+html.lvd-admin .lvd-article-languages__actions{margin-top:12px}
+html.lvd-admin .lvd-translation-loading{margin-top:16px;font-size:14px}
+html.lvd-admin .lvd-translation-progress{height:4px;margin-top:10px;overflow:hidden;border-radius:4px;background:#353535}
+html.lvd-admin .lvd-translation-progress i{display:block;width:40%;height:100%;background:#eee;animation:lvd-translation-progress 1.25s ease-in-out infinite}
+html.lvd-admin .lvd-translation-error{margin-top:12px;color:var(--theme-error-500,#ed9090);font-size:14px}
+@keyframes lvd-translation-progress{from{transform:translateX(-110%)}to{transform:translateX(350%)}}
+@media(prefers-reduced-motion:reduce){html.lvd-admin .lvd-translation-progress i{animation:none;width:100%;opacity:.65}}
+@media(max-width:600px){html.lvd-admin .lvd-article-languages .lvd-article-translate{margin-left:0;width:100%}html.lvd-admin .lvd-article-languages__actions{align-items:stretch;flex-direction:column}}

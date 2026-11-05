@@ -179,3 +179,33 @@ Trang `/tai-khoan` dùng form nền đen, Google và email/mật khẩu; mặc �
 Resend cần được kiểm tra và bật trong `/admin/settings/connections` để gửi email xác minh/đặt lại mật khẩu. Khi chưa bật, API báo chưa sẵn sàng, không báo gửi thành công. Chủ hệ thống chọn tự gửi email thử; địa chỉ gửi đã sửa sang tên miền mail.luatvietduc.com đã xác minh, kết nối vẫn tắt chờ thao tác này. Không gửi email thật trong kiểm tra tự động.
 
 Schema đi qua `release-reviewed-email-accounts.py`, ghim commit/manifest, kiểm tra CI, sao lưu và migration trước candidate; không đổi policy tự cập nhật. Quay lại mã cũ có thể giữ hai cột bổ sung. Down migration từ chối khi còn tài khoản chưa xác minh. Đã kiểm tra hệ thống với hộp thư giả: User-only, xác minh, cookie, nối đúng khách, CSRF, mật khẩu cũ bị từ chối sau reset và không tái dùng token.
+
+## Bài viết Việt–Đức — 01.21
+
+Mỗi bài có nhóm ngôn ngữ bất biến và tối đa một bản cho mỗi VI/DE. Hai bản giữ
+permalink, lịch sử, xuất bản và quyền AI riêng. Trình viết bài dùng
+`content/ArticleLanguages.tsx`; bản chưa tồn tại có thể sao chép nháp hoặc dịch
+bằng Gemini. Dịch lại chỉ điền vào form, cần lưu; không ghi đè âm thầm.
+Nhóm “Thông tin bổ sung” được bỏ khỏi form; các trường đã lưu và điều kiện hết
+hạn vẫn được giữ. Nút VI/DE thay select ngôn ngữ của bài đã lưu.
+
+`/service/articles/translations` yêu cầu quyền viết bài và phạm vi quốc gia,
+JSON cùng origin, giới hạn lượt gọi; kiểm tra lại quyền và phiên bản sau khi
+Google trả về. Khóa theo nhóm chặn hai lượt dịch đồng thời, unique index bảo vệ
+mỗi ngôn ngữ và thử lại trả cùng bản nháp. Lỗi/trả lời thiếu hoặc bài gốc thay đổi
+không tạo bản dịch. Client giữ nội dung vừa sửa, báo lỗi có thể thử lại và hiện
+thanh loading không giả phần trăm; reduced motion dùng thanh tĩnh.
+
+Kết nối `translation` có API key mã hóa và trạng thái kiểm tra/bật riêng ở
+/admin/settings/connections. Không kế thừa khóa hoặc cấu hình AI chat. Chỉ gửi
+tiêu đề/nội dung bài được chuyên viên chủ động yêu cầu dịch, không gửi hội thoại
+hay tệp của khách. Model tự chọn từ danh sách chính thức theo cơ chế đã có;
+không đăng ký thanh toán. Gemini dùng [generateContent](https://aistudio.google.com/api-reference/generate-content)
+và JSON có cấu trúc; kết quả vẫn được kiểm tra tại server, không coi JSON hợp lệ
+là chứng nhận dịch đúng pháp lý.
+
+Migration bổ sung nhóm ngôn ngữ ở articles/versions và provider trong vault.
+`release-reviewed-article-translations.py` ghim SHA/manifest, dùng backup và
+candidate của engine đang cài, không sửa policy phát hành. Code rollback giữ
+cột mới; down từ chối xóa nếu đã có bài liên kết hoặc khóa dịch. Kiểm tra hệ
+thống dùng khóa/AI giả, không phát sinh gửi bài thật hoặc email.

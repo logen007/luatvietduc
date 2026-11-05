@@ -21,8 +21,8 @@ async function handle(req: Request) {
     if (!isProvider(data.provider) || !Number.isInteger(data.version)) throw new IntegrationError(400,'Kết nối hoặc phiên bản không hợp lệ.');
     await rateLimit('integration-owner:'+user!.id,12);
     if(data.action==='save') {
-      if(data.provider==='ai' && data.values && typeof data.values==='object' && !String(data.values.model||'').trim()) {
-        const previous=data.version?await storedValues('ai',data.version):null;
+      if(['ai','translation'].includes(data.provider) && data.values && typeof data.values==='object' && !String(data.values.model||'').trim()) {
+        const previous=data.version?await storedValues(data.provider,data.version):null;
         const key=String(data.values.apiKey||previous?.values.apiKey||'').trim();
         if(!key)throw new IntegrationError(400,'Vui lòng nhập API key Gemini.');
         const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000',{headers:{'x-goog-api-key':key},redirect:'error',signal:AbortSignal.timeout(10000)});

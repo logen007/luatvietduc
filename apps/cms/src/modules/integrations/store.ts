@@ -8,6 +8,7 @@ const envValues = (p: Provider): Values => {
   if (p === 'drive') return {clientId:'',clientSecret:'',ageRecipient:''};
   if (p === 'google') return { clientId: e.GOOGLE_CLIENT_ID || '', clientSecret: e.GOOGLE_CLIENT_SECRET || '' };
   if (p === 'ai') return { apiKey: e.GEMINI_API_KEY || '', model: e.GEMINI_MODEL || '' };
+  if (p === 'translation') return {apiKey:'',model:''};
   if (p === 'r2') return { endpoint: e.R2_ENDPOINT || '', bucket: e.R2_BUCKET || '', accessKeyId: e.R2_ACCESS_KEY_ID || '', secretAccessKey: e.R2_SECRET_ACCESS_KEY || '' };
   return { apiKey: e.RESEND_API_KEY || '', fromAddress: e.EMAIL_FROM_ADDRESS || '', fromName: e.EMAIL_FROM_NAME || 'Luật Việt Đức' };
 };

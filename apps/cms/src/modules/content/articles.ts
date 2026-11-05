@@ -8,6 +8,7 @@ import {
   scopedStaff,
 } from "../../access/articles";
 import { articleLock, auditArticle } from "./audit";
+import {articleLanguageGroup} from "./translation-group";
 export const Articles: CollectionConfig = {
   slug: "articles",labels:{singular:"Bài viết",plural:"Bài viết & hỏi đáp"},
   versions: { drafts: true },
@@ -21,10 +22,12 @@ export const Articles: CollectionConfig = {
   },
   hooks: {
     beforeValidate:[({data,originalDoc})=>{if(!data)return data;data.slug=permalink(String(data.slug||originalDoc?.slug||data.title||''));return data;}],
-    beforeChange: [articleLock, articleWorkflow],
+    beforeChange: [articleLock, articleWorkflow, articleLanguageGroup],
     afterChange: [auditArticle],
   },
   fields: [
+    {name:'articleLanguages',type:'ui',admin:{components:{Field:'./modules/content/ArticleLanguages#ArticleLanguages'}}},
+    {name:'translationGroup',type:'text',admin:{hidden:true,readOnly:true},index:true},
     {name:'title',label:'Tiêu đề',type:'text',required:true,maxLength:240,admin:{className:'lvd-post-title'}},
     {name:'slug',label:'Permalink',type:'text',required:true,unique:true,admin:{components:{Field:'./modules/content/PermalinkField#PermalinkField'},description:'Địa chỉ bài viết: https://luatvietduc.com/bai-viet/ + permalink. Để trống để tự tạo từ tiêu đề.'}},
     {name:'body',label:'Nội dung',type:'textarea',required:true,maxLength:16000,admin:{rows:28,className:'lvd-post-body'}},
@@ -37,24 +40,11 @@ export const Articles: CollectionConfig = {
       defaultValue: "article",
       options: [{label:"Bài viết",value:"article"},{label:"Tin tức",value:"news"},{label:"Hỏi đáp",value:"question"}],admin:{position:"sidebar"},
     },
-    {type:"collapsible",label:"Thông tin bổ sung",admin:{initCollapsed:true},fields:[
-    { name: "legalField", label: "Lĩnh vực", type: "text" },
-    { name: "effectiveFrom", label: "Có hiệu lực từ", type: "date" },
-    { name: "reviewDueAt", label: "Hạn rà soát", type: "date" },
-    {
-      name: "reviewedBy",
-      label: "Người duyệt",
-      type: "relationship",
-      relationTo: "users",
-      access: { create: () => false, update: () => false },
-    },
-    {
-      name: "reviewedAt",
-      label: "Ngày duyệt",
-      type: "date",
-      access: { create: () => false, update: () => false },
-    },
-    ]},
+    {name:"legalField",type:"text",admin:{hidden:true}},
+    {name:"effectiveFrom",type:"date",admin:{hidden:true}},
+    {name:"reviewDueAt",type:"date",admin:{hidden:true}},
+    {name:"reviewedBy",type:"relationship",relationTo:"users",admin:{hidden:true},access:{create:()=>false,update:()=>false}},
+    {name:"reviewedAt",type:"date",admin:{hidden:true},access:{create:()=>false,update:()=>false}},
     {
       name: "jurisdiction", label:"Quốc gia",
       type: "select",
@@ -62,7 +52,7 @@ export const Articles: CollectionConfig = {
       options: ["VN", "DE",{label:"Việt Nam và Đức",value:"BOTH"}],
       defaultValue:"BOTH",admin:{hidden:true},
     },
-    { name: "language", label:"Ngôn ngữ nội dung", type: "select", required: true,defaultValue:"vi", options: [{label:"Tiếng Việt",value:"vi"},{label:"Tiếng Đức",value:"de"}],admin:{position:"sidebar"} },
+    { name: "language", label:"Ngôn ngữ nội dung", type: "select", required: true,defaultValue:"vi", options: [{label:"Tiếng Việt",value:"vi"},{label:"Tiếng Đức",value:"de"}],admin:{hidden:true} },
     {
       name: "sourceUrl", label:"Nguồn tham khảo",
       type: "text",

@@ -17,11 +17,11 @@ export async function checkConnection(provider: Provider, v: Values, email: stri
     return folder?.mimeType==='application/vnd.google-apps.folder'&&!folder.trashed?{state:'passed',message:'Đọc được thư mục sao lưu riêng trên Drive.'}:{state:'failed',message:'Không truy cập được thư mục sao lưu.'};
   }
   if (provider === 'google') return { state: 'configured', message: 'Định dạng hợp lệ. Sau khi bật, đăng nhập Google để xác nhận Client Secret, màn hình đồng ý và redirect URI.' };
-  if (provider === 'ai') {
+  if (provider === 'ai' || provider === 'translation') {
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(v.model), {
       headers: { 'x-goog-api-key': v.apiKey }, signal: AbortSignal.timeout(10000), redirect: 'error', cache: 'no-store' });
     if (!response.ok) return { state: 'failed', message: 'Chưa truy cập được API hoặc model. Kiểm tra khóa, model và quyền trong tài khoản Google AI.' };
-    return { state: 'passed', message: 'API key và model truy cập được. Chưa kiểm tra hạn mức tạo nội dung; AI cho khách vẫn tắt.' };
+    return { state: 'passed', message: provider==='translation'?'API key dịch và model truy cập được. Chưa sử dụng hạn mức dịch.':'API key và model truy cập được. Chưa kiểm tra hạn mức tạo nội dung; AI cho khách vẫn tắt.' };
   }
   if (provider === 'r2') {
     const client = r2Client(v);

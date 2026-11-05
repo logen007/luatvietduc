@@ -9,7 +9,7 @@ if(!['localhost','127.0.0.1'].includes(db.hostname)||db.pathname!=='/lvd_test')t
 const base='http://127.0.0.1:3047';process.env.APP_URL=base;process.env.LVD_WORKERS_DISABLED='1';
 const {getPayload}=await import('payload'),{default:config}=await import('../src/payload.config.ts'),{pool}=await import('../src/modules/shared/db.ts');
 const {chromium}=await import('playwright'),payload=await getPayload({config});
-let server,browser;const suffix=crypto.randomUUID(),password=crypto.randomUUID(),ids=[];
+let server,browser;const suffix=crypto.randomUUID(),password=crypto.randomUUID(),ids=[],translationArticleIds=[];
 await mkdir('test-results/cms-browser',{recursive:true});
 try{
  const owner=await payload.create({collection:'users',overrideAccess:true,context:{bootstrapOwner:true},data:{name:'Browser test admin',email:`browser-${suffix}@example.invalid`,password,role:'owner'}});ids.push(owner.id);
@@ -114,6 +114,24 @@ try{
  failSourceList=false;await page.locator('.lvd-knowledge-list').getByRole('button',{name:'Thử lại',exact:true}).click();
  await page.waitForFunction(()=>!document.querySelector('.lvd-knowledge-list [role="alert"]'));
  await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/knowledge-mobile.png'});
+ // Native article language controls: preserve edits and show real pending state.
+ const {articleTranslation}=await import('../src/modules/content/translations.ts');
+ const translationSource=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic bilingual '+suffix,body:'Synthetic source body.',slug:'',language:'vi',jurisdiction:'BOTH'}});translationArticleIds.push(translationSource.id);
+ const translationCopy=await articleTranslation(payload,owner,{id:translationSource.id,language:'de',updatedAt:translationSource.updatedAt,mode:'copy'});translationArticleIds.push(translationCopy.id);
+ let releaseTranslation;const translationPending=new Promise(resolve=>{releaseTranslation=resolve;});let translationsRequested=0,notifyTranslation;const translationStarted=new Promise(resolve=>{notifyTranslation=resolve;});
+ await page.route('**/service/articles/translations?*',route=>route.fulfill({json:{articles:[{id:translationSource.id,language:'vi'},{id:translationCopy.id,language:'de'}],translationReady:true}}));
+ await page.route('**/service/articles/translations',async route=>{translationsRequested++;notifyTranslation();await translationPending;await route.fulfill({json:{translation:{title:'Synthetischer Titel',body:'Vollständiger synthetischer Text.'}}});});
+ await page.goto(base+'/admin/collections/articles/'+translationSource.id);await page.locator('.lvd-article-languages').waitFor();
+ assert.equal(await page.getByText('Thông tin bổ sung',{exact:true}).count(),0);
+ await page.locator('.lvd-article-languages').getByRole('button',{name:'DE',exact:true}).click();await page.waitForURL('**/admin/collections/articles/'+translationCopy.id);
+ await page.getByRole('button',{name:'Dịch từ VI bằng AI',exact:true}).click();await page.getByRole('progressbar',{name:'Đang dịch bài viết'}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Dịch từ VI bằng AI',exact:true}).isDisabled(),true);await Promise.race([translationStarted,pause(12000).then(()=>{throw new Error('Translation request did not start');})]);assert.equal(translationsRequested,1);
+ await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/article-translation-loading-mobile.png'});
+ releaseTranslation();await page.getByText('Đã dịch. Lưu bản nháp sau khi đọc lại.',{exact:true}).waitFor();
+ assert.equal(await page.locator('#field-title').inputValue(),'Synthetischer Titel');assert.equal(await page.locator('#field-body').inputValue(),'Vollständiger synthetischer Text.');
+ await page.locator('.lvd-article-languages').getByRole('button',{name:'VI',exact:true}).click();await page.getByText('Lưu thay đổi trước khi chuyển ngôn ngữ.',{exact:true}).waitFor();
+ assert.ok(page.url().endsWith('/'+translationCopy.id));page.once('dialog',dialog=>dialog.accept());await page.goto(base+'/admin');
+ await page.unroute('**/service/articles/translations');await page.unroute('**/service/articles/translations?*');
  // Native CMS pages, not the old prototype, at desktop and phone widths.
  for(const viewport of [{width:390,height:844},{width:1280,height:900}]){
   await page.setViewportSize(viewport);
@@ -181,6 +199,7 @@ try{
 }catch(error){console.error('CMS browser check failed:',error);throw error;}finally{
  await browser?.close();
  if(server&&server.exitCode===null)await new Promise(resolve=>{const timeout=setTimeout(()=>server.kill('SIGKILL'),5000);server.once('exit',()=>{clearTimeout(timeout);resolve();});server.kill('SIGTERM');});
+ for(const id of translationArticleIds.reverse())await payload.delete({collection:'articles',id,user:await payload.findByID({collection:'users',id:ids[0],overrideAccess:true}),overrideAccess:false});
  for(const id of ids)await payload.delete({collection:'users',id,overrideAccess:true});
  await payload.destroy();await pool.end();
 }

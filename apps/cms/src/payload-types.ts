@@ -176,6 +176,7 @@ export interface User {
  */
 export interface Article {
   id: number;
+  translationGroup?: string | null;
   title: string;
   /**
    * Địa chỉ bài viết: https://luatvietduc.com/bai-viet/ + permalink. Để trống để tự tạo từ tiêu đề.
@@ -447,6 +448,7 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "articles_select".
  */
 export interface ArticlesSelect<T extends boolean = true> {
+  translationGroup?: T;
   title?: T;
   slug?: T;
   body?: T;

@@ -1,3 +1,4 @@
+import {testArticleTranslations} from './test-article-translations';
 import {testEmailAccounts} from './test-email-accounts';
 import {testAnswerQueue} from './test-answer-queue';
 import {testPublicContent} from './test-public-content';
@@ -40,6 +41,7 @@ try {
       role: "owner",
     },
   });
+  await testArticleTranslations(payload,owner);
   await testEmailAccounts(payload,owner);
   await testThreeRoles(payload,owner);
   await testPublicContent(payload,owner);

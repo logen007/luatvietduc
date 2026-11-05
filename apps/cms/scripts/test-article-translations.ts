@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict';
+import type {Payload} from 'payload';
+import type {User} from '../src/payload-types';
+import {pool} from '../src/modules/shared/db';
+import {seal,unseal} from '../src/modules/integrations/crypto';
+import {activeValues,safeConnection} from '../src/modules/integrations/store';
+import {articleTranslation,articleLanguages} from '../src/modules/content/translations';
+import {GET,POST} from '../src/app/service/articles/translations/route';
+export async function testArticleTranslations(payload:Payload,owner:User){
+ const db=new URL(process.env.DATABASE_URL||'');if(db.pathname!=='/lvd_test'||!['127.0.0.1','localhost'].includes(db.hostname))throw new Error('Isolated translation checks only');
+ const suffix=crypto.randomUUID(),articles:number[]=[],users:number[]=[],originalFetch=globalThis.fetch;let calls=0;
+ const fakeTranslation={title:'Synthetischer deutscher Titel',body:'Vollständiger synthetischer Absatz.\n\nBedingungen bleiben erhalten.'};
+ const provider=async(_input:unknown,options?:RequestInit)=>{
+  calls++;assert.equal(new Headers(options?.headers).get('x-goog-api-key'),'synthetic-translation-only');
+  assert.ok(!String(options?.body).includes('synthetic-chat-key'));
+  return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(fakeTranslation)}]}}]});
+ };
+ const source=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic translation '+suffix,body:'Synthetic source.\n\nPreserve conditions.',slug:'',language:'vi',jurisdiction:'BOTH',reviewState:'approved',_status:'published',aiAllowed:true}});articles.push(source.id);
+ const member=await payload.create({collection:'users',user:owner,overrideAccess:false,data:{name:'Synthetic translation user',email:suffix+'@example.invalid',role:'member',password:crypto.randomUUID()}});users.push(member.id);
+ try{
+  assert.ok(source.translationGroup);
+  await assert.rejects(()=>articleLanguages(payload,null,source.id),(e:any)=>e.status===401);
+  await assert.rejects(()=>articleTranslation(payload,member,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'ai'}),(e:any)=>e.status===403);
+  assert.equal((await GET(new Request('http://localhost:3000/service/articles/translations?id='+source.id))).status,401);
+  assert.equal((await POST(new Request('http://localhost:3000/service/articles/translations',{method:'POST',headers:{origin:'https://attacker.invalid','content-type':'application/json'},body:'{}'}))).status,401);
+  assert.equal(await activeValues('translation'),null,'No fallback to the chat key or environment');
+  await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'ai'}),(e:any)=>e.status===503);
+  await pool.query("INSERT INTO lvd_integrations(provider,encrypted_values,enabled,check_state) VALUES('translation',$1,true,'passed')",[seal('translation',{apiKey:'synthetic-translation-only',model:'test-model'})]);
+  const safe=await safeConnection('translation');assert.equal(safe.values.apiKey,undefined);assert.equal(safe.stored.apiKey,true);
+  assert.throws(()=>unseal('ai',seal('translation',{apiKey:'synthetic-translation-only'})),'Provider AAD separates the keys');
+  globalThis.fetch=provider as typeof fetch;
+  const result=await articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'ai'});assert.ok('id' in result);const id=result.id!;articles.push(id);
+  const target=await payload.findByID({collection:'articles',id,draft:true,depth:0});assert.equal(target.translationGroup,source.translationGroup);assert.equal(target.language,'de');assert.equal(target.title,fakeTranslation.title);assert.equal(target._status,'draft');assert.equal(target.reviewState,'draft');assert.equal(target.aiAllowed,false);
+  assert.equal((await payload.findByID({collection:'articles',id:source.id,depth:0})).body,source.body,'The source is unchanged');
+  assert.equal((await payload.find({collection:'articles',overrideAccess:false,where:{id:{equals:id}}})).totalDocs,0,'Translation draft is private');
+  assert.equal((await pool.query('SELECT id FROM knowledge WHERE article_origin_id=$1 AND approved=true',[id])).rowCount,0,'Translation cannot enter RAG');
+  const retry=await articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'ai'});assert.equal('id' in retry&&retry.id,id);assert.equal(calls,1,'Retry returns the same draft without another provider call');
+  assert.equal((await articleLanguages(payload,owner,id)).articles.length,2);
+  await payload.update({collection:'articles',id,user:owner,overrideAccess:false,data:{translationGroup:'forged-group'}});assert.equal((await payload.findByID({collection:'articles',id})).translationGroup,source.translationGroup,'Group cannot be forged through native API');
+  await assert.rejects(()=>payload.update({collection:'articles',id,user:owner,overrideAccess:false,data:{language:'vi'}}),/VI\/DE/);
+  const preview=await articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'});assert.deepEqual('translation' in preview&&preview.translation,fakeTranslation);assert.equal((await payload.findByID({collection:'articles',id,draft:true})).title,fakeTranslation.title,'Preview does not write over saved work');
+  let finish!:()=>void,started!:()=>void;const waiting=new Promise<void>(resolve=>{finish=resolve;}),begun=new Promise<void>(resolve=>{started=resolve;});
+  globalThis.fetch=(async()=>{started();await waiting;return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(fakeTranslation)}]}}]});}) as typeof fetch;
+  const pending=articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'});await begun;
+  await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'}),(e:any)=>e.status===409,'Concurrent translations do not generate twice');finish();await pending;
+  globalThis.fetch=(async()=>Response.json({candidates:[{finishReason:'MAX_TOKENS',content:{parts:[{text:'partial'}]}}]})) as typeof fetch;
+  await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'}),(e:any)=>e.status===502);
+  globalThis.fetch=(async()=>{
+   await payload.update({collection:'articles',id:source.id,user:owner,overrideAccess:false,data:{body:'Concurrent synthetic revision'}});
+   return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(fakeTranslation)}]}}]});
+  }) as typeof fetch;
+  await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'}),(e:any)=>e.status===409,'Source changes during generation reject the response');
+  const second=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic manual '+suffix,body:'Manual translation source',slug:'',language:'de',jurisdiction:'BOTH'}});articles.push(second.id);
+  const copy=await articleTranslation(payload,owner,{id:second.id,language:'vi',updatedAt:second.updatedAt,mode:'copy'});assert.ok('id' in copy);articles.push(copy.id!);assert.equal((await payload.findByID({collection:'articles',id:copy.id!,draft:true})).body,second.body);
+  console.log('Article translation checks passed: isolated encrypted key, private draft, no AI eligibility, idempotent retry, immutable source/group, incomplete output rejection and stale source protection.');
+ }finally{
+  globalThis.fetch=originalFetch;
+  for(const id of articles.reverse())await payload.delete({collection:'articles',id,user:owner,overrideAccess:false});
+  for(const id of users)await payload.delete({collection:'users',id,user:owner,overrideAccess:false});
+  await pool.query("DELETE FROM lvd_integrations WHERE provider='translation'");
+ }
+}

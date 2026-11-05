@@ -49,7 +49,7 @@ function ConnectionForm({initial,revision}:{initial:Connection;revision:number})
     {error&&<p className="live-error" role="alert">{error}</p>}
   </section>;
 }
-export function IntegrationPanel({providers=['google','ai','r2','email']}:{providers?:Provider[]}){
+export function IntegrationPanel({providers=['google','ai','translation','r2','email']}:{providers?:Provider[]}){
   const session=usePublicSession(),owner=session.status==='ready'&&session.user?.role==='owner';
   const [revision,setRevision]=useState(-1);
   const [connections,setConnections]=useState<Connection[]|null>(null),[error,setError]=useState<ConnectionError|null>(null),[attempt,setAttempt]=useState(0);
