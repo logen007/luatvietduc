@@ -418,7 +418,8 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
   font-size: 13px;
   line-height: 24px;
   color: rgba(255, 255, 255, 0.65);
-  max-width: 20ch;
+  max-width: none;
+  text-wrap: pretty;
   margin: 24px 0 0;
 }
 .live-footer-column h2 {
