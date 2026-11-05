@@ -7,6 +7,8 @@ export function requireOwner(user: { role?: string } | null | undefined) {
 }
 export function mergeValues(provider: Provider, previous: Values, input: unknown): Values {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new IntegrationError(400, 'Thông tin không hợp lệ.');
+  // A Gemini key must never be relabelled or sent to xAI after the provider switch.
+  if (provider === 'translation' && previous.vendor !== 'xai') previous = {};
   const result: Values = {};
   for (const field of integrationCatalog[provider].fields) {
     const value = (input as Record<string, unknown>)[field.key];
@@ -15,6 +17,7 @@ export function mergeValues(provider: Provider, previous: Values, input: unknown
     if (clean.length > 4096 || /[\r\n\0]/.test(clean)) throw new IntegrationError(400, 'Giá trị có ký tự hoặc độ dài không hợp lệ.');
     result[field.key] = field.secret && !clean ? previous[field.key] || '' : clean;
   }
+  if (provider === 'translation') result.vendor = 'xai';
   validateValues(provider, result);
   return result;
 }
@@ -24,6 +27,7 @@ export function validateValues(provider: Provider, v: Values) {
   if (['google','drive'].includes(provider) && !/^[\w.-]+\.apps\.googleusercontent\.com$/.test(v.clientId)) invalid('Client ID Google không đúng định dạng.');
   if (provider === 'drive' && !/^age1[0-9a-z]{58}$/.test(v.ageRecipient)) invalid('Nhập khóa age công khai hợp lệ; không nhập khóa khôi phục bí mật ở đây.');
   if (['ai','translation'].includes(provider) && !/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,99}$/.test(v.model)) invalid('Tên model không hợp lệ; chỉ nhập tên, không nhập URL.');
+  if (provider === 'translation' && (v.vendor !== 'xai' || !/^grok-[a-zA-Z0-9.-]+$/.test(v.model))) invalid('Nhập khóa xAI và chọn model Grok, sau đó lưu và kiểm tra lại.');
   if (provider === 'r2') {
     let url: URL; try { url = new URL(v.endpoint); } catch { return invalid('Endpoint R2 không hợp lệ.'); }
     if (url.protocol !== 'https:' || url.username || url.password || url.port || !/^[a-f0-9]{32}(?:\.eu|\.fedramp)?\.r2\.cloudflarestorage\.com$/.test(url.hostname) || !['', '/'].includes(url.pathname) || url.search || url.hash) invalid('Chỉ dùng HTTPS endpoint chính thức của Cloudflare R2.');

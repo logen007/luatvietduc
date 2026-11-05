@@ -3,7 +3,7 @@ import type {Payload} from 'payload';
 import type {User} from '../src/payload-types';
 import {pool} from '../src/modules/shared/db';
 import {seal,unseal} from '../src/modules/integrations/crypto';
-import {activeValues,safeConnection} from '../src/modules/integrations/store';
+import {activeValues,safeConnection,saveConnection,markCheck,setEnabled} from '../src/modules/integrations/store';
 import {articleTranslation,articleLanguages} from '../src/modules/content/translations';
 import {GET,POST} from '../src/app/service/articles/translations/route';
 export async function testArticleTranslations(payload:Payload,owner:User){
@@ -11,9 +11,10 @@ export async function testArticleTranslations(payload:Payload,owner:User){
  const suffix=crypto.randomUUID(),articles:number[]=[],users:number[]=[],originalFetch=globalThis.fetch;let calls=0;
  const fakeTranslation={title:'Synthetischer deutscher Titel',body:'Vollständiger synthetischer Absatz.\n\nBedingungen bleiben erhalten.'};
  const provider=async(_input:unknown,options?:RequestInit)=>{
-  calls++;assert.equal(new Headers(options?.headers).get('x-goog-api-key'),'synthetic-translation-only');
+  calls++;assert.equal(_input,'https://api.x.ai/v1/responses');assert.equal(new Headers(options?.headers).get('authorization'),'Bearer synthetic-translation-only');
+  const request=JSON.parse(String(options?.body));assert.equal(request.store,false);assert.equal(request.text.format.strict,true);
   assert.ok(!String(options?.body).includes('synthetic-chat-key'));
-  return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(fakeTranslation)}]}}]});
+  return Response.json({status:'completed',output:[{type:'message',role:'assistant',status:'completed',content:[{type:'output_text',text:JSON.stringify(fakeTranslation)}]}]});
  };
  const source=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic translation '+suffix,body:'Synthetic source.\n\nPreserve conditions.',slug:'',language:'vi',jurisdiction:'BOTH',reviewState:'approved',_status:'published',aiAllowed:true}});articles.push(source.id);
  const member=await payload.create({collection:'users',user:owner,overrideAccess:false,data:{name:'Synthetic translation user',email:suffix+'@example.invalid',role:'member',password:crypto.randomUUID()}});users.push(member.id);
@@ -26,7 +27,15 @@ export async function testArticleTranslations(payload:Payload,owner:User){
   assert.equal(await activeValues('translation'),null,'No fallback to the chat key or environment');
   await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'ai'}),(e:any)=>e.status===503);
   await pool.query("INSERT INTO lvd_integrations(provider,encrypted_values,enabled,check_state) VALUES('translation',$1,true,'passed')",[seal('translation',{apiKey:'synthetic-translation-only',model:'test-model'})]);
-  const safe=await safeConnection('translation');assert.equal(safe.values.apiKey,undefined);assert.equal(safe.stored.apiKey,true);
+  const legacy=await safeConnection('translation');assert.equal(legacy.enabled,false);assert.equal(legacy.stored.apiKey,false);assert.equal(legacy.checkState,'untested');
+  assert.equal(await activeValues('translation'),null,'An enabled Gemini translation key is never sent to xAI');
+  await assert.rejects(()=>setEnabled('translation',legacy.version,true,owner.id));
+  await assert.rejects(()=>saveConnection('translation',{apiKey:'',model:'grok-4.7'},legacy.version,owner.id));
+  const saved=await saveConnection('translation',{apiKey:'synthetic-translation-only',model:'grok-4.7'},legacy.version,owner.id);
+  assert.equal(await activeValues('translation'),null,'New xAI settings must be checked and enabled');
+  await assert.rejects(()=>setEnabled('translation',saved.version,true,owner.id));
+  await markCheck('translation',saved.version,'passed',owner.id);await setEnabled('translation',saved.version,true,owner.id);
+  const safe=await safeConnection('translation');assert.equal(safe.values.apiKey,undefined);assert.equal(safe.stored.apiKey,true);assert.equal(safe.enabled,true);
   assert.throws(()=>unseal('ai',seal('translation',{apiKey:'synthetic-translation-only'})),'Provider AAD separates the keys');
   globalThis.fetch=provider as typeof fetch;
   const result=await articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'ai'});assert.ok('id' in result);const id=result.id!;articles.push(id);
@@ -40,14 +49,14 @@ export async function testArticleTranslations(payload:Payload,owner:User){
   await assert.rejects(()=>payload.update({collection:'articles',id,user:owner,overrideAccess:false,data:{language:'vi'}}),/VI\/DE/);
   const preview=await articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'});assert.deepEqual('translation' in preview&&preview.translation,fakeTranslation);assert.equal((await payload.findByID({collection:'articles',id,draft:true})).title,fakeTranslation.title,'Preview does not write over saved work');
   let finish!:()=>void,started!:()=>void;const waiting=new Promise<void>(resolve=>{finish=resolve;}),begun=new Promise<void>(resolve=>{started=resolve;});
-  globalThis.fetch=(async()=>{started();await waiting;return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(fakeTranslation)}]}}]});}) as typeof fetch;
+  globalThis.fetch=(async()=>{started();await waiting;return Response.json({status:'completed',output:[{type:'message',role:'assistant',status:'completed',content:[{type:'output_text',text:JSON.stringify(fakeTranslation)}]}]});}) as typeof fetch;
   const pending=articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'});await begun;
   await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'}),(e:any)=>e.status===409,'Concurrent translations do not generate twice');finish();await pending;
-  globalThis.fetch=(async()=>Response.json({candidates:[{finishReason:'MAX_TOKENS',content:{parts:[{text:'partial'}]}}]})) as typeof fetch;
+  globalThis.fetch=(async()=>Response.json({status:'incomplete',incomplete_details:{reason:'max_output_tokens'},output:[]})) as typeof fetch;
   await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'}),(e:any)=>e.status===502);
   globalThis.fetch=(async()=>{
    await payload.update({collection:'articles',id:source.id,user:owner,overrideAccess:false,data:{body:'Concurrent synthetic revision'}});
-   return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(fakeTranslation)}]}}]});
+   return Response.json({status:'completed',output:[{type:'message',role:'assistant',status:'completed',content:[{type:'output_text',text:JSON.stringify(fakeTranslation)}]}]});
   }) as typeof fetch;
   await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'}),(e:any)=>e.status===409,'Source changes during generation reject the response');
   const second=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic manual '+suffix,body:'Manual translation source',slug:'',language:'de',jurisdiction:'BOTH'}});articles.push(second.id);

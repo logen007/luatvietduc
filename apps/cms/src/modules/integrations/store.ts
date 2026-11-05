@@ -1,7 +1,7 @@
 import { pool, transaction } from '../shared/db';
 import { integrationCatalog, type Provider, type Values } from './catalog';
 import { seal, unseal } from './crypto';
-import { IntegrationError, mergeValues } from './validation';
+import { IntegrationError, mergeValues, validateValues } from './validation';
 type Row = { provider: Provider; encrypted_values: string; enabled: boolean; version: number; check_state: string; checked_at: string | null; updated_at: string };
 const envValues = (p: Provider): Values => {
   const e = process.env;
@@ -18,20 +18,27 @@ export async function readRow(provider: Provider): Promise<Row | null> {
 }
 export async function activeValues(provider: Provider): Promise<Values | null> {
   const row = await readRow(provider);
-  if (row) return row.enabled ? unseal(provider, row.encrypted_values) : null;
+  if (row) {
+    if (!row.enabled) return null;
+    const values=unseal(provider,row.encrypted_values);
+    if (provider==='translation' && values.vendor!=='xai') return null;
+    return values;
+  }
   const values = envValues(provider);
   return integrationCatalog[provider].fields.every(f => ('optional' in f && f.optional) || values[f.key]) ? values : null;
 }
 export async function safeConnection(provider: Provider) {
-  const row = await readRow(provider), values = row ? unseal(provider, row.encrypted_values) : envValues(provider);
+  const row = await readRow(provider), saved = row ? unseal(provider, row.encrypted_values) : envValues(provider);
+  const obsolete=provider==='translation'&&saved.vendor!=='xai';
+  const values:Values=obsolete?{}:saved;
   const fields: Values = {}, stored: Record<string, boolean> = {};
   for (const field of integrationCatalog[provider].fields) {
     if (field.secret) stored[field.key] = Boolean(values[field.key]);
     else fields[field.key] = values[field.key] || '';
   }
   return { provider, values: fields, stored, version: row?.version || 0,
-    enabled: row ? row.enabled : Boolean(await activeValues(provider)),
-    checkState: row?.check_state || 'untested', checkedAt: row?.checked_at || null,
+    enabled: !obsolete&&(row ? row.enabled : Boolean(await activeValues(provider))),
+    checkState: obsolete?'untested':row?.check_state || 'untested', checkedAt: obsolete?null:row?.checked_at || null,
     source: row ? 'admin' : 'environment' };
 }
 export async function saveConnection(provider: Provider, input: unknown, expected: number, actor: number) {
@@ -71,6 +78,7 @@ export async function setEnabled(provider: Provider, version: number, enabled: b
     const row: Row | undefined = (await db.query('SELECT * FROM lvd_integrations WHERE provider=$1 FOR UPDATE', [provider])).rows[0];
     if (!row || row.version !== version) throw new IntegrationError(409, 'Cấu hình đã thay đổi. Tải lại trước khi tiếp tục.');
     if (enabled && !['passed','configured'].includes(row.check_state)) throw new IntegrationError(409, 'Kiểm tra cấu hình trước khi bật.');
+    if (enabled && provider==='translation') validateValues(provider,unseal(provider,row.encrypted_values));
     const next = version + 1;
     await db.query('UPDATE lvd_integrations SET enabled=$2,version=$3,updated_by=$4,updated_at=now() WHERE provider=$1', [provider,enabled,next,actor]);
     await db.query('INSERT INTO lvd_integration_events(provider,action,actor_id,version) VALUES($1,$2,$3,$4)', [provider,enabled?'enable':'disable',actor,next]);

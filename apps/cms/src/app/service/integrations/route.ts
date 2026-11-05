@@ -5,6 +5,7 @@ import { integrationCatalog, isProvider, type Provider } from '../../../modules/
 import { requireOwner, IntegrationError } from '../../../modules/integrations/validation';
 import { safeConnection, saveConnection, storedValues, markCheck, setEnabled } from '../../../modules/integrations/store';
 import { checkConnection } from '../../../modules/integrations/check';
+import {grokModels,chooseGrokModel} from '../../../modules/integrations/grok';
 import { rateLimit } from '../../../modules/chat/service';
 export const dynamic = 'force-dynamic';
 const json = (value: unknown, status = 200) => NextResponse.json(value, { status, headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'} });
@@ -21,7 +22,13 @@ async function handle(req: Request) {
     if (!isProvider(data.provider) || !Number.isInteger(data.version)) throw new IntegrationError(400,'Kết nối hoặc phiên bản không hợp lệ.');
     await rateLimit('integration-owner:'+user!.id,12);
     if(data.action==='save') {
-      if(['ai','translation'].includes(data.provider) && data.values && typeof data.values==='object' && !String(data.values.model||'').trim()) {
+      if(data.provider==='translation' && data.values && typeof data.values==='object' && !String(data.values.model||'').trim()) {
+        const previous=data.version?await storedValues('translation',data.version):null;
+        const key=String(data.values.apiKey||(previous?.values.vendor==='xai'?previous.values.apiKey:'')||'').trim();
+        if(!key||key.length>4096||/[\r\n\0]/.test(key))throw new IntegrationError(400,'Vui lòng nhập API key xAI hợp lệ.');
+        data.values.model=chooseGrokModel(await grokModels(key));
+      }
+      if(data.provider==='ai' && data.values && typeof data.values==='object' && !String(data.values.model||'').trim()) {
         const previous=data.version?await storedValues(data.provider,data.version):null;
         const key=String(data.values.apiKey||previous?.values.apiKey||'').trim();
         if(!key)throw new IntegrationError(400,'Vui lòng nhập API key Gemini.');

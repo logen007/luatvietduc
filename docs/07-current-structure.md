@@ -198,7 +198,7 @@ hạn vẫn được giữ. Nút VI/DE thay select ngôn ngữ của bài đã l
 
 `/service/articles/translations` yêu cầu quyền viết bài và phạm vi quốc gia,
 JSON cùng origin, giới hạn lượt gọi; kiểm tra lại quyền và phiên bản sau khi
-Google trả về. Khóa theo nhóm chặn hai lượt dịch đồng thời, unique index bảo vệ
+Grok trả về. Khóa theo nhóm chặn hai lượt dịch đồng thời, unique index bảo vệ
 mỗi ngôn ngữ và thử lại trả cùng bản nháp. Lỗi/trả lời thiếu hoặc bài gốc thay đổi
 không tạo bản dịch. Client giữ nội dung vừa sửa, báo lỗi có thể thử lại và hiện
 thanh loading không giả phần trăm; reduced motion dùng thanh tĩnh.
@@ -207,9 +207,14 @@ Kết nối `translation` có API key mã hóa và trạng thái kiểm tra/bậ
 /admin/settings/connections. Không kế thừa khóa hoặc cấu hình AI chat. Chỉ gửi
 tiêu đề/nội dung bài được chuyên viên chủ động yêu cầu dịch, không gửi hội thoại
 hay tệp của khách. Model tự chọn từ danh sách chính thức theo cơ chế đã có;
-không đăng ký thanh toán. Gemini dùng [generateContent](https://aistudio.google.com/api-reference/generate-content)
-và JSON có cấu trúc; kết quả vẫn được kiểm tra tại server, không coi JSON hợp lệ
+không đăng ký thanh toán. Dịch dùng Grok qua [xAI Responses](https://docs.x.ai/developers/rest-api-reference/inference/responses),
+store=false và JSON schema nghiêm ngặt; kết quả vẫn được kiểm tra tại server, không coi JSON hợp lệ
 là chứng nhận dịch đúng pháp lý.
+
+Từ 01.27, kết nối dịch dùng marker vendor=xai bên trong dữ liệu mã hóa. Khóa Gemini
+cũ bị vô hiệu tại điểm đọc/kiểm tra/bật, không bao giờ được gửi tới xAI; cần nhập
+khóa xAI mới, lưu, kiểm tra và bật. AI chat vẫn dùng Gemini. Model dịch để trống
+sẽ chọn bản Grok ổn định mới nhất có trong danh sách xAI, không dùng beta/code/image.
 
 Migration bổ sung nhóm ngôn ngữ ở articles/versions và provider trong vault.
 `release-reviewed-article-translations.py` ghim SHA/manifest, dùng backup và
