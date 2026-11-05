@@ -74,6 +74,15 @@ try{
  await page.locator('.lvd-admin-navigation').getByRole('link',{name:'Bài viết',exact:true}).click();
  assert.equal(new URL(page.url()).pathname,'/admin/settings/connections');assert.equal(await page.getByLabel('Client ID',{exact:true}).inputValue(),'unsaved synthetic edit');
  page.once('dialog',dialog=>dialog.accept());await page.reload();await page.getByLabel('Client ID',{exact:true}).waitFor();
+ // Losing the owner role removes unsaved secrets immediately; an old result
+ // must not leave a credentials form mounted for the next identity.
+ await page.getByLabel('Client Secret',{exact:true}).fill('synthetic-unsaved-secret');
+ await page.route('**/service/me',route=>route.fulfill({json:{user:{id:owner.id,role:'member',name:'Synthetic member'},connections:{}}}));
+ await page.evaluate(()=>document.dispatchEvent(new Event('lvd:sessionchange')));
+ await page.getByText('Chỉ quản trị viên được quản lý kết nối.',{exact:false}).waitFor();
+ assert.equal(await page.getByLabel('Client Secret',{exact:true}).count(),0);
+ await page.unroute('**/service/me');await page.evaluate(()=>document.dispatchEvent(new Event('lvd:sessionchange')));
+ await page.getByLabel('Client Secret',{exact:true}).waitFor();assert.equal(await page.getByLabel('Client Secret',{exact:true}).inputValue(),'');
  let failSourceList=false;
  const sources=[{id:901,title:'Synthetic source A',body:'Synthetic body A',_status:'draft',approved:false,reviewDueAt:'2030-01-01T00:00:00Z'},{id:902,title:'Synthetic source B',body:'Synthetic body B',_status:'draft',approved:false,reviewDueAt:'2030-01-01T00:00:00Z'}];
  await page.route('**/service/knowledge-articles?*',route=>{const id=new URL(route.request().url()).searchParams.get('id');if(!id&&failSourceList){return route.fulfill({status:503,json:{error:'Synthetic list unavailable'}});}return route.fulfill({json:id?sources.find(source=>source.id===Number(id)):{articles:sources,total:2,totalPages:1,indexWorker:{online:true,state:'ready'}}});});
@@ -124,6 +133,33 @@ try{
  failTranscript=false;await page.locator('.operator-error').getByRole('button',{name:'Thử lại',exact:true}).click();
  await page.waitForFunction(()=>!document.querySelector('.operator-error'));
  await page.locator('.operator-conversation-header').getByText('Đã hoàn tất',{exact:false}).waitFor();
+ // Drafts follow the selected customer conversation and survive explicit account
+ // navigation. All endpoints below are synthetic and cannot call a provider.
+ const draftA=crypto.randomUUID(),draftB=crypto.randomUUID();
+ const draftRows=[{id:draftA,title:'Draft conversation A',state:'human',version:1,aiEnabled:false},{id:draftB,title:'Draft conversation B',state:'human',version:1,aiEnabled:false}];
+ await page.route('**/service/conversations',route=>route.fulfill({json:draftRows}));
+ for(const item of draftRows)await page.route(new RegExp('/service/conversations/'+item.id+'(?:[?]|$)'),route=>route.fulfill({json:{conversation:item,messages:[]}}));
+ await page.goto(base+'/tro-chuyen?conversation='+draftA);const question=page.getByRole('textbox',{name:'Câu hỏi của bạn',exact:true});
+ await question.waitFor();await page.waitForFunction(()=>!document.querySelector('textarea')?.disabled);
+ await question.fill('Synthetic draft A');await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation B/}).click();await question.fill('Synthetic draft B');
+ await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation A/}).click();assert.equal(await question.inputValue(),'Synthetic draft A');
+ await page.locator('.chat-sidebar .chat-account').click();await page.waitForURL('**/tai-khoan?conversation='+draftA);
+ await page.getByRole('link',{name:'Hội thoại của tôi',exact:false}).click();await page.waitForURL('**/tro-chuyen?conversation='+draftA);await page.waitForFunction(()=>document.querySelector('textarea')?.value==='Synthetic draft A');
+ // Backup loading is not shown as empty history. An accepted job remains
+ // accepted when its following status read fails, with duplicate clicks gated.
+ let releaseBackups;const pendingBackups=new Promise(resolve=>{releaseBackups=resolve;});let backupWrites=0,backupReadsFail=false;
+ await page.route('**/service/backups',async route=>{
+  if(route.request().method()==='POST'){backupWrites++;backupReadsFail=true;return route.fulfill({status:202,json:{id:crypto.randomUUID(),message:'Synthetic backup accepted'}});}
+  await pendingBackups;
+  return route.fulfill(backupReadsFail?{status:503,json:{error:'Synthetic backup status unavailable'}}:{json:{authorized:true,drive:{enabled:true},runtime:{ready:true},jobs:[],snapshots:[]}});
+ });
+ await page.goto(base+'/admin/settings/backups');await page.getByText('Đang tải trạng thái sao lưu…',{exact:true}).waitFor();assert.equal(await page.getByText('Chưa có tác vụ.',{exact:true}).count(),0);
+ releaseBackups();await page.getByText('Chưa có tác vụ.',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'Tạo bản sao lưu',exact:true}).evaluate(button=>{button.click();button.click();});
+ await page.getByText('Synthetic backup accepted',{exact:true}).waitFor();await page.getByText('Synthetic backup status unavailable',{exact:false}).waitFor();
+ assert.equal(backupWrites,1);assert.equal(await page.getByRole('button',{name:'Đã có tác vụ đang xử lý',exact:true}).isDisabled(),true);
+ // A German keyword search with no approved content has a real empty state.
+ await page.goto(base+'/phap-luat/duc?q=synthetic-no-results-'+suffix);await page.locator('.native-empty').waitFor();await fits();
  console.log('CMS browser checks passed: public VI/DE, mobile fit, session loading, signed-in menu, retry, unsaved changes and native admin pages.');
 }catch(error){console.error('CMS browser check failed:',error);throw error;}finally{
  await browser?.close();

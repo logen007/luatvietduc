@@ -12,12 +12,16 @@ const refresh=()=>{void store.refresh(true).catch(()=>{});};
 export const loadPublicSession=()=>store.refresh();
 // Guards client state updates only. Server authorization remains authoritative.
 export const isPublicSessionCurrent=(revision:number)=>store.isCurrent(revision);
+function clearPrivateDrafts(){
+ try{for(let i=sessionStorage.length-1;i>=0;i--){const key=sessionStorage.key(i);if(key?.startsWith('lvd-staff-draft:')||key==='lvd-chat-handoff-v1')sessionStorage.removeItem(key);}}catch{}
+}
 export function invalidatePublicSession(){
+ clearPrivateDrafts();
  store.invalidate();
  try{localStorage.setItem('lvd-session-revision',String(Date.now()));}catch{}
  document.dispatchEvent(new Event('lvd:sessionchange'));
 }
-function onStorage(event:StorageEvent){if(event.key==='lvd-session-revision'){store.invalidate();refresh();}}
+function onStorage(event:StorageEvent){if(event.key==='lvd-session-revision'){clearPrivateDrafts();store.invalidate();refresh();}}
 function onVisibility(){if(!document.hidden)refresh();}
 let subscribers=0;
 function subscribe(listener:()=>void){

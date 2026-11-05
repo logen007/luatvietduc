@@ -7,6 +7,7 @@ import {createMessageOutbox,createOperationGate,mergeMessages,validateAttachment
 import type {Conversation,Message,Transcript,Attachment,TransitionReceipt} from './contracts';
 import {initialChatQuestion} from './intake';
 import {applyTransitionReceipt} from './transition-receipt';
+import {createDraftBook,saveDraftHandoff,takeDraftHandoff} from './drafts';
 export function useWorkspace(staff=false,manageList=true){
   const session=usePublicSession(),me=session.status==='ready'?session.data:null;
   const [ownerRevision,setOwnerRevision]=useState(-1),[intakeAttempt,setIntakeAttempt]=useState(0),[initializationFailed,setInitializationFailed]=useState(false);
@@ -30,6 +31,7 @@ export function useWorkspace(staff=false,manageList=true){
   const stickToBottom=useRef(true),revision=useRef(0),wakeTranscript=useRef<(reset?:boolean)=>void>(()=>{});
   const mode=useRef(staff);mode.current=staff;
   const operations=useRef(createOperationGate()),selection=useRef('');
+  const drafts=useRef(createDraftBook());
   const outbox=useRef(createMessageOutbox((id,draft)=>api<MessageReceipt>(`conversations/${id}/messages`,{...draft,...(!mode.current?{aiConsentVersion:'gemini-rag-v1'}:{})}))),
     log = useRef<HTMLDivElement>(null),
     shell = useRef<HTMLElement>(null);
@@ -62,15 +64,18 @@ export function useWorkspace(staff=false,manageList=true){
   };
   function changeSelection(id:string){selection.current=id;revision.current++;setSelected(id);}
   function selectConversation(id:string){
-    if(!visible||!current()||operations.current.busy())return false;
+    if(!visible||!current()||!loaded||selected!==selection.current||operations.current.busy()||(!staff&&!rows.some(row=>row.id===id)))return false;
     if(id===selection.current)return true;
-    changeSelection(id);setConversation(null);setMessages([]);setAttachments([]);
-    setError('');setConnectionError('');setText('');setInternal(false);setPreferHuman(false);
+    if(!staff)drafts.current.save(selected,{text,attachments});
+    const draft=staff?{text:'',attachments:[]}:drafts.current.get(id);
+    changeSelection(id);setConversation(null);setMessages([]);setAttachments(draft.attachments);
+    setError('');setConnectionError('');setText(draft.text);setInternal(false);setPreferHuman(false);
     return true;
   }
   useEffect(() => {
     revision.current++;
     operations.current.reset();outbox.current.reset();selection.current='';
+    drafts.current.clear();
     setRows([]);setSelected('');setConversation(null);setMessages([]);
     setAttachments([]);setUploading(false);setBusy(false);setSendingBody('');
     setError('');setConnectionError('');setText('');setInternal(false);setCountry('');setPreferHuman(false);setLoaded(false);setInitializationFailed(false);
@@ -101,7 +106,14 @@ export function useWorkspace(staff=false,manageList=true){
         setRows(list);
         // A question from the homepage starts its own intake, even with saved history.
         if (staff){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&/^[a-f0-9-]{36}$/i.test(requested))changeSelection(requested);}
-        else if(!draft){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&list.some(item=>item.id===requested))changeSelection(requested);else if(list[0])changeSelection(list[0].id);}
+        else if(!draft){
+          const requested=new URLSearchParams(window.location.search).get('conversation');
+          if(requested&&list.some(item=>item.id===requested)){
+            changeSelection(requested);
+            let restored;try{restored=takeDraftHandoff(sessionStorage,me?.user?.id||null,list.map(item=>item.id),requested);}catch{}
+            if(restored){setText(restored.text.slice(0,s.maxMessageLength||2000));setAttachments(restored.attachments);}
+          }else{try{takeDraftHandoff(sessionStorage,me?.user?.id||null,[],requested);}catch{}if(list[0])changeSelection(list[0].id);}
+        }
         if(draft)try{if(sessionStorage.getItem('lvd-question')===draft)sessionStorage.removeItem('lvd-question');}catch{}
       } catch (e) {
         if (valid()){setError((e as Error).message);setInitializationFailed(true);}
@@ -112,6 +124,7 @@ export function useWorkspace(staff=false,manageList=true){
     return () => {
       active = false;
       operations.current.reset();outbox.current.reset();
+      drafts.current.clear();
     };
   }, [staff,manageList,session.revision,session.status,intakeAttempt]);
   useEffect(() => {
@@ -158,7 +171,7 @@ export function useWorkspace(staff=false,manageList=true){
         waiting=Boolean(v.conversation.aiEnabled&&latestUser>latestAnswered);
         setConnectionError("");
       } catch (e) {
-        if (active&&current()&&ticket===revision.current) {setConnectionError((e as Error).message);if(staff&&e instanceof ClientApiError&&[401,403,404].includes(e.status)){setConversation(null);setMessages([]);setAttachments([]);setText('');cursor=0;}}
+        if (active&&current()&&ticket===revision.current) {setConnectionError((e as Error).message);if(e instanceof ClientApiError&&[401,403,404].includes(e.status)){drafts.current.remove(selected);setConversation(null);setMessages([]);setAttachments([]);setText('');cursor=0;}}
       }
     };
     setMessages([]);
@@ -231,11 +244,11 @@ export function useWorkspace(staff=false,manageList=true){
         });
         if(!valid())return false;
         id = c.id;
-        changeSelection(id);
+        drafts.current.remove('');changeSelection(id);
       }
       const {receipt,key}=await outbox.current.send(id,{body,internal,fileIds:files.map(file=>file.id)});
       if(!valid())return false;
-      setText("");setAttachments([]);
+      setText("");setAttachments([]);drafts.current.remove(id);
       setMessages(old=>receipt.duplicate&&old.some(message=>String(message.id)===String(receipt.id))?old:mergeMessages(old,[{id:receipt.id,role:receipt.role,body,internal:receipt.role==='staff'&&internal,created_at:new Date().toISOString(),client_key:key,attachments:files,author_name:me?.user?.name}]));
       // Delivery is already acknowledged. Reuse the single transcript reader;
       // slow or failed reads must not restore a sent draft or block the composer.
@@ -257,7 +270,7 @@ export function useWorkspace(staff=false,manageList=true){
     setUploading(true);setError('');
     try{
       let id=selected;
-      if(!id){const c=await api<{id:string}>('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});if(!valid())return;id=c.id;changeSelection(id);}
+      if(!id){const c=await api<{id:string}>('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});if(!valid())return;id=c.id;drafts.current.remove('');changeSelection(id);}
       for(const file of files){
         if(!valid())return;
         const response=await fetch(`/service/conversations/${id}/files`,{method:'POST',headers:{'content-type':'application/octet-stream','x-file-name':encodeURIComponent(file.name)},body:file});
@@ -269,11 +282,29 @@ export function useWorkspace(staff=false,manageList=true){
   }
   const staffAllowed =
     me?.user && ["owner", "support", "operations"].includes(me.user.role);
-  const startNew=()=>{if(!visible||!current()||operations.current.busy())return false;outbox.current.reset();changeSelection('');setConversation(null);setMessages([]);setAttachments([]);setError('');setConnectionError('');setText('');setInternal(false);setPreferHuman(false);return true;};
+  const startNew=()=>{if(!visible||!current()||!loaded||selected!==selection.current||operations.current.busy())return false;if(!selected)return true;if(!staff)drafts.current.save(selected,{text,attachments});const draft=staff?{text:'',attachments:[]}:drafts.current.get('');outbox.current.reset();changeSelection('');setConversation(null);setMessages([]);setAttachments(draft.attachments);setError('');setConnectionError('');setText(draft.text);setInternal(false);setPreferHuman(false);return true;};
+  async function openAccount(destination:'/tai-khoan'|'/auth/google'='/tai-khoan'){
+    if(staff||!visible||!current()||!loaded||selected!==selection.current)return;
+    const ticket=operations.current.begin();if(!ticket)return;
+    const valid=()=>current()&&operations.current.isCurrent(ticket);
+    setBusy(true);setError('');
+    try{
+      let id=selected;
+      if(!id&&(text||attachments.length)){
+        const created=await api<{id:string}>('conversations',{specialty:'general',consent:true,privacyNoticeVersion:'chat-v2',mode:'assistant'});
+        if(!valid())return;id=created.id;drafts.current.remove('');changeSelection(id);
+      }
+      if(!valid())return;
+      if(id&&(text||attachments.length))saveDraftHandoff(sessionStorage,me?.user?.id||null,id,{text,attachments});
+      // Persist first. A blocked storage write keeps the draft on screen.
+      window.location.assign(destination+(id?'?conversation='+encodeURIComponent(id):''));
+    }catch(e){if(valid())setError((e as Error).message||'Chưa giữ được bản nháp. Vui lòng thử lại.');}
+    finally{if(operations.current.end(ticket)&&current())setBusy(false);}
+  }
   const requestHuman=async()=>{if(selected)await act('handoff');else setPreferHuman(true);};
   // Mask private state during the render that observes a new session, before
   // effects have a chance to clear the previous workspace.
   function retry(){if(busy||uploading)return;if(session.status==='error'){void loadPublicSession().catch(()=>{});}else if(initializationFailed){setIntakeAttempt(value=>value+1);}else{wakeTranscript.current();}}
-  return {initializationFailed:session.status==='error'||visible&&initializationFailed,retry,attachments:visible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>{if(!operations.current.busy())setAttachments(previous=>previous.filter(file=>file.id!==id));},me,rows:visible?rows:[],selected:visible?selected:'',setSelected:selectConversation,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:visible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded&&!initializationFailed,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',pendingKey:visible?outbox.current.pendingKey():undefined,sessionRevision:session.revision,sessionStatus:session.status};
+  return {openAccount,initializationFailed:session.status==='error'||visible&&initializationFailed,retry,attachments:visible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>{if(!operations.current.busy())setAttachments(previous=>previous.filter(file=>file.id!==id));},me,rows:visible?rows:[],selected:visible?selected:'',setSelected:selectConversation,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:visible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded&&!initializationFailed,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',pendingKey:visible?outbox.current.pendingKey():undefined,sessionRevision:session.revision,sessionStatus:session.status};
 }
 export type WorkspaceState=ReturnType<typeof useWorkspace>;

@@ -1,23 +1,31 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { integrationCatalog, type Provider, type Values } from './catalog';
 import {ConnectionInstructions} from './Instructions';
 import {ConnectionError,requestConnection as request} from './client';
 import {useUnsavedChanges} from '../shared/unsaved-changes';
+import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
+import {createOperationGate} from '../chat/client-operations';
 type Connection={provider:Provider;values:Values;stored:Record<string,boolean>;version:number;enabled:boolean;checkState:string;checkedAt:string|null};
 const labels:Record<string,string>={untested:'Chưa kiểm tra',passed:'Kiểm tra đạt',failed:'Kiểm tra chưa đạt',configured:'Định dạng hợp lệ · cần thử đăng nhập'};
-function ConnectionForm({initial}:{initial:Connection}){
+function ConnectionForm({initial,revision}:{initial:Connection;revision:number}){
   const [connection,setConnection]=useState(initial),[values,setValues]=useState<Values>(initial.values),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
   const dirty=JSON.stringify(values)!==JSON.stringify(connection.values);
+  const gate=useRef(createOperationGate());
+  useEffect(()=>()=>gate.current.reset(),[]);
   useUnsavedChanges(dirty);
   const definition=integrationCatalog[connection.provider];
   async function act(action:'save'|'test'|'toggle'){
+    if(!isPublicSessionCurrent(revision)||(action!=='save'&&dirty))return;
+    const ticket=gate.current.begin();if(!ticket)return;
+    const current=()=>isPublicSessionCurrent(revision)&&gate.current.isCurrent(ticket);
     setBusy(true);setError('');setMessage('');
     try{
       const result=await request({action,provider:connection.provider,version:connection.version,...(action==='save'?{values}:action==='toggle'?{enabled:!connection.enabled}:{})});
+      if(!current())return;
       setConnection(result.connection);setValues(result.connection.values);
       setMessage(result.message||(action==='save'?'Đã lưu. Kiểm tra rồi bật để sử dụng.':result.connection.enabled?'Đã bật kết nối.':'Đã tắt kết nối.'));
-    }catch(e){setError((e as Error).message);}finally{setBusy(false);}
+    }catch(e){if(current())setError((e as Error).message);}finally{if(gate.current.end(ticket)&&isPublicSessionCurrent(revision))setBusy(false);}
   }
   return <section className="live-card integration-card">
     <div className="integration-title"><h2>{definition.title}</h2><span className={'live-status '+(connection.enabled?'is-ready':'is-pending')}>{connection.enabled?'Đang bật':'Đang tắt'}</span></div>
@@ -42,9 +50,14 @@ function ConnectionForm({initial}:{initial:Connection}){
   </section>;
 }
 export function IntegrationPanel({providers=['google','ai','r2','email']}:{providers?:Provider[]}){
+  const session=usePublicSession(),owner=session.status==='ready'&&session.user?.role==='owner';
+  const [revision,setRevision]=useState(-1);
   const [connections,setConnections]=useState<Connection[]|null>(null),[error,setError]=useState<ConnectionError|null>(null),[attempt,setAttempt]=useState(0);
-  useEffect(()=>{let active=true;setError(null);request().then(data=>{if(active)setConnections(data.connections);}).catch(e=>{if(active)setError(e);});return()=>{active=false;};},[attempt]);
+  useEffect(()=>{let active=true;setError(null);setConnections(null);setRevision(session.revision);if(owner)request().then(data=>{if(active&&isPublicSessionCurrent(session.revision))setConnections(data.connections);}).catch(e=>{if(active&&isPublicSessionCurrent(session.revision))setError(e);});return()=>{active=false;};},[attempt,owner,session.revision]);
+  if(session.status==='error')return <div role="alert"><p>Chưa kiểm tra được phiên đăng nhập.</p><button type="button" onClick={()=>void loadPublicSession().catch(()=>{})}>Thử lại</button></div>;
+  if(session.status==='loading')return <p role="status">Đang kiểm tra phiên đăng nhập…</p>;
+  if(!owner)return <p role="alert">Chỉ quản trị viên được quản lý kết nối. <a href="/admin/login">Đăng nhập lại</a></p>;
   if(error)return <div className="live-card"><p className="live-error" role="alert">{error.message}</p>{error.status===401?<a className="button" href="/admin/login">Đăng nhập lại</a>:error.status===403?<a className="button" href="/admin">Về tổng quan</a>:<button type="button" className="button" onClick={()=>setAttempt(value=>value+1)}>Thử lại</button>}</div>;
-  if(!connections)return <p role="status">Đang tải cấu hình…</p>;
-  return <><p className="integration-intro">Lưu cấu hình → Kiểm tra → Bật sử dụng. Để trống ô khóa đã lưu nếu không thay đổi. Lưu bản mới sẽ tạm tắt kết nối đó cho đến khi anh kiểm tra và bật lại.</p><div className="integration-grid">{connections.filter(c=>providers.includes(c.provider)).map(connection=><ConnectionForm key={connection.provider} initial={connection}/>)}</div></>;
+  if(revision!==session.revision||!connections)return <p role="status">Đang tải cấu hình…</p>;
+  return <><p className="integration-intro">Lưu cấu hình → Kiểm tra → Bật sử dụng. Để trống ô khóa đã lưu nếu không thay đổi. Lưu bản mới sẽ tạm tắt kết nối đó cho đến khi anh kiểm tra và bật lại.</p><div className="integration-grid">{connections.filter(c=>providers.includes(c.provider)).map(connection=><ConnectionForm key={session.revision+':'+connection.provider} initial={connection} revision={session.revision}/>)}</div></>;
 }

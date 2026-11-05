@@ -9,7 +9,7 @@ import {LanguageSwitch} from './LanguageSwitch';
 import {usePublicShell} from './usePublicShell';
 const arrow = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6" /></svg>;
 
-export function Header({publicMode=false,activeSection=''}:{publicMode?:boolean;activeSection?:string}={}) {
+export function Header({publicMode=false,activeSection='',onAccountNavigate}:{publicMode?:boolean;activeSection?:string;onAccountNavigate?:(event:React.MouseEvent<HTMLAnchorElement>)=>void}={}) {
  const {t,language}=useLocale(),session=usePublicSession(),account=accountView(session,language);
   const shell=usePublicShell(),name=shell.name,publicLinks=shell.primary;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -29,7 +29,7 @@ export function Header({publicMode=false,activeSection=''}:{publicMode?:boolean;
           </nav>
           <div className={'live-header-actions'+(publicMode?' header-tools':'')}>
             <LanguageSwitch/>
-            <a className={'live-header-login-button button'+(publicMode?' header-login':'')} href={account.href} aria-current={pathname === "/tai-khoan" ? "page" : undefined}>{account.label} {arrow}</a>
+            <a className={'live-header-login-button button'+(publicMode?' header-login':'')} href={account.href} onClick={onAccountNavigate} aria-current={pathname === "/tai-khoan" ? "page" : undefined}>{account.label} {arrow}</a>
             <button className="live-menu-button" type="button" aria-label={t("Mở menu")} aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="live-menu-dialog" onClick={() => { dialog.current?.showModal(); setMenuOpen(true); }}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </button>
@@ -46,7 +46,7 @@ export function Header({publicMode=false,activeSection=''}:{publicMode?:boolean;
           {publicLinks.map((link) => <a key={link.href} href={link.href} onClick={closeMenu}>{t(link.label)}{arrow}</a>)}
           <a href="/lien-he" onClick={closeMenu}>{t("Liên hệ")} {arrow}</a>
           <a href="/tro-chuyen" onClick={closeMenu} aria-current={pathname === "/tro-chuyen" ? "page" : undefined}>{t("Trò chuyện")} {arrow}</a>
-          <a href={account.href} onClick={closeMenu}>{account.label} {arrow}</a>
+          <a href={account.href} onClick={event=>{closeMenu();onAccountNavigate?.(event);}}>{account.label} {arrow}</a>
           {account.management&&<a href={account.management.href} onClick={closeMenu}>{account.management.label} {arrow}</a>}
         </nav>
       </dialog>

@@ -11,8 +11,7 @@ export function Library({groups,group,country,topics,total,page,path,query,artic
  {articles.docs.length>0&&<section className="native-library-articles"><h2>{l('Bài viết','Beiträge')}</h2><ArticleCards list={articles}/></section>}
  {showTopics&&<section><p className="catalog-results-caption" role="status">{total} {l('chủ đề','Themen')}</p><div className="question-list">{topics.map(topic=><article className="catalog-topic result-item" key={topic.id}><h2><a href={'/chu-de/'+topic.groupId+'/'+String(topic.index).padStart(2,'0')} lang="vi">{topic.title}</a></h2><a className="catalog-ask" href={'/chu-de/'+topic.groupId+'/'+String(topic.index).padStart(2,'0')} aria-label={topic.title}><Arrow/></a></article>)}</div></section>}
  <Pagination page={page} pages={pages} path={path} query={query}/>
- {country==='DE'&&group&&!articles.docs.length&&<p className="native-empty">{l('Chưa có bài viết trong lĩnh vực này.','Für dieses Rechtsgebiet sind noch keine Beiträge veröffentlicht.')}</p>}
- {country!=='DE'&&(group||keyword)&&!total&&!articles.docs.length&&<p className="native-empty">{l('Chưa tìm thấy nội dung phù hợp.','Keine passenden Inhalte gefunden.')}</p>}
+ {(group||keyword||q.get('linh-vuc'))&&!articles.docs.length&&(country==='DE'||!total)&&<div className="native-empty" role="status"><p>{keyword?l('Chưa tìm thấy nội dung phù hợp.','Keine passenden Inhalte gefunden.'):l('Chưa có bài viết trong lĩnh vực này.','Für dieses Rechtsgebiet sind noch keine Beiträge veröffentlicht.')}</p><a href={countryRoot}>{l('Xem thư viện','Zur Bibliothek')}</a></div>}
  <section className="catalog-help"><h2>{l('Bạn cần giải đáp điều gì?','Was möchten Sie klären?')}</h2><a className="button" href="/tro-chuyen">{l('Mở trò chuyện','Chat öffnen')} <Arrow/></a></section></div>;
 }
 export function TopicPage({group,topic}:{group:GroupSummary;topic:Topic}){

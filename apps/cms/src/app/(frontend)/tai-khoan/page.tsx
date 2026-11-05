@@ -31,6 +31,9 @@ export default function Page() {
  const {t,language}=useLocale();
   const session=usePublicSession(),data=session.data;
   const [error,setError]=useState('');
+  const [conversation,setConversation]=useState('');
+  useEffect(()=>{const id=new URLSearchParams(window.location.search).get('conversation');if(id&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id))setConversation(id);},[]);
+  const returnQuery=conversation?'?conversation='+encodeURIComponent(conversation):'',chatHref='/tro-chuyen'+returnQuery;
   useEffect(()=>{setError(session.status==='error'?'Không thể kiểm tra phiên đăng nhập.':'');},[session.status]);
   return (
     <>
@@ -62,7 +65,7 @@ export default function Page() {
               error ? (
                 <div className="live-actions">
                   <button className="button" onClick={() => location.reload()}> {t("Thử lại")} </button>
-                  <a className="live-text-action" href="/tro-chuyen"> {t("Tiếp tục với tư cách khách ↗")} </a>
+                  <a className="live-text-action" href={chatHref}> {t("Tiếp tục với tư cách khách ↗")} </a>
                 </div>
               ) : (
                 <div className="live-loading" role="status">
@@ -74,7 +77,7 @@ export default function Page() {
               <>
                 <p className="live-lead"> {t("Lịch sử hội thoại chỉ hiển thị cho bạn và chuyên viên được phân công.")} </p>
                 <div className="live-account-links">
-                  <a className="button" href="/tro-chuyen"> {t("Hội thoại của tôi")} <span aria-hidden="true">↗</span>
+                  <a className="button" href={chatHref}> {t("Hội thoại của tôi")} <span aria-hidden="true">↗</span>
                   </a>
                   {["owner", "support"].includes(
                     data.user.role,
@@ -116,7 +119,7 @@ export default function Page() {
               <>
                 <p className="live-lead"> {t("Đăng nhập để giữ câu hỏi, tài liệu và phản hồi trong tài khoản.")} </p>
                 {data.connections.google ? (
-                  <a className="button live-google" href="/auth/google">
+                  <a className="button live-google" href={'/auth/google'+returnQuery}>
                     <GoogleMark /> {t("Tiếp tục bằng Google")} </a>
                 ) : (
                   <>
@@ -131,7 +134,7 @@ export default function Page() {
                 </div>
                 <a
                   className="button secondary live-guest-link"
-                  href="/tro-chuyen"
+                  href={chatHref}
                 > {t("Hỏi ngay, chưa cần đăng nhập")}{" "}
                   <span aria-hidden="true">↗</span>
                 </a>
