@@ -7,6 +7,7 @@
 - Owner confirmed domain ownership and Cloudflare routing, authorized direct deployment, and the isolated application was verified serving HTTPS on `luatvietduc.com` on 2026-11-03. Changes to unrelated services still require explicit authorization.
 
 ## Product decisions
+- Owner inbox boundary (2026-11-05): the specialist inbox is for replies, internal notes and attachments only. Never add knowledge authoring/import controls or automatically turn conversation content into AI knowledge. AI content/rules are authored in Kiến thức AI or opted-in Bài viết. Reply snippets only insert text into the composer.
 - Owner UI copy standard (2026-11-05): navigation and actions use one concise label. When the label explains the action, omit its subtitle. Do not repeat the brand, add a back-to-website link beneath the shared header, or add introductory/helper sentences by default. Explanations must help a non-obvious decision, error recovery or configuration. The account page keeps action titles only and uses “Đăng xuất”. Apply this standard to Vietnamese and German copy before publishing.
 - No n8n and no Chatwoot. Build the chat product and operator inbox in our codebase.
 - Redesign the approved chat UI under the current user instruction while preserving its behavior. Social accounts belong to Luật Việt Đức, not Bizlawyer. Empty social settings render nothing.
