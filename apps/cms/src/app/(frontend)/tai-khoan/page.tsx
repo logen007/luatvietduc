@@ -51,8 +51,6 @@ export default function Page() {
               <span className="live-small-rule"></span>{t("Lưu câu hỏi, tài liệu và phản hồi để xem lại khi cần.")} </div>
           </section>
           <section className="live-auth-panel">
-            <a className="live-back-link" href="/"> {t("← Trở về website")} </a>
-            <p className="live-eyebrow">LUẬT VIỆT ĐỨC</p>
             <h1>
               {data?.user ? t("Xin chào, {name}",{name:data.user.name||t('Tài khoản')}) : t("Cuộc trò chuyện của bạn.")}
             </h1>
@@ -75,7 +73,6 @@ export default function Page() {
               )
             ) : data.user ? (
               <>
-                <p className="live-lead"> {t("Lịch sử hội thoại chỉ hiển thị cho bạn và chuyên viên được phân công.")} </p>
                 <div className="live-account-links">
                   <a className="button" href={chatHref}> {t("Hội thoại của tôi")} <span aria-hidden="true">↗</span>
                   </a>
@@ -83,21 +80,21 @@ export default function Page() {
                     data.user.role,
                   ) && (
                     <a className="live-account-link" href="/admin/inbox">
-                      <span> {t("Hộp thư chuyên viên")} <small>{t("Tiếp nhận và phản hồi yêu cầu")}</small>
+                      <span> {t("Hộp thư chuyên viên")}
                       </span>
                       <span aria-hidden="true">↗</span>
                     </a>
                   )}
                   {["owner","support"].includes(data.user.role) && (
                     <a className="live-account-link" href="/admin">
-                      <span> {t("Quản trị nội dung")} <small>{t("Bài viết, nguồn kiến thức và tài khoản")}</small>
+                      <span> {t("Quản trị nội dung")}
                       </span>
                       <span aria-hidden="true">↗</span>
                     </a>
                   )}
                   {data.user.role === "owner" && (
                     <a className="live-account-link" href="/admin/settings">
-                      <span> {t("Kết nối hệ thống")} <small>{t("Cài đặt và trạng thái dịch vụ")}</small>
+                      <span> {t("Kết nối hệ thống")}
                       </span>
                       <span aria-hidden="true">↗</span>
                     </a>
@@ -113,7 +110,7 @@ export default function Page() {
                       setError((e as Error).message);
                     }
                   }}
-                > {t("Đăng xuất tài khoản")} </button>
+                > {t("Đăng xuất")} </button>
               </>
             ) : (
               <>
