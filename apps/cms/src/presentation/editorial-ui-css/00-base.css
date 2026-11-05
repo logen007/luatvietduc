@@ -626,3 +626,6 @@ body.lvd-redesign{--font:var(--lvd-font);margin:0;background:#fff;color:#0b0b0b;
 .lvd-redesign .button.secondary:hover{background:#f5f5f5}
 .lvd-redesign .button svg,.lvd-redesign .lvd-arrow{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5}
 .lvd-redesign .lvd-eyebrow{font:400 12px/1.5 var(--lvd-font);letter-spacing:.1em;text-transform:uppercase}
+
+/* Links use color/focus feedback without text underlines in any state. */
+html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decoration:none!important}

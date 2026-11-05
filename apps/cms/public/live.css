@@ -379,6 +379,9 @@
   text-decoration-color: #fb7a00;
   text-underline-offset: 5px;
 }
+
+/* Links use color/focus feedback without text underlines in any state. */
+html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decoration:none!important}
 /* Black directory footer — the same source geometry as the public reference. */
 .live-footer {
   background: #000;

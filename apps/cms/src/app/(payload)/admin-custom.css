@@ -324,3 +324,6 @@ html.lvd-admin .lvd-knowledge-editor .button.secondary{background:var(--theme-el
  html.lvd-admin .template-default__wrap{min-width:0;max-width:100%;grid-column:1}
 }
 @media(prefers-reduced-motion:reduce){html.lvd-admin .template-default .nav{transition:none}}
+
+/* Links use color/focus feedback without text underlines in any state. */
+html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decoration:none!important}
