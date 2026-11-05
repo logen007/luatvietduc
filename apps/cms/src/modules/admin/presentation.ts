@@ -18,7 +18,7 @@ function fieldsCopy(fields:Field[],copy:Record<string,FieldCopy>):Field[]{
   if('fields' in next)next.fields=fieldsCopy(next.fields,copy);
   if('tabs' in next)next.tabs=next.tabs.map(tab=>({...tab,fields:fieldsCopy(tab.fields,copy)}));
   const text='name' in next?copy[next.name]:undefined;
-  if(text){if(text.label!==undefined)Object.assign(next,{label:text.label});if(text.description!==undefined)next.admin={...next.admin,description:text.description};if(text.placeholder!==undefined)next.admin={...next.admin,...{placeholder:text.placeholder}};if(text.cell)next.admin={...next.admin,components:{...next.admin?.components,Cell:text.cell}};}
+  if(text){if(text.label!==undefined)Object.assign(next,{label:text.label});if(text.description!==undefined)next.admin={...next.admin,description:text.description};if(text.placeholder!==undefined)next.admin={...next.admin,...{placeholder:text.placeholder}};if(text.cell&&next.type==='relationship')next.admin={...next.admin,components:{...next.admin?.components,Cell:text.cell}};}
   return next;
  });
 }
