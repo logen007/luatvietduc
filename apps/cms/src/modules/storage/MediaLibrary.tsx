@@ -34,7 +34,7 @@ function MediaToolbar(props:ListViewClientProps){
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null),latest=useRef(refineListData);latest.current=refineListData;
  useEffect(()=>{if(!timer.current)setSearch(query.search||'');},[query.search]);
  useEffect(()=>()=>{if(timer.current)clearTimeout(timer.current);},[]);
- const selectedDocs=selection.deletable.filter(doc=>selection.selected.get(doc.id)),[action,setAction]=useState(''),[deleteStatus,setDeleteStatus]=useState(''),[deleteError,setDeleteError]=useState(''),gate=useRef(false),mounted=useRef(true),account=String(user?.id)+':'+user?.role,accountRef=useRef(account),selectionRef=useRef(selection);accountRef.current=account;selectionRef.current=selection;
+ const selectedCount=selection.mutable.filter(doc=>selection.selected.get(doc.id)).length,selectedDocs=selection.deletable.filter(doc=>selection.selected.get(doc.id)),protectedCount=selectedCount-selectedDocs.length,[action,setAction]=useState(''),[deleteStatus,setDeleteStatus]=useState(''),[deleteError,setDeleteError]=useState(''),gate=useRef(false),mounted=useRef(true),account=String(user?.id)+':'+user?.role,accountRef=useRef(account),selectionRef=useRef(selection);accountRef.current=account;selectionRef.current=selection;
  useUnsavedChanges(busy);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  async function removeSelected(){
@@ -55,7 +55,7 @@ function MediaToolbar(props:ListViewClientProps){
    }
    if(mounted.current&&accountRef.current===owner){
     if(failed)setDeleteError(failed+' tệp chưa xóa được. Kiểm tra quyền hoặc thử lại.');
-    else{setAction('');setBulk(false);}
+    else{selectionRef.current.clear();setAction('');setBulk(false);}
     if(removed){
      setDateAttempt(v=>v+1);
      const last=Math.max(1,Math.ceil(Math.max(0,(data?.totalDocs||0)-removed)/(data?.limit||10)));
@@ -70,7 +70,7 @@ function MediaToolbar(props:ListViewClientProps){
  return <div className="lvd-media-toolbar" aria-busy={isTransitioning}>
   <fieldset className="lvd-media-filters" disabled={busy}>
    <button type="button" className="lvd-media-add" aria-expanded={uploadOpen} disabled={!props.hasCreatePermission||uploadBusy} title={props.hasCreatePermission?'Tải tệp mới':'Chưa có quyền tải tệp hoặc chưa bật lưu trữ'} onClick={()=>setUploadOpen(!uploadOpen)}>Tải tệp</button>
-   <div className="lvd-media-view-buttons" role="group" aria-label="Chế độ xem"><button type="button" aria-label="Xem dạng danh sách" aria-pressed={mode==='list'} onClick={()=>setMode('list')}><ViewIcon/></button><button type="button" aria-label="Xem dạng lưới" aria-pressed={mode==='grid'} onClick={()=>{setMode('grid');if(selectedDocs.length)setBulk(true);}}><ViewIcon grid/></button></div>
+   <div className="lvd-media-view-buttons" role="group" aria-label="Chế độ xem"><button type="button" aria-label="Xem dạng danh sách" aria-pressed={mode==='list'} onClick={()=>setMode('list')}><ViewIcon/></button><button type="button" aria-label="Xem dạng lưới" aria-pressed={mode==='grid'} onClick={()=>{setMode('grid');if(selectedCount)setBulk(true);}}><ViewIcon grid/></button></div>
    <select aria-label="Loại tệp" value={kind} onChange={e=>filter(e.target.value as MediaKind,month)}><option value="">Tất cả tệp</option><option value="image">Ảnh</option><option value="svg">SVG</option><option value="video">Video</option><option value="audio">Âm thanh</option><option value="pdf">PDF</option></select>
    <select aria-label="Ngày tải lên" value={month} onChange={e=>filter(kind,e.target.value)}><option value="">Tất cả ngày</option>{month&&!dates.some(item=>item.month===month)&&<option value={month}>{month}</option>}{dates.map(item=><option key={item.month} value={item.month}>{new Date(item.month+'-01T00:00:00Z').toLocaleDateString('vi-VN',{month:'long',year:'numeric'})}</option>)}</select>{dateError&&<button type="button" onClick={()=>setDateAttempt(v=>v+1)}>Tải lại ngày</button>}
    <select aria-label="Sắp xếp tệp" value={typeof query.sort==='string'?query.sort:'-createdAt'} onChange={e=>{if(timer.current){clearTimeout(timer.current);timer.current=null;}reset();void latest.current({sort:e.target.value,search:search||undefined,page:1});}}><option value="-createdAt">Mới nhất</option><option value="createdAt">Cũ nhất</option><option value="filename">Tên A–Z</option></select>
@@ -78,7 +78,7 @@ function MediaToolbar(props:ListViewClientProps){
    <input className="lvd-media-search" type="search" aria-label="Tìm tệp" placeholder="Tìm tệp…" value={search} onChange={e=>changeSearch(e.target.value)}/>
   </fieldset>
   {uploadOpen&&<MediaUploader onBusyChange={setUploadBusy} onDone={()=>{if(timer.current){clearTimeout(timer.current);timer.current=null;}reset();setSearch('');setDateAttempt(v=>v+1);void latest.current({...query,search:undefined,page:1,sort:'-createdAt',where:mediaWhere(query.where,'','')});router.refresh();}}/>}
-  <div className="lvd-media-status"><span role="status">{busy?deleteStatus:isTransitioning?'Đang tải…':(data?.totalDocs||0)+' tệp'}</span>{selectedDocs.length>0&&<span>{selectedDocs.length} đã chọn</span>}</div>
+  <div className="lvd-media-status"><span role="status">{busy?deleteStatus:isTransitioning?'Đang tải…':(data?.totalDocs||0)+' tệp'}</span>{selectedCount>0&&<span>{selectedCount} đã chọn</span>}{protectedCount>0&&<span>{protectedCount} tệp được bảo vệ, không thể xóa.</span>}</div>
   {mode==='list'&&selection.canEdit&&<div className="lvd-media-list-actions"><select aria-label="Thao tác hàng loạt" value={action} disabled={busy} onChange={event=>setAction(event.target.value)}><option value="">Thao tác hàng loạt</option>{props.hasDeletePermission&&!props.disableBulkDelete&&<option value="delete">Xóa vĩnh viễn</option>}</select><button type="button" disabled={busy||uploadBusy||action!=='delete'||!selectedDocs.length} onClick={()=>void removeSelected()}>Áp dụng</button></div>}
   {!busy&&deleteStatus&&<p className="lvd-media-delete-status" role="status">{deleteStatus}</p>}
   {deleteError&&<p className="lvd-media-delete-error" role="alert">{deleteError} <button type="button" disabled={busy||uploadBusy||!selectedDocs.length} onClick={()=>void removeSelected()}>Thử lại</button></p>}
@@ -86,18 +86,18 @@ function MediaToolbar(props:ListViewClientProps){
 }
 function size(bytes?:number){if(!bytes)return '—';return bytes<1048576?Math.round(bytes/1024)+' KB':(bytes/1048576).toFixed(1)+' MB';}
 function PageSelection(){
- const {deletable,selected,setSelection}=useMediaSelection(),{busy}=useContext(ViewContext),input=useRef<HTMLInputElement>(null),all=deletable.length>0&&deletable.every(doc=>selected.get(doc.id)),some=deletable.some(doc=>selected.get(doc.id));
+ const {mutable,selected,setSelection}=useMediaSelection(),{busy}=useContext(ViewContext),input=useRef<HTMLInputElement>(null),all=mutable.length>0&&mutable.every(doc=>selected.get(doc.id)),some=mutable.some(doc=>selected.get(doc.id));
  useEffect(()=>{if(input.current)input.current.indeterminate=some&&!all;},[some,all]);
- return <input ref={input} type="checkbox" aria-label="Chọn cả trang" checked={all} disabled={busy||!deletable.length} onChange={()=>{for(const doc of deletable)if(Boolean(selected.get(doc.id))!==!all)setSelection(doc.id);}}/>;
+ return <input ref={input} type="checkbox" aria-label="Chọn cả trang" checked={all} disabled={busy||!mutable.length} onChange={()=>{for(const doc of mutable)if(Boolean(selected.get(doc.id))!==!all)setSelection(doc.id);}}/>;
 }
 function MediaItems(){
- const {mode,bulk,busy}=useContext(ViewContext),{docs,selected,setSelection,deletable}=useMediaSelection(),{user}=useAuth(),router=useRouter();
+ const {mode,bulk,busy}=useContext(ViewContext),{docs,selected,setSelection,mutable}=useMediaSelection(),{user}=useAuth(),router=useRouter();
  const [opened,setOpened]=useState<number|null>(null),changed=useRef(false);
  // An autosave can remove the last search match. Keep the dialog and any newer
  // draft mounted until the user closes it, then refresh the result set once.
  function closeDetails(){setOpened(null);if(changed.current){changed.current=false;router.refresh();}}
  const details=opened!==null&&<MediaDetails key={String(user?.id)+':'+opened} id={opened} ids={docs.map(doc=>doc.id)} onSelect={setOpened} onClose={closeDetails} onChanged={()=>{changed.current=true;}}/>;
- const editable=new Set(deletable.map(doc=>doc.id));
+ const editable=new Set(mutable.map(doc=>doc.id));
  function checkbox(doc:MediaDoc){return <input type="checkbox" aria-label={'Chọn '+mediaName(doc)} checked={Boolean(selected.get(doc.id))} disabled={busy||!editable.has(doc.id)} onChange={()=>setSelection(doc.id)}/>;}
  const href=(doc:MediaDoc)=>'/admin/collections/media/'+doc.id;
  if(mode==='grid')return <><div className="lvd-media-grid">{docs.map(doc=><div key={doc.id} className={'lvd-media-tile'+(selected.get(doc.id)?' is-selected':'')}>

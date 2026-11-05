@@ -358,7 +358,7 @@ html.lvd-admin .lvd-media-view-buttons button{width:40px;display:grid;place-item
 html.lvd-admin .lvd-media-view-buttons svg{width:20px;height:20px}
 html.lvd-admin .lvd-media-view-buttons button[aria-pressed=true],html.lvd-admin .lvd-media-bulk-toggle[aria-pressed=true]{background:#ededed;color:#111;border-color:#ededed}
 html.lvd-admin .lvd-media-filters .lvd-media-search{margin-left:auto;flex:1 1 180px;max-width:320px}
-html.lvd-admin .lvd-media-status{display:flex;align-items:center;gap:12px;margin-top:12px;color:var(--theme-elevation-600);font-size:calc(13px * var(--lvd-admin-font-scale, 1))}
+html.lvd-admin .lvd-media-status{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px;color:var(--theme-elevation-600);font-size:calc(13px * var(--lvd-admin-font-scale, 1))}
 html.lvd-admin .lvd-media-status button{height:30px;padding:0 8px;cursor:pointer}
 html.lvd-admin .lvd-media-list-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:12px}
 html.lvd-admin .lvd-media-list-actions :is(select,button),html.lvd-admin .lvd-media-delete-error button{min-height:36px;padding:6px 10px;border:1px solid var(--theme-elevation-200);border-radius:4px;background:var(--theme-bg);color:var(--theme-text);font:inherit;font-size:calc(13px * var(--lvd-admin-font-scale, 1))}
@@ -419,7 +419,11 @@ html.lvd-admin :focus-visible{outline:2px solid var(--admin-accent);outline-offs
 html.lvd-admin .app-header{display:none}
 /* Keep the native menu toggle independent of the removed header. */
 html.lvd-admin .template-default__nav-toggler-container{height:56px}
-html.lvd-admin .template-default__nav-toggler{width:44px;height:44px;justify-content:center;border:1px solid var(--admin-line);border-radius:8px;background:var(--admin-sidebar);color:var(--admin-text)}
+html.lvd-admin .template-default__nav-toggler{display:grid;place-items:center;box-sizing:border-box;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;margin:0;border:1px solid var(--admin-line);border-radius:8px;background:var(--admin-sidebar);color:var(--admin-text)}
+html.lvd-admin .template-default__nav-toggler .hamburger{display:grid;place-items:center;position:static;width:24px;height:24px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:inherit;--hamburger-size:24px}
+html.lvd-admin .template-default__nav-toggler .hamburger :is(.hamburger__open-icon,.hamburger__close-icon){display:grid;place-items:center;width:24px;height:24px}
+html.lvd-admin .template-default__nav-toggler .hamburger svg{display:block;width:24px;height:24px}
+html.lvd-admin .template-default__nav-toggler:hover{background:var(--admin-raised);border-color:var(--admin-muted)}
 /* The persistent, keyboard-accessible template toggle owns opening the menu. */
 html.lvd-admin .app-header__mobile-nav-toggler{display:none}
 html.lvd-admin .step-nav{font-size:calc(12px * var(--lvd-admin-font-scale, 1));color:var(--admin-muted)}
@@ -518,8 +522,6 @@ html.lvd-admin .operator-eyebrow{letter-spacing:.08em}
 @media(max-width:1024px){
  html.lvd-admin .template-default__nav-toggler-wrapper{width:56px;justify-content:center;z-index:999}
  html.lvd-admin:has(.template-default--nav-open) .template-default__nav-toggler-wrapper{display:none}
- html.lvd-admin .template-default__nav-toggler{width:44px;height:44px;justify-content:center}
- html.lvd-admin .template-default__nav-toggler .hamburger{display:grid;place-items:center;width:36px;height:36px}
  html.lvd-admin .template-default.template-default--nav-hydrated{grid-template-columns:minmax(0,1fr)}
  html.lvd-admin .template-default .nav{display:block;position:fixed;inset:10px auto 10px 10px;width:min(280px,calc(100vw - 40px));height:calc(100dvh - 20px);z-index:1001;background:var(--admin-sidebar);border:1px solid var(--admin-line);border-radius:14px;box-shadow:0 20px 70px #0007;transform:translateX(calc(-100% - 20px));opacity:0;pointer-events:none;overflow:hidden}
  html.lvd-admin .template-default .nav.nav--nav-open{transform:translateX(0);opacity:1;pointer-events:auto}

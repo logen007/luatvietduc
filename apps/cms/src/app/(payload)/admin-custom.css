@@ -358,7 +358,7 @@ html.lvd-admin .lvd-media-view-buttons button{width:40px;display:grid;place-item
 html.lvd-admin .lvd-media-view-buttons svg{width:20px;height:20px}
 html.lvd-admin .lvd-media-view-buttons button[aria-pressed=true],html.lvd-admin .lvd-media-bulk-toggle[aria-pressed=true]{background:#ededed;color:#111;border-color:#ededed}
 html.lvd-admin .lvd-media-filters .lvd-media-search{margin-left:auto;flex:1 1 180px;max-width:320px}
-html.lvd-admin .lvd-media-status{display:flex;align-items:center;gap:12px;margin-top:12px;color:var(--theme-elevation-600);font-size:calc(13px * var(--lvd-admin-font-scale, 1))}
+html.lvd-admin .lvd-media-status{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px;color:var(--theme-elevation-600);font-size:calc(13px * var(--lvd-admin-font-scale, 1))}
 html.lvd-admin .lvd-media-status button{height:30px;padding:0 8px;cursor:pointer}
 html.lvd-admin .lvd-media-list-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:12px}
 html.lvd-admin .lvd-media-list-actions :is(select,button),html.lvd-admin .lvd-media-delete-error button{min-height:36px;padding:6px 10px;border:1px solid var(--theme-elevation-200);border-radius:4px;background:var(--theme-bg);color:var(--theme-text);font:inherit;font-size:calc(13px * var(--lvd-admin-font-scale, 1))}
