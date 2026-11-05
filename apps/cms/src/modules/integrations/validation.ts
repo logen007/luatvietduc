@@ -1,6 +1,6 @@
 import { integrationCatalog, type Provider, type Values } from './catalog';
 import {isAdmin} from '../identity/permissions';
-import {isOtherProviderKey,translationModel,translationVendor} from './translation-policy';
+import {isGroqKey,translationModel,translationVendor} from './translation-policy';
 export class IntegrationError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
@@ -9,7 +9,7 @@ export function requireOwner(user: { role?: string } | null | undefined) {
 }
 export function mergeValues(provider: Provider, previous: Values, input: unknown): Values {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new IntegrationError(400, 'Thông tin không hợp lệ.');
-  // Credentials from the previous provider must never be sent to Google.
+  // Credentials from previous providers must never be sent to Groq.
   if (provider === 'translation' && previous.vendor !== translationVendor) previous = {};
   const result: Values = {};
   for (const field of integrationCatalog[provider].fields) {
@@ -28,8 +28,8 @@ export function validateValues(provider: Provider, v: Values) {
   for (const field of integrationCatalog[provider].fields) if (!v[field.key] && !('optional' in field && field.optional)) invalid('Vui lòng điền ' + field.label + '.');
   if (['google','drive'].includes(provider) && !/^[\w.-]+\.apps\.googleusercontent\.com$/.test(v.clientId)) invalid('Client ID Google không đúng định dạng.');
   if (provider === 'drive' && !/^age1[0-9a-z]{58}$/.test(v.ageRecipient)) invalid('Nhập khóa age công khai hợp lệ; không nhập khóa khôi phục bí mật ở đây.');
-  if (['ai','translation'].includes(provider) && !/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,99}$/.test(v.model)) invalid('Tên model không hợp lệ; chỉ nhập tên, không nhập URL.');
-  if (provider === 'translation' && (v.vendor !== translationVendor || v.model !== translationModel || isOtherProviderKey(v.apiKey))) invalid('Dùng khóa Google AI Studio và model Gemini 3.1 Flash-Lite. Khóa Cursor/xAI không dùng được ở đây.');
+  if (provider === 'ai' && !/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,99}$/.test(v.model)) invalid('Tên model không hợp lệ; chỉ nhập tên, không nhập URL.');
+  if (provider === 'translation' && (v.vendor !== translationVendor || v.model !== translationModel || !isGroqKey(v.apiKey))) invalid('Dùng API key Groq bắt đầu bằng gsk_ và model openai/gpt-oss-120b. Khóa Gemini, Cursor hoặc xAI không dùng được ở đây.');
   if (provider === 'r2') {
     let url: URL; try { url = new URL(v.endpoint); } catch { return invalid('Endpoint R2 không hợp lệ.'); }
     if (url.protocol !== 'https:' || url.username || url.password || url.port || !/^[a-f0-9]{32}(?:\.eu|\.fedramp)?\.r2\.cloudflarestorage\.com$/.test(url.hostname) || !['', '/'].includes(url.pathname) || url.search || url.hash) invalid('Chỉ dùng HTTPS endpoint chính thức của Cloudflare R2.');

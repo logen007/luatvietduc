@@ -17,11 +17,22 @@ export async function checkConnection(provider: Provider, v: Values, email: stri
     return folder?.mimeType==='application/vnd.google-apps.folder'&&!folder.trashed?{state:'passed',message:'Đọc được thư mục sao lưu riêng trên Drive.'}:{state:'failed',message:'Không truy cập được thư mục sao lưu.'};
   }
   if (provider === 'google') return { state: 'configured', message: 'Định dạng hợp lệ. Sau khi bật, đăng nhập Google để xác nhận Client Secret, màn hình đồng ý và redirect URI.' };
-  if (provider === 'ai' || provider === 'translation') {
+  if (provider === 'translation') {
+    const response=await fetch('https://api.groq.com/openai/v1/models',{headers:{Authorization:'Bearer '+v.apiKey},signal:AbortSignal.timeout(10000),redirect:'error',cache:'no-store'});
+    if(!response.ok)return {state:'failed',message:response.status===401||response.status===403?'Khóa Groq chưa hợp lệ hoặc chưa có quyền truy cập.':response.status===429?'Groq đang giới hạn lượt truy cập. Thử lại sau.':'Chưa truy cập được Groq. Kiểm tra khóa và quyền truy cập model.'};
+    try{
+      const reader=response.body?.getReader(),decoder=new TextDecoder();let bytes=0,text='';
+      if(reader)for(;;){const part=await reader.read();if(part.done)break;bytes+=part.value.length;if(bytes>256000){await reader.cancel();throw new Error('Model listing exceeds limit');}text+=decoder.decode(part.value,{stream:true});}
+      const listing=JSON.parse(text+decoder.decode());
+      if(!Array.isArray(listing?.data)||!listing.data.some((model:any)=>model?.id===v.model&&model.active===true))return {state:'failed',message:'Khóa này chưa truy cập được model dịch đang chọn. Hệ thống không tự đổi model.'};
+      return {state:'passed',message:'Khóa Groq và model truy cập được. Chưa gửi bài để dịch; dùng tài khoản ở gói Free.'};
+    }catch{return {state:'failed',message:'Chưa đọc được danh sách model Groq. Thử lại sau.'};}
+  }
+  if (provider === 'ai') {
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(v.model), {
       headers: { 'x-goog-api-key': v.apiKey }, signal: AbortSignal.timeout(10000), redirect: 'error', cache: 'no-store' });
     if (!response.ok) return { state: 'failed', message: 'Chưa truy cập được API hoặc model. Kiểm tra khóa, model và quyền trong tài khoản Google AI.' };
-    return { state: 'passed', message: provider==='translation'?'Khóa Gemini và model truy cập được. Chưa gửi bài để dịch; hạn mức phụ thuộc dự án Google.':'API key và model truy cập được. Chưa kiểm tra hạn mức tạo nội dung; AI cho khách vẫn tắt.' };
+    return { state: 'passed', message: 'API key và model truy cập được. Chưa kiểm tra hạn mức tạo nội dung; AI cho khách vẫn tắt.' };
   }
   if (provider === 'r2') {
     const client = r2Client(v);

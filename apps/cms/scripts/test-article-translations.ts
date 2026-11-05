@@ -11,10 +11,10 @@ export async function testArticleTranslations(payload:Payload,owner:User){
  const db=new URL(process.env.DATABASE_URL||'');if(db.pathname!=='/lvd_test'||!['127.0.0.1','localhost'].includes(db.hostname))throw new Error('Isolated translation checks only');
  const suffix=crypto.randomUUID(),articles:number[]=[],users:number[]=[],originalFetch=globalThis.fetch;let calls=0;
  const fakeTranslation={title:'Synthetischer deutscher Titel',body:'Vollständiger synthetischer Absatz.\n\nBedingungen bleiben erhalten.'};
- const providerResult=()=>({candidates:[{finishReason:'STOP',content:{role:'model',parts:[{text:JSON.stringify(fakeTranslation)}]}}]});
+ const providerResult=()=>({choices:[{finish_reason:'stop',message:{role:'assistant',content:JSON.stringify(fakeTranslation)}}]});
  const provider=async(_input:unknown,options?:RequestInit)=>{
-  calls++;assert.equal(_input,'https://generativelanguage.googleapis.com/v1beta/models/'+translationModel+':generateContent');assert.equal(new Headers(options?.headers).get('x-goog-api-key'),'synthetic-translation-only');assert.equal(new Headers(options?.headers).get('authorization'),null);
-  const request=JSON.parse(String(options?.body));assert.equal(request.generationConfig.responseMimeType,'application/json');assert.equal(request.generationConfig.candidateCount,1);
+  calls++;assert.equal(_input,'https://api.groq.com/openai/v1/chat/completions');assert.equal(new Headers(options?.headers).get('authorization'),'Bearer gsk_synthetic_translation_only');assert.equal(new Headers(options?.headers).get('x-goog-api-key'),null);
+  const request=JSON.parse(String(options?.body));assert.equal(request.model,translationModel);assert.equal(request.response_format.json_schema.strict,true);assert.equal(request.max_completion_tokens,4096);
   assert.ok(!String(options?.body).includes('synthetic-chat-key'));
   return Response.json(providerResult());
  };
@@ -30,15 +30,19 @@ export async function testArticleTranslations(payload:Payload,owner:User){
   await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'ai'}),(e:any)=>e.status===503);
   await pool.query("INSERT INTO lvd_integrations(provider,encrypted_values,enabled,check_state) VALUES('translation',$1,true,'passed')",[seal('translation',{vendor:'xai',apiKey:'synthetic-legacy-xai-only',model:'grok-4.7'})]);
   const legacy=await safeConnection('translation');assert.equal(legacy.enabled,false);assert.equal(legacy.stored.apiKey,false);assert.equal(legacy.checkState,'untested');
-  assert.equal(await activeValues('translation'),null,'An enabled legacy xAI translation key is never sent to Google');
+  assert.equal(await activeValues('translation'),null,'An enabled legacy xAI translation key is never sent to Groq');
   await assert.rejects(()=>setEnabled('translation',legacy.version,true,owner.id));
   await assert.rejects(()=>saveConnection('translation',{apiKey:'',model:''},legacy.version,owner.id));
-  const saved=await saveConnection('translation',{apiKey:'synthetic-translation-only',model:''},legacy.version,owner.id);
-  assert.equal(await activeValues('translation'),null,'New Gemini settings must be checked and enabled');
+  await pool.query("UPDATE lvd_integrations SET encrypted_values=$1 WHERE provider='translation'",[seal('translation',{vendor:'gemini',apiKey:'synthetic-legacy-google-only',model:'gemini-3.1-flash-lite'})]);
+  assert.equal((await safeConnection('translation')).stored.apiKey,false);assert.equal(await activeValues('translation'),null,'An enabled legacy Gemini translation key is never sent to Groq');
+  await assert.rejects(()=>setEnabled('translation',legacy.version,true,owner.id));
+  await assert.rejects(()=>saveConnection('translation',{apiKey:'',model:''},legacy.version,owner.id));
+  const saved=await saveConnection('translation',{apiKey:'gsk_synthetic_translation_only',model:''},legacy.version,owner.id);
+  assert.equal(await activeValues('translation'),null,'New Groq settings must be checked and enabled');
   await assert.rejects(()=>setEnabled('translation',saved.version,true,owner.id));
   await markCheck('translation',saved.version,'passed',owner.id);await setEnabled('translation',saved.version,true,owner.id);
   const safe=await safeConnection('translation');assert.equal(safe.values.apiKey,undefined);assert.equal(safe.stored.apiKey,true);assert.equal(safe.enabled,true);
-  assert.throws(()=>unseal('ai',seal('translation',{apiKey:'synthetic-translation-only'})),'Provider AAD separates the keys');
+  assert.throws(()=>unseal('ai',seal('translation',{apiKey:'gsk_synthetic_translation_only'})),'Provider AAD separates the keys');
   globalThis.fetch=provider as typeof fetch;
   const result=await articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'ai'});assert.ok('id' in result);const id=result.id!;articles.push(id);
   const target=await payload.findByID({collection:'articles',id,draft:true,depth:0});assert.equal(target.translationGroup,source.translationGroup);assert.equal(target.language,'de');assert.equal(target.title,fakeTranslation.title);assert.equal(target._status,'draft');assert.equal(target.reviewState,'draft');assert.equal(target.aiAllowed,false);
@@ -54,7 +58,7 @@ export async function testArticleTranslations(payload:Payload,owner:User){
   globalThis.fetch=(async()=>{started();await waiting;return Response.json(providerResult());}) as typeof fetch;
   const pending=articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'});await begun;
   await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'}),(e:any)=>e.status===409,'Concurrent translations do not generate twice');finish();await pending;
-  globalThis.fetch=(async()=>Response.json({candidates:[{finishReason:'MAX_TOKENS',content:{role:'model',parts:[{text:'incomplete'}]}}]})) as typeof fetch;
+  globalThis.fetch=(async()=>Response.json({choices:[{finish_reason:'length',message:{role:'assistant',content:'incomplete'}}]})) as typeof fetch;
   await assert.rejects(()=>articleTranslation(payload,owner,{id:source.id,language:'de',updatedAt:source.updatedAt,mode:'preview'}),(e:any)=>e.status===502);
   globalThis.fetch=(async()=>{
    await payload.update({collection:'articles',id:source.id,user:owner,overrideAccess:false,data:{body:'Concurrent synthetic revision'}});
