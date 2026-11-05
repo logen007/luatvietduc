@@ -89,6 +89,17 @@ try{
  const {testPublicReview,testHeroLoading}=await import('./test-public-review.mjs');await testPublicReview({page,context,base,owner});await testHeroLoading({context,base});
  const {testAccountRecovery}=await import('./test-account-recovery.mjs');await testAccountRecovery({page,base});
  const {testChatReview,testCustomerHistoryRecovery}=await import('./test-chat-review.mjs');await testCustomerHistoryRecovery({page,base});await testChatReview({page,base,owner});
+ // Drive callback failures remain bound to the original owner, nonce and
+ // configuration revision. These synthetic failures never contact Google.
+ const callback=code=>context.request.get(base+'/service/backups/google/callback?'+code,{maxRedirects:0,headers:{'sec-fetch-site':'cross-site'}});
+ const missingDriveFlow=await callback('code=synthetic-private-code&state=synthetic');assert.equal(missingDriveFlow.status(),307);assert.match(missingDriveFlow.headers().location,/drive=failed&reason=state$/);assert.ok(!missingDriveFlow.headers().location.includes('synthetic-private-code'));assert.match(missingDriveFlow.headers()['cache-control'],/no-store/);
+ const {SignJWT}=await import('jose');
+ const setDriveFlow=async fields=>{const flow=await new SignJWT({state:'synthetic-nonce',verifier:'synthetic-verifier',userId:owner.id,version:99999,...fields}).setProtectedHeader({alg:'HS256'}).setExpirationTime('10m').sign(new TextEncoder().encode(process.env.PAYLOAD_SECRET));await context.addCookies([{name:'lvd-drive-oauth',value:flow,domain:'127.0.0.1',path:'/service/backups/google',httpOnly:true,sameSite:'Lax'}]);};
+ await setDriveFlow({});assert.match((await callback('code=synthetic&state=wrong-nonce')).headers().location,/reason=state$/);
+ await setDriveFlow({userId:owner.id+99999});assert.match((await callback('code=synthetic&state=synthetic-nonce')).headers().location,/reason=state$/);
+ await setDriveFlow({});assert.match((await callback('code=synthetic&state=synthetic-nonce')).headers().location,/reason=changed$/);
+ const originalOwnerCookie=(await context.cookies()).find(cookie=>cookie.name==='payload-token');assert.ok(originalOwnerCookie);await context.addCookies([{...originalOwnerCookie,value:'synthetic-invalid-jwt'}]);await setDriveFlow({});assert.match((await callback('code=synthetic&state=synthetic-nonce')).headers().location,/reason=session$/,'Valid OAuth state cannot authorize an invalid account credential');await context.addCookies([originalOwnerCookie]);
+ assert.equal((await context.cookies()).filter(cookie=>cookie.name==='lvd-drive-oauth').length,0,'Failed callbacks clear their own flow cookie');
  await page.setViewportSize({width:1280,height:900});
  await page.goto(base+'/tin-tuc');assert.ok((await page.locator('#news-query').boundingBox()).width>240,'Desktop news search must remain usable beside its filters');
  // Test recoverable connection errors independently of real credentials.
@@ -360,7 +371,7 @@ try{
   await pendingBackups;
   return route.fulfill(backupReadsFail?{status:503,json:{error:'Synthetic backup status unavailable'}}:{json:{authorized:true,drive:{enabled:true},runtime:{ready:true},jobs:[],snapshots:[]}});
  });
- await page.goto(base+'/admin/settings/backups');await page.getByText('Đang tải trạng thái sao lưu…',{exact:true}).waitFor();assert.equal(await page.getByText('Chưa có tác vụ.',{exact:true}).count(),0);
+ await page.goto(base+'/admin/settings/backups?drive=failed&reason=api');await page.getByRole('alert').filter({hasText:'Google Drive API chưa được bật'}).waitFor();await page.getByText('Đang tải trạng thái sao lưu…',{exact:true}).waitFor();assert.equal(await page.getByText('Chưa có tác vụ.',{exact:true}).count(),0);
  releaseBackups();await page.getByText('Chưa có tác vụ.',{exact:true}).waitFor();
  await page.getByRole('button',{name:'Tạo bản sao lưu',exact:true}).evaluate(button=>{button.click();button.click();});
  await page.getByText('Synthetic backup accepted',{exact:true}).waitFor();await page.getByText('Synthetic backup status unavailable',{exact:false}).waitFor();

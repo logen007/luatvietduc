@@ -9,7 +9,7 @@ export const dynamic='force-dynamic';
 export async function GET(req:Request){
  try{
  const user=await backupOwner(req),row=await readRow('drive'),origin=process.env.APP_URL||'http://localhost:3000';
- if(!row)return NextResponse.redirect(origin+'/admin/settings/backups?error=save-config-first');
+ if(!row)return NextResponse.redirect(origin+'/admin/settings/backups?drive=failed&reason=setup');
  const v=unseal('drive',row.encrypted_values),state=randomBytes(32).toString('base64url'),verifier=randomBytes(32).toString('base64url');
  const cookie=await new SignJWT({state,verifier,userId:user.id,version:row.version}).setProtectedHeader({alg:'HS256'}).setExpirationTime('10m').sign(new TextEncoder().encode(process.env.PAYLOAD_SECRET));
  const url=new URL('https://accounts.google.com/o/oauth2/v2/auth');
