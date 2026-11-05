@@ -9,11 +9,11 @@ import { IntegrationPanel } from '../integrations/Panel';
 import { KnowledgePanel } from '../knowledge/Panel';
 import { Workspace } from '../chat/Workspace';
 import { BackupPanel } from '../backup/Panel';
-function guard(props:AdminViewServerProps,roles=['owner']){
+import {isAdmin,canEnterAdmin} from '../identity/permissions';
+function guard(props:AdminViewServerProps,staff=false){
  const user=props.initPageResult.req.user;
  if(!user)redirect('/admin/login');
- if(!roles.includes(user.role))return false;
- return true;
+ return staff?canEnterAdmin(user):isAdmin(user);
 }
 function Page({props,page,children,compact=false}:{props:AdminViewServerProps;page:AdminPage;children:React.ReactNode;compact?:boolean}){
  const {req,permissions,visibleEntities}=props.initPageResult;
@@ -24,8 +24,8 @@ function Page({props,page,children,compact=false}:{props:AdminViewServerProps;pa
 const denied=<p role="alert">Tài khoản chưa được phân quyền cho mục này.</p>;
 export function ConnectionsView(props:AdminViewServerProps){return <Page props={props} page="connections">{guard(props)?<IntegrationPanel/>:denied}</Page>}
 export function BackupsView(props:AdminViewServerProps){return <Page props={props} page="backups">{guard(props)?<BackupPanel/>:denied}</Page>}
-export function KnowledgeView(props:AdminViewServerProps){return <Page props={props} page="knowledge">{guard(props,['owner','knowledge','reviewer','support'])?<KnowledgePanel/>:denied}</Page>}
-export function InboxView(props:AdminViewServerProps){return <Page props={props} page="inbox" compact>{guard(props,['owner','support','operations'])?<Workspace staff embedded/>:denied}</Page>}
+export function KnowledgeView(props:AdminViewServerProps){return <Page props={props} page="knowledge">{guard(props,true)?<KnowledgePanel/>:denied}</Page>}
+export function InboxView(props:AdminViewServerProps){return <Page props={props} page="inbox" compact>{guard(props,true)?<Workspace staff embedded/>:denied}</Page>}
 export function SettingsView(props:AdminViewServerProps){
  if(!guard(props))return <Page props={props} page="settings">{denied}</Page>;
  return <Page props={props} page="settings"><div className="lvd-admin-settings-grid">{adminSettingsSections.map(section=><section key={section.title}><h2>{section.title}</h2>{section.items.map(({label,href})=><a key={href} href={href}>{label}<span aria-hidden="true">↗</span></a>)}</section>)}</div></Page>;

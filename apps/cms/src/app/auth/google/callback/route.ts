@@ -7,6 +7,9 @@ import { randomBytes } from "node:crypto";
 import { getPayload } from "payload";
 import config from "@payload-config";
 import { pool, hash } from "../../../../modules/shared/db";
+import {createAppSession} from '../../../../modules/identity/app-sessions';
+import {revokeBrowserSessions} from '../../../../modules/identity/logout';
+import {setGoogleSession} from '../../../../modules/identity/session-cookies';
 const keys = createRemoteJWKSet(
   new URL("https://www.googleapis.com/oauth2/v3/certs"),
 );
@@ -77,7 +80,6 @@ export async function GET(req: Request) {
       // the verified Google owner first signs in with this email address.
       if(users.docs[0]&&(users.docs[0] as { _verified?:boolean })._verified===false){
         await payload.update({collection:'users',id:users.docs[0].id,overrideAccess:true,context:{googleVerified:true},data:{password:randomBytes(48).toString('base64url')}});
-        await pool.query('DELETE FROM lvd_sessions WHERE user_id=$1',[users.docs[0].id]);
       }
       const user =
         users.docs[0] ||
@@ -98,24 +100,14 @@ export async function GET(req: Request) {
       );
       userId = linked.rows[0].user_id;
     }
-    const token = randomBytes(32).toString("base64url");
-    await pool.query(
-      "INSERT INTO lvd_sessions(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval '7 days')",
-      [await hash(token), userId],
-    );
+    await revokeBrowserSessions(req,payload);
+    const token=await createAppSession(Number(userId));
     const guest = jar.get("lvd-guest")?.value;
     if (guest&&/^[\w-]{43}$/.test(guest))await linkGuestConversations(Number(userId),await hash(guest));
     const requested=typeof flow.conversationId==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(flow.conversationId)?flow.conversationId:null;
     const ownsRequested=requested&&(await pool.query('SELECT id FROM lvd_conversations WHERE id=$1 AND user_id=$2',[requested,userId])).rowCount===1;
     const result = NextResponse.redirect(origin+(ownsRequested?'/tro-chuyen?conversation='+encodeURIComponent(requested!):'/tai-khoan'));
-    result.cookies.set("lvd-session", token, {
-      httpOnly: true,
-      secure: origin.startsWith("https:"),
-      sameSite: "lax",
-      path: "/",
-      maxAge: 604800,
-    });
-    result.cookies.delete({ name: "lvd-oauth", path: "/auth/google" });
+    setGoogleSession(result,token);
     return result;
   } catch {
     return fail();

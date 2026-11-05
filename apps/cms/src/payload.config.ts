@@ -26,6 +26,7 @@ export default buildConfig({
     components: {
       afterNavLinks: ["./modules/admin/Navigation#AdminNavigation"],
       views: {
+        logout: {Component:'./modules/identity/AdminLogout#AdminLogout',path:'/logout',exact:true},
         dashboard: {Component:"./modules/settings/AdminWelcome#AdminDashboard"},
         settings: { Component: "./modules/admin/Views#SettingsView", meta:{title:adminPages.settings.title}, path: "/settings", exact: true },
         connections: { Component: "./modules/admin/Views#ConnectionsView", meta:{title:adminPages.connections.title}, path: "/settings/connections", exact: true },

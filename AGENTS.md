@@ -15,6 +15,7 @@
 - Treat 303 Vietnamese topic titles as topic-only, not approved legal answers. Never fabricate legal approval, sources, staff availability or message delivery.
 
 ## Data and security
+- Account foundation (2026-11-05): reuse identity/app-sessions.ts, session-cookies.ts, logout.ts, user-security.ts and permissions.ts. Native CMS and public account lifecycle must share revocation rules; never put password/reset/logout security only in a frontend route. Keep Payload responsible for hashes, JWT/session validity, verification and collection ACL. Test native and public entry points, revocation rollback and logout failures before changing these boundaries.
 - Secrets, VPS identifiers, SSH keys and customer conversations never belong in this public repository.
 - Public knowledge and private conversations are separate. Do not send private records to model providers or search indexes by default.
 - Authorization is enforced server-side for every HTTP endpoint, socket event, upload and CMS Local API call. Domain helpers do not replace authentication or database authorization.

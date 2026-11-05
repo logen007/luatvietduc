@@ -280,13 +280,19 @@ try{
  const googleSession=crypto.randomUUID();await pool.query("INSERT INTO lvd_sessions(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval '1 day')",[await hash(googleSession),owner.id]);
  await context.addCookies([{name:'lvd-session',value:googleSession,url:base,httpOnly:true,sameSite:'Lax'}]);
  const oldCookies=(await context.cookies()).filter(cookie=>['lvd-session','payload-token'].includes(cookie.name));assert.equal(oldCookies.length,2);
+ await context.addCookies([{name:'lvd-oauth',value:'synthetic-oauth-flow',domain:'127.0.0.1',path:'/auth/google',httpOnly:true,sameSite:'Lax'}]);
+ let logoutAttempts=0;
+ await page.route('**/service/logout',route=>++logoutAttempts===1?route.fulfill({status:503,json:{error:'Synthetic logout unavailable'}}):route.continue());
  await page.goto(base+'/admin');await page.locator('.lvd-admin-navigation').waitFor();
  if(!await page.locator('.nav').evaluate(nav=>nav.classList.contains('nav--nav-open')))await page.getByRole('button',{name:'Mở Menu',exact:true}).click();
- await page.locator('.nav__log-out').click();await page.waitForURL(base+'/admin/login');
+ await page.locator('.nav__log-out').click();await page.getByRole('alert').filter({hasText:'Synthetic logout unavailable'}).waitFor();
+ assert.equal(new URL(page.url()).pathname,'/admin/logout','Failed revocation must not report logout success or navigate to login');
+ const stillSignedIn=await context.request.get(base+'/service/me');assert.equal((await stillSignedIn.json()).user?.id,owner.id);
+ await page.getByRole('button',{name:'Thử lại',exact:true}).click();await page.waitForURL(base+'/admin/login');
  for(const path of ['/admin','/admin/settings','/admin/inbox','/admin/collections/users']){
   await page.goto(base+path);await page.waitForURL(url=>url.pathname==='/admin/login');assert.equal(await page.locator('.lvd-admin-navigation').count(),0);
  }
- assert.equal((await context.cookies()).filter(cookie=>['lvd-session','payload-token'].includes(cookie.name)).length,0);
+ assert.equal((await context.cookies()).filter(cookie=>['lvd-session','payload-token','lvd-oauth'].includes(cookie.name)).length,0);
  for(const cookie of oldCookies){
   const replay=await fetch(base+'/service/me',{headers:{cookie:cookie.name+'='+cookie.value}});assert.equal((await replay.json()).user,null,'Old credentials cannot restore a logged-out user');
   assert.equal((await fetch(base+'/api/users',{headers:{cookie:cookie.name+'='+cookie.value}})).status,403);

@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 import {api,ClientApiError} from "../shared/client-api";
+import {canEnterAdmin} from '../identity/permissions';
 import {visiblePoll} from "../shared/polling";
 import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
 import {createMessageOutbox,createOperationGate,mergeMessages,validateAttachmentBatch,type MessageReceipt} from './client-operations';
@@ -281,7 +282,7 @@ export function useWorkspace(staff=false,manageList=true){
     }catch(error){if(valid())setError((error as Error).message);}finally{if(operations.current.end(operation)&&current())setUploading(false);}
   }
   const staffAllowed =
-    me?.user && ["owner", "support", "operations"].includes(me.user.role);
+    canEnterAdmin(me?.user);
   const startNew=()=>{if(!visible||!current()||!loaded||selected!==selection.current||operations.current.busy())return false;if(!selected)return true;if(!staff)drafts.current.save(selected,{text,attachments});const draft=staff?{text:'',attachments:[]}:drafts.current.get('');outbox.current.reset();changeSelection('');setConversation(null);setMessages([]);setAttachments(draft.attachments);setError('');setConnectionError('');setText(draft.text);setInternal(false);setPreferHuman(false);return true;};
   async function openAccount(destination:'/tai-khoan'|'/auth/google'='/tai-khoan'){
     if(staff||!visible||!current()||!loaded||selected!==selection.current)return;

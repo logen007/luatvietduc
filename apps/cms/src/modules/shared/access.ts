@@ -1,3 +1,4 @@
 import type { Access } from "payload";
-export const owner: Access = ({ req }) => req.user?.role === "owner";
+import {isAdmin} from '../identity/permissions';
+export const owner: Access = ({ req }) => isAdmin(req.user);
 export const nobody: Access = () => false;

@@ -1,4 +1,5 @@
 // Presentation hints only. Payload and each service enforce authorization.
+import {isAdmin,canEnterAdmin,canWriteContent} from '../identity/permissions';
 export type AdminViewer={role?:string;name?:string;jurisdictions?:readonly string[]|null};
 export type AdminLink={label:string;href:string};
 export type AdminNavItem=AdminLink&{section?:string;icon:string;children?:AdminLink[]};
@@ -24,8 +25,8 @@ export const adminLinks={
 } as const;
 
 export function adminCapabilities(viewer?:AdminViewer|null){
- const owner=viewer?.role==='owner',staff=viewer?.role==='support',enter=owner||staff;
- return {enter,owner,content:enter,knowledge:enter,inbox:enter,write:owner||(staff&&Boolean(viewer?.jurisdictions?.some(country=>country==='VN'||country==='DE')))};
+ const owner=isAdmin(viewer),enter=canEnterAdmin(viewer);
+ return {enter,owner,content:enter,knowledge:enter,inbox:enter,write:canWriteContent(viewer)};
 }
 export function adminNavigation(viewer?:AdminViewer|null):AdminNavItem[]{
  const can=adminCapabilities(viewer);if(!can.enter)return [];

@@ -2,14 +2,14 @@ import {customerMetadata} from '../knowledge/citations';
 import { randomUUID } from "node:crypto";
 import { pool, transaction, hash } from "../shared/db";
 import type { User } from "../../payload-types";
+import {canEnterAdmin} from '../identity/permissions';
 export type Actor = { user: User | null; guestHash: string };
 import {HttpError} from '../http/errors';
 export {HttpError} from '../http/errors';
 const deny = () => {
   throw new HttpError(403, "Bạn không có quyền truy cập hội thoại này.");
 };
-export const isStaff = (user: User | null) =>
-  Boolean(user && ["owner", "support", "operations"].includes(user.role));
+export const isStaff = (user: User | null) => canEnterAdmin(user);
 function countryAllowed(a: Actor, country: string) {
   return (
     a.user?.role === "owner" ||

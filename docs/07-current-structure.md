@@ -296,3 +296,49 @@ triển khai. Down yêu cầu forward recovery để không mất nội dung/c�
 bài công khai, rule không vào RAG, giới hạn/thu hồi, đổi rule khi phản hồi đang tạo,
 10.051 nguồn, bảo vệ expiry, luồng chuyên viên, form và giữ nháp trên mobile/desktop.
 Không gửi hội thoại hoặc nội dung thật tới Gemini trong các kiểm tra này.
+
+
+## Củng cố nền tài khoản — 01.28
+
+Payload tiếp tục sở hữu mật khẩu, xác minh email, JWT/session, CRUD, upload,
+validation, lịch sử và quyền collection. Google dùng AuthStrategy chính thức;
+không tự tạo JWT thay Payload hoặc thay bộ xác thực đang hoạt động.
+
+| Trách nhiệm | Nguồn duy nhất |
+|---|---|
+| Cấp/đọc/thu hồi phiên Google | `identity/app-sessions.ts` |
+| TTL phiên Google và cookie | `identity/session-policy.ts`, `session-cookies.ts` |
+| Thu hồi phiên của cả hai phương thức | `identity/logout.ts` |
+| Gắn thay đổi tài khoản vào lifecycle Payload | `identity/user-security.ts` |
+| Quyền Admin/Chuyên viên/User cho admin và các service tùy biến | `identity/permissions.ts` |
+| Trình soạn bài, danh mục, tệp, người dùng | Các collection và API chuẩn của Payload |
+
+Đăng xuất thu hồi phiên Payload và Google trong cùng giao dịch. `allSessions`
+áp dụng cho cả hai phương thức dù trình duyệt hiện chỉ có cookie mật khẩu.
+Chuyển tài khoản Google thu hồi phiên trình duyệt trước khi cấp phiên mới;
+đăng nhập mật khẩu cũng thu hồi cookie Google cũ. Cookie OAuth được xóa ở đúng
+`/auth/google` để không sót một luồng đăng nhập đang mở. Không đổi thời hạn phiên
+hoặc xóa hàng loạt phiên cũ khi triển khai.
+
+Đổi mật khẩu qua CMS và đặt lại mật khẩu qua API native đều thu hồi phiên Google
+trong chính giao dịch ghi tài khoản. Hook reset chỉ chạy sau khi Payload xác minh
+reset token và kiểm tra mật khẩu. Thất bại/rollback giữ phiên cũ; sửa tên không
+làm mất phiên. Đổi email hoặc thu hồi xác minh cũng thu hồi phiên. Bản ghi chưa
+xác minh không được cấp hoặc sử dụng phiên Google.
+
+Giữ nút và URL đăng xuất native; view được mở rộng qua extension point chính thức
+của Payload. Chỉ báo thành công/chuyển tới đăng nhập khi máy chủ xác nhận; mất mạng
+hiện lỗi và cho thử lại. Việc xóa dữ liệu riêng trong client và đồng bộ tab vẫn đi
+qua session store hiện có, sau đó Payload phát sự kiện đăng xuất của nó.
+
+Quyền vào admin/hộp thư/kho AI/dịch bài và điều hướng dùng chung bộ kiểm tra ba
+role hiện hành. Quyền từng bản ghi và phạm vi Việt Nam/Đức tiếp tục do collection
+và service hiện có kiểm tra tại server; UI chỉ hiển thị gợi ý điều hướng.
+
+Kiểm tra trước/sau: bộ unit, 6 tổ hợp đăng xuất Google/mật khẩu/cả hai trên public
+và native, dùng lại token cũ, CSRF, thiết bị khác, reset native, rollback ghi lỗi,
+đổi tài khoản, quyền ba role, trình duyệt mobile/desktop và thử lại khi đăng xuất
+lỗi. Các kiểm tra dùng tài khoản/AI/email/tệp giả; không gọi nhà cung cấp thật.
+Helper `release-reviewed-identity-base.py` ghim commit và manifest của auth/access,
+chỉ cho phép hai tệp config/hook đã rà soát, dùng backup/candidate/rollback của
+engine hiện có, không thay chính sách tự cập nhật và không cần migration DB.

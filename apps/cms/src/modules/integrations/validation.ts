@@ -1,9 +1,10 @@
 import { integrationCatalog, type Provider, type Values } from './catalog';
+import {isAdmin} from '../identity/permissions';
 export class IntegrationError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
 export function requireOwner(user: { role?: string } | null | undefined) {
-  if (user?.role !== 'owner') throw new IntegrationError(403, 'Chỉ chủ hệ thống được cấu hình kết nối.');
+  if (!isAdmin(user)) throw new IntegrationError(403, 'Chỉ chủ hệ thống được cấu hình kết nối.');
 }
 export function mergeValues(provider: Provider, previous: Values, input: unknown): Values {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new IntegrationError(400, 'Thông tin không hợp lệ.');

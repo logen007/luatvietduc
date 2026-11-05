@@ -10,6 +10,7 @@ import {linkGuestConversations} from '../../../../modules/chat/guest-account';
 import {rateLimit} from '../../../../modules/chat/service';
 import {activeValues} from '../../../../modules/integrations/store';
 import {pool,hash} from '../../../../modules/shared/db';
+import {setPasswordSession} from '../../../../modules/identity/session-cookies';
 export const dynamic='force-dynamic';
 const json=(value:unknown,status=200)=>NextResponse.json(value,{status,headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
 export async function POST(req:Request,context:{params:Promise<{action:string}>}){
@@ -48,7 +49,6 @@ export async function POST(req:Request,context:{params:Promise<{action:string}>}
    // A valid reset link proves email ownership, including pending signups.
    const resetId=Number(result.user.id);if(!Number.isSafeInteger(resetId)||resetId<1)throw new HttpError(503,'Unable to complete this request. Please try again.');
    await payload.update({collection:'users',id:resetId,overrideAccess:true,context:{verifiedReset:true},data:{}});
-   await pool.query('DELETE FROM lvd_sessions WHERE user_id=$1',[resetId]);
    return json({ok:true,state:'password-reset'});
   }
   let login;
@@ -58,8 +58,7 @@ export async function POST(req:Request,context:{params:Promise<{action:string}>}
   if(guest&&/^[\w-]{43}$/.test(guest))await linkGuestConversations(Number(login.user.id),await hash(guest));
   const owns=data.conversation&&(await pool.query('SELECT id FROM lvd_conversations WHERE id=$1 AND user_id=$2',[data.conversation,login.user.id])).rowCount===1;
   const response=json({ok:true,redirectTo:owns?'/tro-chuyen?conversation='+encodeURIComponent(data.conversation):'/tai-khoan'});
-  response.cookies.delete('lvd-session');
-  response.cookies.set('payload-token',login.token,{httpOnly:true,secure:(process.env.APP_URL||'').startsWith('https:'),sameSite:'lax',path:'/',maxAge:Math.max(1,(login.exp||Math.floor(Date.now()/1000)+7200)-Math.floor(Date.now()/1000))});
+  setPasswordSession(response,{token:login.token,exp:login.exp});
   return response;
  }catch(error){
   if(error instanceof HttpError)return json({error:error.message},error.status);

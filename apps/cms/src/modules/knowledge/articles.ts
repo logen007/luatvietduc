@@ -4,7 +4,8 @@ import type {User} from '../../payload-types';
 import {HttpError} from '../chat/service';
 import {indexStatus} from '../rag/admin';
 import {knowledgeArticleInput} from './article-input';
-export function requireKnowledge(user:User|null):asserts user is User{if(!user||!['owner','knowledge','support','reviewer'].includes(user.role))throw new HttpError(403,'Tài khoản chưa được giao quản lý kiến thức AI.');}
+import {canEnterAdmin} from '../identity/permissions';
+export function requireKnowledge(user:User|null):asserts user is User{if(!user||!canEnterAdmin(user))throw new HttpError(403,'Tài khoản chưa được giao quản lý kiến thức AI.');}
 export async function knowledgeArticles(payload:Payload,user:User|null,id?:string|null,options:{query?:string;page?:number}={}){
  requireKnowledge(user);
  if(id){if(!/^\d+$/.test(id))throw new HttpError(400,'Bài viết không hợp lệ.');const doc=await payload.findByID({collection:'knowledge',id:Number(id),user,overrideAccess:false,draft:true});if(doc.articleOrigin)throw new HttpError(403,'Bài viết công khai được quản lý trong Bài viết.');return doc;}

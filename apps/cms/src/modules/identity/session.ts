@@ -1,5 +1,5 @@
 import type { AuthStrategy } from "payload";
-import { pool, hash } from "../shared/db";
+import {appSessionUser} from './app-sessions';
 export const cookieValue = (headers: Headers, name: string) =>
   headers
     .get("cookie")
@@ -11,19 +11,15 @@ export const googleSessionStrategy: AuthStrategy = {
   name: "google-session",
   authenticate: async ({ headers, payload }) => {
     const token = cookieValue(headers, "lvd-session");
-    if (!token || token.length > 100) return { user: null };
-    const { rows } = await pool.query(
-      "SELECT user_id FROM lvd_sessions WHERE token_hash=$1 AND expires_at>now()",
-      [await hash(token)],
-    );
-    if (!rows[0]) return { user: null };
+    const userId=await appSessionUser(token);
+    if (!userId) return { user: null };
     try {
       const user = await payload.findByID({
         collection: "users",
-        id: rows[0].user_id,
+        id: userId,
         overrideAccess: true,
       });
-      return { user: { ...user, collection: "users" as const } };
+      return { user: { ...user, collection: "users" as const, _strategy:'google-session' } };
     } catch {
       return { user: null };
     }

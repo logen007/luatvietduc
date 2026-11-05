@@ -1,3 +1,4 @@
+import {canEnterAdmin} from '../identity/permissions';
 import {createLocalReq,type Payload} from 'payload';
 import {sql} from '@payloadcms/db-postgres';
 import type {Article,User} from '../../payload-types';
@@ -9,7 +10,7 @@ import {setTranslationGroup} from './translation-group';
 import {translateArticleText,type ArticleLanguage} from './translation-provider';
 export function requireArticleEditor(user:User|null):asserts user is User{
  if(!user)throw new HttpError(401,'Đăng nhập để tiếp tục.');
- if(!['owner','support','knowledge','editor'].includes(user.role))throw new HttpError(403,'Tài khoản chưa có quyền viết bài.');
+ if(!canEnterAdmin(user))throw new HttpError(403,'Tài khoản chưa có quyền viết bài.');
 }
 async function editableArticle(payload:Payload,user:User,id:number){
  const result=await payload.find({collection:'articles',user,overrideAccess:false,draft:true,depth:0,limit:1,where:{id:{equals:id}}});
