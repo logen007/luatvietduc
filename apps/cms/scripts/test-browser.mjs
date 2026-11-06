@@ -185,7 +185,11 @@ try{
  // its cells. Exercise the real toolbar, Payload field, persistence and history.
  const tableDraft=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic table persistence '+suffix,body:'Synthetic table starting content.',slug:'',language:'vi',jurisdiction:'BOTH',_status:'draft'}});translationArticleIds.push(tableDraft.id);
  await page.goto(base+'/admin/collections/articles/'+tableDraft.id);await richEditor.waitFor();
- await richEditor.fill('');await page.waitForFunction(()=>document.querySelector('#field-body')?.value==='');
+ // fill('') sends Delete before ProseMirror necessarily observes its DOM-only
+ // selection. Select through the editor's real keyboard command instead.
+ await richEditor.click();await richEditor.press('ControlOrMeta+A');
+ await page.waitForFunction(()=>{const editor=document.querySelector('.lvd-article-editor [contenteditable]')?.editor;if(!editor)return false;const selection=editor.state.selection;return !selection.empty&&editor.state.doc.textBetween(selection.from,selection.to)===editor.state.doc.textContent;});
+ await richEditor.press('Backspace');await page.waitForFunction(()=>document.querySelector('#field-body')?.value==='');
  await page.getByRole('button',{name:'Bảng',exact:true}).click();await page.getByRole('button',{name:'Chèn bảng 3 × 3',exact:true}).click();
  await richEditor.locator('table').waitFor();await page.waitForFunction(()=>document.querySelector('#field-body')?.value.includes('<table>'));
  assert.equal(await richEditor.locator('tr').count(),3);assert.equal((await richEditor.locator('table').textContent()).trim(),'','The table starts with empty cells');
