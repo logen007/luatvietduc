@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {intakeClarification,clarificationHistory} from '../src/modules/assistant/clarification.ts';
 test('vague fragments, tests, acknowledgements and unknown requests always ask before retrieval',()=>{
- for(const text of ['Thử','test','???','ok','abc','Tôi muốn','không biết','xin chào','asdfasdf','Sao vậy','nó ấy','giúp tôi với'])assert.ok(intakeClarification(text),text);
+ for(const text of ['Hay','Hay quá','Cảm ơn','hôm nay trời đẹp','nói thế cũng được','Thử','test','???','ok','abc','Tôi muốn','không biết','xin chào','asdfasdf','Sao vậy','nó ấy','giúp tôi với'])assert.ok(intakeClarification(text),text);
 });
 test('missing facts are not fulfilled by a previously asked question or the old eight-question limit',()=>{
  const asked=Array.from({length:12},(_,i)=>'previous-'+i);

@@ -40,13 +40,13 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
  }
  try{
   clearFaqCatalog();
-  const incomplete=await start('Thử');
+  const incomplete=await start('Hay');
   await Promise.all([replyToMessage(incomplete.actor,incomplete.conversation.id,incomplete.message.id,policy,formatter),replyToMessage(incomplete.actor,incomplete.conversation.id,incomplete.message.id,policy,formatter)]);
   let intake=await chat.transcript(incomplete.actor,incomplete.conversation.id);
   assert.equal(intake.messages.length,2);assert.equal(intake.messages[1].metadata.kind,'clarify');assert.equal(intake.conversation.aiEnabled,true);assert.equal(calls,0);
   assert.ok(!(await queued(incomplete.conversation.id)),'An incomplete question is not a specialist handoff');
   for(let round=0;round<MAX_CLARIFICATIONS;round++){
-   const followup=await chat.message(incomplete.actor,incomplete.conversation.id,{body:'tôi muốn',key:crypto.randomUUID()},2000);
+   const followup=await chat.message(incomplete.actor,incomplete.conversation.id,{body:['Thử','Hay','tôi muốn','không biết'][round%4],key:crypto.randomUUID()},2000);
    await replyToMessage(incomplete.actor,incomplete.conversation.id,followup.id,policy,formatter);
    if((await chat.transcript(incomplete.actor,incomplete.conversation.id)).messages.at(-1)?.metadata.kind==='handoff')break;
   }
