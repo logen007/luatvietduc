@@ -152,20 +152,20 @@ try {
       jurisdictions: ["DE"],
     },
   });
-  await assert.rejects(() =>
-    payload.create({
+  const crossCountry = await payload.create({
       collection: "articles",
       overrideAccess: false,
       user: editor,
       data: {
-        title: "Forbidden",
+        title: "CI cross-country specialist draft",
         slug: `foreign-${suffix}`,
         body: "Test",
         jurisdiction: "DE",
         language: "de",
       },
-    }),
-  );
+    });
+  assert.equal(crossCountry.jurisdiction,"DE","Specialists can create articles outside their listed countries");
+  await payload.delete({collection:'articles',id:crossCountry.id,user:editor,overrideAccess:false});
   await payload.update({
     collection: "articles",
     id: article.id,
@@ -173,15 +173,15 @@ try {
     user: editor,
     data: { reviewState: "pending" },
   });
-  await assert.rejects(() =>
-    payload.update({
+  const crossCountryPublication = await payload.update({
       collection: "articles",
       id: article.id,
       overrideAccess: false,
       user: foreign,
-      data: { reviewState: "approved" },
-    }),
-  );
+      data: { reviewState: "approved", _status:"published" },
+    });
+  assert.equal(crossCountryPublication._status,'published','Specialists can publish another country’s article');
+  assert.equal(typeof crossCountryPublication.reviewedBy==='object'?crossCountryPublication.reviewedBy?.id:crossCountryPublication.reviewedBy,foreign.id);
   await assert.rejects(() =>
     payload.update({
       collection: "articles",
