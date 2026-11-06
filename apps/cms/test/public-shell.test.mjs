@@ -49,3 +49,13 @@ test('configured public links and logos reject normalized private paths and ambi
   assert.equal(shell.logo,url,url);assert.equal(shell.primary[0]?.href,url,url);
  }
 });
+
+
+test('the server layout paints its base canvas before external stylesheets load',async()=>{
+ const source=fs.readFileSync(new URL('../src/app/(frontend)/layout.tsx',import.meta.url),'utf8'),compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+ const exports={},Provider=({children})=>children;
+ vm.runInNewContext(compiled,{exports,process:{cwd:()=>'/synthetic'},require:name=>({'react/jsx-runtime':jsxRuntime,'next/headers':{cookies:async()=>({get:()=>({value:'vi'})})},'../../modules/public-site/server':{publicSiteSettings:async()=>({})},'../../modules/settings/client':{PublicSettingsProvider:Provider},'../../modules/shared/locale':{LocaleProvider:Provider},'node:path':{default:{join:(...parts)=>parts.join('/')}},'../../modules/shared/presentation-version.mjs':{getPresentationVersion:()=> 'synthetic'}}[name]||assert.fail(name))});
+ const html=renderToStaticMarkup(await exports.default({children:React.createElement('main',null,'Synthetic page')})),head=html.match(/<head>([\s\S]*?)<\/head>/)?.[1];
+ assert.ok(head);assert.match(head,/<style>body\{margin:0;background:#fff;color:#0b0b0b;font:400 16px\/1.5 var\(--lvd-font\);-webkit-font-smoothing:antialiased\}<\/style>/);
+ assert.ok(head.indexOf('<style>')<head.indexOf('rel="stylesheet"'),'base canvas must be available before external CSS');
+});
