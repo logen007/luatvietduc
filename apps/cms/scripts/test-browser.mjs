@@ -23,6 +23,7 @@ try{
  }
  assert.ok(ready,'Built CMS server did not become ready');browser=await chromium.launch({headless:true,...(process.env.LVD_TEST_BROWSER_EXECUTABLE?{executablePath:process.env.LVD_TEST_BROWSER_EXECUTABLE}:{})});
  await (await import('./test-homepage-intake.mjs')).testHomepageIntake(browser,base);
+ await (await import('./test-chat-login-retry.mjs')).testChatLoginRetry(browser,base,payload,pool,owner);
  const context=await browser.newContext({viewport:{width:390,height:844}});
  // Only this local server may receive test traffic. No Google, mail, Drive or R2.
  await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());

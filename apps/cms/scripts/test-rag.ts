@@ -55,6 +55,20 @@ export async function testRag(payload:Payload,owner:User,support:User){
   let transcript=await chat.transcript(normal.actor,normal.conversation.id);assert.equal(transcript.messages.length,2);assert.equal(transcript.messages[1].metadata.retrieval,'semantic-v1');assert.equal(transcript.messages[1].body,body);assert.equal(transcript.messages[1].metadata.sources[0].id,source.id);
   assert.equal(transcript.messages[0].metadata.aiConsent.version,CONSENT_VERSION);
   assert.equal(transcript.messages[1].metadata.sources[0].url,undefined,'Private answer source has no public link');
+  // A real service conversation with short follow-ups must retain the first
+  // consented customer facts after an answer, rather than treating each turn as new.
+  const long=await start('Tôi muốn tìm hiểu điều kiện mở công ty tại Đức, mã thử LONG-CONTEXT.');
+  await answer(long);
+  for(let turn=2;turn<=24;turn++){
+   const question=await chat.message(long.actor,long.conversation.id,{body:'Còn bước tiếp theo của vấn đề đó thì sao? Lượt '+turn,key:crypto.randomUUID(),aiConsentVersion:CONSENT_VERSION},2000);
+   await replyToMessage(long.actor,long.conversation.id,question.id,policy);
+   const result=await chat.transcript(long.actor,long.conversation.id);
+   assert.equal(result.messages.length,turn*2,'Every customer turn receives exactly one reply');
+   assert.equal(result.messages.at(-1)?.metadata.kind,'ai');
+   const prompt=JSON.parse(requests.filter(request=>request.task==='generate').at(-1)!.text);
+   assert.ok(prompt.question.includes('LONG-CONTEXT'),'Long chat lost initial consented facts at customer turn '+turn);
+  }
+  console.log('Long RAG conversation: 24 customer turns / 48 messages, exact sourced answers and retained context PASS');
   let ruleReached!:()=>void,ruleRelease!:()=>void;const ruleWaiting=new Promise<void>(resolve=>{ruleReached=resolve;}),ruleHold=new Promise<void>(resolve=>{ruleRelease=resolve;});gate=async()=>{ruleReached();await ruleHold;};
   const changingRule=await start(),changingTask=answer(changingRule);await ruleWaiting;
   await payload.update({collection:'knowledge',id:rule.id,user:owner,overrideAccess:false,data:{body:'Synthetic policy marker: changed policy',_status:'published'}});ruleRelease();

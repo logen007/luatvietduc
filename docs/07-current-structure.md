@@ -87,10 +87,13 @@ hết hạn; job chỉ giữ tham chiếu, không sao chép hội thoại. Tiế
 hoặc câu hỏi mới hủy hiệu lực kết quả AI cũ. Pipeline hiện có vẫn kiểm tra nguồn,
 hạn mức, điều kiện sử dụng, phiên bản và trạng thái hội thoại trước khi ghi phản hồi.
 
+Hội thoại dài giữ các lượt khách đã đồng ý xử lý: dữ kiện đầu và phần gần nhất trong ngân sách 12 KB; tối đa 80 tin gần nhất và 4 lượt khách đầu được đọc. Nội dung chuyên viên/ghi chú nội bộ không đưa vào ngữ cảnh model. Câu hỏi kế tiếp ưu tiên quốc gia vừa được khách xác nhận. Intake giới hạn câu hỏi, không lặp dữ kiện đã có; đổi chủ đề đặt lại các câu hỏi riêng của chủ đề.
+
 Frontend đọc nhanh khi chờ AI, giãn nhịp khi không thay đổi và ngủ khi tab ẩn.
 Gửi/tải tệp/chuyển trạng thái dùng khóa thao tác đồng bộ ở client. Mã gửi được giữ
 để thử lại khi chưa có xác nhận lưu; sau xác nhận, khung nhập mở lại ngay và vòng
 đọc transcript hiện có được đánh thức, không tải lại toàn bộ lịch sử sau mỗi tin.
+Khi khách chủ động sang đăng nhập, cầu nối nháp chỉ giữ khóa gửi chưa xác nhận cho đúng nội dung và thứ tự tệp. Sau đăng nhập, chỉ khôi phục vào hội thoại đã được server xác nhận thuộc tài khoản; không tự gửi. Sửa nội dung/tệp sẽ dùng khóa mới. Đây là ngoại lệ giới hạn cho mất xác nhận rồi đăng nhập, không giữ outbox chung qua đổi tài khoản.
 Kiểm tra nhóm tệp ở client diễn ra trước lượt tải đầu tiên; kiểm tra nội dung và
 quyền tại server vẫn là bắt buộc. Helper client ở `modules/chat/client-operations.ts`.
 Transport tệp ở `modules/chat/client-upload.ts` giới hạn mỗi lượt tải và đọc phản

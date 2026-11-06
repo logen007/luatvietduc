@@ -9,6 +9,8 @@ import * as integrations from '../src/modules/integrations/store';
 import {replyToMessage} from '../src/modules/assistant/reply';
 import {publicFaq,clearFaqCatalog,type Faq} from '../src/modules/assistant/faq';
 import {validateOutline} from '../src/modules/assistant/format';
+import {MAX_CLARIFICATIONS} from '../src/modules/assistant/clarification';
+import {CONSENT_VERSION} from '../src/modules/rag/core';
 const outline=(faq:Faq)=>validateOutline({sections:[{title:'Giải đáp',paragraphs:publicFaq(faq).paragraphs.map((_,index)=>index)}]},publicFaq(faq).paragraphs);
 export async function testAssistant(payload:Payload,owner:User,support:User){
  const database=new URL(process.env.DATABASE_URL||'');if(!['localhost','127.0.0.1'].includes(database.hostname)||database.pathname!=='/lvd_test')throw new Error('Isolated CI database only');
@@ -23,10 +25,10 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
  // compatibility queue's first 100 results. The current inbox filters first.
  const queued=async(id:string)=>(await specialistInbox({user:support,guestHash:''},{view:'queue',query:id})).rows.some((row:{id:string})=>row.id===id);
  let calls=0;const formatter=async(faq:Faq)=>{calls++;assert.ok(!JSON.stringify(publicFaq(faq)).includes(alias.toUpperCase()));return outline(faq);};
- async function start(body=title,country='VN'){
+ async function start(body=title,country='VN',aiConsentVersion?:string){
   const actor:chat.Actor={user:null,guestHash:crypto.randomUUID()};
   const conversation=await chat.createConversation(actor,{jurisdiction:country,consent:true,privacyNoticeVersion:'chat-v2'},{assistantEnabled:true});
-  const message=await chat.message(actor,conversation.id,{body,key:crypto.randomUUID()},2000);return {actor,conversation,message};
+  const message=await chat.message(actor,conversation.id,{body,key:crypto.randomUUID(),...(aiConsentVersion?{aiConsentVersion}:{})},2000);return {actor,conversation,message};
  }
  async function deferred(test:Awaited<ReturnType<typeof start>>){
   let ready!:()=>void,release!:()=>void;
@@ -43,12 +45,28 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
   let intake=await chat.transcript(incomplete.actor,incomplete.conversation.id);
   assert.equal(intake.messages.length,2);assert.equal(intake.messages[1].metadata.kind,'clarify');assert.equal(intake.conversation.aiEnabled,true);assert.equal(calls,0);
   assert.ok(!(await queued(incomplete.conversation.id)),'An incomplete question is not a specialist handoff');
-  for(let round=0;round<3;round++){
+  for(let round=0;round<MAX_CLARIFICATIONS;round++){
    const followup=await chat.message(incomplete.actor,incomplete.conversation.id,{body:'tôi muốn',key:crypto.randomUUID()},2000);
    await replyToMessage(incomplete.actor,incomplete.conversation.id,followup.id,policy,formatter);
+   if((await chat.transcript(incomplete.actor,incomplete.conversation.id)).messages.at(-1)?.metadata.kind==='handoff')break;
   }
   intake=await chat.transcript(incomplete.actor,incomplete.conversation.id);
   assert.equal(intake.messages.at(-1)?.metadata.kind,'handoff');assert.equal(intake.conversation.aiEnabled,false);assert.equal(calls,0);
+  const vaguePrompts=intake.messages.filter(message=>message.metadata?.kind==='clarify');assert.ok(vaguePrompts.length<=MAX_CLARIFICATIONS);assert.equal(new Set(vaguePrompts.map(message=>message.metadata.clarificationKey)).size,vaguePrompts.length,'Fixed questions cannot repeat while the customer remains vague');
+  const investment=await start('tôi muốn','BOTH',CONSENT_VERSION),originalFetch=globalThis.fetch;let intakeProviderCalls=0;
+  globalThis.fetch=async()=>{intakeProviderCalls++;throw new Error('Intake must not call a provider');};
+  try{
+   await replyToMessage(investment.actor,investment.conversation.id,investment.message.id,policy,formatter);
+   for(const [body,key] of [['về đầu tư','investment.country'],['ở Đức','investment.form'],['thành lập GmbH','investment.timeline'],['đang chuẩn bị','investment.goal']]){
+    const followup=await chat.message(investment.actor,investment.conversation.id,{body,key:crypto.randomUUID(),aiConsentVersion:CONSENT_VERSION},2000);
+    await replyToMessage(investment.actor,investment.conversation.id,followup.id,policy,formatter);
+    const transcript=await chat.transcript(investment.actor,investment.conversation.id),reply=transcript.messages.at(-1)!;
+    assert.equal(reply.metadata.kind,'clarify');assert.equal(reply.metadata.clarificationKey,key);assert.deepEqual(reply.metadata.sources,[]);assert.equal(transcript.conversation.aiEnabled,true);
+   }
+   assert.equal(intakeProviderCalls,0);assert.equal(calls,0);assert.ok(!(await queued(investment.conversation.id)),'A topic intake remains with AI while facts are being clarified');
+   const human=await chat.message(investment.actor,investment.conversation.id,{body:'tôi muốn gặp chuyên viên',key:crypto.randomUUID(),aiConsentVersion:CONSENT_VERSION},2000);await replyToMessage(investment.actor,investment.conversation.id,human.id,policy,formatter);
+   assert.equal((await chat.transcript(investment.actor,investment.conversation.id)).messages.at(-1)?.metadata.kind,'handoff','Explicit human request still overrides topic intake');assert.equal(intakeProviderCalls,0);
+  }finally{globalThis.fetch=originalFetch;}
   const answered=await start(alias.toUpperCase());
   assert.ok(!(await queued(answered.conversation.id)),'Fresh AI work is not a specialist request');
   await Promise.all([replyToMessage(answered.actor,answered.conversation.id,answered.message.id,policy,formatter),replyToMessage(answered.actor,answered.conversation.id,answered.message.id,policy,formatter)]);

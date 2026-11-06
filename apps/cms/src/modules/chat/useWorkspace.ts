@@ -157,7 +157,10 @@ export function useWorkspace(staff=false,manageList=true){
           if(requested&&list.some(item=>item.id===requested)){
             changeSelection(requested);
             let restored;try{restored=takeDraftHandoff(sessionStorage,me?.user?.id||null,list.map(item=>item.id),requested);}catch{}
-            if(restored){setText(restored.text.slice(0,s.maxMessageLength||2000));setAttachments(restored.attachments);}
+            if(restored){
+              const text=restored.text.slice(0,s.maxMessageLength||2000);setText(text);setAttachments(restored.attachments);
+              if(restored.retry&&draftMatchesDelivery({text,attachments:restored.attachments},restored.retry.body,restored.retry.fileIds))outbox.current.restore(requested,{body:restored.retry.body,internal:false,fileIds:restored.retry.fileIds},restored.retry.key);
+            }
           }else{try{takeDraftHandoff(sessionStorage,me?.user?.id||null,[],requested);}catch{}if(list[0])changeSelection(list[0].id);}
         }
         if(draft&&!new URLSearchParams(window.location.search).has('question'))try{if(sessionStorage.getItem('lvd-question-submit')===savedDraft)homepageSubmit.current=draft.slice(0,s.maxMessageLength||2000);}catch{}
@@ -352,7 +355,7 @@ export function useWorkspace(staff=false,manageList=true){
         if(!valid())return;id=created.id;rememberCreated(id);drafts.current.remove('');changeSelection(id);
       }
       if(!valid())return;
-      if(id&&(text||attachments.length))saveDraftHandoff(sessionStorage,me?.user?.id||null,id,{text,attachments});
+      if(id&&(text||attachments.length))saveDraftHandoff(sessionStorage,me?.user?.id||null,id,{text,attachments},Date.now(),outbox.current.pendingKey(id,{body:text.trim(),internal:false,fileIds:attachments.map(file=>file.id)}));
       // Persist first. A blocked storage write keeps the draft on screen.
       window.location.assign(destination+(id?'?conversation='+encodeURIComponent(id):''));
     }catch(e){if(valid())setError((e as Error).message||'Chưa giữ được bản nháp. Vui lòng thử lại.');}

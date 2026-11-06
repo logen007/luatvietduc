@@ -1,4 +1,5 @@
-import {initialClarification,clarificationText} from './clarification';
+import {answerHistory,questionWithHistory} from './conversation-context';
+import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory} from './clarification';
 import {randomUUID} from 'node:crypto';
 import {transaction} from '../shared/db';
 import {activeValues,readRow} from '../integrations/store';
@@ -25,29 +26,27 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   if(!message||String(message.id)!==String(messageId))return null;
   if(conversation.ai_generation&&new Date(conversation.ai_started_at).getTime()>Date.now()-35000)return null;
   await db.query('UPDATE lvd_conversations SET ai_generation=$2,ai_message_id=$3,ai_started_at=now() WHERE id=$1',[id,token,message.id]);
-  const previous=(await db.query("SELECT role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 12",[id,message.id])).rows;
-  const clarify=previous[0]?.role==='assistant'&&previous[0]?.metadata?.kind==='clarify';
-  const trail:typeof previous=[];if(clarify)for(const row of previous){if(row.role==='assistant'&&row.metadata?.kind!=='clarify')break;trail.push(row);}
-  const context=clarify?trail.filter(row=>row.role==='user'&&row.metadata?.aiConsent?.version===CONSENT_VERSION).reverse().map(row=>String(row.body)).join('\n'):null;
-  const clarificationCount=trail.filter(row=>row.role==='assistant'&&row.metadata?.kind==='clarify').length;
-  return {question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context,clarify,clarificationCount,country:conversation.jurisdiction,version:conversation.version};
+  const previous=(await db.query("SELECT role,body,metadata FROM ((SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 80) UNION (SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND role='user' AND NOT internal ORDER BY id LIMIT 4)) history ORDER BY id DESC",[id,message.id])).rows;
+  const history=clarificationHistory(previous,CONSENT_VERSION);
+  return {question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,country:conversation.jurisdiction,version:conversation.version};
  });
  if(!work)return;
- let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined;
+ let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined,clarificationKey:string|undefined;
  let ragSources:Faq[]=[],rules:AnswerRule[]=[],rag=false,clarification=false,localClarification=false;
+ const localQuestion=[work.localContext,work.question].filter(Boolean).join('\n');
  try{
   if(policy.customerAIEnabled===false||policy.chatEnabled===false)throw new Error('Disabled');
-  if(requiresHuman(work.question))throw new Error('Specialist required');
-  const initial=initialClarification(work.context?String(work.context)+'\n'+work.question:work.question);
-  if(initial&&work.clarificationCount<3){answer=initial;clarification=true;localClarification=true;}else{
+  if(requiresHuman(localQuestion))throw new Error('Specialist required');
+  const initial=work.clarificationCount<MAX_CLARIFICATIONS?nextClarification(localQuestion,work.clarificationKeys):null;
+  if(initial){answer=initial.text;clarificationKey=initial.key;clarification=true;localClarification=true;}else{
   providerVersion=(await readRow('ai'))?.version;
   const connection=await activeValues('ai');if(!connection)throw new Error('Provider not connected');
-  const ruleQuestion=work.context?String(work.context)+'\nCâu hỏi tiếp: '+work.question:work.question;
+  const ruleQuestion=questionWithHistory(work.question,work.context);
   rules=await activeAnswerRules(work.country,ruleQuestion);
   const limit=policy.aiDailyRequests||0;if(!limit)throw new Error('Budget disabled');
   if(work.consented){
    rag=true;
-   const question=work.context?String(work.context)+'\nCâu hỏi tiếp: '+work.question:work.question;
+   const question=questionWithHistory(work.question,work.context);
    if(requiresHuman(question))throw new Error('Specialist required');
    await reserveBudget(limit);
    const found=await retrieve(question,work.country,connection);
@@ -57,10 +56,10 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
     const used=new Set(selection.passages.map(p=>p.key));
     ragSources=found.sources.filter(source=>used.has('source-'+source.id));
     answer=selection.passages.map(p=>p.quote).join('\n\n');
-   }else if(selection.kind==='clarify-details'&&work.clarificationCount<3){
-    ragSources=found.sources;clarification=true;answer=clarificationText(selection.detail,question);
-   }else if(selection.kind==='clarify-country'&&work.clarificationCount<3){
-    ragSources=found.sources;clarification=true;answer='Bạn muốn tìm hiểu quy định tại Việt Nam, tại Đức hay liên quan đến cả hai nước?';
+   }else if(selection.kind==='clarify-details'||selection.kind==='clarify-country'){
+    const followup=work.clarificationCount<MAX_CLARIFICATIONS?nextClarification(localQuestion,work.clarificationKeys,selection.kind==='clarify-country'?'country':selection.detail):null;
+    if(!followup)throw new Error('Insufficient evidence');
+    ragSources=found.sources;clarification=true;clarificationKey=followup.key;answer=followup.text;
    }else throw new Error('Insufficient evidence');
   }else{
    // Legacy clients never send a customer question to the provider.
@@ -80,7 +79,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   const latest=(await db.query("SELECT id FROM lvd_messages WHERE conversation_id=$1 AND role='user' ORDER BY id DESC LIMIT 1",[id])).rows[0];
   if(String(latest?.id)!==String(messageId))return;
   if(answer&&!localClarification){
-   const ruleQuestion=work.context?String(work.context)+'\nCâu hỏi tiếp: '+work.question:work.question;
+   const ruleQuestion=questionWithHistory(work.question,work.context);
    const currentRules=await activeAnswerRules(work.country,ruleQuestion,db,true);
    if(rulesRevision(currentRules)!==rulesRevision(rules))answer=null;
   }
@@ -98,7 +97,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    if(!current||!eligible(current)||!sourceInScope(current.jurisdiction,work.country,work.question)||!matchesQuestion(work.question,current)||faqRevision(current)!==faqRevision(faq)||settings?.customer_a_i_enabled===false||settings?.chat_enabled===false||providerChanged)answer=null;
   }
   if(answer&&rag){
-   const question=work.context?String(work.context)+'\nCâu hỏi tiếp: '+work.question:work.question;
+   const question=questionWithHistory(work.question,work.context);
    const settings=(await db.query('SELECT customer_a_i_enabled,chat_enabled FROM site_settings LIMIT 1 FOR SHARE')).rows[0];
    const provider=(await db.query("SELECT enabled,version FROM lvd_integrations WHERE provider='ai' FOR SHARE")).rows[0];
    if(!provider?.enabled||provider.version!==providerVersion||settings?.customer_a_i_enabled===false||settings?.chat_enabled===false)answer=null;
@@ -111,7 +110,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    if(!ragSources.length)answer=null;
   }
   const cited=rag?ragSources:faq?[faq]:[];
-  const metadata=answer?{kind:clarification?'clarify':'ai',...(rag?{retrieval:'semantic-v1'}:{}),sources:clarification?[]:cited.map(source=>({...answerCitation(source),revision:new Date(source.updated_at).toISOString()+'#'+faqRevision(source).slice(0,12)}))}:{kind:'handoff'};
+  const metadata=answer?{kind:clarification?'clarify':'ai',...(clarification?{clarificationKey}:{}),...(rag?{retrieval:'semantic-v1'}:{}),sources:clarification?[]:cited.map(source=>({...answerCitation(source),revision:new Date(source.updated_at).toISOString()+'#'+faqRevision(source).slice(0,12)}))}:{kind:'handoff'};
   await db.query("INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,'assistant',$2,false,'assistant',$3,$4) ON CONFLICT(conversation_id,client_key) DO NOTHING",[id,answer||handoffText,replyKey,JSON.stringify(metadata)]);
   await db.query('UPDATE lvd_conversations SET ai_enabled=$2,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,version=version+$3,updated_at=clock_timestamp() WHERE id=$1',[id,Boolean(answer),answer?0:1]);
   await db.query('INSERT INTO lvd_chat_events(conversation_id,action,version) SELECT id,$2,version FROM lvd_conversations WHERE id=$1',[id,answer?'ai.reply':'ai.handoff']);

@@ -46,8 +46,9 @@ export function createMessageOutbox(
  newKey=()=>crypto.randomUUID() as string,
 ){
  const pending=new Map<string,Attempt>();let lastConversation='',lastSignature='';
+ const signatureFor=(conversation:string,draft:Draft)=>JSON.stringify([conversation,draft.body,draft.internal,draft.fileIds]);
  function send(conversation:string,draft:Draft):Promise<Delivery>{
-  const signature=JSON.stringify([conversation,draft.body,draft.internal,draft.fileIds]);
+  const signature=signatureFor(conversation,draft);
   let attempt=pending.get(signature);lastConversation=conversation;lastSignature=signature;
   if(!attempt){
    if(pending.size>=50)return Promise.reject(new Error('Có quá nhiều tin nhắn chưa xác nhận. Hãy thử lại các tin đang chờ trước khi gửi tin mới.'));
@@ -62,7 +63,19 @@ export function createMessageOutbox(
   }).finally(()=>{current.task=null;});
   return attempt.task;
  }
- return {send,reset(conversation?:string){if(conversation===undefined){pending.clear();lastConversation='';lastSignature='';}else for(const [key,attempt] of pending)if(attempt.conversation===conversation)pending.delete(key);},pendingKey:(conversation=lastConversation)=>{const latest=pending.get(lastSignature);return latest?.conversation===conversation?latest.key:[...pending.values()].reverse().find(attempt=>attempt.conversation===conversation)?.key;}};
+ return {send,
+  // Only an explicitly validated account-navigation handoff may prime a retry.
+  // This records no delivery and never starts a request.
+  restore(conversation:string,draft:Draft,key:string){
+   if(!/^[\w-]{16,80}$/.test(key)||pending.size>=50)return false;
+   const signature=signatureFor(conversation,draft),existing=pending.get(signature);
+   if(existing)return existing.key===key;
+   if([...pending.values()].some(attempt=>attempt.key===key))return false;
+   pending.set(signature,{conversation,draft:{...draft,fileIds:[...draft.fileIds]},key,task:null});return true;
+  },
+  reset(conversation?:string){if(conversation===undefined){pending.clear();lastConversation='';lastSignature='';}else for(const [key,attempt] of pending)if(attempt.conversation===conversation)pending.delete(key);},
+  pendingKey:(conversation=lastConversation,draft?:Draft)=>{if(draft)return pending.get(signatureFor(conversation,draft))?.key;const latest=pending.get(lastSignature);return latest?.conversation===conversation?latest.key:[...pending.values()].reverse().find(attempt=>attempt.conversation===conversation)?.key;},
+ };
 }
 
 export function validateAttachmentBatch(files:Pick<File,'name'|'size'>[],existingCount:number){
