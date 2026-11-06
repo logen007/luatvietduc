@@ -405,3 +405,6 @@ html.lvd-admin .lvd-knowledge-toolbar>span{font-size:calc(13px * var(--lvd-admin
 html.lvd-admin .lvd-knowledge-retry{margin-top:16px;padding:8px 0;border:0;background:none;color:var(--theme-elevation-600);font:inherit;font-size:calc(13px * var(--lvd-admin-font-scale, 1));cursor:pointer}
 
 @media(max-width:1100px){html.lvd-admin .lvd-knowledge-list:has([role=alert]){display:block}}
+
+/* Specialist access is global; the legacy country-scope control is obsolete. */
+html.lvd-admin #field-jurisdictions{display:none}
