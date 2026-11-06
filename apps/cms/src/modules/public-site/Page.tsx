@@ -49,7 +49,7 @@ export async function PublicPage({path:pathname,query}:{path:string;query:URLSea
  const section=['library','topic'].includes(route.kind)?'lookup':['news','legacy-news'].includes(route.kind)?'news':route.kind==='about'?'about':'';
  const groups=content.groups.map(({titles,slugs,...group})=>group),groupView=group?groups.find(item=>item.id===group.id):undefined;
  const displayQuery=new URLSearchParams(query);if(data.keyword&&!displayQuery.get('q'))displayQuery.set('q',data.keyword);const filter=displayQuery.get('linh-vuc');if(filter&&groupAliases[filter])displayQuery.set('linh-vuc',groupAliases[filter]);
- return <PublicFrame revision={revision} home={route.kind==='home'} section={section}>
+ return <PublicFrame revision={revision} home={route.kind==='home'} articleHero={route.kind==='legacy-news'} section={section}>
   {route.kind==='home'&&articleList&&<Home groups={groups} partners={content.partners} news={articleList}/>}
   {route.kind==='library'&&articleList&&<Library groups={groups} group={groupView} country={route.country} topics={topics.slice((page-1)*20,page*20)} total={topics.length} page={page} path={pathname} query={displayQuery.toString()} articles={articleList}/>}
   {route.kind==='topic'&&groupView&&topic&&<TopicPage group={groupView} topic={topic}/>}

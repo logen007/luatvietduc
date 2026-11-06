@@ -397,3 +397,8 @@
 @media print{.live-reading-page .live-reading-heading.live-reading-hero{width:auto;margin:0;padding:0 0 24px;background:none}.live-reading-hero :is(.live-reading-backdrop),.live-reading-hero::after{display:none}.live-reading-page .live-reading-hero h1{color:#111}}
 
 .lvd-public-site.pm-article-hero:not(.pm-scrolled) .site-header .live-nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+
+.live-reading-page .live-reading-hero .breadcrumb{color:#aaa;margin-bottom:28px}
+.live-reading-page .live-reading-hero .breadcrumb a{color:inherit}
+.live-reading-page .live-reading-hero .live-reading-intro{margin:24px 0 0;max-width:60ch;color:#b5b5b5;font:400 18px/1.6 var(--lvd-font)}
+@media(max-width:600px){.live-reading-page .live-reading-hero .live-reading-intro{font-size:16px}}
