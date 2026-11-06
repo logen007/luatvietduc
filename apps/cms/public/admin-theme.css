@@ -695,6 +695,19 @@ html.lvd-admin .lvd-image-editor button,html.lvd-admin .lvd-media-image-tools bu
 .lvd-image-editor[open]{display:flex;flex-direction:column}.lvd-image-editor>header,.lvd-image-editor>footer{flex-shrink:0}.lvd-image-editor-body{flex:1;height:auto}
 
 html.lvd-admin .lvd-ai-cell{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;color:var(--admin-text);line-height:1}
+
+/* Compact sidebar header and a footer aligned with the inbox pagination. */
+html.lvd-admin .template-default__nav-toggler-container{gap:12px}
+html.lvd-admin .lvd-admin-version{font-size:calc(12px * var(--lvd-admin-font-scale,1));line-height:1;white-space:nowrap;color:var(--admin-muted)}
+@media(min-width:1025px){html.lvd-admin:has(.template-default--nav-open) .template-default__nav-toggler-wrapper{width:var(--nav-width);justify-content:flex-start;padding-inline:14px;box-sizing:border-box}html.lvd-admin:not(:has(.template-default--nav-open)) .lvd-admin-version{display:none}}
+@media(max-width:1024px){html.lvd-admin .lvd-admin-version{display:none}}
+html.lvd-admin .nav__scroll{--lvd-sidebar-gutter:14px;padding-bottom:0}
+html.lvd-admin .lvd-sidebar-footer{box-sizing:border-box;height:69px;min-height:69px;display:flex;align-items:center;padding:0 var(--lvd-sidebar-gutter);margin-inline:calc(-1 * var(--lvd-sidebar-gutter));border-top-color:var(--admin-line)}
+html.lvd-admin .lvd-sidebar-account{width:100%}
+html.lvd-admin .lvd-sidebar-account>span:nth-child(2){display:flex;flex-direction:column;gap:2px}
+html.lvd-admin .lvd-sidebar-account :is(strong,small){margin:0;line-height:1.2}
+html.lvd-admin .nav__controls{bottom:12px;right:0}
+@media(max-width:1024px){html.lvd-admin .nav__scroll{--lvd-sidebar-gutter:12px;padding-bottom:0}}
 .lvd-article-editor{--editor-surface:#151515;--editor-ink:#c9c9c9;--editor-muted:#939393;--editor-line:#333;min-width:0;margin:0 0 28px;border:1px solid var(--editor-line);border-radius:7px;background:var(--editor-surface);color:var(--editor-ink);overflow:visible}
 .lvd-article-editor.has-error{border-color:#b96660}
 .lvd-article-editor :is(button,input,select,textarea){font:inherit}

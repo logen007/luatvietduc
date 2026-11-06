@@ -1,3 +1,4 @@
+import { EmptyCell } from '../../../modules/admin/EmptyCell'
 import { UserRoleTabs as UserRoleTabs_842fe956bf5458a0fb52b9687afb590b } from '../../../modules/identity/UserRoleTabs'
 import { ArticleLanguages as ArticleLanguages_c323c3ff49ed7b4dd39156f80a342a27 } from '../../../modules/content/ArticleLanguages'
 import { PermalinkField as PermalinkField_21b75de27a8941a2176c8e747a598968 } from '../../../modules/content/PermalinkField'
@@ -21,6 +22,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "./modules/admin/EmptyCell#EmptyCell": EmptyCell,
   "./modules/identity/UserRoleTabs#UserRoleTabs": UserRoleTabs_842fe956bf5458a0fb52b9687afb590b,
   "./modules/content/ArticleLanguages#ArticleLanguages": ArticleLanguages_c323c3ff49ed7b4dd39156f80a342a27,
   "./modules/content/PermalinkField#PermalinkField": PermalinkField_21b75de27a8941a2176c8e747a598968,

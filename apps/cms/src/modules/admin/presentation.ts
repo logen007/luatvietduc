@@ -20,6 +20,7 @@ function fieldsCopy(fields:Field[],copy:Record<string,FieldCopy>):Field[]{
   if('tabs' in next)next.tabs=next.tabs.map(tab=>({...tab,fields:fieldsCopy(tab.fields,copy)}));
   const text='name' in next?copy[next.name]:undefined;
   if(text){if(text.field&&next.type==='textarea')next.admin={...next.admin,components:{...next.admin?.components,Field:text.field}};if(text.label!==undefined)Object.assign(next,{label:text.label});if(text.description!==undefined)next.admin={...next.admin,description:text.description};if(text.placeholder!==undefined)next.admin={...next.admin,...{placeholder:text.placeholder}};if(text.cell&&next.type==='relationship')next.admin={...next.admin,components:{...next.admin?.components,Cell:text.cell}};if(text.cell&&next.type==='checkbox')next.admin={...next.admin,components:{...next.admin?.components,Cell:text.cell}};}
+  if('name' in next&&next.type!=='ui'&&!('required' in next&&next.required)&&next.admin?.components?.Cell===undefined)next.admin={...next.admin,components:{...next.admin?.components,Cell:'./modules/admin/EmptyCell#EmptyCell'}};
   return next;
  });
 }
