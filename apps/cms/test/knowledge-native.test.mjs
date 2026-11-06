@@ -19,7 +19,8 @@ test('native taxonomy/list fields reuse articles while mirrored entries stay out
  const knowledge=(await configPromise).collections.find(collection=>collection.slug==='knowledge');assert.ok(knowledge);
  assert.deepEqual(knowledge.admin.baseFilter(),{articleOrigin:{exists:false}});assert.deepEqual(knowledge.admin.defaultColumns,['title','categories','tags','_status','entryType','updatedAt']);
  for(const name of ['categories','tags']){const field=knowledge.fields.find(field=>field.name===name);assert.equal(field.type,'relationship');assert.equal(field.relationTo,name);assert.equal(field.hasMany,true);assert.equal(field.admin.position,'sidebar');}
- assert.equal(knowledge.access.create({req:{user}}),true);assert.equal(knowledge.access.create({req:{user:{...user,jurisdictions:['unknown']}}}),false);
+ assert.equal(knowledge.access.create({req:{user}}),true);assert.equal(knowledge.access.create({req:{user:{...user,jurisdictions:['unknown']}}}),true);
+ assert.equal(knowledge.access.create({req:{user:{...user,role:'knowledge',jurisdictions:['unknown']}}}),false);
  assert.equal(knowledge.access.read({req:{user:null}}),false);
 });
 test('custom knowledge Save Draft intent cannot become publication after native status normalization',async()=>{

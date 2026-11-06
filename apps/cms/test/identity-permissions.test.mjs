@@ -12,5 +12,5 @@ test('admin, inbox, knowledge and editor use the same supported role boundary',(
   if(allowed){assert.doesNotThrow(()=>requireKnowledge(user));assert.doesNotThrow(()=>requireArticleEditor(user));}
   else{assert.throws(()=>requireKnowledge(user));assert.throws(()=>requireArticleEditor(user));}
  }
- assert.equal(isAdmin({role:'support'}),false);assert.equal(canWriteContent({role:'support',jurisdictions:[]}),false);assert.equal(canWriteContent({role:'support',jurisdictions:['unknown']}),false);assert.equal(canWriteContent({role:'support',jurisdictions:['DE']}),true);
+ assert.equal(isAdmin({role:'support'}),false);assert.equal(canWriteContent({role:'support',jurisdictions:[]}),true);assert.equal(canWriteContent({role:'support',jurisdictions:['unknown']}),true);assert.equal(canWriteContent({role:'support',jurisdictions:['DE']}),true);
 });

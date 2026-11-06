@@ -1,6 +1,7 @@
 import type {User} from '../../payload-types';
 import {HttpError} from '../chat/service';
 import {knowledgeBody} from './content';
+import {canWriteContent} from '../identity/permissions';
 export function knowledgeArticleInput(input:any,user:User,original?:any){
  if(!['owner','knowledge','support','reviewer'].includes(user.role))throw new HttpError(403,'Tài khoản chưa có quyền nạp kiến thức.');
  const title=typeof input.title==='string'?input.title.trim():'',raw=typeof input.body==='string'?input.body.trim():'';
@@ -9,7 +10,7 @@ export function knowledgeArticleInput(input:any,user:User,original?:any){
  if(!['knowledge','rule'].includes(entryType))throw new HttpError(400,'Loại nội dung không hợp lệ.');
  const body=knowledgeBody(raw,entryType);
  const countries=(user.jurisdictions||[]).filter(x=>['VN','DE'].includes(x));
- if(user.role!=='owner'&&!countries.length)throw new HttpError(403,'Tài khoản chưa được giao phạm vi công việc.');
+ if(!canWriteContent(user)&&!countries.length)throw new HttpError(403,'Tài khoản chưa được giao phạm vi công việc.');
  const jurisdiction='BOTH' as const;
  let sourceUrl=typeof input.sourceUrl==='string'?input.sourceUrl.trim():'';
  if(!sourceUrl)sourceUrl=original?.sourceUrl||(process.env.APP_URL||'https://luatvietduc.com')+'/admin/knowledge#'+crypto.randomUUID();

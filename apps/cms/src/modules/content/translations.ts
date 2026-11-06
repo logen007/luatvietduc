@@ -1,4 +1,4 @@
-import {canEnterAdmin} from '../identity/permissions';
+import {canEnterAdmin,canWriteContent} from '../identity/permissions';
 import {createLocalReq,type Payload} from 'payload';
 import {sql} from '@payloadcms/db-postgres';
 import type {Article,User} from '../../payload-types';
@@ -15,14 +15,14 @@ export function requireArticleEditor(user:User|null):asserts user is User{
 async function editableArticle(payload:Payload,user:User,id:number){
  const result=await payload.find({collection:'articles',user,overrideAccess:false,draft:true,depth:0,limit:1,where:{id:{equals:id}}});
  const article=result.docs[0];
- if(!article||(user.role!=='owner'&&!(article.jurisdiction==='BOTH'?user.jurisdictions?.length:user.jurisdictions?.includes(article.jurisdiction))))throw new HttpError(403,'Không có quyền sửa bài viết này.');
+ if(!article||(!canWriteContent(user)&&!(article.jurisdiction==='BOTH'?user.jurisdictions?.length:user.jurisdictions?.includes(article.jurisdiction))))throw new HttpError(403,'Không có quyền sửa bài viết này.');
  if(!article.translationGroup)throw new HttpError(409,'Lưu lại bài viết trước khi thêm bản dịch.');
  return article;
 }
 export async function articleLanguages(payload:Payload,user:User|null,id:number){
  requireArticleEditor(user);const source=await editableArticle(payload,user,id);
  const result=await payload.find({collection:'articles',user,overrideAccess:false,draft:true,depth:0,limit:2,where:{translationGroup:{equals:source.translationGroup}}});
- return {articles:result.docs.filter(a=>user.role==='owner'||(a.jurisdiction==='BOTH'?user.jurisdictions?.length:user.jurisdictions?.includes(a.jurisdiction))).map(a=>({id:a.id,language:a.language})),translationReady:Boolean(await activeValues('translation'))};
+ return {articles:result.docs.filter(a=>canWriteContent(user)||(a.jurisdiction==='BOTH'?user.jurisdictions?.length:user.jurisdictions?.includes(a.jurisdiction))).map(a=>({id:a.id,language:a.language})),translationReady:Boolean(await activeValues('translation'))};
 }
 export async function articleTranslation(payload:Payload,user:User|null,input:Record<string,unknown>,signal?:AbortSignal){
  requireArticleEditor(user);

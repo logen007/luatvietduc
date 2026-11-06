@@ -15,6 +15,7 @@ import {testAnswerQueue} from './test-answer-queue';
 import {testPublicContent} from './test-public-content';
 import {testThreeRoles} from './test-three-roles';
 import {testSpecialistInbox} from './test-specialist-inbox';
+import {testSpecialistPermissions} from './test-specialist-permissions';
 import {testGuestPriority} from './test-guest-priority';
 import {testChatFiles} from './test-chat-files';
 import assert from "node:assert/strict";
@@ -149,14 +150,7 @@ try {
     consent: true,
   });
   await assert.rejects(() => chat.transcript(stranger, c.id), /quyền/);
-  await assert.rejects(
-    () =>
-      chat.transition({ user: foreign, guestHash: "" }, c.id, {
-        action: "claim",
-        version: 1,
-      }),
-    /quyền/,
-  );
+  assert.equal((await chat.transcript({user:foreign,guestHash:''},c.id)).conversation.jurisdiction,'VN','Specialists may read another country without claiming it');
   const key = crypto.randomUUID();
   await Promise.all([
     chat.message(guest, c.id, { body: "Synthetic question", key }, 2000),
@@ -165,8 +159,8 @@ try {
   assert.equal((await chat.transcript(guest, c.id)).messages.length, 1);
   assert.equal(
     (await chat.transcript(agent, c.id)).messages.length,
-    0,
-    "Queue must not expose transcript",
+    1,
+    "Specialists can inspect all queued conversation history",
   );
   const claims = await Promise.allSettled([
     chat.transition(agent, c.id, { action: "claim", version: 1 }),
@@ -181,7 +175,7 @@ try {
     ).rows[0],
     winner = row.assigned_to === staff.id ? agent : agent2,
     loser = row.assigned_to === staff.id ? agent2 : agent;
-  await assert.rejects(() => chat.transcript(loser, c.id), /quyền/);
+  assert.equal((await chat.transcript(loser,c.id)).conversation.assignedTo,winner.user.id,'Reading does not steal another specialist assignment');
   await chat.message(
     winner,
     c.id,
@@ -217,7 +211,7 @@ try {
     "queued",
   );
   console.log(
-    "System database checks passed: guest isolation, country scope, idempotent send, concurrent claim, assignment privacy, internal notes, close and reopen",
+    "System database checks passed: guest isolation, global specialist access, idempotent send, concurrent claim, explicit assignments, internal notes, close and reopen",
   );
   const imported=await writeKnowledgeArticle(payload,staff,{title:'Synthetic simple article',body:'Synthetic public content only.',publish:true});
   assert.equal(imported.approved,true);assert.equal(imported.jurisdiction,'BOTH');assert.ok(imported.sourceUrl.includes('/admin/knowledge#'));assert.ok(new Date(imported.reviewDueAt)>new Date());
@@ -231,6 +225,7 @@ try {
   await testGuestPriority(owner,staff);
   await testChatAccountRetry(owner,staff);
   await testSpecialistInbox(owner,staff,other,foreign);
+  await testSpecialistPermissions(payload,owner);
   await testChatFiles(owner);
   await testEditorial(payload,owner,staff);
   await testAssistant(payload,owner,staff);

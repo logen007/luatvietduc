@@ -13,9 +13,9 @@ test('a confirmed close keeps its authoritative state without needing a follow-u
  assert.equal(result.customer,thread.customer);assert.equal(result.aiEnabled,false);assert.equal(result.aiMessageId,null);
  assert.equal(thread.state,'human');assert.equal(thread.version,4);
 });
-test('returning or reopening a staff thread immediately hides previously accessible private details',()=>{
+test('retired scoped roles still hide private details after returning or reopening a thread',()=>{
  for(const action of ['release','reopen']){
-  const result=applyTransitionReceipt(thread,{state:'queued',version:5},action,{id:7,role:'support'});
+  const result=applyTransitionReceipt(thread,{state:'queued',version:5},action,{id:7,role:'reviewer'});
   assert.equal(result.state,'queued');assert.equal(result.version,5);assert.equal(result.assignedTo,null);assert.equal(result.restricted,true);
   assert.equal(result.customer,undefined);assert.equal(result.assignedName,undefined);assert.notEqual(result.title,thread.title);assert.equal(result.registered,true);
  }
@@ -26,17 +26,17 @@ test('claim acknowledgment cannot reveal data before the authorized transcript a
  assert.equal(result.state,'human');assert.equal(result.assignedTo,7);assert.equal(result.restricted,true);assert.equal(result.customer,undefined);
 });
 test('owner and customer retain their already authorized content after a handoff',()=>{
- for(const actor of [undefined,{id:1,role:'owner'}]){
+ for(const actor of [undefined,{id:1,role:'owner'},{id:7,role:'support'}]){
   const result=applyTransitionReceipt(thread,{state:'queued',version:5},'handoff',actor);
   assert.equal(result.customer,thread.customer);assert.equal(result.restricted,undefined);assert.equal(result.assignedTo,null);assert.equal(result.assignedName,null);
  }
 });
 
 const draftState=conversation=>({conversation,text:'PRIVATE-SYNTHETIC-REPLY',attachments:[{id:'synthetic-file',name:'PRIVATE-SYNTHETIC-FILE',size:12,url:'/service/chat-files/synthetic-file',mimeType:'text/plain'}],me:{user:{id:7,role:'support'}},selected:thread.id,sessionRevision:1,internal:false,busy:false,uploading:false,maxLength:2000,setText(){},setInternal(){}});
-test('released, reopened and not-yet-authorized claim receipts mask composer data before effects',()=>{
+test('restricted legacy releases and not-yet-authorized claim receipts mask composer data before effects',()=>{
  for(const action of ['release','reopen','claim']){
   const base=action==='claim'?{...thread,state:'queued',restricted:true}:thread;
-  const conversation=applyTransitionReceipt(base,{state:action==='claim'?'human':'queued',version:5},action,{id:7,role:'support'});
+  const conversation=applyTransitionReceipt(base,{state:action==='claim'?'human':'queued',version:5},action,{id:7,role:action==='claim'?'support':'reviewer'});
   const html=renderToStaticMarkup(createElement(Composer,{state:draftState(conversation),canReply:false,onSent(){}}));
   assert.ok(!html.includes('PRIVATE-SYNTHETIC'),action+' cannot expose stale reply text or attachments');
  }

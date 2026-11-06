@@ -12,7 +12,7 @@ const deny = () => {
 export const isStaff = (user: User | null) => canEnterAdmin(user);
 function countryAllowed(a: Actor, country: string) {
   return (
-    a.user?.role === "owner" ||
+    isStaff(a.user) ||
     (country==='BOTH'&&Boolean(a.user?.jurisdictions?.length)) ||
     Boolean(a.user?.jurisdictions?.includes(country as "VN" | "DE"))
   );
@@ -25,9 +25,7 @@ export function isCustomer(a: Actor, c: any) {
 export function allowed(a: Actor, c: any) {
   return (
     isCustomer(a, c) ||
-    (isStaff(a.user) &&
-      countryAllowed(a, c.jurisdiction) &&
-      (a.user?.role === "owner" || c.assigned_to === a.user?.id))
+    (isStaff(a.user) && countryAllowed(a, c.jurisdiction))
   );
 }
 export async function chatList(a: Actor) {
@@ -42,10 +40,10 @@ export async function chatList(a: Actor) {
 export async function queue(a: Actor) {
   if (!isStaff(a.user)) deny();
   const countries =
-    a.user?.role === "owner" ? ["VN", "DE", "BOTH"] : a.user?.jurisdictions?.length ? [...a.user.jurisdictions,"BOTH"] : [];
+    ["VN", "DE", "BOTH"];
   return (
     await pool.query(
-      "SELECT id,jurisdiction,specialty,state,version,created_at,assigned_to,(user_id IS NOT NULL) AS registered FROM lvd_conversations WHERE jurisdiction=ANY($1) AND ((state='queued' AND (NOT ai_enabled OR (COALESCE(ai_started_at,updated_at)<now()-interval '45 seconds' AND EXISTS(SELECT 1 FROM lvd_messages question WHERE question.id=(SELECT max(id) FROM lvd_messages WHERE conversation_id=lvd_conversations.id AND role='user') AND NOT EXISTS(SELECT 1 FROM lvd_messages reply WHERE reply.conversation_id=lvd_conversations.id AND reply.client_key='assistant:'||question.id::text))))) OR assigned_to=$2) ORDER BY CASE WHEN assigned_to=$2 AND state='human' THEN 0 WHEN state='queued' AND user_id IS NOT NULL THEN 1 WHEN state='queued' THEN 2 ELSE 3 END,created_at LIMIT 100",
+      "SELECT id,jurisdiction,specialty,state,version,created_at,assigned_to,(user_id IS NOT NULL) AS registered FROM lvd_conversations WHERE jurisdiction=ANY($1) AND ((state='queued' AND (NOT ai_enabled OR (COALESCE(ai_started_at,updated_at)<now()-interval '45 seconds' AND EXISTS(SELECT 1 FROM lvd_messages question WHERE question.id=(SELECT max(id) FROM lvd_messages WHERE conversation_id=lvd_conversations.id AND role='user') AND NOT EXISTS(SELECT 1 FROM lvd_messages reply WHERE reply.conversation_id=lvd_conversations.id AND reply.client_key='assistant:'||question.id::text))))) OR assigned_to=$2 OR state IN ('human','closed')) ORDER BY CASE WHEN assigned_to=$2 AND state='human' THEN 0 WHEN state='queued' AND user_id IS NOT NULL THEN 1 WHEN state='queued' THEN 2 ELSE 3 END,created_at LIMIT 100",
       [countries, a.user!.id],
     )
   ).rows;
@@ -170,8 +168,7 @@ export async function message(
       throw new HttpError(409, "Hội thoại đã đóng. Hãy mở lại trước khi gửi.");
     if (
       !own &&
-      (c.state !== "human" ||
-        (c.assigned_to !== a.user?.id && a.user?.role !== "owner"))
+      c.state !== "human"
     )
       throw new HttpError(409, "Cần nhận xử lý hội thoại trước khi trả lời.");
     if(fileIds.length){
@@ -221,10 +218,10 @@ export async function transition(a: Actor, id: string, data: any) {
       state = "human";
       assigned = a.user!.id;
     } else if(data.action==='release'){
-      if(!staff||(c.assigned_to!==a.user?.id&&a.user?.role!=='owner')||c.state!=='human')throw new HttpError(403,'Chỉ người phụ trách hoặc quản trị viên được trả hội thoại về hàng chờ.');
+      if(!staff||c.state!=='human')throw new HttpError(403,'Chỉ chuyên viên được trả hội thoại đang xử lý về hàng chờ.');
       state='queued';assigned=null;
     } else if (data.action === "close") {
-      if (!staff || (assigned !== a.user?.id && a.user?.role !== "owner"))
+      if (!staff)
         deny();
       state = "closed";
     } else if (data.action === "reopen" || data.action === "handoff") {

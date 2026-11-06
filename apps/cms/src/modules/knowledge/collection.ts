@@ -1,11 +1,11 @@
 import type { Access, CollectionConfig } from "payload";
 import { articleLock, auditArticle } from "../content/audit";
-import { owner } from "../shared/access";
+import {canWriteContent} from '../identity/permissions';
 import {lockKnowledgeRules,validateKnowledgeRule,stageNativeRule} from "./rules-hook";
 import {knowledgeDefaults} from './content';
 const knowledgeRoles = ["knowledge", "support", "reviewer"];
 const knowledgeScope: Access = ({ req }) => {
-  if (req.user?.role === "owner") return true;
+  if (canWriteContent(req.user)) return true;
   if (!req.user || !knowledgeRoles.includes(req.user.role)) return false;
   const countries = (req.user.jurisdictions || []).filter(j => j === "VN" || j === "DE");
   return countries.length ? { jurisdiction: { in: [...countries,"BOTH"] } } : false;
@@ -27,12 +27,12 @@ export const Knowledge: CollectionConfig = {
   access: {
     read: knowledgeScope,
     readVersions: knowledgeScope,
-    create: ({ req }) => req.user?.role === "owner" || Boolean(
+    create: ({ req }) => canWriteContent(req.user) || Boolean(
       req.user && knowledgeRoles.includes(req.user.role) &&
       req.user.jurisdictions?.some(country=>country==='VN'||country==='DE')
     ),
     update: knowledgeScope,
-    delete: owner,
+    delete: ({req})=>req.user?.role==='support'?{articleOrigin:{exists:false}}:req.user?.role==='owner',
   },
   hooks: {
     beforeOperation:[({operation,args,req})=>{if(operation==='create'||operation==='update')req.context.knowledgeDraftOnly='draft' in args&&args.draft===true;return args;}],
@@ -41,9 +41,9 @@ export const Knowledge: CollectionConfig = {
       async args=>{await lockKnowledgeRules(args);return articleLock(args);},
       ({ data, originalDoc, req }) => {
         if(originalDoc?.articleOrigin)throw new Error("Bài viết này được đồng bộ tự động. Hãy chỉnh sửa trong Bài viết.");
-        if(req.user?.role!=='owner'&&!req.user?.jurisdictions?.some(country=>country==='VN'||country==='DE'))throw new Error('Country scope required');
+        if(!canWriteContent(req.user)&&!req.user?.jurisdictions?.some(country=>country==='VN'||country==='DE'))throw new Error('Country scope required');
         if (
-          req.user?.role !== "owner" &&
+          !canWriteContent(req.user) &&
           (data.jurisdiction ?? originalDoc?.jurisdiction) !== "BOTH" &&
           !req.user?.jurisdictions?.includes(
             data.jurisdiction ?? originalDoc?.jurisdiction,
@@ -83,7 +83,7 @@ export const Knowledge: CollectionConfig = {
           if (!["owner", ...knowledgeRoles].includes(req.user?.role || ""))
             throw new Error("Knowledge publisher required");
           if (
-            req.user?.role !== "owner" &&
+            !canWriteContent(req.user) &&
             (data.jurisdiction ?? originalDoc?.jurisdiction) !== "BOTH" &&
             !req.user?.jurisdictions?.includes(
               data.jurisdiction ?? originalDoc?.jurisdiction,

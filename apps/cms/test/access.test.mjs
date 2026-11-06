@@ -11,7 +11,7 @@ test('editor cannot create privileged users',()=>assert.equal(users.access.creat
 test('owner may provision users',()=>assert.equal(users.access.create({req:req('owner')}),true));
 test('admin can delete any media entry; specialists remain limited to their uploads',()=>{assert.equal(media.access.delete({req:req('owner')}),true);assert.deepEqual(media.access.delete({req:req('support')}),{uploadedBy:{equals:1}});for(const role of [undefined,'member'])assert.equal(media.access.delete({req:req(role)}),false);});
 test('member only reads own user record',()=>assert.deepEqual(users.access.read({req:req('member')}),{id:{equals:1}}));
-test('specialists can manage shared articles within assigned scope',()=>assert.deepEqual(articles.access.update({req:req('support')}),{jurisdiction:{in:['VN','BOTH']}}));
+test('specialists can manage all articles regardless of assigned scope',()=>assert.equal(articles.access.update({req:req('support')}),true));
 test('public article query requires publication and approval',()=>assert.deepEqual(articles.access.read({req:req()}),{and:[{_status:{equals:'published'}},{reviewState:{equals:'approved'}}]}));
 const articleHook=articles.hooks.beforeChange[1];
 test('editor cannot publish',()=>assert.throws(()=>articleHook({req:req('editor'),data:{jurisdiction:'VN',_status:'published'}}),/Publication restricted/));
@@ -50,7 +50,7 @@ test('source withdrawal immediately removes publication',()=>{const d=sourceHook
 test('editing source invalidates approval and review attribution',()=>{const d=sourceHook({req:req('knowledge'),data:{body:'New text'},originalDoc:approvedSource});assert.equal(d.approved,false);assert.equal(d._status,'draft');assert.equal(d.reviewedAt,null)});
 test('scoped specialist can approve and publish their own FAQ revision',()=>{const data=sourceHook({req:req('knowledge'),data:{_status:'published'},originalDoc:{...approvedSource,approved:false,_status:'draft'}});assert.equal(data.approved,true);assert.equal(data.reviewedBy,1);assert.ok(data.reviewedAt);});
 test('support can see the create action without an unfinished form payload',()=>assert.equal(knowledge.access.create({req:req('support')}),true));
-test('specialist cannot publish outside assigned jurisdiction',()=>assert.throws(()=>sourceHook({req:req('support'),data:{jurisdiction:'DE',_status:'published'},originalDoc:approvedSource}),/Country scope/));
+test('specialists can publish knowledge outside assigned jurisdiction',()=>assert.equal(sourceHook({req:req('support'),data:{jurisdiction:'DE',_status:'published'},originalDoc:approvedSource}).approved,true));
 test('members cannot create or read internal knowledge',()=>{assert.equal(knowledge.access.create({req:req('member')}),false);assert.equal(knowledge.access.read({req:req('member')}),false);});
 test('reviewer cannot move source to another country',()=>assert.throws(()=>sourceHook({req:req('reviewer'),data:{jurisdiction:'DE'},originalDoc:approvedSource}),/Country scope/));
 
@@ -72,4 +72,22 @@ test('specialists cannot change roles or administer other accounts',()=>{
  assert.equal(users.access.delete({req:req('support')}),false);
  const role=users.fields.find(field=>field.name==='role');assert.equal(role.access.update({req:req('support')}),false);
  assert.deepEqual(users.access.read({req:req('support')}),{id:{equals:1}});
+});
+
+test('a specialist without country assignments has native article and knowledge create/read/edit/delete rights',()=>{
+ const empty={...req('support'),user:{...req('support').user,jurisdictions:[]}};
+ for(const collection of [articles,knowledge]){
+  for(const action of ['create','read','update','readVersions'])assert.equal(collection.access[action]({req:empty,data:{jurisdiction:'DE'}}),true,collection.slug+' '+action);
+ }
+ assert.equal(articles.access.delete({req:empty}),true);assert.deepEqual(knowledge.access.delete({req:empty}),{articleOrigin:{exists:false}});assert.equal(knowledge.access.delete({req:req('owner')}),true);
+ for(const role of ['member','editor','reviewer','knowledge'])assert.equal(knowledge.access.delete({req:req(role)}),false);
+ const published=articleHook({req:empty,data:{jurisdiction:'DE',body:'Updated',_status:'published',aiAllowed:true},originalDoc:{jurisdiction:'VN',body:'Original',_status:'draft',reviewState:'draft'}});
+ assert.equal(published.reviewState,'approved');assert.equal(published.reviewedBy,1);assert.equal(published.aiAllowed,true);
+ const source=sourceHook({req:empty,data:{jurisdiction:'DE',body:'Updated',_status:'published'},originalDoc:{...approvedSource,_status:'draft',approved:false}});
+ assert.equal(source.approved,true);assert.equal(source.reviewedBy,1);
+ assert.throws(()=>sourceHook({req:empty,data:{body:'Cannot bypass synchronized source'},originalDoc:{...approvedSource,articleOrigin:7}}),/đồng bộ tự động/);
+ assert.equal(users.access.update({req:empty}),false);assert.equal(users.access.delete({req:empty}),false);
+ assert.deepEqual(media.access.update({req:empty}),{uploadedBy:{equals:1}});assert.deepEqual(media.access.delete({req:empty}),{uploadedBy:{equals:1}});
+ assert.equal(config.globals.find(g=>g.slug==='site-settings').access.update({req:empty}),false);
+ assert.equal(config.collections.find(c=>c.slug==='quick-replies').access.create({req:empty}),false);
 });

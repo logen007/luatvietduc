@@ -5,6 +5,7 @@ import type {
   Where,
   CollectionBeforeChangeHook,
 } from "payload";
+import {canWriteContent} from '../modules/identity/permissions';
 
 const staffRoles = ["editor", "reviewer","knowledge","support"];
 const contentKeys = [
@@ -28,7 +29,7 @@ export const publicArticles: Where = {
 };
 
 export const scopedStaff = ({ req }: AccessArgs): AccessResult => {
-  if (req.user?.role === "owner") return true;
+  if (canWriteContent(req.user)) return true;
   if (!req.user || !staffRoles.includes(req.user.role)) return false;
   const countries = (req.user.jurisdictions || []).filter(
     (j) => j === "VN" || j === "DE",
@@ -46,7 +47,7 @@ export const readArticles: Access = (args) => {
 };
 
 export const createArticle: Access = ({ req, data }) =>
-  req.user?.role === "owner" ||
+  canWriteContent(req.user) ||
   Boolean(
     ["editor","knowledge","support"].includes(req.user?.role||"") && req.user?.jurisdictions?.length &&
       (!data?.jurisdiction||data.jurisdiction==="BOTH"||req.user.jurisdictions?.includes(data.jurisdiction)),
@@ -62,7 +63,7 @@ export const articleWorkflow: CollectionBeforeChangeHook = ({
   const isOwner = role === "owner";
   const jurisdiction = data.jurisdiction ?? originalDoc?.jurisdiction;
   if (
-    !isOwner &&
+    !canWriteContent(req.user) &&
     (!role ||
       !staffRoles.includes(role) ||
       !(jurisdiction==="BOTH"?req.user?.jurisdictions?.length:req.user?.jurisdictions?.includes(jurisdiction)))

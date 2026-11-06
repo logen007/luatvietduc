@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 import {permalink} from "../taxonomy/slug";
-import { owner } from "../shared/access";
+import {canWriteContent} from '../identity/permissions';
 import {
   articleWorkflow,
   createArticle,
@@ -17,7 +17,7 @@ export const Articles: CollectionConfig = {
     create: createArticle,
     read: readArticles,
     update: scopedStaff,
-    delete: owner,
+    delete: ({req})=>canWriteContent(req.user),
     readVersions: scopedStaff,
   },
   hooks: {
