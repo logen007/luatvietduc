@@ -1,5 +1,5 @@
 import {answerHistory,questionWithHistory,groundedPreviousAnswer} from './conversation-context';
-import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply,isBriefIntakeFollowup,acknowledgementText,unrepeatedClarification,isRepeatedClarification} from './clarification';
+import {MAX_CLARIFICATIONS,contextualIntakeReply,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply,isBriefIntakeFollowup,acknowledgementText,unrepeatedClarification,isRepeatedClarification} from './clarification';
 import type {Qualification} from '../chat/qualification';
 import {randomUUID} from 'node:crypto';
 import {pool,transaction} from '../shared/db';
@@ -29,14 +29,14 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   await db.query('UPDATE lvd_conversations SET ai_generation=$2,ai_message_id=$3,ai_started_at=now() WHERE id=$1',[id,token,message.id]);
   const previous=(await db.query("SELECT role,body,metadata FROM ((SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 80) UNION (SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND role='user' AND NOT internal ORDER BY id LIMIT 4)) history ORDER BY id DESC",[id,message.id])).rows;
   const history=clarificationHistory(previous,CONSENT_VERSION);
-  return {previousQuestions:previous.filter(row=>row.role==='assistant'&&row.metadata?.kind==='clarify').map(row=>String(row.body)).slice(0,6),retainHistory:Boolean(conversation.retain_history),meaningfulHistory:previous.some(row=>row.role==='user'&&!isVagueIntakeReply(String(row.body))),previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
+  return {previousQuestions:previous.filter(row=>row.role==='assistant'&&row.metadata?.kind==='clarify').map(row=>String(row.body)).slice(0,6),retainHistory:Boolean(conversation.retain_history),meaningfulHistory:previous.some(row=>row.role==='user'&&!isVagueIntakeReply(String(row.body))),previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),intakeQuestion:contextualIntakeReply(String(message.body),history.pendingKey),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
  });
  if(!work)return;
  let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined,clarificationKey:string|undefined;
  let qualification:Qualification='ready',assessed=false,unqualifiedAssessment=false;
  let ragSources:Faq[]=[],rules:AnswerRule[]=[],rag=false,clarification=false,localClarification=false;
  const followsAnswer=work.consented&&work.previousAnswer&&!work.clarificationCount&&work.context&&isBriefIntakeFollowup(work.question);
- const localQuestion=[work.localContext||(followsAnswer?work.context:''),work.question].filter(Boolean).join('\n');
+ const localQuestion=[work.localContext||(followsAnswer?work.context:''),work.intakeQuestion].filter(Boolean).join('\n');
  const intake=currentIntakeContext(localQuestion);
  const initial=intakeClarification(localQuestion,work.clarificationKeys,work.intakeAnswers);
  const clarify=(value:{key:string;text:string})=>unrepeatedClarification(value,work.previousQuestions,localQuestion);
@@ -50,12 +50,12 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   unqualifiedAssessment=Boolean(initial)||work.consented&&!work.retainHistory&&!intake.topic;
   providerVersion=(await readRow('ai'))?.version;
   const connection=await activeValues('ai');if(!connection)throw new Error('Provider not connected');
-  const ruleQuestion=questionWithHistory(work.question,work.context);
+  const ruleQuestion=questionWithHistory(work.intakeQuestion,work.context);
   rules=await activeAnswerRules(work.country,ruleQuestion);
   const limit=policy.aiDailyRequests||0;if(!limit)throw new Error('Budget disabled');
   if(work.consented){
    rag=true;
-   const question=questionWithHistory(work.question,work.context);
+   const question=questionWithHistory(work.intakeQuestion,work.context);
    if(requiresHuman(question)){unqualifiedAssessment=false;throw new Error('Specialist required');}
    await reserveBudget(limit);
    let assessment;
@@ -109,7 +109,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   if(String(latest?.id)!==String(messageId))return;
   let invalidAssessment=false;
   if(answer&&(!localClarification||assessed)){
-   const ruleQuestion=questionWithHistory(work.question,work.context);
+   const ruleQuestion=questionWithHistory(work.intakeQuestion,work.context);
    const currentRules=await activeAnswerRules(work.country,ruleQuestion,db,true);
    if(rulesRevision(currentRules)!==rulesRevision(rules)){answer=null;invalidAssessment=assessed;}
   }
@@ -129,7 +129,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    if(!current||!eligible(current)||!sourceInScope(current.jurisdiction,work.country,work.question)||!matchesQuestion(work.question,current)||faqRevision(current)!==faqRevision(faq)||settings?.customer_a_i_enabled===false||settings?.chat_enabled===false||providerChanged)answer=null;
   }
   if(answer&&rag){
-   const question=questionWithHistory(work.question,work.context);
+   const question=questionWithHistory(work.intakeQuestion,work.context);
    const settings=(await db.query('SELECT customer_a_i_enabled,chat_enabled FROM site_settings LIMIT 1 FOR SHARE')).rows[0];
    const provider=(await db.query("SELECT enabled,version FROM lvd_integrations WHERE provider='ai' FOR SHARE")).rows[0];
    if(!provider?.enabled||provider.version!==providerVersion||settings?.customer_a_i_enabled===false||settings?.chat_enabled===false)answer=null;

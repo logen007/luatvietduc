@@ -73,9 +73,9 @@ const topics:Topic[]=[
   country,
   {key:'exam.goal',text:['Bạn muốn làm rõ quyền phúc khảo, khiếu nại kết quả hay vấn đề nào khác sau kỳ thi?','Geht es um Einsicht, eine Überprüfung des Ergebnisses, einen Widerspruch oder ein anderes Anliegen?'],retry:['Bạn muốn được hỗ trợ điều gì về kết quả thi?','Was möchten Sie hinsichtlich des Prüfungsergebnisses klären?'],known:/\b(phuc khao|khieu nai|quyen|thu tuc|xem lai ket qua|widerspruch|einsicht|uberprufung|rechte|verfahren)\b/},timeline,
  ]},
- {id:'property',match:/\b(the chap|nha dat|dat dai|manh dat|thua dat|ve dat|dat (?:cua|o|tai)|so do|so hong|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)\b|^dat$/,bare:/^(?:the chap(?: tai san)?|nha dat|dat|dat dai|manh dat|thua dat|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)$/,slots:[
+ {id:'property',match:/\b(the chap|sang ten dat|chuyen nhuong dat|tang cho dat|nha dat|dat dai|manh dat|thua dat|ve dat|dat (?:cua|o|tai)|so do|so hong|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)\b|^dat$/,bare:/^(?:the chap(?: tai san)?|nha dat|dat|dat dai|manh dat|thua dat|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)$/,slots:[
   {...country,text:['Nhà hoặc mảnh đất bạn hỏi nằm ở tỉnh/thành phố nào, thuộc Việt Nam, Đức hay nước khác?','In welcher Stadt oder Region liegt das Haus oder Grundstück, und in welchem Land?'],retry:['Bạn cho biết nhà hoặc mảnh đất ở Việt Nam, Đức hay nước khác nhé?','Liegt das Haus oder Grundstück in Vietnam, Deutschland oder einem anderen Land?']},
-  {key:'property.transaction',text:['Bạn muốn hỏi về mua bán, sang tên, thế chấp hay vướng mắc nào của nhà đất?','Geht es um Kauf, Verkauf, Eigentumsübertragung, Miete, Besicherung oder ein anderes Anliegen?'],retry:['Cụ thể bạn muốn làm gì với nhà đất, hoặc đang gặp trở ngại gì?','Was möchten Sie mit der Immobilie konkret tun, oder welches Problem ist aufgetreten?'],known:/\b(mua|ban|thue|the chap|tang cho|sang ten|chuyen nhuong|tranh chap|cap so|tach thua|thu hoi|boi thuong|kauf|verkauf|miete|hypothek|ubertrag\w*|schenk\w*|streit)\b/},
+  {key:'property.transaction',text:['Bạn muốn hỏi về mua bán, sang tên, thế chấp hay vướng mắc nào của nhà đất?','Geht es um Kauf, Verkauf, Eigentumsübertragung, Miete, Besicherung oder ein anderes Anliegen?'],retry:['Cụ thể bạn muốn làm gì với nhà đất, hoặc đang gặp trở ngại gì?','Was möchten Sie mit der Immobilie konkret tun, oder welches Problem ist aufgetreten?'],known:/\b(mua|ban|thue|the chap|tang cho|sang ten|chuyen nhuong|tranh chap|cap so|tach thua|thu hoi|boi thuong|kauf|verkauf|miete|hypothek|(?:eigentums)?ubertrag\w*|schenk\w*|streit)\b/},
   {key:'property.ownership',text:['Mảnh đất hiện đứng tên ai và đã có giấy chứng nhận chưa? Bạn chỉ cần nói quan hệ, không cần gửi tên hoặc số giấy tờ.','Auf wen ist das Grundstück eingetragen und gibt es einen Eigentumsnachweis? Die Beziehung genügt; Namen oder Dokumentnummern sind nicht nötig.'],retry:['Bạn đang đứng tên trên giấy chứng nhận hay đất vẫn đứng tên người khác? Nếu chưa rõ, cứ nói phần bạn biết nhé.','Sind Sie selbst als Eigentümer eingetragen oder eine andere Person? Wenn Sie unsicher sind, nennen Sie nur die bekannten Angaben.'],known:value=>propertyFacts(value).complete},timeline,
   {key:'property.goal',text:['Bạn muốn làm rõ điều kiện, giấy tờ, thủ tục hay vướng mắc nào của giao dịch?','Welche Voraussetzungen, Unterlagen, Verfahren oder Schwierigkeiten des Geschäfts möchten Sie klären?'],known:goalKnown}]},
  {id:'tax',match:/\b(thue|steuer\w*)\b/,bare:/^(?:thue|steuer\w*)$/,slots:[country,
@@ -135,6 +135,27 @@ export function nextClarification(question:string,asked:readonly string[]=[],det
 }
 export function initialClarification(question:string){return nextClarification(question)?.text||null;}
 export type ClarificationMessage={role:string;body:unknown;metadata?:{kind?:string;clarificationKey?:string;aiConsent?:{version?:string}}};
+// Bind only unambiguous short answers to our own specific factual question.
+// These labels preserve context, not proof of title or a legal conclusion.
+export function contextualIntakeReply(body:string,key?:string){
+ const kind=/^property(?:-\d+)?\.(owner|document)$/.exec(key||'')?.[1],text=normalized(body);
+ if(!kind)return body;
+ const de=/^(?:ich|mein|meine|meinen|ja|nein|noch|weiss|weiß|keine)\b/.test(text);
+ const owner=/^(?:toi|minh|(?:bo|cha|me|vo|chong|ong|ba|anh|chi|em|con)(?: toi| minh)?|vo chong toi|nguoi khac|ngan hang|ich(?: selbst)?|meine? (?:mutter|vater|eltern|frau|mann)|jemand anderes)$/;
+ const document=/^(?:co(?: roi)?|da co(?: roi)?|khong(?: co)?|chua(?: co)?|chua co so|ja|nein|noch nicht)$/;
+ const unknown=/^(?:chua ro|khong ro|chua biet|khong biet|weiss nicht|weiß nicht|keine ahnung)$/;
+ if(!(unknown.test(text)||(kind==='owner'?owner:document).test(text)))return body;
+ return (kind==='owner'?(de?'Eingetragener Eigentümer: ':'Người đang đứng tên: '):(de?'Nachweis: ':'Giấy chứng nhận: '))+body;
+}
+export function contextualIntakeHistory(previous:ClarificationMessage[]){
+ const result=new Map<ClarificationMessage,string>();let pending:string|undefined;
+ for(const row of [...previous].reverse()){
+  if(row.role==='assistant')pending=row.metadata?.kind==='clarify'?row.metadata.clarificationKey:undefined;
+  else if(row.role==='user'){result.set(row,contextualIntakeReply(String(row.body),pending));pending=undefined;}
+  else pending=undefined;
+ }
+ return result;
+}
 // Rows arrive newest first. Only consented customer turns can become provider
 // context; local fixed questions may still use legacy turns without uploading them.
 export function clarificationHistory(previous:ClarificationMessage[],consentVersion:string){
@@ -144,10 +165,10 @@ export function clarificationHistory(previous:ClarificationMessage[],consentVers
   else if(row.role!=='user')break;
   trail.push(row);
  }
- const users=count?trail.filter(row=>row.role==='user').reverse():[];
+ const users=count?trail.filter(row=>row.role==='user').reverse():[],contextual=contextualIntakeHistory(trail);
  const answers:Record<string,string>={};let pendingKey:string|undefined;
  for(const row of [...trail].reverse()){if(row.role==='assistant')pendingKey=row.metadata?.clarificationKey;else if(row.role==='user'&&pendingKey){answers[pendingKey]=String(row.body);pendingKey=undefined;}}
- return {count,keys,answers,pendingKey,localContext:users.map(row=>String(row.body)).join('\n'),context:users.filter(row=>row.metadata?.aiConsent?.version===consentVersion).map(row=>String(row.body)).join('\n')};
+ return {count,keys,answers,pendingKey,localContext:users.map(row=>contextual.get(row)||String(row.body)).join('\n'),context:users.filter(row=>row.metadata?.aiConsent?.version===consentVersion).map(row=>contextual.get(row)||String(row.body)).join('\n')};
 }
 
 // Intake is a completeness gate, not a quota of questions. Asking a slot does
@@ -166,11 +187,11 @@ const partyFacts=(value:string)=>{
 function propertyFacts(value:string){
  let ownerKnown=false,documentKnown=false;
  for(const clause of value.split(/[\n,;]/)){
-  const text=normalized(clause),unclear=/\b(khong biet|chua ro|khong ro|weiss nicht|weiß nicht|unklar)\b/.test(text);
+  const text=normalized(clause),unclear=/\b(khong biet|chua biet|chua ro|khong ro|weiss nicht|weiß nicht|keine ahnung|unklar)\b/.test(text);
   if(/\b(dung ten|chua dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text))ownerKnown=!unclear;
   if(/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch|urkunde|nachweis)\b/.test(text))documentKnown=!unclear;
  }
- const land=/\b(dat dai|manh dat|thua dat|dat cua|ve dat|so do|so hong|grundstuck\w*)\b/.test(normalized(value));
+ const land=/\b(dat|dat dai|manh dat|thua dat|dat cua|ve dat|so do|so hong|grundstuck\w*)\b/.test(normalized(value.normalize('NFC').replace(/(?<!\p{L})(?:đặt|đạt)(?!\p{L})/giu,'action')));
  return {ownerKnown,documentKnown,complete:!land||ownerKnown&&documentKnown};
 }
 const fillerWords=new Set('toi minh em anh chi ban muon can dang hoi nho giup tu van ho tro mot chut ti it ve nay kia do ay no the vay nhu la xin chao voi nhe a ah uh vang da ich mochte will brauche etwas fragen bitte hilfe ja gut'.split(' '));
@@ -197,8 +218,8 @@ export function intakeClarification(question:string,asked:readonly string[]=[],a
    if(!known&&!answered){
     if(slot.key==='property.ownership'){
      const {ownerKnown,documentKnown}=propertyFacts(state.text);
-     if(ownerKnown&&!documentKnown)return prompt(key,['Mảnh đất đã có sổ đỏ, sổ hồng hoặc giấy chứng nhận chưa?','Gibt es für das Grundstück bereits einen Eigentumsnachweis?']);
-     if(documentKnown&&!ownerKnown)return prompt(key,['Ai đang đứng tên hoặc đang sử dụng mảnh đất: bạn, người thân hay người khác?','Auf wen ist das Grundstück eingetragen oder wer nutzt es: Sie, Angehörige oder eine andere Person?']);
+     if(ownerKnown&&!documentKnown)return prompt(state.scope+'.document',['Mảnh đất đã có sổ đỏ, sổ hồng hoặc giấy chứng nhận chưa?','Gibt es für das Grundstück bereits einen Eigentumsnachweis?']);
+     if(!ownerKnown)return prompt(state.scope+'.owner',['Ai đang đứng tên mảnh đất: bạn, người thân hay một bên khác?','Auf wen ist das Grundstück eingetragen: Sie, Angehörige oder eine andere Person?']);
     }
     return prompt(key,asked.includes(key)&&slot.retry?slot.retry:slot.text);
    }
@@ -217,6 +238,12 @@ export function unrepeatedClarification(initial:Clarification,previous:readonly 
  const variants:Pair[]=suffix==='country'?[
   ['Bạn cho biết quốc gia nơi sự việc xảy ra nhé?','In welchem Land findet die Angelegenheit statt?'],
   ['Sự việc diễn ra ở Việt Nam, Đức hay một nước khác?','Geht es um Vietnam, Deutschland oder ein anderes Land?'],
+ ]:suffix==='owner'?[
+  ['Người đứng tên là bạn, người thân hay một bên khác?','Sind Sie selbst, Angehörige oder eine andere Person eingetragen?'],
+  ['Bạn biết ai đang đứng tên không? Nếu chưa rõ, cứ nói mình chưa biết nhé.','Wissen Sie, wer eingetragen ist? Falls nicht, sagen Sie einfach, dass Sie es noch nicht wissen.'],
+ ]:suffix==='document'?[
+  ['Đất đã được cấp giấy chứng nhận, chưa có hay bạn chưa rõ?','Gibt es bereits einen Nachweis, noch keinen, oder wissen Sie es noch nicht?'],
+  ['Bạn đã thấy sổ đỏ hoặc giấy chứng nhận của mảnh đất chưa?','Haben Sie den Eigentumsnachweis für das Grundstück schon gesehen?'],
  ]:suffix==='kind'?[
   ['Bạn có thể cho biết tên kỳ thi hoặc lĩnh vực được kiểm tra không?','Wie heißt die Prüfung oder welches Fach wird geprüft?'],
  ]:[texts[suffix as DetailKind]||texts.situation,texts.goal];

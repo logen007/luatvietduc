@@ -154,7 +154,13 @@ for(const [language,turns] of [
   ['Bây giờ hỏi việc ly hôn','family.country'],['Đức','family.situation'],['tài sản','family.timeline'],['chưa ký','family.parties'],['còn gì nữa?','family.parties'],['không rõ các bên','family.parties'],['gì vậy?','family.parties'],['tôi chưa rõ','family.parties'],['bạn cần biết gì?','family.parties'],['tôi đang chưa hiểu','family.parties'],['còn thiếu điều nào?','family.parties'],['không rõ bạn đang hỏi gì','family.parties'],['còn những gì nữa?','family.parties'],['vợ chồng',null],
  ]],
  ['VI corrections and topic switch',[
-  ['Về đất đai','property.country'],['Việt Nam','property.transaction'],['Sang tên','property.ownership'],['Sổ đỏ đứng tên mẹ','property.timeline'],['Đã thực hiện','property.goal'],['À không, tôi chưa rõ thời điểm','property.timeline'],['Dự kiến tháng sau','property.goal'],['Còn ly hôn thì sao?','family.country'],['Ở Đức','family.situation'],['Về tài sản','family.timeline'],['Chưa ký','family.parties'],['Vợ chồng',null],
+  ['Về đất đai','property.country'],['Việt Nam','property.transaction'],['Sang tên','property.owner'],['Sổ đỏ đứng tên mẹ','property.timeline'],['Đã thực hiện','property.goal'],['À không, tôi chưa rõ thời điểm','property.timeline'],['Dự kiến tháng sau','property.goal'],['Còn ly hôn thì sao?','family.country'],['Ở Đức','family.situation'],['Về tài sản','family.timeline'],['Chưa ký','family.parties'],['Vợ chồng',null],
+ ]],
+ ['VI short property answers',[
+  ['Về đất đai','property.country'],['Việt Nam','property.transaction'],['Sang tên','property.owner'],['Chưa rõ','property.owner'],['Không hiểu câu hỏi','property.owner'],['Mẹ tôi','property.document'],['Có rồi','property.timeline'],['Chưa thực hiện','property.goal'],['Muốn biết thủ tục',null],
+ ]],
+ ['DE short property answers',[
+  ['Ich möchte zum Grundstück fragen','property.country'],['Deutschland','property.transaction'],['Eigentumsübertragung','property.owner'],['Keine Ahnung','property.owner'],['Was meinen Sie damit?','property.owner'],['Meine Mutter','property.document'],['Ja','property.timeline'],['Noch nicht begonnen','property.goal'],['Das Verfahren',null],
  ]],
  ['DE exam fragments',[
   ['Prüfung nicht bestanden','exam.kind'],['Führerscheinprüfung','exam.country'],['Deutschland','exam.goal'],['Ich möchte Widerspruch einlegen','exam.timeline'],['Der Zeitpunkt ist unklar','exam.timeline'],['noch nicht begonnen',null],

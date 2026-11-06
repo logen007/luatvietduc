@@ -518,3 +518,13 @@ RAG nhận `previousAnswer` chỉ để phân giải câu hỏi tiếp kiểu �
 nguồn đúng revision trong bộ nguồn hiện tại và từng đoạn khớp nguyên văn. Không
 forward câu chuyên viên/ghi chú, nguồn đã đổi/rút hoặc đoạn không còn trong nguồn.
 Bộ kiểm tra nguồn công khai/riêng và hội thoại 32 lượt nằm ở `test-rag-matrix.ts`.
+
+## Ngữ cảnh câu trả lời ngắn khi tiếp nhận đất đai
+
+Câu hỏi người đứng tên và giấy chứng nhận có khóa riêng. Các câu ngắn như
+“Mẹ tôi”, “Có rồi”, “Meine Mutter”, “Ja” chỉ được gắn ngữ cảnh khi đang trả lời
+đúng câu hỏi đó; không tự coi một câu có/không rời rạc là dữ kiện. Tin lưu giữ
+nguyên văn. Nhãn ngữ cảnh chỉ dùng trong bộ tiếp nhận và lịch sử gửi model sau
+khi lọc đồng ý xử lý; không đưa câu chuyên viên hoặc ghi chú vào model. Dữ kiện
+khách tự thuật không phải xác minh quyền sở hữu. Đính chính sau đó vẫn thay thế
+dữ kiện cũ; đổi chủ đề đặt lại phạm vi như trước.

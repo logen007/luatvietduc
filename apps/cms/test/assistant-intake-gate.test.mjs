@@ -47,7 +47,7 @@ test('land conversation recognizes ordinary wording, follows the customer and av
  const followup=intakeClarification(fragment,['goal','property.country'],{'property.country':'Đất của tôi ấy'});
  assert.equal(followup.key,'property.country');assert.notEqual(followup.text,opening.text);assert.match(followup.text,/Việt Nam, Đức/);
  const located=fragment+'\nỞ Hà Nội, Việt Nam';assert.equal(intakeClarification(located).key,'property.transaction');
- const goal=located+'\nTôi muốn sang tên';assert.equal(intakeClarification(goal).key,'property.ownership');
+ const goal=located+'\nTôi muốn sang tên';assert.equal(intakeClarification(goal).key,'property.owner');
  const owner=goal+'\nĐất đang đứng tên tôi';assert.match(intakeClarification(owner).text,/đã có sổ/);
  const papers=goal+'\nCó sổ đỏ';assert.match(intakeClarification(papers).text,/Ai đang đứng tên/);
  const facts=goal+'\nSổ đỏ đang đứng tên tôi';assert.equal(intakeClarification(facts).key,'property.timeline');
