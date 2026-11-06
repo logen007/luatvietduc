@@ -1,3 +1,4 @@
+import * as chatQualification from './20261106_210000_chat_qualification';
 import * as mediaFamilies from './20261105_210000_media_families';
 import * as knowledgeTaxonomies from './20261106_160000_knowledge_taxonomies';
 import * as mediaMetadata from './20261105_190000_media_metadata';
@@ -50,4 +51,5 @@ export const migrations = [
  {up:mediaMetadata.up,down:mediaMetadata.down,name:'20261105_190000_media_metadata'},
  {up:mediaFamilies.up,down:mediaFamilies.down,name:'20261105_210000_media_families'},
  {up:knowledgeTaxonomies.up,down:knowledgeTaxonomies.down,name:'20261106_160000_knowledge_taxonomies'},
+ {up:chatQualification.up,down:chatQualification.down,name:'20261106_210000_chat_qualification'},
 ];

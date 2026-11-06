@@ -6,5 +6,5 @@ export type Conversation={id:string;title:string;state:ConversationState;version
 export type {PublicSession as Me} from '../identity/contracts';
 export type Transcript={conversation:Conversation;messages:Message[]};
 export type TransitionReceipt=Pick<Conversation,'state'|'version'>;
-export type InboxRow={id:string;title:string|null;state:ConversationState;version:number;registered:boolean;updated_at:string;last_role?:Message['role']};
+export type InboxRow={qualification?:'unassessed'|'low'|'needs_details'|'ready';expires_at?:string|null;id:string;title:string|null;state:ConversationState;version:number;registered:boolean;updated_at:string;last_role?:Message['role']};
 export type InboxResult={rows:InboxRow[];counts:Record<string,number>;total:number;totalPages:number;page:number};
