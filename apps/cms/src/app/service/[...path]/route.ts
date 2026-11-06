@@ -1,3 +1,4 @@
+import {articleImportRequest} from '../../../modules/content/article-import';
 import {rolePreviewRequest} from '../../../modules/identity/role-preview';
 import {knowledgeRequest} from '../../../modules/knowledge/http';
 import {readJsonRequest} from '../../../modules/http/request';
@@ -40,6 +41,7 @@ async function route(
     if(path==='role-preview')return rolePreviewRequest(req,payload);
     if(path==='logout'&&method==='POST')return logoutRequest(req,payload);
     const { user } = await payload.auth({ headers: req.headers });
+    if(path==='article-import')return articleImportRequest(req,payload,user);
     let guest = cookieValue(req.headers, "lvd-guest"),
       fresh = false;
     if (!guest || !/^[\w-]{43}$/.test(guest)) {

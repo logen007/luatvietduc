@@ -1,4 +1,5 @@
 import React from 'react';
+import {ArticleImportPanel} from '../content/ArticleImportPanel';
 import type { AdminViewServerProps } from 'payload';
 import {Gutter,SetStepNav} from '@payloadcms/ui';
 import {adminPages,type AdminPage} from './pages';
@@ -29,3 +30,5 @@ export function SettingsView(props:AdminViewServerProps){
  if(!guard(props))return <Page props={props} page="settings">{denied}</Page>;
  return <Page props={props} page="settings"><div className="lvd-admin-settings-grid">{adminSettingsSections.map(section=><section key={section.title}><h2>{section.title}</h2>{section.items.map(({label,href})=><a key={href} href={href}>{label}<span aria-hidden="true">↗</span></a>)}</section>)}</div></Page>;
 }
+
+export function ArticleImportView(props:AdminViewServerProps){return <Page props={props} page="importArticles">{guard(props,true)?<ArticleImportPanel/>:denied}</Page>}

@@ -1,3 +1,4 @@
+import {testArticleImport} from './test-article-import';
 import {testRolePreview} from './test-role-preview';
 import {testStorageAdmission} from './test-storage-admission';
 import {testChatAccountRetry} from './test-chat-account-retry';
@@ -232,6 +233,7 @@ try {
   await testEditorial(payload,owner,staff);
   await testAssistant(payload,owner,staff);
   await testRolePreview(payload,owner);
+  await testArticleImport(payload);
   await testRag(payload,owner,staff);
   await testRagMatrix(payload,owner,staff);
   await testSharedKnowledge(staff,foreign);

@@ -452,6 +452,7 @@ try{
  await page.waitForURL(base+'/admin');await page.locator('.lvd-admin-navigation').waitFor();
  await (await import('./test-loading-stability.mjs')).testAdminLoadingStability(context,base);
  await (await import('./test-role-preview-browser.mjs')).testRolePreviewBrowser(context,base,payload,pool,owner);
+ await (await import('./test-article-import-browser.mjs')).testArticleImportBrowser(context,base,payload,owner);
  const nativeJSON=await context.request.post(base+'/api/users/login',{headers:{origin:base},data:{email:owner.email,password}});
  assert.equal(nativeJSON.status(),200,'Native REST JSON login remains available');
  const crossOriginLogin=await context.request.post(base+'/api/users/LoGiN',{headers:{origin:'https://cross-origin.example.invalid'},data:{email:owner.email,password}});

@@ -8,6 +8,7 @@ export const adminLinks={
  articles:{label:'Bài viết',href:'/admin/collections/articles'},
  allArticles:{label:'Tất cả bài viết',href:'/admin/collections/articles'},
  writeArticle:{label:'Viết bài mới',href:'/admin/collections/articles/create'},
+ importArticles:{label:'Nhập CSV',href:'/admin/articles/import'},
  categories:{label:'Danh mục',href:'/admin/collections/categories'},
  tags:{label:'Tag',href:'/admin/collections/tags'},
  media:{label:'Thư viện tệp',href:'/admin/collections/media'},
@@ -33,7 +34,7 @@ export function adminNavigation(viewer?:AdminViewer|null):AdminNavItem[]{
  const can=adminCapabilities(viewer);if(!can.enter)return [];
  return [
   {...adminLinks.dashboard,section:'Điều hành',icon:'home'},
-  {...adminLinks.articles,section:'Nội dung',icon:'post',children:[adminLinks.allArticles,...(can.write?[adminLinks.writeArticle]:[]),adminLinks.categories,adminLinks.tags]},
+  {...adminLinks.articles,section:'Nội dung',icon:'post',children:[adminLinks.allArticles,...(can.write?[adminLinks.writeArticle,adminLinks.importArticles]:[]),adminLinks.categories,adminLinks.tags]},
   {...adminLinks.media,icon:'media'},
   {...adminLinks.knowledge,icon:'knowledge'},
   {...adminLinks.inbox,section:'Hỗ trợ khách',icon:'chat',...(can.owner?{children:[adminLinks.conversations,adminLinks.quickReplies]}:{})},
