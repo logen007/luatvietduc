@@ -528,3 +528,14 @@ nguyên văn. Nhãn ngữ cảnh chỉ dùng trong bộ tiếp nhận và lịch
 khi lọc đồng ý xử lý; không đưa câu chuyên viên hoặc ghi chú vào model. Dữ kiện
 khách tự thuật không phải xác minh quyền sở hữu. Đính chính sau đó vẫn thay thế
 dữ kiện cũ; đổi chủ đề đặt lại phạm vi như trước.
+
+## Đính chính dữ kiện khi tiếp nhận
+
+Các lựa chọn hình thức đầu tư, mục đích cư trú, kỳ thi và giao dịch nhà đất được
+đọc theo thứ tự hội thoại. Khách xác nhận lại sự chưa rõ thì mở lại đúng dữ kiện
+đó; không dùng lựa chọn cũ để coi yêu cầu đã đủ. Khi khách cung cấp lựa chọn mới,
+bộ tiếp nhận tiếp tục từ phần còn thiếu. Câu hỏi làm rõ sau một đính chính rõ
+ràng dùng đúng mục còn thiếu tại chỗ, tránh model hỏi tiếp dựa trên điều vừa bị
+rút lại. Không gọi model hoặc tra cứu trong bước hỏi lại này. Chính sách vẫn là
+quy tắc Thu thập dữ kiện đang hiển thị trong Kiến thức AI; không thêm nhận định
+pháp lý hay thay đổi điều kiện chuyển chuyên viên.

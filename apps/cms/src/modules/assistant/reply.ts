@@ -45,7 +45,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   if(policy.customerAIEnabled===false||policy.chatEnabled===false)throw new Error('Disabled');
   if(requiresHuman(localQuestion))throw new Error('Specialist required');
   const acknowledgement=work.previousAnswer&&!work.clarificationCount?acknowledgementText(work.question):null;
-  const semanticIntake=work.consented&&initial&&!isVagueIntakeReply(work.question)&&work.clarificationCount>0&&(!intake.topic||work.clarificationKeys.includes(initial.key));
+  const semanticIntake=work.consented&&initial&&!initial.retracted&&!isVagueIntakeReply(work.question)&&work.clarificationCount>0&&(!intake.topic||work.clarificationKeys.includes(initial.key));
   if(acknowledgement){qualification='needs_details';answer=acknowledgement;clarificationKey='acknowledgement';clarification=true;localClarification=true;}else if(initial&&!semanticIntake){qualification=!work.retainHistory&&!work.meaningfulHistory&&!intake.topic&&isVagueIntakeReply(work.question)?'low':'needs_details';answer=clarify(initial);clarificationKey=initial.key;clarification=true;localClarification=true;}else{
   unqualifiedAssessment=Boolean(initial)||work.consented&&!work.retainHistory&&!intake.topic;
   providerVersion=(await readRow('ai'))?.version;

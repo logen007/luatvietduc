@@ -222,3 +222,17 @@ test('wrong-language real-model output falls back to a German question without h
  {role:'user',body:'Prüfung nicht bestanden',metadata:{aiConsent:{version:CONSENT_VERSION}}}]});
  await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,0);assert.equal(state.conversation.ai_enabled,true);assert.equal(state.replies[0].metadata.kind,'clarify');assert.match(state.replies[0].body,/Prüfung/);assert.ok(!state.replies[0].body.startsWith('Bạn'));
 });
+
+for(const item of [
+ {key:'investment.form',body:'À không, chưa biết hình thức đầu tư nào',base:'Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và muốn biết thủ tục'},
+ {key:'residence.purpose',body:'Mục đích cư trú chưa rõ',base:'Tôi muốn hỏi thủ tục cư trú ở Đức để làm việc, đang chuẩn bị'},
+ {key:'exam.kind',body:'Chưa rõ là kỳ thi nào',base:'Tôi thi bằng lái tại Đức, đã nộp hôm qua và muốn phúc khảo'},
+ {key:'property.transaction',body:'Tôi chưa quyết định mua bán hay sang tên',base:'Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục'},
+ {key:'exam.kind',body:'Ich weiß nicht, welche Prüfung es ist',base:'Ich möchte Widerspruch zur Führerscheinprüfung in Deutschland einlegen, bereits gestern'},
+])for(const unavailable of [false,true])test('withdrawn '+item.key+' blocks retrieval even when assessment '+(unavailable?'fails':'incorrectly says ready'),async t=>{
+ const state=fixture(t,{body:item.body,unavailable,previous:[
+ {role:'assistant',body:'Earlier factual question?',metadata:{kind:'clarify',clarificationKey:item.key}},
+ {role:'user',body:item.base,metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ]});
+ await state.run();assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.conversation.ai_enabled,true);assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,item.key);assert.notEqual(state.replies[0].body,'Earlier factual question?');
+});
