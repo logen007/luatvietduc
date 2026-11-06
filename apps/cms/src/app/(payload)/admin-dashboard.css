@@ -305,7 +305,7 @@ html.lvd-admin .nav__controls{bottom:12px;right:0}
 html.lvd-admin .collection-edit--knowledge .doc-controls__meta{display:none}
 
 html.lvd-admin .lvd-role-preview{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0 16px;font:400 14px/1.4 var(--lvd-font);color:var(--admin-muted)}
-html.lvd-admin .lvd-role-preview button{min-height:44px;padding:8px 10px;border:0;border-radius:6px;background:transparent;color:var(--admin-text);font:inherit;cursor:pointer}
+html.lvd-admin .lvd-role-preview button{min-width:44px;min-height:44px;padding:8px 10px;border:0;border-radius:6px;background:transparent;color:var(--admin-text);font:inherit;cursor:pointer}
 html.lvd-admin .lvd-role-preview button:hover{background:var(--admin-raised)}
 html.lvd-admin .lvd-role-preview button:disabled{opacity:.6;cursor:wait}
 html.lvd-admin .lvd-role-preview [role=alert]{flex-basis:100%;color:#d79d95}
