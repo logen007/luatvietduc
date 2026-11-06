@@ -4,7 +4,7 @@ import {useEffect,useId,useRef} from 'react';
 import type {WorkspaceState} from '../useWorkspace';
 import {ChatIcon} from './Icons';
 export function ChatComposer({state}:{state:WorkspaceState}){
- const {t,language}=useLocale();
+ const {t}=useLocale();
  const input=useRef<HTMLTextAreaElement>(null),fileInput=useRef<HTMLInputElement>(null),id=useId();
  const disabled=!state.loaded||state.busy||state.uploading||state.conversation?.state==='closed';
  useEffect(()=>{const element=input.current;if(!element)return;element.style.height='auto';element.style.height=Math.min(176,Math.max(52,element.scrollHeight))+'px';},[state.text]);
@@ -19,6 +19,5 @@ export function ChatComposer({state}:{state:WorkspaceState}){
     <button className="chat-submit" type="submit" aria-label={t("Gửi câu hỏi")} disabled={disabled||(!state.text.trim()&&!state.attachments.length)}>{state.busy?<span className="live-spinner"/>:<ChatIcon name="send"/>}</button>
    </div>
   </form>
-  {!state.attachments.length&&state.conversation?.aiEnabled!==false&&state.conversation?.state!=='closed'&&<p className="chat-provider-label">{t("Gửi câu hỏi qua")} <a href="/quyen-rieng-tu">Google Gemini</a></p>}
  </div>;
 }
