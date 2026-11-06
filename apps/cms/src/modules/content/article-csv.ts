@@ -1,12 +1,12 @@
 import {permalink} from '../taxonomy/slug';
 export const CSV_COLUMNS=['title','slug','body','categories','tags','language','kind','status','ai_allowed','source_url','jurisdiction'] as const;
 export const MAX_IMPORT_ROWS=200,MAX_CSV_BYTES=2*1024*1024;
-export function parseCSV(text:string):string[][]{
+export function parseCSV(text:string,maxColumns=64):string[][]{
  if(new TextEncoder().encode(text).length>MAX_CSV_BYTES)throw new Error('Tệp vượt quá 2 MB.');
  text=text.replace(/^\uFEFF/,'');
  const first=text.split(/\r?\n/,1)[0],delimiter=first.includes(';')&&!first.includes(',')?';':',';
  const rows:string[][]=[];let row:string[]=[],cell='',quoted=false,closed=false;
- const add=()=>{if(row.length>=CSV_COLUMNS.length)throw new Error('CSV có quá nhiều cột. Hãy dùng file mẫu.');row.push(cell);cell='';closed=false;};
+ const add=()=>{if(row.length>=maxColumns)throw new Error('CSV có quá nhiều cột. Hãy dùng file mẫu.');row.push(cell);cell='';closed=false;};
  const end=()=>{add();if(row.some(value=>value.trim()))rows.push(row);row=[];if(rows.length>MAX_IMPORT_ROWS+1)throw new Error('Mỗi lần nhập tối đa 200 bài.');};
  for(let i=0;i<text.length;i++){
   const c=text[i];
@@ -22,7 +22,7 @@ export function parseCSV(text:string):string[][]{
 export function encodeCSV(rows:unknown[][]){return '\uFEFF'+rows.map(row=>row.map(value=>{const v=String(value??'');return '"'+v.replace(/"/g,'""')+'"';}).join(',')).join('\r\n')+'\r\n';}
 export type ImportRow={row:number;title:string;slug:string;body:string;categories:string[];tags:string[];language:'vi'|'de';kind:'article'|'news'|'question';status:'draft'|'published';aiAllowed:boolean;sourceUrl:string;jurisdiction:'VN'|'DE'|'BOTH';errors:string[]};
 export function readArticleCSV(csv:string):ImportRow[]{
- const [header,...lines]=parseCSV(csv);if(!header||!lines.length)throw new Error('Tệp chưa có bài viết.');
+ const [header,...lines]=parseCSV(csv,CSV_COLUMNS.length);if(!header||!lines.length)throw new Error('Tệp chưa có bài viết.');
  const names=header.map(value=>value.trim().toLowerCase());
  if(names.some((n,i)=>!CSV_COLUMNS.includes(n as typeof CSV_COLUMNS[number])||names.indexOf(n)!==i))throw new Error('Tên cột không hợp lệ hoặc bị trùng. Hãy dùng file mẫu.');
  if(!names.includes('title')||!names.includes('body'))throw new Error('Cần hai cột title và body.');

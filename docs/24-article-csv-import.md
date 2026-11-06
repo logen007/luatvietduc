@@ -1,10 +1,10 @@
 # Nhập bài viết bằng CSV
 
-Trong Admin: **Bài viết → Nhập CSV**. Admin và Chuyên viên được nhập; User không được truy cập.
+Trong Admin: **Bài viết → Tất cả bài viết**, chọn **Nhập CSV**. **CSV mẫu** nằm ngay cạnh nút nhập. Admin và Chuyên viên được nhập; User không được truy cập.
 
 1. Tải CSV mẫu. Mẫu trong Admin lấy toàn bộ danh mục/tag đang có, bao gồm danh mục con. Mẫu công khai `/examples/bai-viet-mau.csv` gồm 16 danh mục pháp luật, 6 danh mục tin tức và các ví dụ.
 2. Sửa bằng Excel và lưu CSV UTF-8. Mỗi lần tối đa 200 bài, 2 MB. Có thể dùng dấu phẩy hoặc dấu chấm phẩy làm dấu phân cột. Ô nhiều dòng phải được đặt trong dấu ngoặc kép theo CSV.
-3. Chọn tệp, bấm **Kiểm tra tệp**, sửa các dòng lỗi rồi kiểm tra lại.
+3. Chọn tệp, bấm **Tiếp tục** để ghép cột. Cột tiêu chuẩn tự được nhận diện; cột khác có thể ghép thủ công hoặc chọn **Không nhập**. Bắt buộc ghép Tiêu đề và Nội dung. Bấm **Kiểm tra tệp**, sửa các dòng lỗi rồi kiểm tra lại.
 4. Bấm **Nhập N bài**. Permalink đã có sẽ được bỏ qua, không ghi đè. Nếu còn dòng lỗi, toàn bộ tệp chưa được lưu.
 
 Các cột:

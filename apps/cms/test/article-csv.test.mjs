@@ -22,5 +22,5 @@ test('CSV bounds batch work and ignores empty trailing records',()=>{
 test('CSV rejects null bytes, excessive taxonomy assignments and excessive columns',()=>{
  assert.ok(readArticleCSV(encodeCSV([['title','body'],['A','B\u0000C']]))[0].errors.length);
  assert.ok(readArticleCSV(encodeCSV([['title','body','tags'],['A','B',Array.from({length:51},(_,i)=>'tag-'+i).join('|')]]))[0].errors.length);
- assert.throws(()=>parseCSV(Array.from({length:12},(_,i)=>'c'+i).join(',')),/cột/);
+ assert.throws(()=>parseCSV(Array.from({length:65},(_,i)=>'c'+i).join(',')),/cột/);
 });
