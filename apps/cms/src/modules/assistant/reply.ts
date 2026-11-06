@@ -1,5 +1,5 @@
 import {answerHistory,questionWithHistory,groundedPreviousAnswer} from './conversation-context';
-import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory} from './clarification';
+import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory,intakeClarification} from './clarification';
 import {randomUUID} from 'node:crypto';
 import {transaction} from '../shared/db';
 import {activeValues,readRow} from '../integrations/store';
@@ -28,7 +28,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   await db.query('UPDATE lvd_conversations SET ai_generation=$2,ai_message_id=$3,ai_started_at=now() WHERE id=$1',[id,token,message.id]);
   const previous=(await db.query("SELECT role,body,metadata FROM ((SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 80) UNION (SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND role='user' AND NOT internal ORDER BY id LIMIT 4)) history ORDER BY id DESC",[id,message.id])).rows;
   const history=clarificationHistory(previous,CONSENT_VERSION);
-  return {previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,country:conversation.jurisdiction,version:conversation.version};
+  return {previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
  });
  if(!work)return;
  let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined,clarificationKey:string|undefined;
@@ -37,7 +37,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
  try{
   if(policy.customerAIEnabled===false||policy.chatEnabled===false)throw new Error('Disabled');
   if(requiresHuman(localQuestion))throw new Error('Specialist required');
-  const initial=work.clarificationCount<MAX_CLARIFICATIONS?nextClarification(localQuestion,work.clarificationKeys):null;
+  const initial=intakeClarification(localQuestion,work.clarificationKeys,work.intakeAnswers);
   if(initial){answer=initial.text;clarificationKey=initial.key;clarification=true;localClarification=true;}else{
   providerVersion=(await readRow('ai'))?.version;
   const connection=await activeValues('ai');if(!connection)throw new Error('Provider not connected');

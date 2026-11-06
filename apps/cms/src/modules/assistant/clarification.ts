@@ -116,5 +116,29 @@ export function clarificationHistory(previous:ClarificationMessage[],consentVers
   trail.push(row);
  }
  const users=count?trail.filter(row=>row.role==='user').reverse():[];
- return {count,keys,localContext:users.map(row=>String(row.body)).join('\n'),context:users.filter(row=>row.metadata?.aiConsent?.version===consentVersion).map(row=>String(row.body)).join('\n')};
+ const answers:Record<string,string>={};let pendingKey:string|undefined;
+ for(const row of [...trail].reverse()){if(row.role==='assistant')pendingKey=row.metadata?.clarificationKey;else if(row.role==='user'&&pendingKey){answers[pendingKey]=String(row.body);pendingKey=undefined;}}
+ return {count,keys,answers,pendingKey,localContext:users.map(row=>String(row.body)).join('\n'),context:users.filter(row=>row.metadata?.aiConsent?.version===consentVersion).map(row=>String(row.body)).join('\n')};
+}
+
+// Intake is a completeness gate, not a quota of questions. Asking a slot does
+// not mean that the customer supplied it; vague replies must stay in intake.
+const emptyReply=/^(?:thu(?: xem)?|test(?:ing)?|abc|asdf\w*|ok(?:ay)?|uh|u|um|vang|da|khong|co|sao|sao vay|gi|khong biet|chua biet|khong ro|chua ro|khong hieu|nichts|ja|nein|weiss nicht|keine ahnung)$/;
+const partyRoles=/\b(cha|me|con|vo|chong|nguoi mua|nguoi ban|ngan hang|doanh nghiep|ca nhan|chu so huu|nguoi lao dong|nguoi su dung lao dong|eltern|kind\w*|ehepartner|kaufer|verkaufer|bank|unternehmen|arbeitnehmer|arbeitgeber)\b/;
+const usableReply=(text:string)=>{const value=normalized(text);return Boolean(value)&&!vague.test(value)&&!emptyReply.test(value)&&/[\p{L}\p{N}]/u.test(value);};
+export function intakeClarification(question:string,asked:readonly string[]=[],answers:Record<string,string>={}):Clarification|null{
+ const state=intakeState(question),text=normalized(state.text),last=state.text.split('\n').at(-1)||question;
+ const prompt=(key:string,pair:Pair):Clarification=>({key,text:pair[german(state.text)?1:0]});
+ if(state.topic){
+  for(const slot of state.topic.slots){
+   const key=state.scope+'.'+slot.key.split('.').at(-1),response=answers[key]||answers[slot.key]||'';
+   const known=slot.key==='country'?countryState(state.countryText).known:typeof slot.known==='function'?slot.known(state.text):slot.known?.test(text);
+   const answered=!slot.known&&usableReply(response)&&partyRoles.test(normalized(response));
+   if(!known&&!answered)return prompt(key,slot.text);
+  }
+  return null;
+ }
+ if(!usableReply(last))return prompt('goal',asked.includes('goal')?['Bạn đang cần hỗ trợ chuyện gì? Bạn mô tả cụ thể điều đang vướng nhé.','Wobei benötigen Sie Hilfe? Beschreiben Sie bitte konkret, was Sie klären möchten.']:texts.goal);
+ if(text.split(' ').length<3)return prompt('goal',texts.goal);
+ return nextClarification(question,asked);
 }

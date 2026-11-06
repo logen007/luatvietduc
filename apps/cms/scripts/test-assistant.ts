@@ -40,7 +40,7 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
  }
  try{
   clearFaqCatalog();
-  const incomplete=await start('tôi muốn');
+  const incomplete=await start('Thử');
   await Promise.all([replyToMessage(incomplete.actor,incomplete.conversation.id,incomplete.message.id,policy,formatter),replyToMessage(incomplete.actor,incomplete.conversation.id,incomplete.message.id,policy,formatter)]);
   let intake=await chat.transcript(incomplete.actor,incomplete.conversation.id);
   assert.equal(intake.messages.length,2);assert.equal(intake.messages[1].metadata.kind,'clarify');assert.equal(intake.conversation.aiEnabled,true);assert.equal(calls,0);
@@ -51,8 +51,8 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
    if((await chat.transcript(incomplete.actor,incomplete.conversation.id)).messages.at(-1)?.metadata.kind==='handoff')break;
   }
   intake=await chat.transcript(incomplete.actor,incomplete.conversation.id);
-  assert.equal(intake.messages.at(-1)?.metadata.kind,'handoff');assert.equal(intake.conversation.aiEnabled,false);assert.equal(calls,0);
-  const vaguePrompts=intake.messages.filter(message=>message.metadata?.kind==='clarify');assert.ok(vaguePrompts.length<=MAX_CLARIFICATIONS);assert.equal(new Set(vaguePrompts.map(message=>message.metadata.clarificationKey)).size,vaguePrompts.length,'Fixed questions cannot repeat while the customer remains vague');
+  assert.equal(intake.messages.at(-1)?.metadata.kind,'clarify');assert.equal(intake.conversation.aiEnabled,true);assert.equal(calls,0);assert.ok(!(await queued(incomplete.conversation.id)));
+  const vaguePrompts=intake.messages.filter(message=>message.metadata?.kind==='clarify');assert.equal(vaguePrompts.length,MAX_CLARIFICATIONS+1,'Missing facts must keep clarification active beyond the old limit');
   const investment=await start('tôi muốn','BOTH',CONSENT_VERSION),originalFetch=globalThis.fetch;let intakeProviderCalls=0;
   globalThis.fetch=async()=>{intakeProviderCalls++;throw new Error('Intake must not call a provider');};
   try{
