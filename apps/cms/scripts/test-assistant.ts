@@ -54,7 +54,7 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
   assert.equal(intake.messages.at(-1)?.metadata.kind,'clarify');assert.equal(intake.conversation.aiEnabled,true);assert.equal(calls,0);assert.ok(!(await queued(incomplete.conversation.id)));
   const vaguePrompts=intake.messages.filter(message=>message.metadata?.kind==='clarify');assert.equal(vaguePrompts.length,MAX_CLARIFICATIONS+1,'Missing facts must keep clarification active beyond the old limit');
   const investment=await start('tôi muốn','BOTH',CONSENT_VERSION),originalFetch=globalThis.fetch;let intakeProviderCalls=0;
-  globalThis.fetch=async()=>{intakeProviderCalls++;throw new Error('Intake must not call a provider');};
+  globalThis.fetch=async(input,init)=>{const request=JSON.parse(String(init?.body));assert.equal(JSON.parse(request.contents[0].parts[0].text).phase,'intake','Missing facts must never reach retrieval/answer selection');assert.ok(String(input).includes(':generateContent'));intakeProviderCalls++;throw new Error('Synthetic intake outage');};
   try{
    await replyToMessage(investment.actor,investment.conversation.id,investment.message.id,policy,formatter);
    for(const [body,key] of [['về đầu tư','investment.country'],['ở Đức','investment.form'],['thành lập GmbH','investment.timeline'],['đang chuẩn bị','investment.goal']]){
@@ -63,18 +63,19 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
     const transcript=await chat.transcript(investment.actor,investment.conversation.id),reply=transcript.messages.at(-1)!;
     assert.equal(reply.metadata.kind,'clarify');assert.equal(reply.metadata.clarificationKey,key);assert.deepEqual(reply.metadata.sources,[]);assert.equal(transcript.conversation.aiEnabled,true);
    }
-   assert.equal(intakeProviderCalls,0);assert.equal(calls,0);assert.ok(!(await queued(investment.conversation.id)),'A topic intake remains with AI while facts are being clarified');
+   assert.equal(intakeProviderCalls,3,'New fields in the same case can use contextual intake; an outage falls back without retrieval');assert.equal(calls,0);assert.ok(!(await queued(investment.conversation.id)),'A topic intake remains with AI while facts are being clarified');
    const declined=await start('Tôi chưa cần gặp chuyên viên, tôi muốn đầu tư ở Đức','BOTH',CONSENT_VERSION);
    await replyToMessage(declined.actor,declined.conversation.id,declined.message.id,policy,formatter);
    let contact=await chat.transcript(declined.actor,declined.conversation.id);assert.equal(contact.messages.at(-1)?.metadata.clarificationKey,'investment.form');assert.equal(contact.conversation.aiEnabled,true);assert.ok(!(await queued(declined.conversation.id)));
    const conditional=await chat.message(declined.actor,declined.conversation.id,{body:'Nếu không trả lời được thì mới chuyển chuyên viên. Tôi dự định thành lập GmbH',key:crypto.randomUUID(),aiConsentVersion:CONSENT_VERSION},2000);
    await replyToMessage(declined.actor,declined.conversation.id,conditional.id,policy,formatter);
    contact=await chat.transcript(declined.actor,declined.conversation.id);assert.equal(contact.messages.at(-1)?.metadata.clarificationKey,'investment.goal');assert.equal(contact.conversation.aiEnabled,true);assert.ok(!(await queued(declined.conversation.id)));
+   const beforeHandoffCalls=intakeProviderCalls;
    const changedMind=await chat.message(declined.actor,declined.conversation.id,{body:'Bây giờ tôi muốn gặp chuyên viên',key:crypto.randomUUID(),aiConsentVersion:CONSENT_VERSION},2000);
    await replyToMessage(declined.actor,declined.conversation.id,changedMind.id,policy,formatter);
-   contact=await chat.transcript(declined.actor,declined.conversation.id);assert.equal(contact.messages.at(-1)?.metadata.kind,'handoff');assert.equal(contact.conversation.aiEnabled,false);assert.ok(await queued(declined.conversation.id));assert.equal(intakeProviderCalls,0);
+   contact=await chat.transcript(declined.actor,declined.conversation.id);assert.equal(contact.messages.at(-1)?.metadata.kind,'handoff');assert.equal(contact.conversation.aiEnabled,false);assert.ok(await queued(declined.conversation.id));assert.equal(intakeProviderCalls,beforeHandoffCalls);
    const human=await chat.message(investment.actor,investment.conversation.id,{body:'tôi muốn gặp chuyên viên',key:crypto.randomUUID(),aiConsentVersion:CONSENT_VERSION},2000);await replyToMessage(investment.actor,investment.conversation.id,human.id,policy,formatter);
-   assert.equal((await chat.transcript(investment.actor,investment.conversation.id)).messages.at(-1)?.metadata.kind,'handoff','Explicit human request still overrides topic intake');assert.equal(intakeProviderCalls,0);
+   assert.equal((await chat.transcript(investment.actor,investment.conversation.id)).messages.at(-1)?.metadata.kind,'handoff','Explicit human request still overrides topic intake');assert.equal(intakeProviderCalls,beforeHandoffCalls);
   }finally{globalThis.fetch=originalFetch;}
   const answered=await start(alias.toUpperCase());
   assert.ok(!(await queued(answered.conversation.id)),'Fresh AI work is not a specialist request');

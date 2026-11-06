@@ -19,7 +19,7 @@ const german=(question:string)=>clarificationLanguage(question)==='de';
 const texts:Record<DetailKind,Pair>={
  goal:['Bạn đang cần tư vấn về việc gì và muốn giải quyết vấn đề nào?','Zu welchem Thema benötigen Sie Beratung und was möchten Sie klären?'],
  situation:['Việc gì đã xảy ra và điều nào đang khiến bạn vướng mắc?','Was ist passiert und wobei besteht die Schwierigkeit?'],
- timeline:['Việc này đang ở giai đoạn dự định, chuẩn bị hay đã thực hiện? Có thời hạn nào cần lưu ý không?','Ist das noch geplant, in Vorbereitung oder bereits geschehen? Gibt es eine Frist zu beachten?'],
+ timeline:['Việc này mới là dự định, đang chuẩn bị hay đã thực hiện?','Ist das Vorhaben noch geplant, in Vorbereitung oder bereits umgesetzt?'],
  parties:['Những bên liên quan có vai trò gì? Không cần nêu tên hay thông tin định danh.','Welche Rollen haben die Beteiligten? Namen oder persönliche Angaben sind nicht erforderlich.'],
 };
 const placeText=(value:string)=>normalized(value.normalize('NFC').replace(/(?<!\p{L})mỹ(?!\p{L}| thuật| phẩm)/giu,'USA').replace(/(?<!\p{L})úc(?!\p{L})/giu,'Australien')).replace(/\b(?:anh|ong|chi|ban|chu|cau|bac|co) duc\b/g,'person');
@@ -82,7 +82,7 @@ const topics:Topic[]=[
   {key:'inheritance.situation',text:['Bạn đang tìm hiểu việc lập di chúc hay việc phân chia di sản đã phát sinh?','Geht es um die Erstellung eines Testaments oder um einen bereits eingetretenen Erbfall?'],known:/\b(lap di chuc|phan chia|di san|da mat|erstellung|erbfall|verstorben)\b/},
   {key:'parties',text:texts.parties,known:value=>partyFacts(value)},timeline]},
  {id:'family',match:/\b(ket hon|ly hon|hon nhan|heirat|scheidung|ehe)\b/,bare:/^(?:ket hon|ly hon|hon nhan|heirat|scheidung|ehe)$/,slots:[country,
-  {key:'family.situation',text:['Bạn đang tìm hiểu việc đăng ký, chấm dứt hôn nhân hay vấn đề liên quan đến con hoặc tài sản?','Geht es um Eheschließung, Scheidung oder Fragen zu Kindern oder Vermögen?'],known:value=>/\b(dang ky|cham dut|con|tai san|eheschlie|kind\w*|vermogen)\b/.test(normalized(value.normalize('NFC').replace(/(?<!\p{L})còn(?!\p{L})/giu,'remaining')))},timeline,{key:'parties',text:texts.parties,known:value=>partyFacts(value)}]},
+  {key:'family.situation',text:['Bạn đang tìm hiểu việc đăng ký, chấm dứt hôn nhân hay vấn đề liên quan đến con hoặc tài sản?','Geht es um Eheschließung, Scheidung oder Fragen zu Kindern oder Vermögen?'],known:value=>/\b(dang ky|cham dut|con|tai san|eheschlie|kind\w*|vermogen\w*)\b/.test(normalized(value.normalize('NFC').replace(/(?<!\p{L})còn(?!\p{L})/giu,'remaining')))},{...timeline,known:value=>timelineKnown(value)||/\b(da ly hon|da co (?:quyet dinh|ban an)|bereits geschieden|rechtskraftig geschieden)\b/.test(normalized(value))},{key:'parties',text:texts.parties,known:value=>partyFacts(value)}]},
  {id:'work',match:/\b(lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)\b/,bare:/^(?:lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)$/,slots:[country,
   {key:'work.relationship',text:['Bạn hỏi với vai trò người lao động hay người sử dụng lao động? Hợp đồng đã được ký chưa?','Fragen Sie als Arbeitnehmer oder Arbeitgeber? Wurde der Vertrag bereits unterschrieben?'],known:/\b(nguoi lao dong|nguoi su dung lao dong|nhan vien|chu doanh nghiep|arbeitnehmer|arbeitgeber|mitarbeiter)\b/},timeline,
   {key:'work.goal',text:['Bạn muốn làm rõ việc ký hợp đồng, tiền lương, chấm dứt công việc hay vấn đề nào khác?','Geht es um Vertragsabschluss, Vergütung, Beendigung der Arbeit oder eine andere Frage?'],known:goalKnown}]},
@@ -210,7 +210,7 @@ function propertyFacts(value:string){
  let ownerKnown=false,documentKnown=false;
  for(const clause of value.split(/[\n,;]/)){
   const text=normalized(clause),unclear=/\b(khong biet|chua biet|chua ro|khong ro|weiss nicht|weiß nicht|keine ahnung|unklar)\b/.test(text);
-  if(/\b(dung ten|chua dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text))ownerKnown=!unclear;
+  if(/\b(dung ten|chua dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text)&&(unclear||! /\b(ai (?:dang )?dung ten|dung ten ai|auf wen.*eingetragen|wer.*eingetragen)\b/.test(text)))ownerKnown=!unclear;
   if(/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch|urkunde|nachweis)\b/.test(text))documentKnown=!unclear;
  }
  const land=/\b(dat|dat dai|manh dat|thua dat|dat cua|ve dat|so do|so hong|grundstuck\w*)\b/.test(normalized(value.normalize('NFC').replace(/(?<!\p{L})(?:đặt|đạt)(?!\p{L})/giu,'action')));
@@ -243,7 +243,12 @@ export function intakeClarification(question:string,asked:readonly string[]=[],a
      if(ownerKnown&&!documentKnown)return prompt(state.scope+'.document',['Mảnh đất đã có sổ đỏ, sổ hồng hoặc giấy chứng nhận chưa?','Gibt es für das Grundstück bereits einen Eigentumsnachweis?']);
      if(!ownerKnown)return prompt(state.scope+'.owner',['Ai đang đứng tên mảnh đất: bạn, người thân hay một bên khác?','Auf wen ist das Grundstück eingetragen: Sie, Angehörige oder eine andere Person?']);
     }
-    const followup=prompt(key,asked.includes(key)&&slot.retry?slot.retry:slot.text);
+    let pair=asked.includes(key)&&slot.retry?slot.retry:slot.text;
+    // Keep fallback questions specific when generation is unavailable.
+    if(key==='family.situation'&&/\b(ly hon|scheidung)\b/.test(text))pair=['Bạn đang vướng ở thủ tục ly hôn, việc nuôi con hay chia tài sản?','Geht es Ihnen um das Scheidungsverfahren, die Betreuung der Kinder oder die Vermögensaufteilung?'];
+    if(key==='family.timeline'&&/\b(ly hon|scheidung|tai san|vermogen\w*)\b/.test(text))pair=['Hai bạn mới dự định ly hôn, đã nộp đơn hay đã có quyết định của tòa?','Planen Sie die Scheidung noch, wurde der Antrag bereits eingereicht oder liegt schon eine gerichtliche Entscheidung vor?'];
+    if(key==='family.parties')pair=['Bạn là một trong hai vợ chồng hay đang hỏi giúp người thân?','Sind Sie selbst einer der Ehepartner oder fragen Sie für Angehörige?'];
+    const followup=prompt(key,pair);
     if(typeof slot.known==='function'&&slot.known.retracted?.(state.text))followup.retracted=true;
     return followup;
    }
@@ -268,6 +273,9 @@ export function unrepeatedClarification(initial:Clarification,previous:readonly 
  ]:suffix==='document'?[
   ['Đất đã được cấp giấy chứng nhận, chưa có hay bạn chưa rõ?','Gibt es bereits einen Nachweis, noch keinen, oder wissen Sie es noch nicht?'],
   ['Bạn đã thấy sổ đỏ hoặc giấy chứng nhận của mảnh đất chưa?','Haben Sie den Eigentumsnachweis für das Grundstück schon gesehen?'],
+ ]:suffix==='timeline'?[
+  ['Bạn đã bắt đầu thực hiện việc này chưa?','Haben Sie mit diesem Vorhaben schon begonnen?'],
+  ['Việc này vẫn là dự định hay đã có bước nào được thực hiện?','Ist das noch geplant oder wurden bereits Schritte unternommen?'],
  ]:suffix==='kind'?[
   ['Bạn có thể cho biết tên kỳ thi hoặc lĩnh vực được kiểm tra không?','Wie heißt die Prüfung oder welches Fach wird geprüft?'],
  ]:[texts[suffix as DetailKind]||texts.situation,texts.goal];

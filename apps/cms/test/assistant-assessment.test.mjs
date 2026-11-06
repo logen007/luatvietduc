@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validateIntakeAssessment} from '../src/modules/rag/provider.ts';
-import {clarificationText,intakeClarification,isVagueIntakeReply} from '../src/modules/assistant/clarification.ts';
+import {clarificationText,intakeClarification,isVagueIntakeReply,unrepeatedClarification} from '../src/modules/assistant/clarification.ts';
 import {replyToMessage} from '../src/modules/assistant/reply.ts';
 import {pool} from '../src/modules/shared/db.ts';
 import {seal} from '../src/modules/integrations/crypto.ts';
@@ -28,7 +28,7 @@ function fixture(t,options={}){
  const c={id:'11111111-2222-4333-8444-555555555555',guest_hash:'synthetic-guest',user_id:null,state:'queued',ai_enabled:true,version:1,jurisdiction:'BOTH',retain_history:Boolean(options.retained)};
  const current={id:9,body:options.body||'foo bar baz?',metadata:options.consented===false?null:{aiConsent:{version:CONSENT_VERSION}}};
  const provider={enabled:options.connected!==false,version:1,encrypted_values:seal('ai',{apiKey:'synthetic',model:'synthetic-model'})};
- const state={conversation:c,current,provider,replies:[],admissions:0,assessments:0,embeddings:0,order:[],rules:[]};
+ const state={conversation:c,current,provider,replies:[],admissions:0,assessments:0,embeddings:0,order:[],rules:[],intakePrompts:[]};
  const query=async(sql,args=[])=>{
   if(['BEGIN','COMMIT','ROLLBACK'].includes(sql)||sql.startsWith('SELECT pg_advisory_xact_lock_shared'))return {rows:[],rowCount:0};
   if(sql.startsWith('SELECT * FROM lvd_conversations'))return {rows:[{...c}],rowCount:1};
@@ -56,7 +56,7 @@ function fixture(t,options={}){
  t.mock.method(globalThis,'fetch',async(url,init)=>{
   const body=JSON.parse(init?.body||'{}'),prompt=body.contents&&JSON.parse(body.contents[0].parts[0].text);
   if(prompt?.phase==='intake'){
-   state.assessments++;state.order.push('assess');options.onAssess?.(state);if(options.unavailable)throw new Error('Synthetic provider unavailable');
+   state.assessments++;state.intakePrompts.push(prompt);state.order.push('assess');options.onAssess?.(state);if(options.unavailable)throw new Error('Synthetic provider unavailable');
    return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(options.assessment||{status:'ready'})}]}}]});
   }
   if(String(url).includes(':embedContent')){state.embeddings++;state.order.push('embed');assert.equal(c.retain_history,true);return Response.json({embedding:{values:Array(768).fill(1)}});}
@@ -270,4 +270,47 @@ test('a rejected model question during conditional contact falls back to factual
  {role:'assistant',body:'Bạn muốn hỏi mua bán, sang tên hay việc khác?',metadata:{kind:'clarify',clarificationKey:'property.transaction'}},
  {role:'user',body:'Tôi muốn hỏi về đất đai ở Việt Nam',metadata:{aiConsent:{version:CONSENT_VERSION}}},
  ]});await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,'property.transaction');assert.equal(state.conversation.ai_enabled,true);
+});
+
+
+test('a new required slot in the same case receives contextual wording before a repeated question',async t=>{
+ const next='Bạn đã nộp đơn ly hôn hay hai người vẫn đang trao đổi với nhau?';
+ const state=fixture(t,{body:'Tài sản',previous:[
+  {role:'assistant',body:'Bạn đang vướng ở thủ tục ly hôn, việc nuôi con hay chia tài sản?',metadata:{kind:'clarify',clarificationKey:'family.situation'}},
+  {role:'user',body:'Tôi muốn hỏi về ly hôn ở Đức',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ],assessment:{status:'needs_details',detail:'timeline',question:next}});
+ await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,0);assert.equal(state.replies[0].body,next);assert.equal(state.replies[0].metadata.clarificationKey,'family.timeline');
+ assert.match(state.intakePrompts[0].requiredQuestion,/ly hôn/);assert.equal(state.intakePrompts[0].requiredDetail,'timeline');
+});
+test('a model question about a different required fact falls back to the current case',async t=>{
+ const state=fixture(t,{body:'Tài sản',previous:[
+  {role:'assistant',body:'Bạn muốn hỏi về việc gì khi ly hôn?',metadata:{kind:'clarify',clarificationKey:'family.situation'}},
+  {role:'user',body:'Tôi muốn hỏi về ly hôn ở Đức',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ],assessment:{status:'needs_details',detail:'parties',question:'Người mẹ có đồng ý cho bạn mảnh đất đó không?'}});
+ await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,0);assert.equal(state.replies[0].metadata.clarificationKey,'family.timeline');assert.match(state.replies[0].body,/ly hôn/);assert.doesNotMatch(state.replies[0].body,/mảnh đất/);
+});
+test('semantic intake on a repeated new property case does not receive the old owner',async t=>{
+ const state=fixture(t,{body:'Bạn hỏi ai đang đứng tên à?',previous:[
+  {role:'assistant',body:'Ai đang đứng tên mảnh đất?',metadata:{kind:'clarify',clarificationKey:'property-2.owner'}},
+  {role:'user',body:'Còn mảnh đất khác tôi định mua ở Đức, thủ tục thế nào?',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+  {role:'assistant',body:'Bạn định thực hiện khi nào?',metadata:{kind:'clarify',clarificationKey:'property.timeline'}},
+  {role:'user',body:'Tôi muốn sang tên đất ở Việt Nam, sổ đỏ đứng tên mẹ tôi, muốn biết thủ tục',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ],assessment:{status:'needs_details',detail:'parties',question:'Bạn hay một bên khác đang đứng tên mảnh đất tại Đức?'}});
+ await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,0);assert.equal(state.replies[0].metadata.clarificationKey,'property-2.owner');assert.doesNotMatch(state.intakePrompts[0].question,/mẹ tôi|Việt Nam/);assert.match(state.intakePrompts[0].question,/Đức/);
+});
+test('a completed divorce stage is remembered instead of asking the stage again',()=>{
+ const next=intakeClarification('Tôi hỏi về ly hôn ở Đức, chia tài sản. Đã ly hôn.');assert.equal(next?.key,'family.parties');
+});
+
+test('a next-slot question cannot combine exam type with an unrelated goal',async t=>{
+ const state=fixture(t,{body:'Thi không đỗ',previous:repeatedExam,assessment:{status:'needs_details',detail:'situation',question:'Đó là kỳ thi gì và bạn đang muốn hướng tới mục tiêu hay giải quyết vấn đề gì cụ thể?'}});
+ await state.run();assert.equal(state.replies[0].metadata.clarificationKey,'exam.kind');assert.doesNotMatch(state.replies[0].body,/mục tiêu/);assert.equal(state.embeddings,0);
+});
+test('German compound Vermögensaufteilung supplies the family concern',()=>{
+ assert.equal(intakeClarification('Ich möchte mich über Scheidung informieren\nDeutschland\nVermögensaufteilung')?.key,'family.timeline');
+ assert.equal(intakeClarification('Ich möchte mich über Scheidung informieren\nDeutschland\nVermögensaufteilung\nBereits geschieden')?.key,'family.parties');
+});
+test('repeated timeline fallbacks keep asking the stage instead of restarting the goal',()=>{
+ const question='Tôi muốn đầu tư tại Đức\nThành lập GmbH',initial=intakeClarification(question),previous=[];
+ for(let i=0;i<8;i++){const text=unrepeatedClarification(initial,previous,question);assert.doesNotMatch(text,/tư vấn về việc gì|muốn giải quyết vấn đề/);assert.notEqual(text,previous[0]);previous.unshift(text);}
 });
