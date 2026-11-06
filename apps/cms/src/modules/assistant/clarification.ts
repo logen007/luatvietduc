@@ -122,7 +122,7 @@ function intakeState(question:string){
   const found=findTopic(lines[i]),line=normalized(lines[i]);if(!found)continue;
   const newIntent=topicIntent.test(line)||/^(?:ve|zum|zur|uber|con|the con|vay con|und(?: die| das| der)?|was ist mit)\b/.test(line);
   const asserted=line.replace(/\b(?:khong phai|nicht)\b.*?(?=\b(?:ma|sondern|stattdessen)\b|[,;.!?]|$)/g,' ');
-  const anotherMatter=found.id===topic?.id&&differentMatter.test(asserted)&&!sameMatterReference.test(asserted);
+  const anotherMatter=found.id===topic?.id&&differentMatter.test(asserted)&&!sameMatterReference.test(asserted)&&(newIntent||!/\bmoi\b/.test(asserted)||/\bkhac\b/.test(asserted));
   if(!topic||found.id!==topic.id&&newIntent||anotherMatter){
    const previous=lines.slice(start,i).join('\n');priorCountry=sameCountry.test(normalized(previous))&&countryState(priorCountry).known?priorCountry+'\n'+previous:previous;
    topic=found;start=i;segment++;visits[topic.id]=(visits[topic.id]||0)+1;

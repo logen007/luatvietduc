@@ -41,3 +41,12 @@ test('references back to the newly introduced matter do not restart intake repea
  assert.equal(currentIntakeContext(german).scope,'property-2');assert.equal(intakeClarification(german),null);
  assert.equal(currentIntakeContext(vietnamese+'\nCòn một mảnh đất khác nữa').scope,'property-3');
 });
+
+test('mới as a timing word does not start another case without an explicit new request',()=>{
+ const base='Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi và muốn biết thủ tục';
+ const timed=base+'\nMảnh đất mới mua hôm qua';
+ assert.equal(currentIntakeContext(timed).scope,'property');assert.equal(intakeClarification(timed),null);
+ const contract='Tôi muốn hỏi thủ tục hợp đồng dịch vụ ở Việt Nam\nHợp đồng mới ký hôm qua';
+ assert.equal(currentIntakeContext(contract).scope,'contract');assert.equal(intakeClarification(contract),null);
+ assert.equal(currentIntakeContext(base+'\nTôi muốn hỏi mảnh đất mới').scope,'property-2');
+});
