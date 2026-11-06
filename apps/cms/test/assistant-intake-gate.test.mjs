@@ -22,3 +22,16 @@ test('history binds actual replies to the pending question rather than treating 
  const rows=[{role:'assistant',body:'When?',metadata:{kind:'clarify',clarificationKey:'investment.timeline'}},{role:'user',body:'thành lập GmbH'},{role:'assistant',body:'Form?',metadata:{kind:'clarify',clarificationKey:'investment.form'}},{role:'user',body:'ở Đức'},{role:'assistant',body:'Country?',metadata:{kind:'clarify',clarificationKey:'investment.country'}},{role:'user',body:'Tôi muốn đầu tư'}];
  const history=clarificationHistory(rows,'consent');assert.deepEqual(history.answers,{'investment.country':'ở Đức','investment.form':'thành lập GmbH'});assert.equal(history.pendingKey,'investment.timeline');
 });
+test('explicit not-started stages are facts, while uncertainty still needs clarification',()=>{
+ for(const stage of ['chưa thực hiện','chưa ký','vừa ký','mới nộp'])assert.equal(intakeClarification('Tôi muốn đầu tư thành lập GmbH tại Đức\n'+stage+'\nmuốn biết thủ tục'),null,stage);
+ assert.equal(intakeClarification('Tôi muốn đầu tư thành lập GmbH tại Đức\nchưa biết khi nào\nmuốn biết thủ tục').key,'investment.timeline');
+ assert.equal(intakeClarification('Ich möchte in Deutschland investieren\nGründung einer GmbH\nnoch nicht begonnen\nIch möchte das Verfahren wissen'),null);
+});
+test('a factual family relationship is accepted even when its words resemble conversational filler',()=>{
+ assert.equal(intakeClarification('Tôi muốn hỏi việc ly hôn tại Đức, tài sản liên quan\nđang chuẩn bị\nanh chị em',['family.parties'],{'family.parties':'anh chị em'}),null);
+});
+
+test('family parties supplied in the initial situation do not need a duplicate question',()=>{
+ assert.equal(intakeClarification('Tôi muốn hỏi việc ly hôn tại Đức, tài sản liên quan đến anh chị em, đang chuẩn bị'),null);
+ assert.equal(intakeClarification('Tôi muốn hỏi việc ly hôn tại Đức, tài sản liên quan, đang chuẩn bị, chưa biết các bên là ai').key,'family.parties');
+});

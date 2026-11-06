@@ -26,7 +26,7 @@ function countryState(value:string){
  return {known,corrected};
 }
 const country:Slot={key:'country',text:['Việc này liên quan đến quốc gia hoặc địa phương nào?','Um welches Land oder welchen Ort geht es?'],known:value=>countryState(value).known};
-const timeline:Slot={key:'timeline',text:texts.timeline,known:/\b(du dinh|du kien|dang tim hieu|chua bat dau|chuan bi|da (?:thuc hien|ky|nop|mua|ban|ket hon|trien khai)|dang (?:trien khai|thuc hien|kinh doanh)|thang|nam 20\d\d|ngay|thoi han|geplant|planung|vorbereitung|bereits|frist|monat|jahr)\b/};
+const timeline:Slot={key:'timeline',text:texts.timeline,known:/\b(du dinh|du kien|dang tim hieu|chua bat dau|chua (?:thuc hien|ky|nop|trien khai)|(?:vua|moi) (?:thuc hien|ky|nop|mua|ban)|chuan bi|da (?:thuc hien|ky|nop|mua|ban|ket hon|trien khai)|dang (?:trien khai|thuc hien|kinh doanh)|thang|nam 20\d\d|ngay|thoi han|geplant|planung|vorbereitung|bereits|noch nicht (?:begonnen|gestartet|unterschrieben|eingereicht)|frist|monat|jahr)\b/};
 const goalKnown=/\b(dieu kien|thu tuc|giay to|giay phep|chi phi|rui ro|quyen|nghia vu|muc tieu|muon biet|can biet|quy trinh|voraussetzung\w*|verfahren|genehmigung|kosten|risik\w*|rechte|pflichten|ziel|mochte wissen)\b/;
 type Topic={id:string;match:RegExp;bare:RegExp;slots:Slot[]};
 const topics:Topic[]=[
@@ -42,7 +42,7 @@ const topics:Topic[]=[
   {key:'inheritance.situation',text:['Bạn đang tìm hiểu việc lập di chúc hay việc phân chia di sản đã phát sinh?','Geht es um die Erstellung eines Testaments oder um einen bereits eingetretenen Erbfall?'],known:/\b(lap di chuc|phan chia|di san|da mat|erstellung|erbfall|verstorben)\b/},
   {key:'parties',text:texts.parties,known:/\b(cha|me|con|vo|chong|anh chi em|eltern|kind\w*|ehepartner|geschwister)\b/},timeline]},
  {id:'family',match:/\b(ket hon|ly hon|hon nhan|heirat|scheidung|ehe)\b/,bare:/^(?:ket hon|ly hon|hon nhan|heirat|scheidung|ehe)$/,slots:[country,
-  {key:'family.situation',text:['Bạn đang tìm hiểu việc đăng ký, chấm dứt hôn nhân hay vấn đề liên quan đến con hoặc tài sản?','Geht es um Eheschließung, Scheidung oder Fragen zu Kindern oder Vermögen?'],known:/\b(dang ky|cham dut|con|tai san|eheschlie|kind\w*|vermogen)\b/},timeline,{key:'parties',text:texts.parties}]},
+  {key:'family.situation',text:['Bạn đang tìm hiểu việc đăng ký, chấm dứt hôn nhân hay vấn đề liên quan đến con hoặc tài sản?','Geht es um Eheschließung, Scheidung oder Fragen zu Kindern oder Vermögen?'],known:/\b(dang ky|cham dut|con|tai san|eheschlie|kind\w*|vermogen)\b/},timeline,{key:'parties',text:texts.parties,known:value=>partyFacts(value)}]},
  {id:'work',match:/\b(lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)\b/,bare:/^(?:lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)$/,slots:[country,
   {key:'work.relationship',text:['Bạn hỏi với vai trò người lao động hay người sử dụng lao động? Hợp đồng đã được ký chưa?','Fragen Sie als Arbeitnehmer oder Arbeitgeber? Wurde der Vertrag bereits unterschrieben?'],known:/\b(nguoi lao dong|nguoi su dung lao dong|nhan vien|chu doanh nghiep|arbeitnehmer|arbeitgeber|mitarbeiter)\b/},timeline,
   {key:'work.goal',text:['Bạn muốn làm rõ việc ký hợp đồng, tiền lương, chấm dứt công việc hay vấn đề nào khác?','Geht es um Vertragsabschluss, Vergütung, Beendigung der Arbeit oder eine andere Frage?'],known:goalKnown}]},
@@ -124,7 +124,8 @@ export function clarificationHistory(previous:ClarificationMessage[],consentVers
 // Intake is a completeness gate, not a quota of questions. Asking a slot does
 // not mean that the customer supplied it; vague replies must stay in intake.
 const emptyReply=/^(?:hay(?: qua)?|cam on(?: ban)?|danke|gut|giup toi(?: voi)?|thu(?: xem)?|test(?:ing)?|abc|asdf\w*|ok(?:ay)?|uh|u|um|vang|da|khong|co|sao|sao vay|gi|khong biet|chua biet|khong ro|chua ro|khong hieu|nichts|ja|nein|weiss nicht|keine ahnung)$/;
-const partyRoles=/\b(cha|me|con|vo|chong|nguoi mua|nguoi ban|ngan hang|doanh nghiep|ca nhan|chu so huu|nguoi lao dong|nguoi su dung lao dong|eltern|kind\w*|ehepartner|kaufer|verkaufer|bank|unternehmen|arbeitnehmer|arbeitgeber)\b/;
+const partyRoles=/\b(anh chi em|ong ba|cha|me|con|vo|chong|nguoi mua|nguoi ban|ngan hang|doanh nghiep|ca nhan|chu so huu|nguoi lao dong|nguoi su dung lao dong|geschwister|grosseltern|eltern|kind\w*|ehepartner|kaufer|verkaufer|bank|unternehmen|arbeitnehmer|arbeitgeber)\b/;
+const partyFacts=(value:string)=>partyRoles.test(normalized(value))&&!/\b(khong biet|chua biet|khong ro|chua ro|weiss nicht|unklar)\b/.test(normalized(value));
 const fillerWords=new Set('toi minh em anh chi ban muon can dang hoi nho giup tu van ho tro mot chut ti it ve nay kia do ay no the vay nhu la xin chao voi nhe a ah uh vang da ich mochte will brauche etwas fragen bitte hilfe ja gut'.split(' '));
 const usableReply=(text:string)=>{const value=normalized(text);return Boolean(value)&&!value.split(' ').every(word=>fillerWords.has(word))&&!vague.test(value)&&!emptyReply.test(value)&&/[\p{L}\p{N}]/u.test(value);};
 export function intakeClarification(question:string,asked:readonly string[]=[],answers:Record<string,string>={}):Clarification|null{
@@ -134,7 +135,7 @@ export function intakeClarification(question:string,asked:readonly string[]=[],a
   for(const slot of state.topic.slots){
    const key=state.scope+'.'+slot.key.split('.').at(-1),response=answers[key]||answers[slot.key]||'';
    const known=slot.key==='country'?countryState(state.countryText).known:typeof slot.known==='function'?slot.known(state.text):slot.known?.test(text);
-   const answered=!slot.known&&usableReply(response)&&partyRoles.test(normalized(response));
+   const answered=!slot.known&&partyFacts(response);
    if(!known&&!answered)return prompt(key,slot.text);
   }
   return null;
