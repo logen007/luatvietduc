@@ -388,7 +388,10 @@ try{
  for(const item of draftRows)await page.route(new RegExp('/service/conversations/'+item.id+'(?:[?]|$)'),route=>route.fulfill({json:{conversation:item,messages:[]}}));
  await page.goto(base+'/tro-chuyen?conversation='+draftA);const question=page.getByRole('textbox',{name:'Câu hỏi của bạn',exact:true});
  await question.waitFor();await page.waitForFunction(()=>!document.querySelector('textarea')?.disabled);
- await page.getByRole('heading',{name:'Đang trao đổi với chuyên viên',exact:true}).waitFor();assert.equal(await page.locator('.chat-provider-label').count(),0,'Human conversations must not claim to send questions to Gemini');
+ await page.locator('.chat-log[aria-busy="false"]').waitFor();await page.locator('.chat-transcript').waitFor({state:'attached'});
+ assert.equal(await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation A/}).getAttribute('aria-current'),'page','The requested human conversation is selected');
+ assert.equal(await page.locator('.chat-error').count(),0,'The human transcript loads without a connection error');assert.equal(await question.isEnabled(),true,'The human conversation composer is ready');
+ assert.equal(await page.locator('.chat-provider-label').count(),0,'Human conversations must not claim to send questions to Gemini');
  await question.fill('Synthetic draft A');await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation B/}).click();await question.fill('Synthetic draft B');
  await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation A/}).click();assert.equal(await question.inputValue(),'Synthetic draft A');
  await page.locator('.chat-sidebar .chat-account').click();await page.waitForURL('**/tai-khoan?conversation='+draftA);
