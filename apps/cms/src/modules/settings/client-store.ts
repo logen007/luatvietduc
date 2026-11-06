@@ -1,8 +1,9 @@
 // Public configuration cache. Unlike sessions it keeps the last good public
 // value during a network failure; it never stores account or conversation data.
-export function createPublicSettingsStore<T>(request:()=>Promise<T>,now=Date.now){
+export function createPublicSettingsStore<T>(request:()=>Promise<T>,now=Date.now,initialData:T|null=null){
  type Snapshot={data:T|null;error:Error|null;loading:boolean};
- let state:Snapshot={data:null,error:null,loading:false},pending:Promise<T>|null=null,expires=0;
+ let state:Snapshot={data:initialData,error:null,loading:false},pending:Promise<T>|null=null,expires=initialData===null?0:now()+30000;
+ const initial=state;
  const listeners=new Set<()=>void>(),notify=()=>listeners.forEach(listener=>listener());
  function load(force=false):Promise<T>{
   if(pending)return pending;
@@ -16,5 +17,5 @@ export function createPublicSettingsStore<T>(request:()=>Promise<T>,now=Date.now
   notify();
   return pending;
  }
- return {load,getSnapshot:()=>state,subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener);};}};
+ return {load,getSnapshot:()=>state,getServerSnapshot:()=>initial,subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener);};}};
 }

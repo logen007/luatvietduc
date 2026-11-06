@@ -22,6 +22,7 @@ try{
   await pause(250);
  }
  assert.ok(ready,'Built CMS server did not become ready');browser=await chromium.launch({headless:true,...(process.env.LVD_TEST_BROWSER_EXECUTABLE?{executablePath:process.env.LVD_TEST_BROWSER_EXECUTABLE}:{})});
+ await (await import('./test-loading-stability.mjs')).testLoadingStability(browser,base,payload,pool,owner);
  await (await import('./test-homepage-intake.mjs')).testHomepageIntake(browser,base);
  await (await import('./test-chat-login-retry.mjs')).testChatLoginRetry(browser,base,payload,pool,owner);
  const context=await browser.newContext({viewport:{width:390,height:844}});
@@ -449,6 +450,7 @@ try{
  assert.match((await nativeLogin).headers()['content-type'],/^multipart\/form-data;/);
  assert.equal((await nativeLoginResponse).status(),200,'Native CMS multipart login must succeed');
  await page.waitForURL(base+'/admin');await page.locator('.lvd-admin-navigation').waitFor();
+ await (await import('./test-loading-stability.mjs')).testAdminLoadingStability(context,base);
  const nativeJSON=await context.request.post(base+'/api/users/login',{headers:{origin:base},data:{email:owner.email,password}});
  assert.equal(nativeJSON.status(),200,'Native REST JSON login remains available');
  const crossOriginLogin=await context.request.post(base+'/api/users/LoGiN',{headers:{origin:'https://cross-origin.example.invalid'},data:{email:owner.email,password}});

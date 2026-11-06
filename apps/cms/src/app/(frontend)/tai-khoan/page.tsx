@@ -28,7 +28,7 @@ export default function Page() {
             </div>
           </section>
           <section className="live-auth-panel">
-            {(data?.user||!data)&&<h1>{data?.user?t("Xin chào, {name}",{name:data.user.name||t('Tài khoản')}):t("Create your account")}</h1>}
+            {data?.user&&<h1>{t("Xin chào, {name}",{name:data.user.name||t('Tài khoản')})}</h1>}
             {error && (
               <p className="live-error" role="alert">
                 {t(error)}

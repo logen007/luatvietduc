@@ -64,3 +64,10 @@ test('invalid public settings are rejected before replacing a usable shell confi
   globalThis.fetch=async()=>Response.json({siteName:'Recovered',navigation:null,socialLinks:null,maxMessageLength:2000.5});assert.equal((await loadPublicSettings(true)).maxMessageLength,2000.5,'The reader accepts numeric values allowed by the existing server schema');
  }finally{globalThis.fetch=previous;}
 });
+
+test('server-seeded settings render the real value immediately without an initial refetch',async()=>{
+ let calls=0,time=1000;const seed={siteName:'Synthetic SSR brand'},store=createPublicSettingsStore(async()=>{calls++;return {siteName:'New setting'};},()=>time,seed);
+ assert.equal(store.getServerSnapshot().data,seed);assert.equal(store.getSnapshot().data,seed);await store.load();assert.equal(calls,0);
+ time=31001;await store.load();assert.equal(calls,1);assert.equal(store.getSnapshot().data.siteName,'New setting');assert.equal(store.getServerSnapshot().data,seed,'Hydration snapshot remains immutable');
+ const other=createPublicSettingsStore(async()=>({}),()=>time,{siteName:'Separate request'});assert.notEqual(other.getServerSnapshot().data,seed,'No global mutation between SSR requests');
+});

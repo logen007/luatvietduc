@@ -492,3 +492,23 @@ Khóa bài viết giữ main-row FOR UPDATE làm mutex, sau đó đọc latest v
 trong câu lệnh riêng. So timestamp mới hơn giữa main và version với snapshot
 Payload đã đọc; Save draft không cập nhật timestamp của main. Cách này giữ
 chặn ghi đè từ bản cũ và đồng bộ SQL, đồng thời cho lưu nháp/xuất bản liên tiếp.
+
+## Tải đầu và F5
+
+Frontend layout đọc cài đặt công khai đã lọc cùng cookie `lvd-lang` trước khi dựng HTML.
+`PublicSettingsProvider` giữ store riêng khi render server, và cung cấp snapshot ban đầu
+bất biến cho hydration. Cache 30 giây và phục hồi cấu hình khi lỗi mạng vẫn được giữ.
+Cookie VI/DE được cập nhật khi chuyển ngôn ngữ để lần tải kế tiếp không dựng tiếng Việt
+rồi mới đổi sang tiếng Đức; sessionStorage cũ chỉ còn là đường tương thích khi chưa có
+cookie. Hiệu ứng ASCII vẫn chỉ chạy khi chủ động đổi ngôn ngữ.
+
+CSS quản trị/chat dùng precedence để được React đưa vào head trước khi kích hoạt trang.
+Inter và font tiêu đề được preload, không nhúng font có license vào Git. Màn tài khoản
+chờ kiểm tra phiên bằng trạng thái tải, không hiện tiêu đề đăng ký giả trước trang đăng
+nhập/quên mật khẩu. Chế độ form được xác định ngay khi form gắn vào client.
+
+`scripts/test-loading-stability.mjs` kiểm tra 56 trường hợp public VI/DE/mobile/desktop,
+bao gồm F5, giữ script để so sánh HTML server với sau hydration; thêm 22 trường hợp admin.
+Kiểm tra tên/menu/footer, ngôn ngữ, màu nền, CSS head và lỗi hydration. Đây không phải
+cam kết CLS bằng 0 trên mọi mạng: ảnh/video, kết quả truy vấn và phiên đăng nhập vẫn có
+trạng thái tải thật; font bị chặn hoặc mạng quá chậm vẫn có thể dùng font dự phòng.
