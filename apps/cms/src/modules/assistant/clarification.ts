@@ -4,12 +4,12 @@ export type DetailKind=typeof detailKinds[number];
 export const MAX_CLARIFICATIONS=8;
 export type Clarification={key:string;text:string};
 type Pair=readonly [string,string];
-type Slot={key:string;text:Pair;known?:RegExp|((value:string)=>boolean)};
+type Slot={key:string;text:Pair;retry?:Pair;known?:RegExp|((value:string)=>boolean)};
 const normalized=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase().trim().replace(/[.!?…]+$/g,'').replace(/\s+/g,' ');
 const german=(question:string)=>/\b(ich|mochte|brauche|frage|hallo|bitte|zum|zur|uber|wissen|deutschland|investition|aufenthalt|arbeitsvertrag)\b/.test(normalized(question));
 const texts:Record<DetailKind,Pair>={
- goal:['Bạn muốn tìm hiểu vấn đề gì và cần làm rõ điều gì?','Zu welchem Thema haben Sie eine Frage und was möchten Sie klären?'],
- situation:['Bạn mô tả ngắn tình huống và điều bạn muốn giải quyết nhé.','Beschreiben Sie bitte kurz die Situation und was Sie klären möchten.'],
+ goal:['Bạn đang cần tư vấn về việc gì và muốn giải quyết vấn đề nào?','Zu welchem Thema benötigen Sie Beratung und was möchten Sie klären?'],
+ situation:['Việc gì đã xảy ra và điều nào đang khiến bạn vướng mắc?','Was ist passiert und wobei besteht die Schwierigkeit?'],
  timeline:['Việc này đang ở giai đoạn dự định, chuẩn bị hay đã thực hiện? Có thời hạn nào cần lưu ý không?','Ist das noch geplant, in Vorbereitung oder bereits geschehen? Gibt es eine Frist zu beachten?'],
  parties:['Những bên liên quan có vai trò gì? Không cần nêu tên hay thông tin định danh.','Welche Rollen haben die Beteiligten? Namen oder persönliche Angaben sind nicht erforderlich.'],
 };
@@ -26,7 +26,8 @@ function countryState(value:string){
  return {known,corrected};
 }
 const country:Slot={key:'country',text:['Việc này liên quan đến quốc gia hoặc địa phương nào?','Um welches Land oder welchen Ort geht es?'],known:value=>countryState(value).known};
-const timeline:Slot={key:'timeline',text:texts.timeline,known:/\b(du dinh|du kien|dang tim hieu|chua bat dau|chua (?:thuc hien|ky|nop|trien khai)|(?:vua|moi) (?:thuc hien|ky|nop|mua|ban)|chuan bi|da (?:thuc hien|ky|nop|mua|ban|ket hon|trien khai)|dang (?:trien khai|thuc hien|kinh doanh)|(?:ngay|thang) \d{1,2}|nam 20\d\d|(?:hom|tuan|thang|nam) (?:qua|nay|truoc|sau|toi)|geplant|planung|vorbereitung|bereits|noch nicht (?:begonnen|gestartet|unterschrieben|eingereicht)|gestern|heute|morgen|(?:am|bis zum|frist bis) \d{1,2}|(?:nachste|letzte)(?:n|r)? (?:woche|monat|jahr))\b/};
+const timelinePattern=/\b(du dinh|du kien|dang tim hieu|chua bat dau|chua (?:thuc hien|ky|nop|trien khai)|(?:vua|moi) (?:thuc hien|ky|nop|mua|ban)|chuan bi|da (?:thuc hien|ky|nop|mua|ban|ket hon|trien khai)|dang (?:trien khai|thuc hien|kinh doanh)|(?:ngay|thang) \d{1,2}|nam 20\d\d|(?:hom|tuan|thang|nam) (?:qua|nay|truoc|sau|toi)|geplant|planung|vorbereitung|bereits|noch nicht (?:begonnen|gestartet|unterschrieben|eingereicht)|gestern|heute|morgen|(?:am|bis zum|frist bis) \d{1,2}|(?:nachste|letzte)(?:n|r)? (?:woche|monat|jahr))\b/;
+const timeline:Slot={key:'timeline',text:texts.timeline,known:value=>value.split('\n').some(line=>timelinePattern.test(normalized(line.normalize('NFC').replace(/vi[eệ]t nam/giu,'Vietnam'))))};
 const goalKnown=/\b(dieu kien|thu tuc|giay to|giay phep|chi phi|rui ro|quyen|nghia vu|muc tieu|muon biet|can biet|quy trinh|voraussetzung\w*|verfahren|genehmigung|kosten|risik\w*|rechte|pflichten|ziel|mochte wissen)\b/;
 type Topic={id:string;match:RegExp;bare:RegExp;slots:Slot[]};
 const topics:Topic[]=[
@@ -46,8 +47,14 @@ const topics:Topic[]=[
  {id:'work',match:/\b(lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)\b/,bare:/^(?:lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)$/,slots:[country,
   {key:'work.relationship',text:['Bạn hỏi với vai trò người lao động hay người sử dụng lao động? Hợp đồng đã được ký chưa?','Fragen Sie als Arbeitnehmer oder Arbeitgeber? Wurde der Vertrag bereits unterschrieben?'],known:/\b(nguoi lao dong|nguoi su dung lao dong|nhan vien|chu doanh nghiep|arbeitnehmer|arbeitgeber|mitarbeiter)\b/},timeline,
   {key:'work.goal',text:['Bạn muốn làm rõ việc ký hợp đồng, tiền lương, chấm dứt công việc hay vấn đề nào khác?','Geht es um Vertragsabschluss, Vergütung, Beendigung der Arbeit oder eine andere Frage?'],known:goalKnown}]},
- {id:'property',match:/\b(the chap|nha dat|bat dong san|mua nha|thue nha|immobilien|miet\w*|hypothek)\b/,bare:/^(?:the chap(?: tai san)?|nha dat|bat dong san|mua nha|thue nha|immobilien|miet\w*|hypothek)$/,slots:[country,
-  {key:'property.transaction',text:['Bạn đang tìm hiểu việc mua bán, thuê, thế chấp hay giao dịch nào khác?','Geht es um Kauf, Verkauf, Miete, Besicherung oder ein anderes Geschäft?'],known:/\b(mua|ban|thue|the chap|kauf|verkauf|miete|hypothek)\b/},timeline,
+ {id:'property',match:/\b(the chap|nha dat|dat dai|manh dat|thua dat|ve dat|dat (?:cua|o|tai)|so do|so hong|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)\b|^dat$/,bare:/^(?:the chap(?: tai san)?|nha dat|dat|dat dai|manh dat|thua dat|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)$/,slots:[
+  {...country,text:['Nhà hoặc mảnh đất bạn hỏi nằm ở tỉnh/thành phố nào, thuộc Việt Nam, Đức hay nước khác?','In welcher Stadt oder Region liegt das Haus oder Grundstück, und in welchem Land?'],retry:['Bạn cho biết nhà hoặc mảnh đất ở Việt Nam, Đức hay nước khác nhé?','Liegt das Haus oder Grundstück in Vietnam, Deutschland oder einem anderen Land?']},
+  {key:'property.transaction',text:['Bạn muốn hỏi về mua bán, sang tên, thế chấp hay vướng mắc nào của nhà đất?','Geht es um Kauf, Verkauf, Eigentumsübertragung, Miete, Besicherung oder ein anderes Anliegen?'],retry:['Cụ thể bạn muốn làm gì với nhà đất, hoặc đang gặp trở ngại gì?','Was möchten Sie mit der Immobilie konkret tun, oder welches Problem ist aufgetreten?'],known:/\b(mua|ban|thue|the chap|tang cho|sang ten|chuyen nhuong|tranh chap|cap so|tach thua|thu hoi|boi thuong|kauf|verkauf|miete|hypothek|ubertrag\w*|schenk\w*|streit)\b/},
+  {key:'property.ownership',text:['Mảnh đất hiện đứng tên ai và đã có giấy chứng nhận chưa? Bạn chỉ cần nói quan hệ, không cần gửi tên hoặc số giấy tờ.','Auf wen ist das Grundstück eingetragen und gibt es einen Eigentumsnachweis? Die Beziehung genügt; Namen oder Dokumentnummern sind nicht nötig.'],retry:['Bạn đang đứng tên trên giấy chứng nhận hay đất vẫn đứng tên người khác? Nếu chưa rõ, cứ nói phần bạn biết nhé.','Sind Sie selbst als Eigentümer eingetragen oder eine andere Person? Wenn Sie unsicher sind, nennen Sie nur die bekannten Angaben.'],known:value=>{
+   const text=normalized(value);
+   if(!/\b(dat dai|manh dat|thua dat|dat cua|ve dat|so do|so hong|grundstuck\w*)\b/.test(text))return true;
+   return /\b(dung ten|chua dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text)&&/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch|urkunde|nachweis)\b/.test(text)&&!/\b(khong biet|chua ro|khong ro|weiss nicht|unklar)\b/.test(text);
+  }},timeline,
   {key:'property.goal',text:['Bạn muốn làm rõ điều kiện, giấy tờ, thủ tục hay vướng mắc nào của giao dịch?','Welche Voraussetzungen, Unterlagen, Verfahren oder Schwierigkeiten des Geschäfts möchten Sie klären?'],known:goalKnown}]},
  {id:'tax',match:/\b(thue|steuer\w*)\b/,bare:/^(?:thue|steuer\w*)$/,slots:[country,
   {key:'tax.activity',text:['Vấn đề thuế liên quan đến thu nhập, hoạt động kinh doanh, tài sản hay giao dịch nào?','Geht es um Einkommen, eine Geschäftstätigkeit, Vermögen oder ein bestimmtes Geschäft?'],known:/\b(thu nhap|kinh doanh|tai san|tien luong|einkommen|geschaft|vermogen|gehalt)\b/},timeline,
@@ -139,11 +146,19 @@ export function intakeClarification(question:string,asked:readonly string[]=[],a
    const key=state.scope+'.'+slot.key.split('.').at(-1),response=answers[key]||answers[slot.key]||'';
    const known=slot.key==='country'?countryState(state.countryText).known:typeof slot.known==='function'?slot.known(state.text):slot.known?.test(text);
    const answered=!slot.known&&partyFacts(response);
-   if(!known&&!answered)return prompt(key,slot.text);
+   if(!known&&!answered){
+    if(slot.key==='property.ownership'){
+     const ownerKnown=/\b(dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text);
+     const documentKnown=/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch|urkunde|nachweis)\b/.test(text);
+     if(ownerKnown&&!documentKnown)return prompt(key,['Mảnh đất đã có sổ đỏ, sổ hồng hoặc giấy chứng nhận chưa?','Gibt es für das Grundstück bereits einen Eigentumsnachweis?']);
+     if(documentKnown&&!ownerKnown)return prompt(key,['Ai đang đứng tên hoặc đang sử dụng mảnh đất: bạn, người thân hay người khác?','Auf wen ist das Grundstück eingetragen oder wer nutzt es: Sie, Angehörige oder eine andere Person?']);
+    }
+    return prompt(key,asked.includes(key)&&slot.retry?slot.retry:slot.text);
+   }
   }
   return null;
  }
  if(!usableReply(last))return prompt('goal',asked.includes('goal')?['Bạn đang cần hỗ trợ chuyện gì? Bạn mô tả cụ thể điều đang vướng nhé.','Wobei benötigen Sie Hilfe? Beschreiben Sie bitte konkret, was Sie klären möchten.']:texts.goal);
- if(text.split(' ').length<3||!/[?？]/.test(state.text)&&!goalKnown.test(text)&&! /\b(hoi|giai thich|tu van|question|frage|klaren|erklaren)\b/.test(text))return prompt('goal',texts.goal);
+ if(text.split(' ').length<3||!/[?？]/.test(state.text)&&!goalKnown.test(text)&&! /\b(hoi|giai thich|tu van|question|frage|klaren|erklaren)\b/.test(text))return prompt('goal',asked.includes('goal')?texts.situation:texts.goal);
  return nextClarification(question,asked);
 }

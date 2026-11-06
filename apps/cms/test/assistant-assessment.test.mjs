@@ -116,3 +116,13 @@ test('assessment provider revision is rechecked before accepting a low classific
 test('assessment operating rules are rechecked before accepting a low classification',async t=>{
  const state=fixture(t,{assessment:{status:'low'},onAssess:state=>state.rules.push({id:1,title:'Synthetic rule',body:'Synthetic operating restriction',jurisdiction:'BOTH',updated_at:new Date(),effective_from:new Date(0),expires_at:null,review_due_at:new Date(Date.now()+86400000)})});await state.run();assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.conversation.qualification,'needs_details');assert.equal(state.conversation.ai_enabled,true);assert.equal(state.conversation.expires,false);
 });
+
+test('land fragment after a clarification stays in intake instead of personal-case handoff',async t=>{
+ const state=fixture(t,{body:'Đất của tôi ấy',previous:[
+  {role:'assistant',body:'Mảnh đất ở đâu?',metadata:{kind:'clarify',clarificationKey:'property.country'}},
+  {role:'user',body:'Về đất đai'},
+  {role:'assistant',body:'Bạn cần tư vấn việc gì?',metadata:{kind:'clarify',clarificationKey:'goal'}},
+  {role:'user',body:'Tôi cần'},
+ ]});
+ await state.run();assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,'property.country');assert.match(state.replies[0].body,/Việt Nam, Đức/);assert.equal(state.conversation.ai_enabled,true);assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.conversation.qualification,'needs_details');
+});

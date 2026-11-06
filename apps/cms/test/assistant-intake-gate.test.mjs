@@ -40,3 +40,21 @@ test('asking about a date or deadline does not supply that date or deadline',()=
  assert.equal(intakeClarification('Ich möchte in Deutschland investieren\nGründung einer GmbH\nIch möchte das Verfahren wissen\nDie Frist ist noch unklar')?.key,'investment.timeline');
  for(const answer of ['ngày 15/11/2026','tháng sau','đang chuẩn bị, chưa biết ngày nào'])assert.equal(intakeClarification('Tôi muốn đầu tư thành lập doanh nghiệp ở Đức\nmuốn biết thủ tục\n'+answer),null,answer);
 });
+
+test('land conversation recognizes ordinary wording, follows the customer and avoids the repeated generic goal',()=>{
+ const opening=intakeClarification('Về đất đai',['goal']);assert.equal(opening.key,'property.country');assert.match(opening.text,/mảnh đất/);
+ const fragment='Về đất đai\nĐất của tôi ấy';
+ const followup=intakeClarification(fragment,['goal','property.country'],{'property.country':'Đất của tôi ấy'});
+ assert.equal(followup.key,'property.country');assert.notEqual(followup.text,opening.text);assert.match(followup.text,/Việt Nam, Đức/);
+ const located=fragment+'\nỞ Hà Nội, Việt Nam';assert.equal(intakeClarification(located).key,'property.transaction');
+ const goal=located+'\nTôi muốn sang tên';assert.equal(intakeClarification(goal).key,'property.ownership');
+ const owner=goal+'\nĐất đang đứng tên tôi';assert.match(intakeClarification(owner).text,/đã có sổ/);
+ const papers=goal+'\nCó sổ đỏ';assert.match(intakeClarification(papers).text,/Ai đang đứng tên/);
+ const facts=goal+'\nSổ đỏ đang đứng tên tôi';assert.equal(intakeClarification(facts).key,'property.timeline');
+ assert.equal(intakeClarification(facts+'\nChưa thực hiện, muốn biết thủ tục'),null);
+});
+
+test('Vietnam followed by a first-person turn is not mistaken for next year',()=>{
+ assert.equal(intakeClarification('Về đất đai\nỞ Việt Nam\nTôi muốn sang tên\nSổ đỏ đang đứng tên tôi').key,'property.timeline');
+ assert.equal(intakeClarification('Về đất đai ở Việt Nam tôi muốn sang tên, sổ đỏ đang đứng tên tôi').key,'property.timeline');
+});

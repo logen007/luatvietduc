@@ -40,3 +40,8 @@ test('marked rich article and private knowledge evidence use plain whole paragra
  assert.equal(faqBody({...source,body}),source.body);
  assert.equal(faqBody({...source,body:'<p>Literal legacy text</p>'}),'<p>Literal legacy text</p>');
 });
+
+test('ordinary first-person context and general document questions do not force specialist handoff',()=>{
+ for(const text of ['Đất của tôi ấy','Về đất đai\nĐất của tôi ấy','Tôi muốn hỏi thủ tục sang tên đất của tôi','Hồ sơ cần chuẩn bị gồm những gì?'])assert.equal(requiresHuman(text),false,text);
+ for(const text of ['Xem hồ sơ của tôi','Kiểm tra giúp hồ sơ này','Kết luận vụ việc của tôi','Tôi muốn gặp chuyên viên','me@example.invalid','CCCD 123456789012'])assert.equal(requiresHuman(text),true,text);
+});

@@ -9,7 +9,7 @@ export const normalizeQuestion=(text:string)=>text.normalize('NFD').replace(/[\u
 export function requiresHuman(text:string){
  const question=normalizeQuestion(text);
  return /[\w.+-]+@[\w.-]+\.[a-z]{2,}|\d{8,}/i.test(text)
-  ||/\b(ho so|cua toi|ket luan vu viec|du doan ket qua|nguoi that|chuyen vien|tu van truc tiep|noi chuyen voi nguoi|gap nguoi tu van|bo qua quy tac|bo qua huong dan)\b/.test(question)
+  ||/\b((?:xem|kiem tra|danh gia|doc|phan tich)(?: giup)?(?: bo)? ho so|ho so (?:cua toi|ca nhan)|ket luan vu viec|du doan ket qua|nguoi that|chuyen vien|tu van truc tiep|noi chuyen voi nguoi|gap nguoi tu van|bo qua quy tac|bo qua huong dan)\b/.test(question)
   ||/\b(mein(?:e|er|en|em)? (?:akte|akten|fall|unterlagen|dokumente)|personliche (?:rechts)?beratung)\b/.test(question)
   ||/\b(?:ich (?:mochte|will)|(?:kann|konnte) ich) (?:bitte |gerne? )?(?:mit (?:einem |einer )?|(?:einen |eine )?)(?:menschen|mitarbeiter(?:in)?|berater(?:in)?|anwalt(?:in)?|fachkraft) (?:sprechen|reden|chatten)\b/.test(question);
 }
