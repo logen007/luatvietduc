@@ -12,13 +12,22 @@ const refresh=()=>{void store.refresh(true).catch(()=>{});};
 export const loadPublicSession=()=>store.refresh();
 // Guards client state updates only. Server authorization remains authoritative.
 export const isPublicSessionCurrent=(revision:number)=>store.isCurrent(revision);
-function clearPrivateDrafts(){
- try{for(let i=sessionStorage.length-1;i>=0;i--){const key=sessionStorage.key(i);if(key?.startsWith('lvd-staff-draft:')||key==='lvd-chat-handoff-v1')sessionStorage.removeItem(key);}}catch{}
+function clearPrivateDrafts(preserveCustomerHandoffFor?:string){
+ let keepHandoff=false;
+ try{
+  if(preserveCustomerHandoffFor&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(preserveCustomerHandoffFor)){
+   const raw=sessionStorage.getItem('lvd-chat-handoff-v1'),saved=raw&&raw.length<=100000?JSON.parse(raw):null;
+   keepHandoff=saved?.version===1&&saved.conversation===preserveCustomerHandoffFor;
+  }
+ }catch{}
+ try{for(let i=sessionStorage.length-1;i>=0;i--){const key=sessionStorage.key(i);if(key?.startsWith('lvd-staff-draft:')||(key==='lvd-chat-handoff-v1'&&!keepHandoff))sessionStorage.removeItem(key);}}catch{}
 }
-export function invalidatePublicSession(){
- clearPrivateDrafts();
+export function invalidatePublicSession(options?:{preserveCustomerHandoffFor?:string}){
+ // Only a verified login returning to this conversation may retain its customer
+ // handoff. Actual ownership, identity and expiry are still checked on return.
+ clearPrivateDrafts(options?.preserveCustomerHandoffFor);
  store.invalidate();
- try{localStorage.setItem('lvd-session-revision',String(Date.now()));}catch{}
+ try{localStorage.setItem('lvd-session-revision',crypto.randomUUID());}catch{}
  document.dispatchEvent(new Event('lvd:sessionchange'));
 }
 function onStorage(event:StorageEvent){if(event.key==='lvd-session-revision'){clearPrivateDrafts();store.invalidate();refresh();}}

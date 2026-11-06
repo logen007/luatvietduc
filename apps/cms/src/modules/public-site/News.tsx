@@ -1,9 +1,11 @@
 'use client';
 import type {ArticleList,LegacyNews} from './types';
 import {ArticleCards,Arrow,Breadcrumb,Pagination,usePublicCopy} from './ui';
+import {legacyKeyword} from './routes';
 export function News({articles,query,categories}:{articles:ArticleList;query:string;categories:string[][]}){
  const l=usePublicCopy(),q=new URLSearchParams(query),german:Record<string,string>={'doi-song':'Alltag & Mobilität','cu-tru':'Aufenthalt & Dokumente','viec-lam':'Arbeit','gia-dinh':'Familie','hoc-tap':'Bildung','cong-dong':'Community'};
  q.delete('loai');
+ const keyword=legacyKeyword(q);if(keyword&&!q.get('q'))q.set('q',keyword);
  const categoryHref=(group='')=>{const params=new URLSearchParams();if(q.get('q'))params.set('q',q.get('q')!);if(group)params.set('nhom',group);return '/tin-tuc'+(params.size?'?'+params:'');};
  return <div className="container page newsroom-list"><Breadcrumb title={l('Tin tức','Nachrichten')}/><header className="page-heading"><h1>{l('Tin tức & đời sống','Nachrichten & Alltag')}</h1></header><nav className="press-categories" aria-label={l('Chuyên mục tin','Nachrichtenkategorien')}><a href={categoryHref()} aria-current={!q.get('nhom')?'page':undefined}>{l('Tất cả','Alle')}</a>{categories.map(([id,label])=><a key={id} href={categoryHref(id)} aria-current={q.get('nhom')===id?'page':undefined}>{l(label,german[id]||label)}</a>)}</nav><form className="native-news-search" action="/tin-tuc" method="get">{q.get('nhom')&&<input type="hidden" name="nhom" value={q.get('nhom')||''}/>}<label className="sr-only" htmlFor="news-query">{l('Tìm tin tức','Nachrichten suchen')}</label><input id="news-query" type="search" name="q" defaultValue={q.get('q')||''} maxLength={180} placeholder={l('Tìm tin tức…','Nachrichten suchen…')}/><button className="button" type="submit">{l('Tìm kiếm','Suchen')} <Arrow/></button></form>{articles.docs.length?<ArticleCards list={articles}/>:<p className="native-empty">{l('Chưa có tin tức phù hợp.','Keine passenden Nachrichten gefunden.')}</p>}<Pagination path="/tin-tuc" page={articles.page} pages={articles.totalPages} query={q.toString()}/></div>;
 }

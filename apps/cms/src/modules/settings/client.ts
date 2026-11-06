@@ -2,13 +2,14 @@
 import {useEffect,useSyncExternalStore} from 'react';
 import type {PublicSettings} from './view';
 import {createPublicSettingsStore} from './client-store';
+import {readPublicSettings} from './public-contract';
 const store=createPublicSettingsStore<PublicSettings>(async()=>{
   let response:Response;
   try{response=await fetch('/service/settings',{cache:'no-store',signal:AbortSignal.timeout(15000)});}
   catch{throw new Error('Không thể kết nối. Vui lòng kiểm tra mạng và thử lại.');}
    const result=await response.json().catch(()=>null);
    if(!response.ok||!result)throw new Error(result?.error||'Chưa tải được cài đặt website.');
-   return result as PublicSettings;
+   return readPublicSettings(result);
 });
 const initial=store.getSnapshot();
 export const loadPublicSettings=(force=false)=>store.load(force);

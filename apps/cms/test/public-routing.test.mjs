@@ -30,6 +30,7 @@ test('public route registry excludes every private area and rejects malformed to
  for(const page of publicPages)assert.equal(resolvePublicRoute(page.path)?.kind,page.kind);
  for(const path of ['/admin','/admin/settings','/api/users','/service/me','/auth/google','/health/ready','/tai-khoan','/tro-chuyen','/chu-de/quoc-tich/00','/chu-de/quoc-tich/01/extra','/not-a-page'])assert.equal(resolvePublicRoute(path),null,path);
  assert.equal(resolvePublicRoute('/phap-luat/duc/quoc-tich')?.country,'DE');
+ assert.equal(resolvePublicRoute('/thu-vien')?.country,'VN');assert.equal(resolvePublicRoute('/tim-kiem')?.country,'VN');
  assert.equal(resolvePublicRoute('/chu-de/gia-dinh/01')?.group,'hon-nhan-gia-dinh');
  assert.equal(positivePage('100000000'),1);assert.equal(positivePage('NaN'),1);assert.equal(positivePage('2'),2);
 });
@@ -57,6 +58,20 @@ test('news category navigation uses clean links when there is no search',()=>{
  const html=renderToStaticMarkup(createElement(News,{articles:{docs:[],totalDocs:0,totalPages:1,page:1},query:'nhom=viec-lam&trang=4',categories:[['gia-dinh','Gia đình']]}));
  const navigation=html.match(/<nav class="press-categories"[^>]*>([\s\S]*?)<\/nav>/)?.[1];assert.ok(navigation);
  assert.match(navigation,/href="\/tin-tuc"/);assert.match(navigation,/href="\/tin-tuc\?nhom=gia-dinh"/);
+});
+test('legacy situation searches stay visible and survive news category and pagination navigation',()=>{
+ const query='tinh-huong=uy-quyen&nhom=viec-lam&trang=2&loai=guide',keyword=legacyKeyword(new URLSearchParams(query));assert.equal(keyword,'ủy quyền');
+ const html=renderToStaticMarkup(createElement(News,{articles:{docs:[],totalDocs:30,totalPages:3,page:2},query,categories:[['gia-dinh','Gia đình']]}));
+ const form=html.match(/<form class="native-news-search"[^>]*>([\s\S]*?)<\/form>/)?.[1];assert.ok(form);
+ assert.match(form,/value="ủy quyền"/,'The search box must show the keyword already used by the server');
+ const categories=html.match(/<nav class="press-categories"[^>]*>([\s\S]*?)<\/nav>/)?.[1];assert.ok(categories);
+ for(const [,href] of categories.matchAll(/href="([^"]+)"/g)){
+  const url=new URL(href.replaceAll('&amp;','&'),'https://example.invalid');assert.equal(url.searchParams.get('q'),keyword);assert.equal(url.searchParams.has('trang'),false);assert.equal(url.searchParams.has('loai'),false);
+ }
+ const pagination=html.match(/<nav class="pagination"[^>]*>([\s\S]*?)<\/nav>/)?.[1];assert.ok(pagination);
+ for(const [,href] of pagination.matchAll(/href="([^"]+)"/g)){
+  const url=new URL(href.replaceAll('&amp;','&'),'https://example.invalid');assert.equal(url.searchParams.get('q'),keyword);assert.equal(url.searchParams.get('nhom'),'viec-lam');assert.equal(url.searchParams.has('loai'),false);
+ }
 });
 
 test('question and contact forms keep entered details out of URLs before hydration',()=>{

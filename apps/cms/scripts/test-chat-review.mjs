@@ -84,3 +84,48 @@ export async function testCustomerHistoryRecovery({page,base}){
   await page.unroute(matches,handler);await page.unroute('**/service/me',session);if(viewport)await page.setViewportSize(viewport);await page.goto(origin+'/tai-khoan');
  }
 }
+
+// Real React navigation and password-login form, with every chat/auth request
+// intercepted. The fake sign-in cannot change database rows or real cookies.
+export async function testChatLoginDraftHandoff({page,base}){
+ const origin=new URL(base).origin;assert.ok(['localhost','127.0.0.1'].includes(new URL(origin).hostname));
+ const id='66666666-6666-4666-8666-666666666666',fileId='77777777-7777-4777-8777-777777777777',handoff='lvd-chat-handoff-v1',staffDraft='lvd-staff-draft:synthetic-login:private:reply',text='Synthetic guest draft survives password sign-in';
+ const previous=await page.evaluate(keys=>keys.map(key=>[key,sessionStorage.getItem(key)]),[handoff,staffDraft]);
+ let created=false,signedIn=false,uploads=0,logins=0,sends=0;
+ const conversation=()=>({id,title:'Synthetic linked conversation',state:'queued',version:1,aiEnabled:false,registered:signedIn});
+ const session=route=>route.fulfill({json:{user:signedIn?{id:888888,name:'Synthetic signed-in member',role:'member'}:null,connections:{google:false}}});
+ const matches=url=>url.origin===origin&&(url.pathname==='/service/conversations'||url.pathname.startsWith('/service/conversations/'+id));
+ const chat=route=>{
+  const request=route.request(),path=new URL(request.url()).pathname;
+  if(path==='/service/conversations'){
+   if(request.method()==='POST'){created=true;return route.fulfill({json:{id}});}
+   return route.fulfill({json:created?[conversation()]:[]});
+  }
+  if(path.endsWith('/files')){uploads++;return route.fulfill({json:{id:fileId,name:'Synthetic login draft.txt',mimeType:'text/plain',size:10,url:'/service/chat-files/'+fileId}});}
+  if(request.method()!=='GET'){sends++;return route.fulfill({status:400,json:{error:'Unexpected synthetic write'}});}
+  return route.fulfill({json:{conversation:conversation(),messages:[]}});
+ };
+ const login=route=>{
+  const value=route.request().postDataJSON();assert.equal(value.conversation,id);assert.equal(value.email,'synthetic-login@example.invalid');
+  logins++;signedIn=true;return route.fulfill({json:{ok:true,redirectTo:'/tro-chuyen?conversation='+id}});
+ };
+ try{
+  await page.route('**/service/me',session);await page.route(matches,chat);await page.route('**/service/auth/login',login);await page.goto(origin+'/tro-chuyen');
+  const question=page.getByRole('textbox',{name:'Câu hỏi của bạn',exact:true});await page.waitForFunction(()=>!document.querySelector('.chat-compose textarea')?.disabled);await question.fill(text);
+  await page.locator('.chat-compose input[type=file]').setInputFiles({name:'Synthetic login draft.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic!')});
+  await page.getByRole('button',{name:'Bỏ tệp Synthetic login draft.txt',exact:true}).waitFor();
+  await page.evaluate(key=>sessionStorage.setItem(key,'Synthetic private staff draft'),staffDraft);
+  if(await page.locator('.live-header-login-button').isVisible())await page.locator('.live-header-login-button').click();else{await page.getByRole('button',{name:'Mở menu',exact:true}).click();await page.locator('.live-menu-dialog').getByRole('link',{name:'Đăng nhập',exact:true}).click();}await page.waitForURL(url=>url.pathname==='/tai-khoan'&&url.searchParams.get('conversation')===id);
+  assert.equal(await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)).conversation,handoff),id);
+  await page.locator('.live-auth-switch a').click();await page.getByRole('heading',{name:'Đăng nhập',exact:true}).waitFor();
+  await page.getByLabel('Địa chỉ email',{exact:true}).fill('synthetic-login@example.invalid');await page.getByLabel('Mật khẩu',{exact:true}).fill('Synthetic-password-login-123');
+  await page.locator('.live-credentials-form').getByRole('button',{name:'Đăng nhập',exact:true}).click();await page.waitForURL(url=>url.pathname==='/tro-chuyen'&&url.searchParams.get('conversation')===id);
+  await page.waitForFunction(value=>document.querySelector('.chat-compose textarea')?.value===value,text);await page.getByRole('button',{name:'Bỏ tệp Synthetic login draft.txt',exact:true}).waitFor();
+  assert.deepEqual(await page.evaluate(keys=>keys.map(key=>sessionStorage.getItem(key)),[handoff,staffDraft]),[null,null],'Customer handoff is consumed once and staff drafts never cross sign-in');
+  assert.equal(uploads,1);assert.equal(logins,1);assert.equal(sends,0,'Restoring a linked guest draft must never send it');
+  console.log('Chat login draft browser checks passed: guest text/file survive password sign-in and owned return, staff drafts clear, no automatic send');
+ }finally{
+  await page.unroute('**/service/auth/login',login);await page.unroute(matches,chat);await page.unroute('**/service/me',session);await page.goto(origin+'/tai-khoan');
+  await page.evaluate(values=>{for(const [key,value] of values){if(value===null)sessionStorage.removeItem(key);else sessionStorage.setItem(key,value);}},previous);
+ }
+}

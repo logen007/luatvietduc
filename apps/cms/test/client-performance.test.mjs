@@ -52,3 +52,15 @@ test('refresh during a pending read runs once immediately afterward, without ove
   stop();assert.equal(timers.size,0);
  }finally{stop?.();Object.assign(globalThis,original);}
 });
+
+test('invalid public settings are rejected before replacing a usable shell configuration',async()=>{
+ const previous=globalThis.fetch;
+ try{
+  globalThis.fetch=async()=>Response.json({siteName:'Known good',navigation:[],socialLinks:[],maxMessageLength:2000});
+  assert.equal((await loadPublicSettings(true)).siteName,'Known good');
+  for(const value of [[],{},'broken',{navigation:{}},{navigation:[null]},{socialLinks:[null]},{siteName:{}},{maxMessageLength:'2000'},{customerAIEnabled:'yes'}]){
+   globalThis.fetch=async()=>Response.json(value);await assert.rejects(loadPublicSettings(true),/cài đặt/);
+  }
+  globalThis.fetch=async()=>Response.json({siteName:'Recovered',navigation:null,socialLinks:null,maxMessageLength:2000.5});assert.equal((await loadPublicSettings(true)).maxMessageLength,2000.5,'The reader accepts numeric values allowed by the existing server schema');
+ }finally{globalThis.fetch=previous;}
+});
