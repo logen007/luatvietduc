@@ -189,3 +189,60 @@ export async function testChatSessionRecovery({page,base,owner}){
   }
  }
 }
+
+// A retired send may finish after the same specialist loses and regains access.
+// Keep these receipts pending through the actual session/transcript/UI sequence.
+export async function testChatRevokedLateAck({page,base,owner}){
+ const origin=new URL(base).origin;assert.ok(['localhost','127.0.0.1'].includes(new URL(origin).hostname));
+ const viewport=page.viewportSize(),id='acacacac-acac-4cac-8cac-acacacacacac',draftKey=`lvd-staff-draft:${owner.id}:${id}:reply`,previous=await page.evaluate(key=>sessionStorage.getItem(key),draftKey);
+ try{
+  await page.setViewportSize({width:1280,height:900});
+  for(const denial of ['403','restricted']){
+   let failure=0,access='owned',version=1,mode='hold',releaseSend,captureSend;
+   const body='Synthetic identical draft after '+denial,posts=[],messages=[];
+   const user={id:owner.id,name:'Synthetic late receipt specialist',role:'support',jurisdictions:['VN','DE']};
+   const thread=()=>({id,title:'Synthetic late receipt thread',state:access==='owned'?'human':'queued',version,assignedTo:access==='owned'?owner.id:null,restricted:access!=='owned',aiEnabled:false,registered:true,...(access==='owned'?{customer:{name:'Synthetic late receipt customer',email:null}}:{})});
+   const session=route=>route.fulfill(failure?{status:failure,json:{error:'Synthetic session unavailable'}}:{json:{user,connections:{google:false}}});
+   const inbox=route=>route.fulfill({json:{rows:[{...thread(),updated_at:'2026-11-06T00:00:00Z'}],counts:{all:1,active:access==='owned'?1:0,queue:access==='owned'?0:1},total:1,totalPages:1,page:1}});
+   const questions=route=>route.fulfill({json:{questions:[]}});
+   const matches=url=>url.origin===origin&&url.pathname.startsWith('/service/conversations/'+id);
+   const handler=async route=>{
+    const request=route.request(),path=new URL(request.url()).pathname;
+    if(path.endsWith('/messages')){
+     const value=request.postDataJSON();posts.push(value);let message=messages.find(item=>item.client_key===value.key);const duplicate=Boolean(message);
+     if(!message){message={id:String(900+messages.length),role:'staff',body:value.body,client_key:value.key,created_at:'2026-11-06T00:00:00Z'};messages.push(message);}
+     const attempt=mode;if(attempt==='hold'){captureSend?.();await new Promise(resolve=>{releaseSend=resolve;});}
+     return route.fulfill(attempt==='reject'?{status:503,json:{error:'Synthetic new send acknowledgement unavailable'}}:{json:{id:message.id,role:'staff',duplicate}});
+    }
+    if(path.endsWith('/transition')){assert.equal(request.postDataJSON().action,'claim');assert.equal(access,'restricted');access='owned';version++;return route.fulfill({json:{state:'human',version}});}
+    assert.equal(request.method(),'GET');if(access==='403')return route.fulfill({status:403,json:{error:'Synthetic selected access revoked'}});
+    const after=Number(new URL(request.url()).searchParams.get('after')||0);return route.fulfill({json:{conversation:thread(),messages:access==='owned'?messages.filter(item=>Number(item.id)>after):[]}});
+   };
+   try{
+    await page.route('**/service/me',session);await page.route('**/service/inbox?*',inbox);await page.route('**/service/assistant/questions',questions);await page.route(matches,handler);await page.goto(origin+'/admin/inbox');
+    const box=page.locator('.operator-composer textarea'),send=()=>page.getByRole('button',{name:'Gửi phản hồi',exact:false}),error=page.locator('.operator-error');
+    const enabled=()=>page.waitForFunction(()=>{const input=document.querySelector('.operator-composer textarea');return input&&!input.disabled;});
+    await page.locator('.operator-workspace[aria-busy=false]').waitFor();await page.locator('.operator-thread').filter({hasText:'Synthetic late receipt thread'}).click();await enabled();
+    await box.fill(body);const captured=new Promise(resolve=>{captureSend=resolve;});await send().click();await captured;
+    failure=503;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await error.getByRole('button',{name:'Thử lại',exact:true}).waitFor();
+    access=denial;version++;failure=0;await error.getByRole('button',{name:'Thử lại',exact:true}).click();
+    if(denial==='403'){
+     await error.getByText('Synthetic selected access revoked',{exact:false}).waitFor();assert.equal(await box.inputValue(),'');assert.equal(await box.isDisabled(),true);assert.equal(await page.evaluate(key=>sessionStorage.getItem(key),draftKey),null);
+     access='restricted';await error.getByRole('button',{name:'Thử lại',exact:true}).click();
+    }
+    await page.getByRole('button',{name:'Nhận xử lý',exact:true}).first().waitFor();assert.equal(await box.inputValue(),'');assert.equal(await box.isDisabled(),true);assert.equal(await page.evaluate(key=>sessionStorage.getItem(key),draftKey),null);
+    await page.getByRole('button',{name:'Nhận xử lý',exact:true}).first().click();await enabled();await box.fill(body);
+    assert.equal(await page.evaluate(key=>sessionStorage.getItem(key),draftKey),body);
+    const oldResponse=page.waitForResponse(response=>new URL(response.url()).pathname===`/service/conversations/${id}/messages`);releaseSend();await (await oldResponse).finished();await page.waitForTimeout(100);
+    assert.equal(await box.inputValue(),body,'A receipt from before access withdrawal must not erase a new identical draft after reclaim');assert.equal(await page.evaluate(key=>sessionStorage.getItem(key),draftKey),body);assert.equal(posts.length,1,'Reclaiming and a late receipt never send the new draft automatically');
+    mode='reject';await send().click();await error.getByText('Synthetic new send acknowledgement unavailable',{exact:false}).waitFor();assert.notEqual(posts[1].key,posts[0].key,'Access withdrawal retires the former send key');
+    mode='ok';await send().click();await page.waitForFunction(()=>document.querySelector('.operator-composer textarea')?.value==='');assert.equal(posts[2].key,posts[1].key,'The newly ambiguous send keeps its own retry key');assert.equal(messages.length,2);
+    console.log('Specialist revoked late receipt browser check passed: '+denial+', reclaim, identical newer draft and distinct retry key');
+   }finally{
+    releaseSend?.();await page.unroute(matches,handler);await page.unroute('**/service/inbox?*',inbox);await page.unroute('**/service/assistant/questions',questions);await page.unroute('**/service/me',session);await page.goto(origin+'/tai-khoan');
+   }
+  }
+ }finally{
+  await page.evaluate(({key,value})=>{if(value===null)sessionStorage.removeItem(key);else sessionStorage.setItem(key,value);},{key:draftKey,value:previous});if(viewport)await page.setViewportSize(viewport);
+ }
+}

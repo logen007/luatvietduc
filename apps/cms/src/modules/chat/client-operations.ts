@@ -22,6 +22,18 @@ export function createOperationGate(){
  };
 }
 
+// Track only live responses. Losing a conversation retires its old deliveries,
+// even if the same account later reclaims it and types identical content.
+export function createDeliveryGuard(){
+ const active=new Map<symbol,string>();
+ return {
+  begin(conversation:string){const ticket=Symbol();active.set(ticket,conversation);return ticket;},
+  isCurrent(ticket:symbol){return active.has(ticket);},
+  retire(conversation:string){for(const [ticket,id] of active)if(id===conversation)active.delete(ticket);},
+  end(ticket:symbol){active.delete(ticket);},
+ };
+}
+
 type Draft={body:string;internal:boolean;fileIds:string[]};
 export type MessageReceipt={id:string|number;role:'user'|'staff';duplicate?:boolean};
 type Delivery={receipt:MessageReceipt;key:string};

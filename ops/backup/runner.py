@@ -2,12 +2,70 @@
 """Narrow host worker: app-only capture, encrypted Drive upload, isolated restore drill."""
 import configparser, datetime, fcntl, hashlib, json, os, pathlib, re, shutil, subprocess, tarfile, tempfile, time, uuid, threading
 from contextlib import contextmanager
+import urllib.error, urllib.parse, urllib.request
 BASE=pathlib.Path('/var/lib/luatvietduc-backup')
 PROJECT='luatvietduc'
-class BackupFailure(Exception): pass
+REASONS={
+    'oauth-grant':'Google đã từ chối quyền đăng nhập đã lưu',
+    'oauth-client':'cấu hình ứng dụng Google chưa hợp lệ',
+    'oauth-token':'công cụ chưa có mã truy cập Google hợp lệ',
+    'api-disabled':'Drive API chưa được bật cho ứng dụng Google',
+    'permission':'tài khoản hoặc khóa chưa có đủ quyền truy cập',
+    'storage-quota':'Drive đã hết dung lượng lưu trữ',
+    'rate-limit':'Google đang giới hạn số lượt yêu cầu',
+    'not-found':'không tìm thấy tệp hoặc thư mục đích',
+    'read-only':'hệ thống tệp chỉ cho phép đọc',
+    'config-write':'không ghi được cấu hình hoặc bộ nhớ đệm công cụ',
+    'unsupported-option':'phiên bản công cụ chưa hỗ trợ tùy chọn được dùng',
+    'config-section':'thiếu mục kết nối trong cấu hình công cụ',
+    'authentication':'công cụ chưa lấy được quyền truy cập hợp lệ',
+    'local-file':'không tìm thấy tệp cục bộ cần gửi',
+    'http-request':'dịch vụ từ chối nội dung yêu cầu',
+    'http-forbidden':'dịch vụ từ chối quyền thực hiện yêu cầu',
+    'http-server':'dịch vụ đích đang gặp lỗi',
+    'timeout':'quá thời gian chờ',
+}
+class BackupFailure(Exception):
+    def __init__(self,message,reason='unknown',exit_code=None,http_status=None):
+        self.reason=reason if reason in REASONS else 'unknown'
+        self.exit_code=exit_code if type(exit_code) is int and -128<=exit_code<=255 else None
+        self.http_status=http_status if type(http_status) is int and (http_status in [400,401,403,404,429] or 500<=http_status<=599) else None
+        super().__init__(message)
+
+def diagnostic_text(stderr):
+    return (stderr[-65536:].decode('utf-8',errors='replace') if isinstance(stderr,bytes) else str(stderr or '')[-65536:]).lower()
+
+def command_http_status(stderr):
+    text=diagnostic_text(stderr)
+    codes=re.findall(r'(?:\bhttp(?:/\d(?:\.\d)?)?\s*(?:status(?:\s*code)?\s*)?[:=]?\s*|\bstatus\s*(?:code)?\s*[:=]?\s*|\b(?:googleapi:\s*)?error\s+|"code"\s*:\s*)(400|401|403|404|429|5\d\d)\b|\b(400|401|403|404|429|5\d\d)\s+(?:bad request|unauthorized|forbidden|not found|too many requests|internal server error|bad gateway|service unavailable|gateway timeout)\b',text)
+    return int(next(filter(None,codes[-1]))) if codes else None
+
+def command_failure_reason(stderr):
+    # Classify only fixed signatures. Never retain or return provider text,
+    # tokens, URLs, account names, paths or command arguments.
+    text=diagnostic_text(stderr)
+    signatures=[
+        ('unsupported-option',r'\b(?:unknown (?:flag|option|command)|flag provided but not defined|unrecognized (?:option|argument))\b'),
+        ('config-section',r'\b(?:didn.t find section in config file|couldn.t find section in config file|config section (?:not found|missing)|no section:)'),
+        ('oauth-grant',r'\binvalid_grant\b'),
+        ('oauth-client',r'\b(?:invalid_client|unauthorized_client)\b'),
+        ('oauth-token',r'\b(?:empty token found|empty access token|access token is empty|missing access_token|no access token|token expired and refresh token is not set|token expired and there.s no refresh token)\b'),
+        ('api-disabled',r'\b(?:accessnotconfigured|service_disabled|servicedisabled)\b'),
+        ('storage-quota',r'\bstoragequotaexceeded\b'),
+        ('rate-limit',r'\b(?:userratelimitexceeded|ratelimitexceeded|ratelimit|dailylimitexceeded)\b'),
+        ('authentication',r'\b(?:couldn.t (?:fetch|refresh) token|cannot (?:fetch|refresh) token|failed to (?:fetch|refresh|get) token|oauth2|invalid_token|authentication failed|failed to authenticate|invalidcredentials|autherror)\b'),
+        ('local-file',r'\b(?:no such file or directory|file does not exist|source file (?:doesn.t exist|not found))\b'),
+        ('not-found',r'\b(?:notfound|directory not found|file not found|couldn.t find root directory|invalidparent)\b'),
+        ('read-only',r'\b(?:read-only file system|erofs)\b'),
+        ('config-write',r'\b(?:failed to (?:save (?:new )?token|create (?:cache|config) directory)|error creating cache directory)\b|\b(?:config|cache)\b[^\n]{0,160}\bpermission denied\b'),
+        ('permission',r'\b(?:insufficientpermissions|insufficientfilepermissions|insufficient_scope|insufficient authentication scopes|accessdenied|permissiondenied|permission denied)\b'),
+    ]
+    reason=next((reason for reason,pattern in signatures if re.search(pattern,text)),None)
+    status=command_http_status(stderr)
+    return reason or {400:'http-request',401:'authentication',403:'http-forbidden',404:'not-found',429:'rate-limit'}.get(status,'http-server' if status and status>=500 else 'unknown')
 STAGES={
     'worker':'chuẩn bị tác vụ','application':'tìm ứng dụng','claim':'nhận tác vụ',
-    'database':'tìm cơ sở dữ liệu','workspace':'thư mục làm việc riêng','configuration':'cấu hình công cụ sao lưu',
+    'database':'tìm cơ sở dữ liệu','workspace':'thư mục làm việc riêng','configuration':'cấu hình công cụ sao lưu','drive-token':'lấy quyền truy cập Drive',
     'media-lock':'khóa ghi tệp','inventory':'đọc danh sách tệp','database-dump':'xuất cơ sở dữ liệu',
     'database-check':'kiểm tra bản xuất','recovery-config':'đọc cấu hình khôi phục',
     'media-copy':'sao chép tệp R2','media-check':'đối chiếu tệp','archive':'đóng gói và lập danh sách kiểm tra',
@@ -16,23 +74,31 @@ STAGES={
     'monthly':'tạo và xác minh bản tháng','retention':'dọn bản cũ','restore-test':'khôi phục thử riêng',
 }
 class BackupStageFailure(BackupFailure):
-    def __init__(self,code):
+    def __init__(self,code,reason='unknown',exit_code=None,http_status=None):
         self.code=code if code in STAGES else 'worker'
-        super().__init__('Backup stage failed: '+self.code)
+        super().__init__('Backup stage failed: '+self.code,reason,exit_code,http_status)
 
 @contextmanager
 def stage(code):
     try:yield
     except BackupStageFailure:raise
-    except Exception:raise BackupStageFailure(code) from None
+    except Exception as error:
+        if isinstance(error,BackupFailure):raise BackupStageFailure(code,error.reason,error.exit_code,error.http_status) from None
+        raise BackupStageFailure(code) from None
 
 def failure_message(message,error):
     code=error.code if isinstance(error,BackupStageFailure) else 'worker'
-    return message+' Bước chưa hoàn tất: '+STAGES.get(code,STAGES['worker'])+'.'
+    reason=REASONS.get(error.reason) if isinstance(error,BackupFailure) else None
+    metadata=(' Mã thoát: '+str(error.exit_code)+'.' if isinstance(error,BackupFailure) and error.exit_code is not None else '')+(' Mã HTTP: '+str(error.http_status)+'.' if isinstance(error,BackupFailure) and error.http_status is not None else '')
+    return message+' Bước chưa hoàn tất: '+STAGES.get(code,STAGES['worker'])+'.'+(' Nguyên nhân: '+reason+'.' if reason else '')+metadata
 
 def run(args, *, data=None, timeout=120, output=None):
-    p=subprocess.run(args,input=data,stdout=output or subprocess.PIPE,stderr=subprocess.PIPE,timeout=timeout,check=False)
-    if p.returncode: raise BackupFailure('Command failed: '+args[0])
+    rclone=pathlib.Path(args[0]).name=='rclone'
+    try:p=subprocess.run(args,input=data,stdout=output or subprocess.PIPE,stderr=subprocess.PIPE,timeout=timeout,check=False)
+    except subprocess.TimeoutExpired as error:
+        reason=command_failure_reason(error.stderr) if rclone else 'unknown'
+        raise BackupFailure('Command timed out',reason if reason!='unknown' else 'timeout',http_status=command_http_status(error.stderr) if rclone else None) from None
+    if p.returncode: raise BackupFailure('Command failed',command_failure_reason(p.stderr) if rclone else 'unknown',p.returncode,command_http_status(p.stderr) if rclone else None)
     return p.stdout
 
 def container(service):
@@ -65,11 +131,47 @@ def clean_private_work(root):
         if re.fullmatch(r'job-[a-zA-Z0-9_-]+',entry.name) and not entry.is_symlink() and entry.is_dir() and entry.stat().st_uid==os.geteuid():
             shutil.rmtree(entry)
 
+class NoTokenRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+
+def fresh_drive_token(values):
+    request=urllib.request.Request('https://oauth2.googleapis.com/token',method='POST',
+        data=urllib.parse.urlencode({'grant_type':'refresh_token','client_id':values['clientId'],'client_secret':values['clientSecret'],'refresh_token':values['refreshToken']}).encode(),
+        headers={'Content-Type':'application/x-www-form-urlencoded','Accept':'application/json'})
+    try:
+        with urllib.request.build_opener(NoTokenRedirect()).open(request,timeout=15) as response:
+            if response.status!=200:raise BackupFailure('Drive token request failed','authentication',http_status=response.status)
+            body=response.read(65537)
+    except BackupFailure:raise
+    except urllib.error.HTTPError as error:
+        reason='authentication'
+        try:
+            body=error.read(65537)
+            if len(body)<=65536:reason=command_failure_reason(body)
+        except Exception:pass
+        finally:error.close()
+        raise BackupFailure('Drive token request failed',reason if reason!='unknown' else 'authentication',http_status=error.code) from None
+    except (TimeoutError,urllib.error.URLError) as error:
+        timed_out=isinstance(error,TimeoutError) or isinstance(getattr(error,'reason',None),TimeoutError)
+        raise BackupFailure('Drive token request failed','timeout' if timed_out else 'authentication') from None
+    except Exception:raise BackupFailure('Drive token request failed','authentication') from None
+    try:
+        if len(body)>65536:raise ValueError()
+        result=json.loads(body)
+        token=result.get('access_token');expires=result.get('expires_in')
+        if not isinstance(token,str) or not re.fullmatch(r'[\x21-\x7e]{1,8192}',token) or type(expires) is not int or not 60<=expires<=86400 or result.get('token_type','Bearer').lower()!='bearer':raise ValueError()
+        expiry=datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(seconds=expires)
+        return {'access_token':token,'refresh_token':values['refreshToken'],'token_type':'Bearer','expiry':expiry.isoformat().replace('+00:00','Z')}
+    except Exception:raise BackupFailure('Drive token response invalid','oauth-token') from None
+
 def rclone_config(root, config):
     v=config['drive'];p=root/'rclone.conf'
+    # rclone's native token reader requires an access token; refresh-only JSON
+    # falls through its legacy parser and loses snake_case refresh_token.
+    with stage('drive-token'):token=fresh_drive_token(v)
     # Values are validated by the owner-only API; quote token through JSON, never shell interpolation.
     cp=configparser.ConfigParser(interpolation=None)
-    cp['drive']={'type':'drive','client_id':v['clientId'],'client_secret':v['clientSecret'],'scope':'drive.file','root_folder_id':v['folderId'],'token':json.dumps({'refresh_token':v['refreshToken'],'token_type':'Bearer','expiry':'2000-01-01T00:00:00Z'})}
+    cp['drive']={'type':'drive','client_id':v['clientId'],'client_secret':v['clientSecret'],'scope':'drive.file','root_folder_id':v['folderId'],'token':json.dumps(token)}
     if config.get('r2'):
         r=config['r2'];cp['media']={'type':'s3','provider':'Cloudflare','access_key_id':r['accessKeyId'],'secret_access_key':r['secretAccessKey'],'endpoint':r['endpoint'],'region':'auto','acl':'private'}
     with p.open('x') as f: cp.write(f)

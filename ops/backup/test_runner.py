@@ -76,6 +76,143 @@ class BackupBoundaryTests(unittest.TestCase):
         self.assertEqual(failed.exception.code,'database-dump')
         self.assertEqual(actions,['lock','inventory','unlock'])
 
+    def test_rclone_known_failures_report_only_an_allowlisted_reason(self):
+        private='synthetic-refresh-token@example.invalid /private/config-secret'
+        fixtures=[
+            ('oauth-grant','oauth2: cannot fetch token: {"error":"invalid_grant"}'),
+            ('oauth-client','{"error":"invalid_client"}'),
+            ('oauth-token','empty token found - please reconnect'),
+            ('oauth-token',"token expired and there's no refresh token - manually refresh with rclone config reconnect"),
+            ('api-disabled','googleapi: Error 403: accessNotConfigured'),
+            ('permission','googleapi: Error 403: insufficientPermissions'),
+            ('permission','googleapi: Error 403: insufficientFilePermissions'),
+            ('storage-quota','googleapi: Error 403: storageQuotaExceeded'),
+            ('rate-limit','googleapi: Error 403: userRateLimitExceeded'),
+            ('not-found','googleapi: Error 404: notFound'),
+            ('read-only','Failed to save new token: read-only file system'),
+            ('config-write','Failed to create cache directory: permission denied'),
+            ('unsupported-option','Fatal error: unknown flag: --synthetic-option'),
+            ('unsupported-option','flag provided but not defined: synthetic-option'),
+            ('config-section',"didn't find section in config file"),
+            ('config-section',"couldn't find section in config file"),
+            ('authentication',"couldn't fetch token: unexpected authentication response"),
+            ('authentication','oauth2: invalid credentials'),
+            ('local-file','Failed to copy: open synthetic-file: no such file or directory'),
+            ('permission','open synthetic-file: permission denied'),
+        ]
+        for reason,diagnostic in fixtures:
+            with self.subTest(reason=reason,diagnostic=diagnostic):
+                process=runner.subprocess.CompletedProcess(['rclone'],1,stdout=private.encode(),stderr=(diagnostic+' '+private).encode())
+                with patch.object(runner.subprocess,'run',return_value=process):
+                    with self.assertRaises(runner.BackupStageFailure) as failed:
+                        with runner.stage('daily-upload'):runner.run(['rclone','--config',private])
+                error=failed.exception;self.assertEqual(error.reason,reason)
+                message=runner.failure_message('Sao lưu chưa đạt.',error)
+                self.assertIn(runner.STAGES['daily-upload'],message);self.assertIn(runner.REASONS[reason],message)
+                self.assertNotIn(private,message);self.assertNotIn(private,str(error));self.assertFalse(hasattr(error,'stderr'))
+
+    def test_unknown_provider_text_or_unrelated_commands_stay_generic(self):
+        private='synthetic-secret-unrecognized-error'
+        for executable,stderr in [('rclone',private),('docker','invalid_grant '+private)]:
+            process=runner.subprocess.CompletedProcess([executable],1,stderr=stderr.encode())
+            with patch.object(runner.subprocess,'run',return_value=process):
+                with self.assertRaises(runner.BackupStageFailure) as failed:
+                    with runner.stage('daily-upload'):runner.run([executable])
+            self.assertEqual(failed.exception.reason,'unknown')
+            message=runner.failure_message('Sao lưu chưa đạt.',failed.exception)
+            self.assertNotIn('Nguyên nhân:',message);self.assertNotIn(private,message)
+        self.assertEqual(runner.BackupFailure('Failed',private).reason,'unknown')
+
+    def test_timeout_keeps_a_known_rclone_reason_or_uses_a_safe_timeout_label(self):
+        for stderr,reason in [(b'invalid_grant synthetic-secret','oauth-grant'),(b'synthetic-secret','timeout')]:
+            with patch.object(runner.subprocess,'run',side_effect=runner.subprocess.TimeoutExpired(['rclone','synthetic-secret'],3,stderr=stderr)):
+                with self.assertRaises(runner.BackupStageFailure) as failed:
+                    with runner.stage('daily-upload'):runner.run(['rclone'])
+            self.assertEqual(failed.exception.reason,reason)
+            self.assertNotIn('synthetic-secret',runner.failure_message('Sao lưu chưa đạt.',failed.exception))
+
+    def test_reason_classification_is_bounded_to_the_tail_and_ignores_invalid_utf8(self):
+        self.assertEqual(runner.command_failure_reason(b'invalid_grant'+b'x'*65536),'unknown')
+        self.assertEqual(runner.command_failure_reason(b'x'*65536+b'\xff storageQuotaExceeded'),'storage-quota')
+
+    def test_http_status_and_exit_code_survive_nested_stages_without_provider_details(self):
+        private='synthetic-private-provider-message@example.invalid'
+        for status,reason in [(400,'http-request'),(401,'authentication'),(403,'http-forbidden'),(404,'not-found'),(429,'rate-limit'),(500,'http-server'),(502,'http-server'),(503,'http-server'),(504,'http-server'),(599,'http-server')]:
+            for diagnostic in [f'HTTP/2 {status}',f'googleapi: Error {status}: {private}',f'{{"error":{{"code":{status}}}}}']:
+                with self.subTest(status=status,diagnostic=diagnostic):
+                    process=runner.subprocess.CompletedProcess(['rclone'],3,stderr=diagnostic.encode())
+                    with patch.object(runner.subprocess,'run',return_value=process):
+                        with self.assertRaises(runner.BackupStageFailure) as failed:
+                            with runner.stage('workspace'):
+                                with runner.stage('daily-upload'):runner.run(['/usr/bin/rclone','--config',private])
+                    error=failed.exception
+                    self.assertEqual((error.code,error.reason,error.http_status,error.exit_code),('daily-upload',reason,status,3))
+                    message=runner.failure_message('Sao lưu chưa đạt.',error)
+                    self.assertIn('Mã HTTP: '+str(status),message);self.assertIn('Mã thoát: 3',message);self.assertNotIn(private,message)
+
+    def test_diagnostic_metadata_accepts_only_bounded_numeric_values(self):
+        for status in [None,True,'403',200,402,499,600,9999,'synthetic-secret']:
+            error=runner.BackupFailure('Failed',http_status=status)
+            self.assertIsNone(error.http_status);self.assertNotIn('Mã HTTP:',runner.failure_message('Failed.',error))
+        for code in [True,'1',-129,256,'synthetic-secret']:
+            self.assertIsNone(runner.BackupFailure('Failed',exit_code=code).exit_code)
+        for diagnostic in ['private-id=403','HTTP 40300','status 200','Error 600']:
+            self.assertIsNone(runner.command_http_status(diagnostic))
+        self.assertEqual(runner.command_http_status('HTTP 401 followed by HTTP 503'),503)
+
+    def token_response(self,body,status=200):
+        response=MagicMock();response.__enter__.return_value=response
+        response.status=status;response.read.return_value=body
+        return response
+
+    def test_rclone_config_uses_fresh_native_oauth_fields_and_preserves_the_refresh_token(self):
+        values={'clientId':'synthetic-client','clientSecret':'synthetic-client-secret','refreshToken':'synthetic-original-refresh','folderId':'synthetic-folder'}
+        response=self.token_response(runner.json.dumps({'access_token':'synthetic-fresh-access','refresh_token':'must-not-replace-original','expires_in':3600,'token_type':'Bearer'}).encode())
+        opener=MagicMock();opener.open.return_value=response
+        before=runner.datetime.datetime.now(runner.datetime.timezone.utc)
+        with tempfile.TemporaryDirectory() as tmp,patch.object(runner.urllib.request,'build_opener',return_value=opener) as build:
+            root=pathlib.Path(tmp);command=runner.rclone_config(root,{'drive':values})
+            config=runner.configparser.ConfigParser(interpolation=None);config.read(root/'rclone.conf')
+            token=runner.json.loads(config['drive']['token'])
+            self.assertEqual(token['access_token'],'synthetic-fresh-access');self.assertEqual(token['refresh_token'],values['refreshToken']);self.assertEqual(token['token_type'],'Bearer')
+            expiry=runner.datetime.datetime.fromisoformat(token['expiry'].replace('Z','+00:00'))
+            self.assertGreaterEqual(expiry,before+runner.datetime.timedelta(seconds=3600));self.assertLessEqual(expiry,runner.datetime.datetime.now(runner.datetime.timezone.utc)+runner.datetime.timedelta(seconds=3600))
+            self.assertEqual((root/'rclone.conf').stat().st_mode&0o777,0o600);self.assertEqual(command[:2],['rclone','--config'])
+        request=opener.open.call_args.args[0]
+        self.assertEqual(request.full_url,'https://oauth2.googleapis.com/token');self.assertEqual(request.get_method(),'POST');self.assertEqual(opener.open.call_args.kwargs,{'timeout':15})
+        self.assertEqual(runner.urllib.parse.parse_qs(request.data.decode()),{'grant_type':['refresh_token'],'client_id':[values['clientId']],'client_secret':[values['clientSecret']],'refresh_token':[values['refreshToken']]})
+        self.assertIsInstance(build.call_args.args[0],runner.NoTokenRedirect);response.read.assert_called_once_with(65537)
+        self.assertIsNone(runner.NoTokenRedirect().redirect_request(request,None,302,'redirect',{},'https://attacker.invalid'))
+
+    def test_invalid_or_oversized_oauth_responses_never_create_a_config_or_expose_data(self):
+        private='synthetic-secret-response';values={'clientId':'synthetic','clientSecret':private,'refreshToken':private,'folderId':'synthetic'}
+        base={'access_token':'synthetic-access','expires_in':3600}
+        bodies=[b'not-json',b'x'*65537,b'[]',b'{}']+[runner.json.dumps({**base,**invalid}).encode() for invalid in [{'access_token':''},{'access_token':'bad token'},{'access_token':'bad\0token'},{'access_token':'x'*8193},{'expires_in':59},{'expires_in':86401},{'expires_in':True},{'expires_in':'3600'},{'token_type':'Basic'}]]
+        for body in bodies:
+            with self.subTest(size=len(body)),tempfile.TemporaryDirectory() as tmp:
+                opener=MagicMock();opener.open.return_value=self.token_response(body)
+                with patch.object(runner.urllib.request,'build_opener',return_value=opener):
+                    with self.assertRaises(runner.BackupStageFailure) as failed:runner.rclone_config(pathlib.Path(tmp),{'drive':values})
+                self.assertEqual((failed.exception.code,failed.exception.reason),('drive-token','oauth-token'));self.assertFalse((pathlib.Path(tmp)/'rclone.conf').exists())
+                self.assertNotIn(private,runner.failure_message('Failed.',failed.exception))
+
+    def test_oauth_http_redirect_timeout_and_network_errors_are_safe_and_not_retried(self):
+        private='synthetic-private-provider-detail';values={'clientId':'synthetic','clientSecret':private,'refreshToken':private}
+        failures=[
+            (runner.urllib.error.HTTPError('https://oauth2.googleapis.com/token',400,private,{},io.BytesIO(('invalid_grant '+private).encode())),'oauth-grant',400),
+            (runner.urllib.error.HTTPError('https://oauth2.googleapis.com/token',302,private,{'Location':'https://attacker.invalid'},io.BytesIO(private.encode())),'authentication',None),
+            (TimeoutError(private),'timeout',None),
+            (runner.urllib.error.URLError(TimeoutError(private)),'timeout',None),
+            (runner.urllib.error.URLError(private),'authentication',None),
+        ]
+        for failure,reason,status in failures:
+            with self.subTest(failure=type(failure).__name__):
+                opener=MagicMock();opener.open.side_effect=failure
+                with patch.object(runner.urllib.request,'build_opener',return_value=opener):
+                    with self.assertRaises(runner.BackupFailure) as failed:runner.fresh_drive_token(values)
+                self.assertEqual((failed.exception.reason,failed.exception.http_status),(reason,status));opener.open.assert_called_once()
+                self.assertNotIn(private,str(failed.exception));self.assertNotIn(private,runner.failure_message('Failed.',failed.exception))
+
     def job_result(self,fail_at):
         identifier='12345678-abcd-4567-89ab-123456789abc';finished=[]
         config={'job':{'id':identifier,'kind':'backup'},'history':[],'r2':None}

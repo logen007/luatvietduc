@@ -4,7 +4,7 @@ import {api,ClientApiError} from "../shared/client-api";
 import {canEnterAdmin} from '../identity/permissions';
 import {visiblePoll} from "../shared/polling";
 import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
-import {createMessageOutbox,createOperationGate,mergeMessages,rememberCreatedConversation,validateAttachmentBatch,type MessageReceipt} from './client-operations';
+import {createDeliveryGuard,createMessageOutbox,createOperationGate,mergeMessages,rememberCreatedConversation,validateAttachmentBatch,type MessageReceipt} from './client-operations';
 import {uploadChatAttachment} from './client-upload';
 import type {Conversation,Message,Transcript,Attachment,TransitionReceipt} from './contracts';
 import {initialChatQuestion} from './intake';
@@ -33,7 +33,7 @@ export function useWorkspace(staff=false,manageList=true){
   const [maxLength, setMaxLength] = useState(2000);
   const stickToBottom=useRef(true),revision=useRef(0),listRevision=useRef(0),wakeTranscript=useRef<(reset?:boolean)=>void>(()=>{});
   const mode=useRef(staff);mode.current=staff;
-  const operations=useRef(createOperationGate()),selection=useRef(''),uploadRequest=useRef<AbortController|null>(null);
+  const operations=useRef(createOperationGate()),deliveries=useRef(createDeliveryGuard()),selection=useRef(''),uploadRequest=useRef<AbortController|null>(null);
   const drafts=useRef(createDraftBook());
   const ownerKey=JSON.stringify([staff,manageList,draftOwnerKey(me?.user)]),effectKey=JSON.stringify([staff,manageList,session.revision,session.status,intakeAttempt]);
   const lifecycle=useRef({key:effectKey,status:session.status,ownerKey,failureStatus:session.failureStatus});lifecycle.current={key:effectKey,status:session.status,ownerKey,failureStatus:session.failureStatus};
@@ -72,7 +72,7 @@ export function useWorkspace(staff=false,manageList=true){
   };
   function rememberCreated(id:string){listRevision.current++;setRows(previous=>rememberCreatedConversation(previous,id));}
   function changeSelection(id:string){selection.current=id;revision.current++;setSelected(id);}
-  function forgetDraft(id:string){drafts.current.remove(id);outbox.current.reset(id);if(staff)try{sessionStorage.removeItem(`lvd-staff-draft:${me?.user?.id}:${id}:reply`);}catch{}}
+  function forgetDraft(id:string){deliveries.current.retire(id);drafts.current.remove(id);outbox.current.reset(id);if(staff)try{sessionStorage.removeItem(`lvd-staff-draft:${me?.user?.id}:${id}:reply`);}catch{}}
   function transientFailure(status:number|null|undefined){return status===0||typeof status==='number'&&status>=500&&status<=599;}
   function sameContinuity(epoch:number,owner:string|undefined){const view=lifecycle.current;return Boolean(owner)&&epoch===continuity.current&&owner===retainedOwner.current?.key&&(view.status==='ready'?view.ownerKey===owner:view.status==='error'&&transientFailure(view.failureStatus));}
   function clearRetiredDrafts(id:number|null){try{if(id!=null)for(let i=sessionStorage.length-1;i>=0;i--){const key=sessionStorage.key(i);if(key?.startsWith(`lvd-staff-draft:${id}:`))sessionStorage.removeItem(key);}sessionStorage.removeItem(handoffKey);}catch{}}
@@ -270,7 +270,9 @@ export function useWorkspace(staff=false,manageList=true){
     e.preventDefault();
     if (!visible || !current() || reauthorizing || (!text.trim()&&!attachments.length) || busy || uploading || !loaded) return;
     const operation=operations.current.begin();if(!operation)return false;
-    const valid=()=>current()&&operations.current.isCurrent(operation);
+    let delivery:symbol|undefined;
+    const liveDelivery=()=>delivery===undefined||deliveries.current.isCurrent(delivery);
+    const valid=()=>current()&&operations.current.isCurrent(operation)&&liveDelivery();
     const body=text.trim(),files=[...attachments];
     const epoch=continuity.current,owner=retainedOwner.current?.key;
     setBusy(true);revision.current++;
@@ -291,8 +293,9 @@ export function useWorkspace(staff=false,manageList=true){
         rememberCreated(id);
         drafts.current.remove('');changeSelection(id);
       }
+      delivery=deliveries.current.begin(id);
       const {receipt,key}=await outbox.current.send(id,{body,internal,fileIds:files.map(file=>file.id)});
-      if(!valid()){if(sameContinuity(epoch,owner))acknowledgeRetainedDraft(id,body,files);return false;}
+      if(!valid()){if(liveDelivery()&&sameContinuity(epoch,owner))acknowledgeRetainedDraft(id,body,files);return false;}
       setText("");setAttachments([]);drafts.current.remove(id);
       setMessages(old=>receipt.duplicate&&old.some(message=>String(message.id)===String(receipt.id))?old:mergeMessages(old,[{id:receipt.id,role:receipt.role,body,internal:receipt.role==='staff'&&internal,created_at:new Date().toISOString(),client_key:key,attachments:files,author_name:me?.user?.name}]));
       // Delivery is already acknowledged. Reuse the single transcript reader;
@@ -301,8 +304,9 @@ export function useWorkspace(staff=false,manageList=true){
       void refreshList().catch(()=>{});
       return true;
     } catch (e) {
-      if(valid()||sameContinuity(epoch,owner))setError((e as Error).message);return false;
+      if(valid()||liveDelivery()&&sameContinuity(epoch,owner))setError((e as Error).message);return false;
     } finally {
+      if(delivery!==undefined)deliveries.current.end(delivery);
       if(operations.current.end(operation)&&current()){setBusy(false);setSendingBody("");}
     }
   };

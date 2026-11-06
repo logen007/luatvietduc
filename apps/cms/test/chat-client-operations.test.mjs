@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createOperationGate,createMessageOutbox,mergeMessages,rememberCreatedConversation,normalizeInboxQuery,validateAttachmentBatch} from '../src/modules/chat/client-operations.ts';
+import {createDeliveryGuard,createOperationGate,createMessageOutbox,mergeMessages,rememberCreatedConversation,normalizeInboxQuery,validateAttachmentBatch} from '../src/modules/chat/client-operations.ts';
 import {uploadChatAttachment} from '../src/modules/chat/client-upload.ts';
 
 const draft={body:'Synthetic question',internal:false,fileIds:[]};
@@ -29,6 +29,26 @@ test('rapid mutations share one exclusive gate and an old completion cannot unlo
  gate.reset();const next=gate.begin();assert.ok(next);
  assert.equal(gate.isCurrent(first),false);assert.equal(gate.end(first),false);assert.equal(gate.busy(),true);
  assert.equal(gate.end(next),true);assert.equal(gate.busy(),false);assert.ok(gate.begin());
+});
+
+test('access withdrawal retires only prior deliveries for that conversation, including after reclaim',()=>{
+ const guard=createDeliveryGuard(),old=guard.begin('a'),other=guard.begin('b');
+ guard.retire('a');const reclaimed=guard.begin('a');
+ assert.equal(guard.isCurrent(old),false);assert.equal(guard.isCurrent(other),true);assert.equal(guard.isCurrent(reclaimed),true);
+ guard.end(old);assert.equal(guard.isCurrent(reclaimed),true,'The old response cannot retire a delivery after reclaim');
+ guard.end(reclaimed);guard.end(other);assert.equal(guard.isCurrent(reclaimed),false);assert.equal(guard.isCurrent(other),false);
+});
+
+test('retired identical send receipts preserve the new draft and its own ambiguous retry key',async()=>{
+ const guard=createDeliveryGuard(),old=deferred(),next=deferred(),sent=[];let keys=0,text=draft.body;
+ const outbox=createMessageOutbox(async(id,payload)=>{sent.push(payload);return sent.length===1?old.promise:sent.length===2?next.promise:{id:42,role:'staff',duplicate:true};},()=>`synthetic-key-${++keys}`);
+ const ticket=guard.begin('a'),first=outbox.send('a',draft).then(()=>{if(guard.isCurrent(ticket))text='';}).finally(()=>guard.end(ticket));await Promise.resolve();
+ guard.retire('a');outbox.reset('a');text=draft.body;
+ const reclaimed=guard.begin('a'),second=outbox.send('a',draft);await Promise.resolve();const key=outbox.pendingKey('a');
+ assert.notEqual(key,sent[0].key);old.resolve({id:41,role:'staff'});await first;
+ assert.equal(text,draft.body,'Matching text after reclaim is a new draft');assert.equal(outbox.pendingKey('a'),key);assert.equal(guard.isCurrent(reclaimed),true);
+ next.reject(new Error('New ambiguous save'));await assert.rejects(second);guard.end(reclaimed);
+ await outbox.send('a',draft);assert.equal(sent[2].key,key);assert.equal(outbox.pendingKey('a'),undefined);
 });
 
 test('simultaneous sends share a save request; ambiguous failure retries the same idempotency key',async()=>{
