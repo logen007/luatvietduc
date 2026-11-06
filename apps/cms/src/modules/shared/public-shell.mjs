@@ -36,7 +36,7 @@ export function publicShell(settings={},navigation={primary:[],footer:[]}){
  }
  return {
   name:settings.siteName||'Luật Việt Đức',
-  tagline:settings.tagline??'Thông tin pháp luật Việt Nam & Đức.',
+  tagline:settings.tagline??'Thông tin pháp luật Việt Nam – Đức.',
   logo:safeURL(settings.logo),
   accent:/^#[\da-f]{6}$/i.test(settings.accentColor||'')?settings.accentColor:null,
   footerText:String(settings.footerText||'').replace(/Thông tin tham khảo; không thay thế việc xem xét hồ sơ cụ thể\.?/gi,'').trim(),
