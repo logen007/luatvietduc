@@ -14,7 +14,8 @@ import {writeKnowledgeArticle} from '../src/modules/knowledge/articles';
 export async function testRagMatrix(payload:Payload,owner:User,support:User){
  const database=new URL(process.env.DATABASE_URL||'');assert.ok(['localhost','127.0.0.1'].includes(database.hostname)&&database.pathname==='/lvd_test');
  const originalFetch=globalThis.fetch,points=new Map<string,any>(),articles:number[]=[],knowledge:number[]=[],conversations:string[]=[],prompts:any[]=[];
- let allowed:number[]=[],selected:number[]=[],mode='answer',score=.94,providerCalls=0,gate:(()=>Promise<void>)|null=null;
+ let allowed:number[]=[],selected:number[]=[],mode='answer',score=.94,providerCalls=0,intakeCalls=0,queryEmbeddings=0,vectorQueries=0,gate:(()=>Promise<void>)|null=null;
+ const retrievalCounts=()=>[queryEmbeddings,vectorQueries,prompts.length];
  const intakeMode:{status:'ready'|'low'|'needs_details'|'unavailable'}={status:'ready'};
  const policy={customerAIEnabled:true,chatEnabled:true,aiDailyRequests:1000,aiMaxOutputTokens:2000};
  const synthetic='Synthetic matrix '+crypto.randomUUID();
@@ -23,15 +24,16 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
  globalThis.fetch=async(input,init)=>{
   const url=String(input),data=init?.body?JSON.parse(String(init.body)):null;
   if(url.startsWith('http://vectors:6333/collections/')){
-   if(url.includes('/points/query'))return json({result:{points:[...points.values()].filter(p=>allowed.includes(p.payload.source_id)).map(p=>({id:p.id,score}))}});
+   if(url.includes('/points/query')){vectorQueries++;return json({result:{points:[...points.values()].filter(p=>allowed.includes(p.payload.source_id)).map(p=>({id:p.id,score}))}});}
    if(url.includes('/points/delete')){const id=data.filter.must[0].match.value,keep=data.filter.must_not?.[0]?.match.value;for(const [key,p] of points)if(p.payload.source_id===id&&p.payload.revision!==keep)points.delete(key);return json({result:true});}
    if(url.includes('/points?')){for(const point of data.points)points.set(point.id,point);return json({result:true});}
    return json({result:{status:'green'}});
   }
   assert.ok(url.startsWith('https://generativelanguage.googleapis.com/v1beta/models/'),'No unexpected external request');providerCalls++;
-  if(url.includes(':embedContent'))return json({embedding:{values:Array.from({length:DIMENSIONS},(_,index)=>index===0?1:0)}});
+  if(url.includes(':embedContent')){if(data.taskType==='RETRIEVAL_QUERY')queryEmbeddings++;return json({embedding:{values:Array.from({length:DIMENSIONS},(_,index)=>index===0?1:0)}});}
   const prompt=JSON.parse(data.contents[0].parts[0].text);
   if(prompt.phase==='intake'){
+   intakeCalls++;
    if(intakeMode.status==='unavailable')return json({},503);
    const assessment={status:intakeMode.status,...(intakeMode.status==='needs_details'?{detail:'situation'}:{})};
    return json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(assessment)}]}}]});
@@ -73,6 +75,7 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   assert.equal(qualification.retain_history,true);assert.notEqual(qualification.qualification,'low');assert.equal(qualification.low_priority_expires_at,null,'Thanks cannot make a meaningful conversation disposable');
   const k=await writeKnowledgeArticle(payload,support,{title:synthetic+' BETA',body:texts.private,publish:true});knowledge.push(k.id);await ready(k.id);
   result=await start('Xin giải thích bộ dữ liệu BETA?');assert.equal(last(result).body,texts.private);assert.equal(last(result).metadata.sources[0].url,undefined,'Private knowledge cannot publish its admin/source URL');
+  result=await turn(result,'Chi phí?');assert.equal(last(result).metadata.kind,'ai');assert.equal(last(result).body,texts.private);assert.ok(prompts.at(-1).question.includes('bộ dữ liệu BETA'));assert.ok(prompts.at(-1).question.endsWith('Câu hỏi tiếp: Chi phí?'),'A short follow-up reuses only consented customer context and retrieves fresh evidence');
   for(const status of ['low','needs_details','unavailable'] as const){
    intakeMode.status=status;const selectionCount=prompts.length;
    const assessed=await start('Xin giải thích nội dung phân loại mô phỏng?');assert.equal(last(assessed).metadata.kind,'clarify',status);
@@ -90,27 +93,31 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   // real SQL scope filtering, not this fixture, must reject it.
   allowed=[aSource.id,gSource.id,k.id];selected=[aSource.id];result=await start('Xin giải thích ALPHA tại Việt Nam?');assert.ok(prompts.at(-1).sources.every((s:any)=>s.key!=='source-'+gSource.id));
   selected=[gSource.id];result=await start('Không phải Việt Nam mà tại Đức: giải thích GAMMA?');assert.ok(prompts.at(-1).sources.every((s:any)=>s.key!=='source-'+aSource.id));assert.equal(last(result).body,texts.german);
-  // Actual stored multi-turn intake: unknown facts cannot reach a provider.
-  await ready(k.id);let beforeIntakeCalls=providerCalls;
+  // Consented semantic intake is allowed; embeddings, retrieval and legal
+  // selection must wait until the required facts are actually supplied.
+  await ready(k.id);let beforeRetrieval=retrievalCounts(),beforeSemantic=intakeCalls;
   let intake=await start('Hay');
   assert.equal(last(intake).metadata.kind,'clarify');
   for(const [body,key] of [['Tôi muốn đầu tư','investment.country'],['ở Đức','investment.form'],['thành lập GmbH','investment.timeline'],['muốn biết thủ tục','investment.timeline'],['chưa biết ngày nào','investment.timeline'],['không rõ thời hạn','investment.timeline']]){
-   intake=await turn(intake,body);assert.equal(last(intake).metadata.kind,'clarify',body);assert.equal(last(intake).metadata.clarificationKey,key,body);assert.equal(providerCalls,beforeIntakeCalls,'No provider requests before facts are supplied: '+body);assert.equal(intake.result.conversation.aiEnabled,true);
+   intake=await turn(intake,body);assert.equal(last(intake).metadata.kind,'clarify',body);assert.equal(last(intake).metadata.clarificationKey,key,body);assert.deepEqual(retrievalCounts(),beforeRetrieval,'No retrieval before facts are supplied: '+body);assert.equal(intake.result.conversation.aiEnabled,true);
   }
-  intake=await turn(intake,'chưa thực hiện');assert.equal(last(intake).metadata.kind,'ai');assert.equal(last(intake).metadata.sources[0].id,k.id);assert.ok(providerCalls>beforeIntakeCalls,'Completed intake reaches source retrieval');
-  beforeIntakeCalls=providerCalls;let switched=await start('Tôi muốn đầu tư tại Đức');
+  assert.ok(intakeCalls>beforeSemantic,'A repeated missing slot exercises semantic intake without retrieving');
+  intake=await turn(intake,'chưa thực hiện');assert.equal(last(intake).metadata.kind,'ai');assert.equal(last(intake).metadata.sources[0].id,k.id);assert.ok(queryEmbeddings>beforeRetrieval[0]&&vectorQueries>beforeRetrieval[1]&&prompts.length>beforeRetrieval[2],'Completed intake reaches source retrieval');
+  beforeRetrieval=retrievalCounts();let switched=await start('Tôi muốn đầu tư tại Đức');
   for(const [body,key] of [['Tôi muốn hỏi về ly hôn','family.country'],['Việt Nam','family.situation'],['tài sản','family.timeline'],['chưa ký','family.parties']]){
-   switched=await turn(switched,body);assert.equal(last(switched).metadata.kind,'clarify',body);assert.equal(last(switched).metadata.clarificationKey,key,body);assert.equal(providerCalls,beforeIntakeCalls,'Changing topic must collect its own facts');
+   switched=await turn(switched,body);assert.equal(last(switched).metadata.kind,'clarify',body);assert.equal(last(switched).metadata.clarificationKey,key,body);assert.deepEqual(retrievalCounts(),beforeRetrieval,'Changing topic must collect its own facts');
   }
   allowed=[];switched=await turn(switched,'vợ chồng');assert.equal(last(switched).metadata.kind,'handoff','Only a completed uncovered situation goes to staff');
-  beforeIntakeCalls=providerCalls;let corrected=await start('Tôi muốn đầu tư tại Đức');
+  beforeRetrieval=retrievalCounts();let corrected=await start('Tôi muốn đầu tư tại Đức');
   corrected=await turn(corrected,'Không phải Đức, chưa biết nước nào');assert.equal(last(corrected).metadata.clarificationKey,'investment.country');
-  corrected=await turn(corrected,'Việt Nam');assert.equal(last(corrected).metadata.clarificationKey,'investment.form');assert.equal(providerCalls,beforeIntakeCalls);
-  await ready(gSource.id);beforeIntakeCalls=providerCalls;let germanIntake=await start('Hallo');
+  corrected=await turn(corrected,'Việt Nam');assert.equal(last(corrected).metadata.clarificationKey,'investment.form');assert.deepEqual(retrievalCounts(),beforeRetrieval);
+  await ready(gSource.id);beforeRetrieval=retrievalCounts();beforeSemantic=intakeCalls;let germanIntake=await start('Hallo');
   for(const [body,key] of [['Ich möchte investieren','investment.country'],['Deutschland','investment.form'],['Gründung einer GmbH','investment.timeline'],['Die Frist ist noch unklar','investment.timeline'],['noch nicht begonnen','investment.goal']]){
-   germanIntake=await turn(germanIntake,body);assert.equal(last(germanIntake).metadata.kind,'clarify',body);assert.equal(last(germanIntake).metadata.clarificationKey,key,body);assert.equal(providerCalls,beforeIntakeCalls);
+   germanIntake=await turn(germanIntake,body);assert.equal(last(germanIntake).metadata.kind,'clarify',body);assert.equal(last(germanIntake).metadata.clarificationKey,key,body);assert.deepEqual(retrievalCounts(),beforeRetrieval);
   }
+  assert.ok(intakeCalls>beforeSemantic,'German repeated intake may ask contextually before retrieval');
   germanIntake=await turn(germanIntake,'Das Verfahren');assert.equal(last(germanIntake).metadata.kind,'ai');assert.equal(last(germanIntake).body,texts.german);
+  germanIntake=await turn(germanIntake,'Kosten?');assert.equal(last(germanIntake).metadata.kind,'ai');assert.equal(last(germanIntake).body,texts.german);assert.ok(prompts.at(-1).question.endsWith('Câu hỏi tiếp: Kosten?'));
   console.log('Stored intake dialogues passed: vague opening, missing/unknown dates, source answer only after facts, new-topic reset, country correction and completed no-source handoff.');
   const off=await article('AI-OFF','Synthetic excluded opt-out content must never reach any provider.', 'BOTH',{aiAllowed:false});const offSource=await mirror(off.id);assert.ok(!offSource?.approved);if(offSource){await ready(offSource.id);assert.equal((await retrieve('Synthetic opt-out','BOTH',connection)).sources.length,0);}
   const draft=await article('DRAFT','Synthetic unpublished article must never reach any provider.','BOTH',{_status:'draft'});const draftSource=await mirror(draft.id);assert.ok(!draftSource?.approved);if(draftSource){await ready(draftSource.id);assert.equal((await retrieve('Synthetic draft','BOTH',connection)).sources.length,0);}

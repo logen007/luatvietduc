@@ -1,5 +1,5 @@
 import {answerHistory,questionWithHistory,groundedPreviousAnswer} from './conversation-context';
-import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply,unrepeatedClarification,isRepeatedClarification} from './clarification';
+import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply,isBriefIntakeFollowup,unrepeatedClarification,isRepeatedClarification} from './clarification';
 import type {Qualification} from '../chat/qualification';
 import {randomUUID} from 'node:crypto';
 import {pool,transaction} from '../shared/db';
@@ -35,7 +35,8 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
  let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined,clarificationKey:string|undefined;
  let qualification:Qualification='ready',assessed=false,unqualifiedAssessment=false;
  let ragSources:Faq[]=[],rules:AnswerRule[]=[],rag=false,clarification=false,localClarification=false;
- const localQuestion=[work.localContext,work.question].filter(Boolean).join('\n');
+ const followsAnswer=work.consented&&work.previousAnswer&&!work.clarificationCount&&work.context&&isBriefIntakeFollowup(work.question);
+ const localQuestion=[work.localContext||(followsAnswer?work.context:''),work.question].filter(Boolean).join('\n');
  const intake=currentIntakeContext(localQuestion);
  const initial=intakeClarification(localQuestion,work.clarificationKeys,work.intakeAnswers);
  const clarify=(value:{key:string;text:string})=>unrepeatedClarification(value,work.previousQuestions,localQuestion);

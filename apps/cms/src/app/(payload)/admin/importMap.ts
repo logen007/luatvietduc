@@ -21,6 +21,7 @@ import { AdminDashboard as AdminDashboard_434d19f5a159509b02e65df12eae47e1 } fro
 import { SettingsView as SettingsView_82d8e8b6bc61ee1e5df9ca05f48babad } from '../../../modules/admin/Views'
 import { ConnectionsView as ConnectionsView_82d8e8b6bc61ee1e5df9ca05f48babad } from '../../../modules/admin/Views'
 import { BackupsView as BackupsView_82d8e8b6bc61ee1e5df9ca05f48babad } from '../../../modules/admin/Views'
+import { AnswerRulesView as AnswerRulesView_82d8e8b6bc61ee1e5df9ca05f48babad } from '../../../modules/admin/Views'
 import { KnowledgeView as KnowledgeView_82d8e8b6bc61ee1e5df9ca05f48babad } from '../../../modules/admin/Views'
 import { InboxView as InboxView_82d8e8b6bc61ee1e5df9ca05f48babad } from '../../../modules/admin/Views'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
@@ -50,6 +51,7 @@ export const importMap = {
   "./modules/admin/Views#SettingsView": SettingsView_82d8e8b6bc61ee1e5df9ca05f48babad,
   "./modules/admin/Views#ConnectionsView": ConnectionsView_82d8e8b6bc61ee1e5df9ca05f48babad,
   "./modules/admin/Views#BackupsView": BackupsView_82d8e8b6bc61ee1e5df9ca05f48babad,
+  "./modules/admin/Views#AnswerRulesView": AnswerRulesView_82d8e8b6bc61ee1e5df9ca05f48babad,
   "./modules/admin/Views#KnowledgeView": KnowledgeView_82d8e8b6bc61ee1e5df9ca05f48babad,
   "./modules/admin/Views#InboxView": InboxView_82d8e8b6bc61ee1e5df9ca05f48babad,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1

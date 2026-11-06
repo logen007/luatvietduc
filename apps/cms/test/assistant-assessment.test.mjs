@@ -48,7 +48,7 @@ function fixture(t,options={}){
   if(sql.startsWith('SELECT id FROM lvd_messages'))return {rows:[{id:current.id}],rowCount:1};
   if(sql.startsWith('SELECT customer_a_i_enabled'))return {rows:[{customer_a_i_enabled:true,chat_enabled:true}],rowCount:1};
   if(sql.startsWith('INSERT INTO lvd_messages')){state.replies.push({body:args[1],metadata:JSON.parse(args[3])});return {rows:[],rowCount:1};}
-  if(sql.startsWith('UPDATE lvd_conversations SET ai_enabled=')){c.ai_enabled=args[1];c.qualification=args[3];c.expires=Boolean(args[1]&&args[3]==='low');return {rows:[],rowCount:1};}
+  if(sql.startsWith('UPDATE lvd_conversations SET ai_enabled=')){c.ai_enabled=args[1];c.ai_generation=null;c.qualification=args[3];c.retain_history||=args[3]!=='low';c.expires=Boolean(args[1]&&args[3]==='low');return {rows:[],rowCount:1};}
   if(sql.startsWith('INSERT INTO lvd_chat_events'))return {rows:[],rowCount:1};
   throw new Error('Unexpected synthetic SQL branch: '+sql.slice(0,75));
  };
@@ -146,4 +146,48 @@ test('generated intake accepts one bounded factual question and rejects advice, 
 
 test('an invalidated contextual intake question falls back locally without specialist handoff',async t=>{
  const state=fixture(t,{body:'Thi không đỗ',previous:repeatedExam,assessment:{status:'needs_details',detail:'situation',question:'Bạn đang thi chứng chỉ ngoại ngữ hay bằng lái?'},onAssess:state=>state.provider.version++});await state.run();assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.conversation.ai_enabled,true);assert.equal(state.embeddings,0);assert.equal(state.conversation.expires,false);
+});
+
+for(const [language,turns] of [
+ ['VI',[
+  ['Hay','goal'],['Tôi muốn đầu tư','investment.country'],['Chưa rõ ở đâu','investment.country'],['ở Đức','investment.form'],['thành lập GmbH','investment.timeline'],['muốn biết thủ tục','investment.timeline'],['không biết ngày nào','investment.timeline'],['Không phải Đức, chưa biết nước nào','investment.country'],['Việt Nam','investment.timeline'],['còn gì nữa?','investment.timeline'],
+  ['Bây giờ hỏi việc ly hôn','family.country'],['Đức','family.situation'],['tài sản','family.timeline'],['chưa ký','family.parties'],['còn gì nữa?','family.parties'],['không rõ các bên','family.parties'],['gì vậy?','family.parties'],['tôi chưa rõ','family.parties'],['bạn cần biết gì?','family.parties'],['tôi đang chưa hiểu','family.parties'],['còn thiếu điều nào?','family.parties'],['không rõ bạn đang hỏi gì','family.parties'],['còn những gì nữa?','family.parties'],['vợ chồng',null],
+ ]],
+ ['DE',[
+  ['Hallo','goal'],['Ich möchte investieren','investment.country'],['Deutschland','investment.form'],['GmbH gründen','investment.timeline'],['Der Termin steht noch nicht fest','investment.timeline'],['noch nicht begonnen','investment.goal'],['Das Verfahren',null],
+ ]],
+])test(`${language} realistic ${turns.length}-turn dialogue keeps missing facts ahead of retrieval and handoff`,async t=>{
+ const previous=[],state=fixture(t,{previous});
+ for(let index=0;index<turns.length;index++){
+  const [body,key]=turns[index];state.current.id=index+1;state.current.body=body;
+  const before=state.replies.length;await state.run();assert.equal(state.replies.length,before+1,body);
+  const reply=state.replies.at(-1);
+  if(key){
+   assert.equal(reply.metadata.kind,'clarify',body);assert.equal(reply.metadata.clarificationKey,key,body);assert.equal(state.conversation.ai_enabled,true,body);assert.equal(state.embeddings,0,body);assert.equal(state.admissions,0,body);assert.deepEqual(reply.metadata.sources,[]);
+   const lastQuestion=previous.find(row=>row.role==='assistant')?.body;if(lastQuestion)assert.notEqual(reply.body,lastQuestion,'Consecutive intake questions should acknowledge the latest reply: '+body);
+  }else{
+   assert.equal(reply.metadata.kind,'handoff','Only complete facts with no approved source proceed to staff');assert.equal(state.embeddings,1);assert.equal(state.admissions,1);assert.equal(state.conversation.retain_history,true);assert.equal(state.conversation.expires,false);
+  }
+  previous.unshift({role:'assistant',body:reply.body,metadata:reply.metadata},{role:'user',body,metadata:state.current.metadata});
+ }
+ assert.ok(state.assessments>=2,'Repeated missing facts and completion exercise actual assessment parsing');
+});
+
+for(const [body,context] of [['Chi phí?','Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và muốn biết thủ tục'],['Kosten?','Ich möchte in Deutschland eine GmbH gründen, in Vorbereitung, und das Verfahren wissen']])test('short follow-up '+body+' retains the completed consented topic after an AI answer',async t=>{
+ const state=fixture(t,{body,retained:true,previous:[
+  {role:'assistant',body:'Synthetic approved source paragraph.',metadata:{kind:'ai',sources:[{id:1,revision:'synthetic-prior-revision'}]}},
+  {role:'user',body:context,metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ]});
+ await state.run();assert.equal(state.assessments,1,'An anchored follow-up should reuse its context instead of asking the topic again');assert.equal(state.embeddings,1);assert.equal(state.replies[0].metadata.kind,'handoff','A complete follow-up with no current source follows the existing handoff path');
+});
+
+for(const [name,options] of [
+ ['standalone',{body:'Chi phí?'}],
+ ['no current consent',{body:'Chi phí?',consented:false}],
+ ['no prior consent',{body:'Chi phí?',legacyContext:true}],
+ ['acknowledgement',{body:'Cảm ơn'}],
+ ['explicit new topic',{body:'Tôi muốn hỏi về ly hôn'}],
+])test(name+' cannot reuse the prior answer to skip new intake facts',async t=>{
+ const previous=name==='standalone'?[]:[{role:'assistant',body:'Synthetic source answer',metadata:{kind:'ai'}},{role:'user',body:'Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và muốn biết thủ tục',metadata:options.legacyContext?{}:{aiConsent:{version:CONSENT_VERSION}}}];
+ const state=fixture(t,{...options,previous});await state.run();assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,name==='explicit new topic'?'family.country':'goal');
 });

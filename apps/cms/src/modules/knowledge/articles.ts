@@ -4,6 +4,7 @@ import type {User} from '../../payload-types';
 import {HttpError} from '../chat/service';
 import {indexStatus} from '../rag/admin';
 import {knowledgeArticleInput} from './article-input';
+import {defaultAnswerRules,defaultRuleSource} from '../assistant/default-rules';
 import {canEnterAdmin} from '../identity/permissions';
 export function requireKnowledge(user:User|null):asserts user is User{if(!user||!canEnterAdmin(user))throw new HttpError(403,'Tài khoản chưa được giao quản lý kiến thức AI.');}
 export async function knowledgeArticles(payload:Payload,user:User|null,id?:string|null,options:{query?:string;page?:number}={}){
@@ -22,6 +23,10 @@ export async function writeKnowledgeArticle(payload:Payload,user:User|null,input
  try{
   await (payload.db as any).sessions[String(tx)].db.execute(sql`SELECT pg_advisory_xact_lock(73051105)`);
   let original:any;
+  if(!input.id&&defaultAnswerRules.some(rule=>defaultRuleSource(rule.key)===input.sourceUrl)){
+   const duplicate=await payload.find({collection:'knowledge',user,overrideAccess:false,req,limit:1,where:{sourceUrl:{equals:input.sourceUrl}}});
+   if(duplicate.totalDocs)throw new HttpError(409,'Quy tắc đã thay đổi. Tải lại trước khi lưu.');
+  }
   if(input.id){
    if(!Number.isSafeInteger(input.id)||input.id<1)throw new HttpError(400,'Bài viết không hợp lệ.');
    original=await payload.findByID({collection:'knowledge',id:input.id,user,overrideAccess:false,req,draft:true});

@@ -4,11 +4,16 @@ import {HttpError} from '../http/errors';
 import {knowledgeArticles,writeKnowledgeArticle} from './articles';
 import {retryIndex,knowledgeGaps} from '../rag/admin';
 import {testSource} from './test-source';
+import {answerRulesEditor,saveAnswerRule} from './answer-rules';
 import {canEnterAdmin} from '../identity/permissions';
 type Context={payload:Payload;user:User|null;path:string;method:string;url:URL;data:Record<string,unknown>;settings:()=>Promise<SiteSetting>};
 export async function knowledgeRequest({payload,user,path,method,url,data,settings}:Context){
  let result:unknown;
-    if(path === "knowledge-gaps" && method === "GET") {
+    if(path==='knowledge-answer-rules'&&method==='GET'){
+      result={rules:await answerRulesEditor(payload,user)};
+    } else if(path==='knowledge-answer-rules'&&method==='POST'){
+      result=await saveAnswerRule(payload,user,data);
+    } else if(path === "knowledge-gaps" && method === "GET") {
       result={conversations:await knowledgeGaps(user)};
     } else if(path === "knowledge-reindex" && method === "POST") {
       if(typeof data.id!=='number'||!Number.isSafeInteger(data.id)||data.id<1)throw new HttpError(400,'Bài viết không hợp lệ.');

@@ -34,6 +34,7 @@ export default buildConfig({
         settings: { Component: "./modules/admin/Views#SettingsView", meta:{title:adminPages.settings.title}, path: "/settings", exact: true },
         connections: { Component: "./modules/admin/Views#ConnectionsView", meta:{title:adminPages.connections.title}, path: "/settings/connections", exact: true },
         backups: { Component: "./modules/admin/Views#BackupsView", meta:{title:adminPages.backups.title}, path: "/settings/backups", exact: true },
+        answerRules:{Component:'./modules/admin/Views#AnswerRulesView',meta:{title:adminPages.answerRules.title},path:'/knowledge/rules',exact:true},
         knowledge: { Component: "./modules/admin/Views#KnowledgeView", meta:{title:adminPages.knowledge.title}, path: "/knowledge", exact: true },
         inbox: { Component: "./modules/admin/Views#InboxView", meta:{title:adminPages.inbox.title}, path: "/inbox", exact: true },
       },

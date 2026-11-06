@@ -21,6 +21,7 @@ export async function testKnowledgeNative({page,base,owner,payload,pool}){
  const choose=async(name,label)=>{await page.locator('#field-'+name).getByRole('combobox').fill(label);await page.getByRole('option',{name:label,exact:true}).click();};
  const appliedRule=async id=>({main:(await pool.query('SELECT entry_type,rule_enabled,body,_status,approved FROM knowledge WHERE id=$1',[id])).rows[0],active:(await activeAnswerRules('BOTH','Synthetic rule QA',pool)).find(rule=>rule.id===id)});
  try{
+  await (await import('./test-answer-rules-editor.mjs')).testAnswerRulesEditor({page,base,owner,payload,pool});
   const category=await payload.create({collection:'categories',...local,data:{name:'Synthetic knowledge category '+suffix,slug:'knowledge-category-'+suffix}});taxonomy.push(['categories',category.id]);
   const tag=await payload.create({collection:'tags',...local,data:{name:'Synthetic knowledge tag '+suffix,slug:'knowledge-tag-'+suffix}});taxonomy.push(['tags',tag.id]);
   const mirrored=await payload.create({collection:'articles',...local,data:{title:'Synthetic mirrored article '+suffix,slug:'mirrored-knowledge-'+suffix,body:'Synthetic mirrored public article body.',language:'vi',jurisdiction:'BOTH',reviewState:'approved',aiAllowed:true,_status:'published'}});articleIds.push(mirrored.id);

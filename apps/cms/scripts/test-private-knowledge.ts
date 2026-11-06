@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {testEditableAnswerRules} from './test-answer-rules-editor';
 import type {Payload} from 'payload';
 import type {User} from '../src/payload-types';
 import {pool} from '../src/modules/shared/db';
@@ -9,6 +10,7 @@ import {GET} from '../src/app/service/knowledge-source/[token]/route';
 import {testNativeKnowledge} from './test-native-knowledge';
 export async function testPrivateKnowledge(payload:Payload,owner:User){
  const db=new URL(process.env.DATABASE_URL||'');if(db.pathname!=='/lvd_test'||!['127.0.0.1','localhost'].includes(db.hostname))throw new Error('Isolated private knowledge checks only');
+ await testEditableAnswerRules(payload,owner);
  const prefix='Private AI fixture '+crypto.randomUUID(),ids:number[]=[];
  try{
   const doc=await writeKnowledgeArticle(payload,owner,{title:prefix,body:'Synthetic internal answer with a mandatory condition.',publish:true});ids.push(doc.id);

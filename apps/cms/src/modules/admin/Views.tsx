@@ -1,4 +1,5 @@
 import React from 'react';
+import {AnswerRulesPanel} from '../knowledge/AnswerRulesPanel';
 import {ArticleImportPanel} from '../content/ArticleImportPanel';
 import type { AdminViewServerProps } from 'payload';
 import {Gutter,SetStepNav} from '@payloadcms/ui';
@@ -32,3 +33,5 @@ export function SettingsView(props:AdminViewServerProps){
 }
 
 export function ArticleImportView(props:AdminViewServerProps){return <Page props={props} page="importArticles">{guard(props,true)?<ArticleImportPanel/>:denied}</Page>}
+
+export function AnswerRulesView(props:AdminViewServerProps){return <Page props={props} page="answerRules">{guard(props,true)?<AnswerRulesPanel/>:denied}</Page>}

@@ -13,7 +13,7 @@ const texts:Record<DetailKind,Pair>={
  timeline:['Việc này đang ở giai đoạn dự định, chuẩn bị hay đã thực hiện? Có thời hạn nào cần lưu ý không?','Ist das noch geplant, in Vorbereitung oder bereits geschehen? Gibt es eine Frist zu beachten?'],
  parties:['Những bên liên quan có vai trò gì? Không cần nêu tên hay thông tin định danh.','Welche Rollen haben die Beteiligten? Namen oder persönliche Angaben sind nicht erforderlich.'],
 };
-const placeText=(value:string)=>normalized(value.normalize('NFC').replace(/(?<!\p{L})mỹ(?!\p{L}| thuật| phẩm)/giu,'USA').replace(/(?<!\p{L})úc(?!\p{L})/giu,'Australien'));
+const placeText=(value:string)=>normalized(value.normalize('NFC').replace(/(?<!\p{L})mỹ(?!\p{L}| thuật| phẩm)/giu,'USA').replace(/(?<!\p{L})úc(?!\p{L})/giu,'Australien')).replace(/\b(?:anh|ong|chi|ban|chu|cau|bac|co) duc\b/g,'person');
 const countryPattern=/\b(viet nam|vietnam|duc|deutschland|germany|berlin|hamburg|munchen|ha noi|sai gon|ho chi minh|ca hai nuoc|beide(?:n)? lander|canada|usa|australia|australien|(?:o|tai|nuoc|sang|in|nach) (?:anh|my|uc|phap)|frankreich|england|nhat ban|japan|han quoc|korea|schweiz|osterreich)\b/;
 const countryReset=/\b(khong (?:phai|o|tai|con)|chua (?:biet|ro|quyet dinh)|khong ro|nuoc khac|quoc gia khac|dia phuong khac|dinh chinh|sua lai|nicht|anderes land|anderen land|noch unklar)\b/;
 function countryState(value:string){
@@ -41,7 +41,7 @@ const topics:Topic[]=[
   {key:'residence.goal',text:['Bạn muốn làm rõ điều kiện, thủ tục hay vướng mắc nào về cư trú hoặc quốc tịch?','Welche Voraussetzungen, Verfahren oder Fragen zu Aufenthalt oder Staatsangehörigkeit möchten Sie klären?'],known:goalKnown}]},
  {id:'inheritance',match:/\b(thua ke|di chuc|erbrecht|erbschaft|testament)\b/,bare:/^(?:thua ke|di chuc|erbrecht|erbschaft|testament)$/,slots:[country,
   {key:'inheritance.situation',text:['Bạn đang tìm hiểu việc lập di chúc hay việc phân chia di sản đã phát sinh?','Geht es um die Erstellung eines Testaments oder um einen bereits eingetretenen Erbfall?'],known:/\b(lap di chuc|phan chia|di san|da mat|erstellung|erbfall|verstorben)\b/},
-  {key:'parties',text:texts.parties,known:/\b(cha|me|con|vo|chong|anh chi em|eltern|kind\w*|ehepartner|geschwister)\b/},timeline]},
+  {key:'parties',text:texts.parties,known:value=>partyFacts(value)},timeline]},
  {id:'family',match:/\b(ket hon|ly hon|hon nhan|heirat|scheidung|ehe)\b/,bare:/^(?:ket hon|ly hon|hon nhan|heirat|scheidung|ehe)$/,slots:[country,
   {key:'family.situation',text:['Bạn đang tìm hiểu việc đăng ký, chấm dứt hôn nhân hay vấn đề liên quan đến con hoặc tài sản?','Geht es um Eheschließung, Scheidung oder Fragen zu Kindern oder Vermögen?'],known:/\b(dang ky|cham dut|con|tai san|eheschlie|kind\w*|vermogen)\b/},timeline,{key:'parties',text:texts.parties,known:value=>partyFacts(value)}]},
  {id:'work',match:/\b(lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)\b/,bare:/^(?:lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)$/,slots:[country,
@@ -55,11 +55,7 @@ const topics:Topic[]=[
  {id:'property',match:/\b(the chap|nha dat|dat dai|manh dat|thua dat|ve dat|dat (?:cua|o|tai)|so do|so hong|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)\b|^dat$/,bare:/^(?:the chap(?: tai san)?|nha dat|dat|dat dai|manh dat|thua dat|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)$/,slots:[
   {...country,text:['Nhà hoặc mảnh đất bạn hỏi nằm ở tỉnh/thành phố nào, thuộc Việt Nam, Đức hay nước khác?','In welcher Stadt oder Region liegt das Haus oder Grundstück, und in welchem Land?'],retry:['Bạn cho biết nhà hoặc mảnh đất ở Việt Nam, Đức hay nước khác nhé?','Liegt das Haus oder Grundstück in Vietnam, Deutschland oder einem anderen Land?']},
   {key:'property.transaction',text:['Bạn muốn hỏi về mua bán, sang tên, thế chấp hay vướng mắc nào của nhà đất?','Geht es um Kauf, Verkauf, Eigentumsübertragung, Miete, Besicherung oder ein anderes Anliegen?'],retry:['Cụ thể bạn muốn làm gì với nhà đất, hoặc đang gặp trở ngại gì?','Was möchten Sie mit der Immobilie konkret tun, oder welches Problem ist aufgetreten?'],known:/\b(mua|ban|thue|the chap|tang cho|sang ten|chuyen nhuong|tranh chap|cap so|tach thua|thu hoi|boi thuong|kauf|verkauf|miete|hypothek|ubertrag\w*|schenk\w*|streit)\b/},
-  {key:'property.ownership',text:['Mảnh đất hiện đứng tên ai và đã có giấy chứng nhận chưa? Bạn chỉ cần nói quan hệ, không cần gửi tên hoặc số giấy tờ.','Auf wen ist das Grundstück eingetragen und gibt es einen Eigentumsnachweis? Die Beziehung genügt; Namen oder Dokumentnummern sind nicht nötig.'],retry:['Bạn đang đứng tên trên giấy chứng nhận hay đất vẫn đứng tên người khác? Nếu chưa rõ, cứ nói phần bạn biết nhé.','Sind Sie selbst als Eigentümer eingetragen oder eine andere Person? Wenn Sie unsicher sind, nennen Sie nur die bekannten Angaben.'],known:value=>{
-   const text=normalized(value);
-   if(!/\b(dat dai|manh dat|thua dat|dat cua|ve dat|so do|so hong|grundstuck\w*)\b/.test(text))return true;
-   return /\b(dung ten|chua dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text)&&/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch|urkunde|nachweis)\b/.test(text)&&!/\b(khong biet|chua ro|khong ro|weiss nicht|unklar)\b/.test(text);
-  }},timeline,
+  {key:'property.ownership',text:['Mảnh đất hiện đứng tên ai và đã có giấy chứng nhận chưa? Bạn chỉ cần nói quan hệ, không cần gửi tên hoặc số giấy tờ.','Auf wen ist das Grundstück eingetragen und gibt es einen Eigentumsnachweis? Die Beziehung genügt; Namen oder Dokumentnummern sind nicht nötig.'],retry:['Bạn đang đứng tên trên giấy chứng nhận hay đất vẫn đứng tên người khác? Nếu chưa rõ, cứ nói phần bạn biết nhé.','Sind Sie selbst als Eigentümer eingetragen oder eine andere Person? Wenn Sie unsicher sind, nennen Sie nur die bekannten Angaben.'],known:value=>propertyFacts(value).complete},timeline,
   {key:'property.goal',text:['Bạn muốn làm rõ điều kiện, giấy tờ, thủ tục hay vướng mắc nào của giao dịch?','Welche Voraussetzungen, Unterlagen, Verfahren oder Schwierigkeiten des Geschäfts möchten Sie klären?'],known:goalKnown}]},
  {id:'tax',match:/\b(thue|steuer\w*)\b/,bare:/^(?:thue|steuer\w*)$/,slots:[country,
   {key:'tax.activity',text:['Vấn đề thuế liên quan đến thu nhập, hoạt động kinh doanh, tài sản hay giao dịch nào?','Geht es um Einkommen, eine Geschäftstätigkeit, Vermögen oder ein bestimmtes Geschäft?'],known:/\b(thu nhap|kinh doanh|tai san|tien luong|einkommen|geschaft|vermogen|gehalt)\b/},timeline,
@@ -137,11 +133,32 @@ export function clarificationHistory(previous:ClarificationMessage[],consentVers
 // not mean that the customer supplied it; vague replies must stay in intake.
 const emptyReply=/^(?:hay(?: qua)?|cam on(?: ban)?|danke|gut|giup toi(?: voi)?|thu(?: xem)?|test(?:ing)?|abc|asdf\w*|ok(?:ay)?|uh|u|um|vang|da|khong|co|sao|sao vay|gi|khong biet|chua biet|khong ro|chua ro|khong hieu|nichts|ja|nein|weiss nicht|keine ahnung)$/;
 const partyRoles=/\b(anh chi em|ong ba|cha|me|con|vo|chong|nguoi mua|nguoi ban|ngan hang|doanh nghiep|ca nhan|chu so huu|nguoi lao dong|nguoi su dung lao dong|geschwister|grosseltern|eltern|kind\w*|ehepartner|kaufer|verkaufer|bank|unternehmen|arbeitnehmer|arbeitgeber)\b/;
-const partyFacts=(value:string)=>partyRoles.test(normalized(value))&&!/\b(khong biet|chua biet|khong ro|chua ro|weiss nicht|unklar)\b/.test(normalized(value));
+const partyFacts=(value:string)=>{
+ let known=false;
+ for(const line of value.split('\n')){
+  const text=normalized(line.normalize('NFC').replace(/(?<!\p{L})còn(?!\p{L})/giu,'remaining')),unclear=/\b(khong biet|chua biet|khong ro|chua ro|weiss nicht|weiß nicht|unklar)\b/.test(text);
+  if(partyRoles.test(text))known=!unclear;
+  else if(unclear&&/\b(cac ben|ben lien quan|vai tro|nguoi lien quan|beteiligten|parteien|rollen)\b/.test(text))known=false;
+ }
+ return known;
+};
+function propertyFacts(value:string){
+ let ownerKnown=false,documentKnown=false;
+ for(const clause of value.split(/[\n,;]/)){
+  const text=normalized(clause),unclear=/\b(khong biet|chua ro|khong ro|weiss nicht|weiß nicht|unklar)\b/.test(text);
+  if(/\b(dung ten|chua dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text))ownerKnown=!unclear;
+  if(/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch|urkunde|nachweis)\b/.test(text))documentKnown=!unclear;
+ }
+ const land=/\b(dat dai|manh dat|thua dat|dat cua|ve dat|so do|so hong|grundstuck\w*)\b/.test(normalized(value));
+ return {ownerKnown,documentKnown,complete:!land||ownerKnown&&documentKnown};
+}
 const fillerWords=new Set('toi minh em anh chi ban muon can dang hoi nho giup tu van ho tro mot chut ti it ve nay kia do ay no the vay nhu la xin chao voi nhe a ah uh vang da ich mochte will brauche etwas fragen bitte hilfe ja gut'.split(' '));
 // Unknown topics are not filler. Only positively recognized empty replies may
 // become disposable intake; the caller separately protects retained history.
 export function isVagueIntakeReply(text:string){const value=normalized(text);return !value||vague.test(value)||emptyReply.test(value)||value.split(' ').every(word=>fillerWords.has(word));}
+// These fragments refer to the last answered topic only when the caller has
+// an actual prior answer and consented customer context. Alone they stay vague.
+export const isBriefIntakeFollowup=(text:string)=>/^(?:(?:con|the con|vay con|und(?: die| das| der)?|was ist mit) )?(?:chi phi|thu tuc|giay to|thoi han|bao lau|kosten|verfahren|unterlagen|fristen?|dauer)(?: (?:thi sao|nhu the nao|bao nhieu|ra sao|la gi|genau))?$/.test(normalized(text));
 const usableReply=(text:string)=>!isVagueIntakeReply(text)&&/[\p{L}\p{N}]/u.test(normalized(text));
 export function intakeClarification(question:string,asked:readonly string[]=[],answers:Record<string,string>={}):Clarification|null{
  const state=intakeState(question),text=normalized(state.text),last=state.text.split('\n').at(-1)||question;
@@ -153,8 +170,7 @@ export function intakeClarification(question:string,asked:readonly string[]=[],a
    const answered=!slot.known&&partyFacts(response);
    if(!known&&!answered){
     if(slot.key==='property.ownership'){
-     const ownerKnown=/\b(dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text);
-     const documentKnown=/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch|urkunde|nachweis)\b/.test(text);
+     const {ownerKnown,documentKnown}=propertyFacts(state.text);
      if(ownerKnown&&!documentKnown)return prompt(key,['Mảnh đất đã có sổ đỏ, sổ hồng hoặc giấy chứng nhận chưa?','Gibt es für das Grundstück bereits einen Eigentumsnachweis?']);
      if(documentKnown&&!ownerKnown)return prompt(key,['Ai đang đứng tên hoặc đang sử dụng mảnh đất: bạn, người thân hay người khác?','Auf wen ist das Grundstück eingetragen oder wer nutzt es: Sie, Angehörige oder eine andere Person?']);
     }

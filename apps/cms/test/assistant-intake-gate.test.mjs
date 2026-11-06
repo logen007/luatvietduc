@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {intakeClarification,clarificationHistory} from '../src/modules/assistant/clarification.ts';
+import {intakeClarification,clarificationHistory,currentIntakeContext} from '../src/modules/assistant/clarification.ts';
 test('vague fragments, tests, acknowledgements and unknown requests always ask before retrieval',()=>{
  for(const text of ['Em muốn hỏi một tí','Tôi muốn nhờ tư vấn một chút','nó kiểu như vậy đó','hôm nay trời rất đẹp ngoài phố','Hay','Hay quá','Cảm ơn','hôm nay trời đẹp','nói thế cũng được','Thử','test','???','ok','abc','Tôi muốn','không biết','xin chào','asdfasdf','Sao vậy','nó ấy','giúp tôi với'])assert.ok(intakeClarification(text),text);
 });
@@ -64,4 +64,39 @@ test('exam fragments ask about the exam and do not mistake the Vietnamese conjun
  assert.match(intakeClarification('Tôi thi mãi không được\nThi không đỗ',['exam.kind']).text,/đơn vị nào/);
  assert.notEqual(intakeClarification('Tôi thì muốn mua bảo hiểm').key,'exam.kind');
  assert.equal(intakeClarification('Tôi thi telc B1 tại Đức\nmuốn phúc khảo\nvừa thi hôm qua'),null);
+});
+
+test('Vietnamese remaining/follow-up wording does not invent a child as a party',()=>{
+ for(const [context,key] of [['Tôi muốn hỏi về ly hôn tại Đức\nvề tài sản\nchưa ký','family.parties'],['Tôi muốn hỏi về thừa kế tại Đức\nphân chia di sản\nchưa ký','inheritance.parties']]){
+  for(const reply of ['còn gì nữa?','còn thiếu gì?','Còn vấn đề nào khác không?'])assert.equal(intakeClarification(context+'\n'+reply)?.key,key,reply);
+  assert.equal(intakeClarification(context+'\ncon tôi'),null,'An actual child relationship still supplies the party fact');
+ }
+});
+
+test('a Vietnamese person named Đức does not supply the contract jurisdiction',()=>{
+ for(const name of ['anh Đức','chị Đức','ông Đức','bạn Duc']){
+  const context='Tôi muốn hỏi hợp đồng với '+name;assert.equal(currentIntakeContext(context).countryKnown,false,name);assert.equal(intakeClarification(context)?.key,'contract.country',name);
+  assert.equal(currentIntakeContext(context+' tại Việt Nam').countryKnown,true);
+ }
+ for(const country of ['Đức','tại Đức','ở Đức'])assert.equal(currentIntakeContext('Tôi muốn hỏi hợp đồng\n'+country).countryKnown,true,country);
+});
+
+test('a later concrete relationship resolves earlier uncertainty while explicit party corrections reopen intake',()=>{
+ for(const [context,unclear,facts] of [
+  ['Tôi muốn hỏi về ly hôn tại Đức\nvề tài sản\nchưa ký','chưa rõ các bên là ai','vợ chồng'],
+  ['Ich möchte zur Scheidung in Deutschland fragen\nFragen zu Vermögen\nin Vorbereitung','Die Beteiligten sind noch unklar','Ehepartner'],
+ ]){
+  assert.equal(intakeClarification(context+'\n'+unclear)?.key,'family.parties');
+  assert.equal(intakeClarification(context+'\n'+unclear+'\n'+facts),null,'The latest factual relationship resolves the earlier uncertainty');
+  assert.equal(intakeClarification(context+'\n'+facts+'\n'+unclear)?.key,'family.parties','A later explicit uncertainty reopens the party question');
+ }
+});
+
+test('later land ownership and paper facts resolve uncertainty independently in VI and DE',()=>{
+ const context='Về đất đai ở Việt Nam\nTôi muốn sang tên\nChưa rõ đất đứng tên ai và có sổ chưa\nSổ đỏ đang đứng tên mẹ\nChưa thực hiện, muốn biết thủ tục';
+ assert.equal(intakeClarification(context),null,'New ownership/paper facts must replace the old uncertainty');
+ assert.match(intakeClarification(context+'\nChưa rõ giấy chứng nhận').text,/đã có sổ/,'Only the withdrawn paper fact is requested');
+ assert.match(intakeClarification(context+'\nChưa rõ ai đang đứng tên').text,/Ai đang đứng tên/,'Only the withdrawn owner fact is requested');
+ assert.equal(intakeClarification(context+'\nChưa rõ thủ tục'),null,'An unrelated uncertainty cannot erase known ownership facts');
+ assert.equal(intakeClarification('Ich möchte das Grundstück in Deutschland übertragen\nEigentümer und Nachweis sind unklar\nDie Mutter ist im Grundbuch eingetragen\nNoch nicht begonnen, ich möchte das Verfahren wissen'),null);
 });
