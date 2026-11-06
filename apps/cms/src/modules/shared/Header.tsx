@@ -52,9 +52,9 @@ export function Header({publicMode=false,activeSection='',onAccountNavigate}:{pu
           <button type="button" onClick={closeMenu} aria-label={t("Đóng menu")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" /></svg></button>
         </div>
         <nav aria-label={t("Menu")}>
-          {publicLinks.map((link) => <a key={link.href} href={link.href} onClick={closeMenu}>{t(link.label)}{arrow}</a>)}
+          {publicLinks.map((link) => <a key={link.href} href={link.href} onClick={closeMenu} aria-current={link.key===activeSection?'location':undefined}>{t(link.label)}{arrow}</a>)}
           {!publicLinks.some(link=>link.href==='/lien-he')&&<a href="/lien-he" onClick={closeMenu}>{t("Liên hệ")} {arrow}</a>}
-          <a href={account.href} onClick={event=>{closeMenu();onAccountNavigate?.(event);}}>{account.label} {arrow}</a>
+          <a href={account.href} aria-current={pathname === "/tai-khoan" ? "page" : undefined} onClick={event=>{closeMenu();onAccountNavigate?.(event);}}>{account.label} {arrow}</a>
           {account.management&&<a href={account.management.href} onClick={closeMenu}>{account.management.label} {arrow}</a>}
           {session.status==='ready'&&session.user&&<button type="button" onClick={()=>void signOut()} disabled={loggingOut} aria-busy={loggingOut}>{t('Đăng xuất')} <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H4v14h5M13 8l4 4-4 4M8 12h13"/></svg></button>}
           {logoutError&&<p className="live-error" role="alert">{t(logoutError)}</p>}

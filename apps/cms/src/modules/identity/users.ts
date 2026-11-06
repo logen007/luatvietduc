@@ -82,7 +82,7 @@ export const Users: CollectionConfig = {
       type: "select",
       hasMany: true,
       options: [{label:"Việt Nam",value:"VN"},{label:"Đức",value:"DE"}],
-      admin:{position:"sidebar",condition:(_data,siblingData)=>siblingData.role==='support',description:"Chuyên viên làm việc trong phạm vi được giao."},
+      admin:{hidden:true},
     },
   ],
 };

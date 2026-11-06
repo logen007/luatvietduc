@@ -71,3 +71,18 @@ test('asking what a document is never asserts that the customer already has one'
  assert.equal(intakeClarification(de+'\nIch habe einen Grundbuchauszug.'),null);
  assert.equal(intakeClarification(vi+'\nCó sổ đỏ\nSổ đỏ là gì?'),null,'An explanatory question does not withdraw an already supplied fact');
 });
+
+
+test('asking which document is meant does not establish possession, but a following explicit statement can',()=>{
+ const vi='Tôi muốn sang tên đất ở Việt Nam\nĐất đứng tên mẹ tôi\nĐang chuẩn bị, muốn biết thủ tục';
+ const de='Ich möchte das Grundstück in Deutschland übertragen\nDie Mutter ist als Eigentümerin eingetragen\nIn Vorbereitung, ich möchte das Verfahren wissen';
+ for(const answer of ['Bạn hỏi giấy chứng nhận nào?','Bạn hỏi sổ đỏ hay giấy chứng nhận nào vậy?','Ý bạn hỏi sổ đỏ?']){
+  assert.equal(intakeClarification(vi+'\n'+answer)?.key,'property.document',answer);
+  assert.equal(intakeClarification(vi+'\nCó sổ đỏ\n'+answer),null,'A clarification question preserves an actual prior fact');
+  assert.equal(intakeClarification(vi+'\n'+answer+' Tôi có sổ đỏ.'),null,'An explicit subsequent statement supplies the fact');
+ }
+ for(const answer of ['Wissen Sie, ob es einen Eigentumsnachweis gibt?','Welchen Eigentumsnachweis meinen Sie?','Was für einen Eigentumsnachweis meinen Sie?']){
+  assert.equal(intakeClarification(de+'\n'+answer)?.key,'property.document',answer);
+  assert.equal(intakeClarification(de+'\n'+answer+' Ich habe einen Eigentumsnachweis.'),null,'The later declarative sentence is not swallowed by the question');
+ }
+});

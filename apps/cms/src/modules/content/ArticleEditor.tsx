@@ -70,8 +70,8 @@ export function ArticleEditor({path, field, readOnly, validate}: TextareaFieldCl
   }, [validate, field, required, limit]);
   const {value, setValue, disabled, errorMessage, showError} = useField<string>({path, validate: fieldValidate});
   const raw = typeof value === 'string' ? value : '', editable = !readOnly && !disabled;
-  const latest = useRef({setValue, editable}); latest.current = {setValue, editable};
-  const emitted = useRef<string | null>(null), sourceDirty = useRef(false), root = useRef<HTMLDivElement>(null);
+  const latest = useRef({setValue, editable, raw}); latest.current = {setValue, editable, raw};
+  const emitted = useRef<string | null>(null), sourceDirty = useRef(false), currentMode = useRef<'visual' | 'html'>('visual'), root = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<'visual' | 'html'>('visual'), [html, setHTML] = useState(''), [panel, setPanel] = useState<'link' | 'image' | 'table' | null>(null);
   const [url, setURL] = useState(''), [text, setText] = useState(''), [localError, setLocalError] = useState(''), [mediaBusy, setMediaBusy] = useState(false);
   const editor = useEditor({
@@ -88,7 +88,7 @@ export function ArticleEditor({path, field, readOnly, validate}: TextareaFieldCl
     editorProps: {attributes: {role: 'textbox', 'aria-label': 'Nội dung bài viết', 'aria-multiline': 'true', 'aria-required': String(required), 'data-placeholder': 'Viết nội dung bài viết…'}},
     onUpdate: ({editor: current}) => {
       if (!latest.current.editable) return;
-      const next = storedHTML(current); emitted.current = next; latest.current.setValue(next);
+      const next = storedHTML(current); emitted.current = next; latest.current.raw = next; latest.current.setValue(next);
     },
   });
   const [MediaDrawer, , {openDrawer, closeDrawer}] = useListDrawer({collectionSlugs: ['media'], selectedCollection: 'media', filterOptions: PUBLIC_MEDIA_FILTER});
@@ -113,7 +113,7 @@ export function ArticleEditor({path, field, readOnly, validate}: TextareaFieldCl
     setPanel(null); setLocalError('');
     if (next === 'html') {setHTML(editor.getHTML()); sourceDirty.current = false;}
     else if (sourceDirty.current && editable) {editor.commands.setContent(html, {emitUpdate: false}); const nextValue = storedHTML(editor); emitted.current = nextValue; setValue(nextValue); sourceDirty.current = false;}
-    setMode(next);
+    currentMode.current = next; setMode(next);
   }
   function openPanel(next: 'link' | 'image' | 'table') {
     if (unavailable || !editor) return;
@@ -137,7 +137,8 @@ export function ArticleEditor({path, field, readOnly, validate}: TextareaFieldCl
     editor.chain().focus().setImage({src, alt: text.trim()}).run(); setPanel(null);
   }
   async function selectMedia(doc: {id?: unknown}) {
-    if (!editor || !latest.current.editable || mediaBusy || doc.id == null) return;
+    if (!editor || !latest.current.editable || currentMode.current !== 'visual' || mediaBusy || doc.id == null) return;
+    const selectedDraft = latest.current.raw;
     setMediaBusy(true); setLocalError('');
     try {
       const response = await fetch('/api/media/' + encodeURIComponent(String(doc.id)) + '?depth=0', {cache: 'no-store', signal: AbortSignal.timeout(15000)});
@@ -147,6 +148,10 @@ export function ArticleEditor({path, field, readOnly, validate}: TextareaFieldCl
       const href = safeURL(String(media.url || ''), true);
       if (!href) throw new Error('Tệp chưa có đường dẫn công khai hợp lệ.');
       if (editor.isDestroyed || !latest.current.editable) return;
+      // A specialist can dismiss the drawer and keep typing while metadata is
+      // loading. Never replace that newer draft with the older visual document.
+      if (latest.current.raw !== selectedDraft) throw new Error('Nội dung đã thay đổi. Chọn lại tệp để chèn vào bản đang sửa.');
+      if (currentMode.current !== 'visual') throw new Error('Chuyển về Trực quan rồi chọn lại tệp để chèn.');
       if (String(media.mimeType || '').startsWith('image/')) editor.chain().focus().setImage({src: href, alt: media.alt || '', title: media.title || undefined}).run();
       else editor.chain().focus().insertContent({type: 'text', text: media.title || media.filename || 'Tệp', marks: [{type: 'link', attrs: {href, rel: 'noopener noreferrer'}}]}).run();
       closeDrawer(); setPanel(null);
@@ -171,7 +176,7 @@ export function ArticleEditor({path, field, readOnly, validate}: TextareaFieldCl
       </div>}
       <EditorContent editor={editor}/>
     </>}
-    {mode === 'html' && <textarea className="lvd-editor-html" aria-label="Mã HTML nội dung bài viết" aria-required={required} aria-invalid={Boolean(error)} aria-describedby={error ? uid + '-error' : undefined} spellCheck={false} readOnly={!editable} value={html} placeholder="<p>Nội dung bài viết…</p>" onChange={event => {const next = event.target.value; setHTML(next); sourceDirty.current = true; const stored = next.trim() ? MARKER + next + '</div>' : ''; emitted.current = stored; setValue(stored);}}/>}
+    {mode === 'html' && <textarea className="lvd-editor-html" aria-label="Mã HTML nội dung bài viết" aria-required={required} aria-invalid={Boolean(error)} aria-describedby={error ? uid + '-error' : undefined} spellCheck={false} readOnly={!editable} value={html} placeholder="<p>Nội dung bài viết…</p>" onChange={event => {const next = event.target.value; setHTML(next); sourceDirty.current = true; const stored = next.trim() ? MARKER + next + '</div>' : ''; emitted.current = stored; latest.current.raw = stored; setValue(stored);}}/>}
     {localError && <div className="lvd-editor-notice" role="alert">{localError}</div>}
     {error && <div id={uid + '-error'} className="lvd-editor-error" role="alert">{error}</div>}
     <MediaDrawer allowCreate={false} filterOptions={PUBLIC_MEDIA_FILTER} onSelect={({doc}) => void selectMedia(doc)}/>

@@ -32,7 +32,20 @@ test('the mobile menu includes contact exactly once with default or configured c
  for(const navigation of [[],[{label:'Liên hệ',url:'/#/lien-he'}]]){
   const exports={},shell=publicShell({navigation},{primary:[{key:'news',href:'/tin-tuc',label:'Tin tức'}],footer:[]});
   vm.runInNewContext(compiled,{exports,require:name=>({react:React,'react/jsx-runtime':jsxRuntime,'next/navigation':{usePathname:()=>'/tai-khoan'},'./session-client':{usePublicSession:()=>({status:'ready',user:null})},'./account-state.mjs':{accountView},'./locale':{useLocale:()=>({t:text=>text,language:'vi'})},'./LanguageSwitch':{LanguageSwitch:()=>null},'./RolePreviewControl':{RolePreviewControl:()=>null},'./usePublicShell':{usePublicShell:()=>shell},'./client-api':{api:()=>assert.fail('Rendering the menu must not send requests')}}[name]||assert.fail(name))});
-  const html=renderToStaticMarkup(React.createElement(exports.Header)),dialog=html.match(/<dialog\b[^>]*>([\s\S]*?)<\/dialog>/)?.[1];assert.ok(dialog);
+  const html=renderToStaticMarkup(React.createElement(exports.Header,{activeSection:'news'})),dialog=html.match(/<dialog\b[^>]*>([\s\S]*?)<\/dialog>/)?.[1];assert.ok(dialog);
   assert.equal([...dialog.matchAll(/href="\/lien-he"/g)].length,1,'configured contact must reuse its mobile entry');
+  assert.match(dialog,/<a[^>]*href="\/tin-tuc"[^>]*aria-current="location"/);
+  assert.match(dialog,/<a[^>]*href="\/tai-khoan[^"]*"[^>]*aria-current="page"/);
+ }
+});
+
+test('configured public links and logos reject normalized private paths and ambiguous separators',()=>{
+ for(const url of ['/\\evil.invalid/path','/\t/evil.invalid/path','/bad\u007fpath','/admin?tab=users','/admin#users','/%61dmin/settings','/%2f%2fevil.invalid/path','/%5cevil.invalid/path','/%0a/evil.invalid/path','/%broken']){
+  const shell=publicShell({logo:url,navigation:[{label:'Invalid',url}]});
+  assert.equal(shell.logo,null,url);assert.deepEqual(shell.primary,[],url);
+ }
+ for(const url of ['/assets/flags/vn.svg','/tin-tuc?q=nh%C3%A0','https://example.invalid/media/photo%2Fone.webp']){
+  const shell=publicShell({logo:url,navigation:[{label:'Valid',url}]});
+  assert.equal(shell.logo,url,url);assert.equal(shell.primary[0]?.href,url,url);
  }
 });

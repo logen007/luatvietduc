@@ -213,11 +213,11 @@ const partyFacts=(value:string)=>{
 };
 function propertyFacts(value:string){
  let ownerKnown=false,documentKnown=false;
- for(const clause of value.split(/[\n,;]/)){
+ for(const clause of value.split(/[\n,;]|(?<=[.!?？])\s+/)){
   const text=normalized(clause),unclear=/\b(khong biet|chua biet|chua ro|khong ro|weiss nicht|weiß nicht|keine ahnung|unklar)\b/.test(text);
   if(/\b(dung ten|chua dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text)&&(unclear||! /\b(ai (?:dang )?dung ten|dung ten ai|auf wen.*eingetragen|wer.*eingetragen)\b/.test(text)))ownerKnown=!unclear;
   const documentMention=/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch\w*|urkunde\w*|(?:eigentums)?nachweis\w*)\b/.test(text);
-  const documentQuestion=/\b(la gi|la sao|nghia la gi|co nghia|was ist|was bedeutet|was heisst|was heißt)\b/.test(text)||/\b(?:so do|so hong|giay chung nhan) (?:chua|khong)\b/.test(text)||/^(?:gibt es|habe ich|haben sie)\b/.test(text)&&/[?？]/.test(clause);
+  const documentQuestion=/\b(la gi|la sao|nghia la gi|co nghia|was ist|was bedeutet|was heisst|was heißt)\b/.test(text)||/\b(?:so do|so hong|giay chung nhan) (?:chua|khong|nao|gi)\b/.test(text)||/^(?:ban (?:dang )?hoi|y ban|welche\w*|was fur|ob)\b/.test(text)||/^(?:gibt es|habe ich|haben sie|wissen sie)\b/.test(text)&&/[?？]/.test(clause);
   if(documentMention&&(unclear||!documentQuestion))documentKnown=!unclear;
  }
  const land=/\b(dat|dat dai|manh dat|thua dat|dat cua|ve dat|so do|so hong|grundstuck\w*)\b/.test(normalized(value.normalize('NFC').replace(/(?<!\p{L})(?:đặt|đạt)(?!\p{L})/giu,'action')));

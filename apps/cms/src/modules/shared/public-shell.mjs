@@ -23,8 +23,18 @@ export function legacyTarget(hash){
  return target.startsWith('/')&&!target.startsWith('//')&&!/[\\\u0000-\u001f]/.test(target)?target:null;
 }
 const safeURL=value=>{
- const url=publicHref(value);
- if(url.startsWith('/')&&!url.startsWith('//')&&!/^\/admin(?:\/|$)/.test(url))return url;
+ const raw=String(value||'');
+ // Validate again after alias handling: publicHref also serves legacy routing
+ // and intentionally returns an unrecognized input unchanged.
+ if(/[\\\u0000-\u001f\u007f]/.test(raw))return null;
+ const url=publicHref(raw);
+ if(url.startsWith('/')){
+  if(url.startsWith('//'))return null;
+  try{
+   const pathname=decodeURIComponent(new URL(url,'https://internal.invalid').pathname);
+   return pathname.startsWith('//')||/[\\\u0000-\u001f\u007f]/.test(pathname)||/^\/admin(?:\/|$)/i.test(pathname)?null:url;
+  }catch{return null;}
+ }
  try{const parsed=new URL(url);return parsed.protocol==='https:'&&!parsed.username&&!parsed.password?url:null;}catch{return null;}
 };
 export function publicShell(settings={},navigation={primary:[],footer:[]}){

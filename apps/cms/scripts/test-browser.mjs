@@ -192,6 +192,7 @@ try{
  await page.waitForFunction(()=>{const body=document.querySelector('#field-body')?.value||'';return body.includes('<table>')&&body.includes('Synthetic preserved article link');});
  assert.equal(await richEditor.locator('a[href="/thu-vien"]').innerText(),'Synthetic preserved article link','Toolbar insertion preserves the preceding linked paragraph');
  console.log('Article structural-content checks passed: empty table save/reload, delete, undo/redo, typed-cell publication and linked-paragraph preservation');
+ await (await import('./test-article-media-race.mjs')).testArticleMediaRace({page,base,pool,suffix,mediaFixtureIds});
  page.once('dialog',dialog=>dialog.accept());
  const {articleTranslation}=await import('../src/modules/content/translations.ts');
  const translationSource=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic bilingual '+suffix,body:'Synthetic source body.',slug:'',language:'vi',jurisdiction:'BOTH'}});translationArticleIds.push(translationSource.id);
