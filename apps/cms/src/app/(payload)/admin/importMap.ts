@@ -1,3 +1,4 @@
+import { ArticleAuthorCell, ArticleAuthorField } from '../../../modules/admin/ArticleAuthorCell'
 import { EmptyCell as EmptyCell_0f942e78c6c23632b6d92ed517c4f444 } from '../../../modules/admin/EmptyCell'
 import { UserRoleTabs as UserRoleTabs_842fe956bf5458a0fb52b9687afb590b } from '../../../modules/identity/UserRoleTabs'
 import { ArticleLanguages as ArticleLanguages_c323c3ff49ed7b4dd39156f80a342a27 } from '../../../modules/content/ArticleLanguages'
@@ -24,6 +25,8 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  './modules/admin/ArticleAuthorCell#ArticleAuthorCell':ArticleAuthorCell,
+  './modules/admin/ArticleAuthorCell#ArticleAuthorField':ArticleAuthorField,
   "./modules/admin/EmptyCell#EmptyCell": EmptyCell_0f942e78c6c23632b6d92ed517c4f444,
   "./modules/identity/UserRoleTabs#UserRoleTabs": UserRoleTabs_842fe956bf5458a0fb52b9687afb590b,
   "./modules/content/ArticleLanguages#ArticleLanguages": ArticleLanguages_c323c3ff49ed7b4dd39156f80a342a27,
