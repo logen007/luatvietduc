@@ -1,4 +1,4 @@
-import {answerHistory,questionWithHistory} from './conversation-context';
+import {answerHistory,questionWithHistory,groundedPreviousAnswer} from './conversation-context';
 import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory} from './clarification';
 import {randomUUID} from 'node:crypto';
 import {transaction} from '../shared/db';
@@ -28,7 +28,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   await db.query('UPDATE lvd_conversations SET ai_generation=$2,ai_message_id=$3,ai_started_at=now() WHERE id=$1',[id,token,message.id]);
   const previous=(await db.query("SELECT role,body,metadata FROM ((SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 80) UNION (SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND role='user' AND NOT internal ORDER BY id LIMIT 4)) history ORDER BY id DESC",[id,message.id])).rows;
   const history=clarificationHistory(previous,CONSENT_VERSION);
-  return {question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,country:conversation.jurisdiction,version:conversation.version};
+  return {previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,country:conversation.jurisdiction,version:conversation.version};
  });
  if(!work)return;
  let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined,clarificationKey:string|undefined;
@@ -51,7 +51,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    await reserveBudget(limit);
    const found=await retrieve(question,work.country,connection);
    if(!found.evidence.length)throw new Error('Outside approved coverage');
-   const selection=await selectPassages(question,found.evidence,connection,policy.aiMaxOutputTokens||700,rules);
+   const selection=await selectPassages(question,found.evidence,connection,policy.aiMaxOutputTokens||700,rules,groundedPreviousAnswer(work.previousAnswer,found.sources));
    if(selection.kind==='answer'){
     const used=new Set(selection.passages.map(p=>p.key));
     ragSources=found.sources.filter(source=>used.has('source-'+source.id));

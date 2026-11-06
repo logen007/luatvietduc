@@ -31,6 +31,7 @@ import {writeKnowledgeArticle,knowledgeArticles} from '../src/modules/knowledge/
 import {testSharedKnowledge} from './test-shared-knowledge';
 import {testEditorial} from './test-editorial';
 import {testRag} from './test-rag';
+import {testRagMatrix} from './test-rag-matrix';
 import {testAssistant} from './test-assistant';
 const url = new URL(process.env.DATABASE_URL || "");
 if (
@@ -230,6 +231,7 @@ try {
   await testEditorial(payload,owner,staff);
   await testAssistant(payload,owner,staff);
   await testRag(payload,owner,staff);
+  await testRagMatrix(payload,owner,staff);
   await testSharedKnowledge(staff,foreign);
 } finally {
   await payload.destroy();

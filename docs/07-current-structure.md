@@ -512,3 +512,9 @@ bao gồm F5, giữ script để so sánh HTML server với sau hydration; thêm
 Kiểm tra tên/menu/footer, ngôn ngữ, màu nền, CSS head và lỗi hydration. Đây không phải
 cam kết CLS bằng 0 trên mọi mạng: ảnh/video, kết quả truy vấn và phiên đăng nhập vẫn có
 trạng thái tải thật; font bị chặn hoặc mạng quá chậm vẫn có thể dùng font dự phòng.
+
+RAG nhận `previousAnswer` chỉ để phân giải câu hỏi tiếp kiểu “ý thứ hai”. Helper
+`groundedPreviousAnswer` yêu cầu tin assistant/ai, tối đa 7.000 ký tự, tất cả trích
+nguồn đúng revision trong bộ nguồn hiện tại và từng đoạn khớp nguyên văn. Không
+forward câu chuyên viên/ghi chú, nguồn đã đổi/rút hoặc đoạn không còn trong nguồn.
+Bộ kiểm tra nguồn công khai/riêng và hội thoại 32 lượt nằm ở `test-rag-matrix.ts`.

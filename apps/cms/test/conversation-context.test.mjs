@@ -26,3 +26,13 @@ test('explicit country corrections exclude the rejected country while comparison
  assert.deepEqual(sourceScopes('BOTH','So sánh Việt Nam và Đức'),['VN','DE','BOTH']);
  assert.deepEqual(sourceScopes('BOTH','Không phải Việt Nam mà tại Đức'),['DE','BOTH']);
 });
+
+test('prior answer references require current exact sources and exclude staff, rules and withdrawn revisions',async()=>{
+ const {groundedPreviousAnswer}=await import('../src/modules/assistant/conversation-context.ts');
+ const {faqRevision}=await import('../src/modules/assistant/faq.ts');
+ const source={id:1,title:'Synthetic source',body:'Synthetic complete paragraph used for the previous answer.',question_aliases:null,jurisdiction:'BOTH',source_url:'https://example.invalid/source',updated_at:new Date(),effective_from:new Date(Date.now()-1000),review_due_at:new Date(Date.now()+86400000),expires_at:null,approved:true,_status:'published'};
+ const row={role:'assistant',body:source.body,metadata:{kind:'ai',sources:[{id:1,revision:source.updated_at.toISOString()+'#'+faqRevision(source).slice(0,12)}]}};
+ assert.equal(groundedPreviousAnswer(row,[source]),source.body);
+ for(const sources of [[],[{...source,approved:false}],[{...source,body:source.body+' changed'}],[{...source,entry_type:'rule'}],[{...source,review_due_at:new Date(0)}]])assert.equal(groundedPreviousAnswer(row,sources),undefined);
+ for(const invalid of [{...row,role:'staff'},{...row,body:'Staff or fabricated content not found in the current source.'},{...row,metadata:{...row.metadata,kind:'handoff'}},{...row,metadata:{...row.metadata,sources:[{id:1,revision:'old'}]}},{...row,body:source.body+'\n\nA private line that is not from an approved source.'}])assert.equal(groundedPreviousAnswer(invalid,[source]),undefined);
+});
