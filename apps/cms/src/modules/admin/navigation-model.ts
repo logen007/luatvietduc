@@ -11,7 +11,7 @@ export const adminLinks={
  categories:{label:'Danh mục',href:'/admin/collections/categories'},
  tags:{label:'Tag',href:'/admin/collections/tags'},
  media:{label:'Thư viện tệp',href:'/admin/collections/media'},
- knowledge:{label:'Kiến thức AI',href:'/admin/knowledge'},
+ knowledge:{label:'Kiến thức AI',href:'/admin/collections/knowledge'},
  inbox:{label:'Hộp thư',href:'/admin/inbox'},
  conversations:{label:'Hội thoại',href:'/admin/inbox'},
  users:{label:'Người dùng',href:'/admin/collections/users'},

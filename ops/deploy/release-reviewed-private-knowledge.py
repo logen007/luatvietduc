@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-time reviewed private AI knowledge and answer rules migration. Does not change installed auto-release policy."""
+"""Reviewed native AI knowledge editor and taxonomy migration. Does not change installed auto-release policy."""
 import argparse, fcntl, importlib.util, json, os, pathlib
 
 def main():
@@ -20,9 +20,9 @@ def main():
         module.trusted_file(config[name])
     sha = args.approved_sha
     module.require(module.valid_sha(sha), 'A full reviewed commit is required')
-    migration_path = 'apps/cms/src/migrations/20261105_150000_private_ai_knowledge.ts'
+    migration_path = 'apps/cms/src/migrations/20261106_160000_knowledge_taxonomies.ts'
     allowed = {migration_path, 'apps/cms/src/migrations/index.ts', 'apps/cms/src/modules/knowledge/collection.ts'}
-    reviewed = sorted(allowed | {'apps/cms/src/modules/knowledge/rules-hook.ts', 'apps/cms/src/modules/assistant/faq.ts', 'apps/cms/src/modules/knowledge/Panel.tsx', 'apps/cms/src/modules/assistant/format.ts', 'apps/cms/src/modules/knowledge/articles.ts', 'apps/cms/src/app/service/knowledge-source/[token]/route.ts', 'apps/cms/src/modules/rag/provider.ts', 'apps/cms/src/modules/rag/indexer.ts', 'apps/cms/src/modules/rag/retrieve.ts', 'apps/cms/scripts/test-rag.ts', 'apps/cms/src/modules/assistant/rules.ts', 'apps/cms/src/modules/knowledge/citations.ts', 'apps/cms/src/modules/knowledge/article-input.ts', 'apps/cms/scripts/test-private-knowledge.ts', 'apps/cms/src/modules/assistant/reply.ts', 'apps/cms/src/modules/chat/service.ts'})
+    reviewed = sorted(allowed | {'apps/cms/src/modules/admin/presentation.ts', 'apps/cms/src/modules/admin/navigation-model.ts', 'apps/cms/src/modules/admin/Views.tsx', 'apps/cms/src/modules/admin/KnowledgeStatusCell.tsx', 'apps/cms/scripts/test-native-knowledge.ts', 'apps/cms/src/modules/content/ArticleEditor.tsx', 'apps/cms/src/modules/assistant/rules.ts', 'apps/cms/scripts/test-knowledge-native.mjs', 'apps/cms/src/modules/knowledge/articles.ts', 'apps/cms/scripts/test-private-knowledge.ts', 'apps/cms/src/modules/knowledge/article-input.ts', 'apps/cms/src/modules/content/article-body.ts', 'apps/cms/src/modules/knowledge/rules-hook.ts', 'apps/cms/src/modules/knowledge/content.ts', 'apps/cms/src/modules/assistant/faq.ts'})
     class ReviewedEngine(module.Engine):
         migrated = False
         def compose(self, release, *command):
@@ -48,7 +48,7 @@ def main():
         manifest = {p: module.digest(engine.git('show',sha + ':' + p).encode()) for p in reviewed}
         # git() strips final newline; review checksum follows this exact canonical representation.
         module.require(module.digest(json.dumps(manifest,sort_keys=True,separators=(',',':')).encode()) == args.manifest_sha256, 'Private knowledge schema/security manifest differs from reviewed content')
-        module.ci_success(sha, engine.get)
+        module.ci_success(sha, engine.get, require_full=True)
         engine.activate(sha,current)
         module.atomic_json(engine.retry_path,{})
         print('Activated reviewed private knowledge release ' + sha, flush=True)

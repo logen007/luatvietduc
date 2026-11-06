@@ -13,7 +13,7 @@ export function requiresHuman(text:string){
   ||/\b(mein(?:e|er|en|em)? (?:akte|akten|fall|unterlagen|dokumente)|personliche (?:rechts)?beratung)\b/.test(question)
   ||/\b(?:ich (?:mochte|will)|(?:kann|konnte) ich) (?:bitte |gerne? )?(?:mit (?:einem |einer )?|(?:einen |eine )?)(?:menschen|mitarbeiter(?:in)?|berater(?:in)?|anwalt(?:in)?|fachkraft) (?:sprechen|reden|chatten)\b/.test(question);
 }
-export function faqBody(faq:Faq){return faq.article_origin_id?articleText(faq.body):faq.body;}
+export function faqBody(faq:Faq){return articleText(faq.body);}
 export function faqRevision(faq:Faq){const fields:unknown[]=[faq.title,faqBody(faq),faq.question_aliases,faq.jurisdiction,faq.source_url,faq.effective_from,faq.expires_at,faq.review_due_at,faq.updated_at];if(faq.entry_type==='rule')fields.push('rule');return createHash('sha256').update(JSON.stringify(fields)).digest('hex');}
 export function matchesQuestion(question:string,faq:Question){const key=normalizeQuestion(question);return [faq.title,...(faq.question_aliases||'').split('\n')].some(value=>key&&normalizeQuestion(value)===key);}
 export function eligible(faq:Faq,now=Date.now()){

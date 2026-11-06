@@ -1,4 +1,5 @@
 import * as mediaFamilies from './20261105_210000_media_families';
+import * as knowledgeTaxonomies from './20261106_160000_knowledge_taxonomies';
 import * as mediaMetadata from './20261105_190000_media_metadata';
 import * as quickReplies from './20261105_170000_quick_replies';
 import * as privateKnowledge from './20261105_150000_private_ai_knowledge';
@@ -48,4 +49,5 @@ export const migrations = [
  {up:quickReplies.up,down:quickReplies.down,name:'20261105_170000_quick_replies'},
  {up:mediaMetadata.up,down:mediaMetadata.down,name:'20261105_190000_media_metadata'},
  {up:mediaFamilies.up,down:mediaFamilies.down,name:'20261105_210000_media_families'},
+ {up:knowledgeTaxonomies.up,down:knowledgeTaxonomies.down,name:'20261106_160000_knowledge_taxonomies'},
 ];

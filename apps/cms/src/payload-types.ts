@@ -249,14 +249,10 @@ export interface Knowledge {
   entryType?: ('knowledge' | 'rule') | null;
   articleOrigin?: (number | null) | Article;
   title: string;
-  /**
-   * Mỗi dòng một câu hỏi có cùng phạm vi và điều kiện với câu hỏi chuẩn. Không bắt buộc. AI còn tìm theo ý nghĩa trong nội dung bài viết.
-   */
   questionAliases?: string | null;
-  /**
-   * FAQ gồm: câu trả lời; điều kiện áp dụng; trường hợp loại trừ; khi nào chuyển chuyên viên. Chỉ dùng nội dung đã được kiểm chứng và cho phép dùng để trả lời khách.
-   */
   body: string;
+  categories?: (number | Category)[] | null;
+  tags?: (number | Tag)[] | null;
   jurisdiction: 'VN' | 'DE' | 'BOTH';
   sourceUrl: string;
   effectiveFrom: string;
@@ -551,6 +547,8 @@ export interface KnowledgeSelect<T extends boolean = true> {
   title?: T;
   questionAliases?: T;
   body?: T;
+  categories?: T;
+  tags?: T;
   jurisdiction?: T;
   sourceUrl?: T;
   effectiveFrom?: T;

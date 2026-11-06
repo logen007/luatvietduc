@@ -32,10 +32,11 @@ test('source fingerprints change even when a timestamp collides',()=>{
  assert.notEqual(faqRevision(source),faqRevision({...source,body:'Changed content'}));assert.notEqual(faqRevision(source),faqRevision({...source,question_aliases:'Different scope'}));
 });
 
-test('rich article evidence uses plain whole paragraphs while private knowledge stays literal',()=>{
+test('marked rich article and private knowledge evidence use plain whole paragraphs while legacy markup stays literal',()=>{
  const body='<div data-lvd-richtext="1"><p><strong>Approved answer.</strong></p><p>Mandatory condition.</p></div>';
  const article={...source,body,article_origin_id:5};
  assert.equal(faqBody(article),source.body);assert.deepEqual(publicFaq(article),publicFaq(source));
  assert.equal(faqRevision(article),faqRevision(source));
- assert.equal(faqBody({...source,body}),body);
+ assert.equal(faqBody({...source,body}),source.body);
+ assert.equal(faqBody({...source,body:'<p>Literal legacy text</p>'}),'<p>Literal legacy text</p>');
 });

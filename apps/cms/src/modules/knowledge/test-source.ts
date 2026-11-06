@@ -3,6 +3,7 @@ import type { Payload } from "payload";
 import { pool } from "../shared/db";
 import { HttpError } from "../chat/service";
 import type { SiteSetting, User } from "../../payload-types";
+import {articleText} from '../content/article-body';
 export async function testSource(
   payload: Payload,
   user: User | null,
@@ -65,7 +66,7 @@ export async function testSource(
             role: "user",
             parts: [
               {
-                text: `Tóm tắt nội dung chính và giới hạn của nguồn này bằng tiếng Việt, dẫn URL gốc.\nTên: ${source.title}\nNguồn: ${source.sourceUrl}\nNội dung: ${source.body.slice(0, 16000)}`,
+                text: `Tóm tắt nội dung chính và giới hạn của nguồn này bằng tiếng Việt, dẫn URL gốc.\nTên: ${source.title}\nNguồn: ${source.sourceUrl}\nNội dung: ${articleText(source.body).slice(0, 16000)}`,
               },
             ],
           },

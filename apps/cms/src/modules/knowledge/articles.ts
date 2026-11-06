@@ -18,7 +18,7 @@ export async function knowledgeArticles(payload:Payload,user:User|null,id?:strin
 export async function writeKnowledgeArticle(payload:Payload,user:User|null,input:any){
  requireKnowledge(user);
  const tx=await payload.db.beginTransaction();if(!tx)throw new Error('Knowledge transaction unavailable');
- const req=await createLocalReq({user},payload);req.transactionID=tx;
+ const req=await createLocalReq({user,context:{knowledgeApiPublish:input.publish===true}},payload);req.transactionID=tx;
  try{
   await (payload.db as any).sessions[String(tx)].db.execute(sql`SELECT pg_advisory_xact_lock(73051105)`);
   let original:any;
@@ -27,7 +27,9 @@ export async function writeKnowledgeArticle(payload:Payload,user:User|null,input
    original=await payload.findByID({collection:'knowledge',id:input.id,user,overrideAccess:false,req,draft:true});
    const session=(payload.db as any).sessions[String(tx)];
    const locked=await session.db.execute(sql`SELECT updated_at FROM knowledge WHERE id=${input.id} FOR UPDATE`);
-   if(!input.updatedAt||new Date(locked.rows[0]?.updated_at).getTime()!==new Date(input.updatedAt).getTime())throw new HttpError(409,'Bài viết đã thay đổi. Tải lại bài trước khi lưu.');
+   const latest=await session.db.execute(sql`SELECT version_updated_at FROM _knowledge_v WHERE parent_id=${input.id} AND latest=true ORDER BY updated_at DESC LIMIT 1`);
+   const revision=Math.max(new Date(locked.rows[0]?.updated_at).getTime(),latest.rows[0]?.version_updated_at?new Date(latest.rows[0].version_updated_at).getTime():0);
+   if(!input.updatedAt||revision!==new Date(input.updatedAt).getTime())throw new HttpError(409,'Bài viết đã thay đổi. Tải lại bài trước khi lưu.');
   }
   const data=knowledgeArticleInput(input,user,original);
   const doc=original?await payload.update({collection:'knowledge',id:original.id,data,user,overrideAccess:false,req}):await payload.create({collection:'knowledge',data,user,overrideAccess:false,req});

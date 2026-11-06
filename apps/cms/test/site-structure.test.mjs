@@ -38,6 +38,20 @@ test('admin menus, shortcuts and settings resolve to registered views, collectio
  for(const section of adminSettingsSections)for(const link of section.items)assert.ok(resolves(link.href),link.href);
 });
 
+test('knowledge navigation uses one native collection while retaining its legacy redirect registration',()=>{
+ assert.equal(adminLinks.knowledge.href,'/admin/collections/knowledge');
+ for(const viewer of [{role:'owner'},{role:'support',jurisdictions:['VN']}]){
+  assert.equal(linksFor(viewer).filter(link=>link.href===adminLinks.knowledge.href).length,1);
+  assert.ok(adminShortcuts(viewer).some(link=>link.href===adminLinks.knowledge.href));
+ }
+ assert.equal(config.admin.components.views.knowledge.path,'/knowledge');
+ assert.equal(config.admin.components.views.knowledge.Component,'./modules/admin/Views#KnowledgeView');
+ const knowledge=config.collections.find(collection=>collection.slug==='knowledge'),status=knowledge.fields.find(field=>field.name==='_status');
+ assert.equal(status.admin.components.Cell,'./modules/admin/KnowledgeStatusCell#KnowledgeStatusCell');
+ assert.deepEqual(status.options.map(option=>option.value),['draft','published'],'Rule status copy does not change native database filters');
+ assert.equal(knowledge.forceSelect.entryType,true);assert.equal(knowledge.forceSelect.updatedAt,true);
+});
+
 test('users stay above settings, settings stay last, and protected links do not appear for specialists',()=>{
  const owner=adminNavigation({role:'owner'}),specialist=linksFor({role:'support',jurisdictions:['VN']});
  assert.equal(owner.at(-1).href,adminLinks.settings.href);assert.equal(owner.at(-2).href,adminLinks.users.href);

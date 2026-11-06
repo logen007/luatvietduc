@@ -140,33 +140,7 @@ try{
  assert.equal(await page.getByLabel('Client Secret',{exact:true}).count(),0);
  await page.unroute('**/service/me');await page.evaluate(()=>document.dispatchEvent(new Event('lvd:sessionchange')));
  await page.getByLabel('Client Secret',{exact:true}).waitFor();assert.equal(await page.getByLabel('Client Secret',{exact:true}).inputValue(),'');
- let failSourceList=false,failSourceRead=false,sourceConflict=false,sourceReads=0;
- const sources=[{id:901,title:'Synthetic source A',body:'Synthetic body A',_status:'draft',approved:false,reviewDueAt:'2030-01-01T00:00:00Z'},{id:902,title:'Synthetic source B',body:'Synthetic body B',_status:'draft',approved:false,reviewDueAt:'2030-01-01T00:00:00Z'}];
- await page.route('**/service/knowledge-articles?*',route=>{const id=new URL(route.request().url()).searchParams.get('id');if(id){sourceReads++;if(failSourceRead)return route.fulfill({status:503,json:{error:'Synthetic source read unavailable'}});}if(!id&&failSourceList){return route.fulfill({status:503,json:{error:'Synthetic list unavailable'}});}return route.fulfill({json:id?sources.find(source=>source.id===Number(id)):{articles:sources,total:2,totalPages:1,indexWorker:{online:true,state:'ready'}}});});
- await page.route('**/service/knowledge-gaps',route=>route.fulfill({json:{conversations:[]}}));
- await page.goto(base+'/admin/knowledge');await page.getByRole('button',{name:/Synthetic source A/}).click();
- await page.getByLabel('Nội dung bài viết',{exact:true}).fill('Unsaved source content');page.once('dialog',dialog=>dialog.dismiss());await page.getByRole('button',{name:/Synthetic source B/}).click();assert.equal(await page.getByLabel('Nội dung bài viết',{exact:true}).inputValue(),'Unsaved source content');
- page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:/Synthetic source B/}).click();await page.waitForFunction(()=>document.querySelector('#knowledge-title')?.value==='Synthetic source B');
- // A saved draft remains successful even if the follow-up list request fails.
- await page.route('**/service/knowledge-articles',async route=>{assert.equal(route.request().method(),'POST');if(sourceConflict)return route.fulfill({status:409,json:{error:'Synthetic source conflict'}});const data=route.request().postDataJSON(),index=sources.findIndex(source=>source.id===data.id);assert.ok(index>=0);sources[index]={...sources[index],...data,updatedAt:new Date().toISOString(),_status:'draft',approved:false};failSourceList=true;await route.fulfill({json:sources[index]});});
- await page.getByLabel('Nội dung bài viết',{exact:true}).fill('Synthetic saved draft');
- await page.getByRole('button',{name:'Lưu nháp / thu hồi',exact:true}).click();
- await page.getByText('Đã lưu bản nháp và ngừng dùng bài cho AI.',{exact:true}).waitFor();
- await page.locator('.lvd-knowledge-list').getByText('Synthetic list unavailable',{exact:false}).waitFor();
- assert.equal(await page.locator('.lvd-knowledge-editor .live-error').count(),0);
- failSourceList=false;await page.locator('.lvd-knowledge-list').getByRole('button',{name:'Thử lại',exact:true}).click();
- await page.waitForFunction(()=>!document.querySelector('.lvd-knowledge-list [role="alert"]'));
- // Reloading the selected article recovers its revision after a write conflict.
- sourceConflict=true;await page.getByLabel('Nội dung bài viết',{exact:true}).fill('Synthetic unsaved conflict draft');await page.getByRole('button',{name:'Lưu nháp / thu hồi',exact:true}).click();await page.locator('.lvd-knowledge-editor').getByRole('alert').filter({hasText:'Synthetic source conflict'}).waitFor();
- const sameSource=page.locator('.lvd-knowledge-list').getByRole('button',{name:/Synthetic source B/}),readsBeforeCancel=sourceReads;
- page.once('dialog',dialog=>dialog.dismiss());await sameSource.click();assert.equal(sourceReads,readsBeforeCancel);assert.equal(await page.getByLabel('Nội dung bài viết',{exact:true}).inputValue(),'Synthetic unsaved conflict draft');
- failSourceRead=true;page.once('dialog',dialog=>dialog.accept());await sameSource.click();await page.locator('.lvd-knowledge-editor').getByRole('alert').filter({hasText:'Synthetic source read unavailable'}).waitFor();assert.equal(await page.getByLabel('Nội dung bài viết',{exact:true}).inputValue(),'Synthetic unsaved conflict draft');
- failSourceRead=false;sources[1]={...sources[1],body:'Synthetic newer server revision',updatedAt:new Date().toISOString()};page.once('dialog',dialog=>dialog.accept());await sameSource.click();await page.waitForFunction(()=>document.querySelector('#knowledge-body')?.value==='Synthetic newer server revision');sourceConflict=false;
- assert.equal(await page.getByText('Bài viết cho AI ↗',{exact:true}).count(),0);assert.equal(await page.getByText(/Nguồn nhập trực tiếp/).count(),0);assert.equal(await page.getByText('Bật kết nối Gemini trong Cài đặt để AI nhận bài mới.',{exact:true}).count(),0);
- await page.getByRole('button',{name:'Thêm bài viết',exact:true}).click();await page.getByRole('combobox',{name:'Loại nội dung',exact:true}).selectOption('rule');await page.getByLabel('Tiêu đề',{exact:true}).fill('Synthetic operator rule');await page.getByLabel('Quy tắc trả lời',{exact:true}).fill('Synthetic operator policy');
- assert.equal(await page.getByRole('button',{name:'Dùng cho AI',exact:true}).isEnabled(),true);
- page.once('dialog',dialog=>dialog.accept());
- await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/knowledge-mobile.png'});
+ const {testKnowledgeNative}=await import('./test-knowledge-native.mjs');await testKnowledgeNative({page,base,owner,payload,pool});
  // Native article language controls: preserve edits and show real pending state.
  const publishDraft=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic native publish '+suffix,body:'Synthetic publication check.',slug:'',language:'vi',jurisdiction:'BOTH',reviewState:'draft',_status:'draft'}});translationArticleIds.push(publishDraft.id);
  await page.goto(base+'/admin/collections/articles/'+publishDraft.id);
@@ -338,7 +312,7 @@ try{
  await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/media-list-mobile.png'});
  await page.getByRole('button',{name:'Xem dạng lưới',exact:true}).click();await page.locator('.lvd-media-grid').waitFor();await fits();await page.screenshot({path:'test-results/cms-browser/media-grid-mobile.png'});
  await page.reload();await page.locator('.lvd-media-grid').waitFor();assert.equal(await page.getByRole('button',{name:'Xem dạng lưới',exact:true}).getAttribute('aria-pressed'),'true');
- await page.setViewportSize({width:1280,height:900});await fits();await page.screenshot({path:'test-results/cms-browser/media-grid-desktop.png'});
+ await page.setViewportSize({width:1280,height:900});await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await fits();console.log('Media viewport geometry:',await page.evaluate(()=>({templates:[...document.querySelectorAll('.template-default')].filter(e=>e.getBoundingClientRect().width&&e.getBoundingClientRect().height).length,headers:[...document.querySelectorAll('.collection-list--media h1')].filter(e=>e.getBoundingClientRect().width&&e.getBoundingClientRect().height).map(e=>({text:e.textContent,top:e.getBoundingClientRect().top})),toggles:[...document.querySelectorAll('.template-default__nav-toggler')].filter(e=>e.getBoundingClientRect().width&&e.getBoundingClientRect().height).map(e=>e.getBoundingClientRect().top)})));await page.screenshot({path:'test-results/cms-browser/media-grid-desktop.png'});
  await page.unroute(mediaDeleteURL,mediaDeleteHandler);
  const imageFixture=(await pool.query("INSERT INTO media(title,filename,mime_type,filesize,width,height,visibility,uploaded_by_id) VALUES('Synthetic image editor',$1,'image/png',100,240,160,'private',$2) RETURNING id,filename,updated_at AS \"updatedAt\",uploaded_by_id AS \"uploadedBy\"",['image-editor-'+crypto.randomUUID()+'.png',owner.id])).rows[0];mediaFixtureIds.push(imageFixture.id);
  imageFixture.updatedAt=new Date(imageFixture.updatedAt).toISOString();

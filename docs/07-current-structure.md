@@ -305,9 +305,27 @@ riêng chỉ được chạy với cờ rõ ràng, tải một SVG riêng tư t�
 xóa đúng tệp đó. Khóa R2 không xuất ra log. Luồng tương tác tham khảo
 [WordPress Media Library](https://wordpress.org/documentation/article/media-library-screen/).
 
+## Soạn kiến thức AI trong quản trị
+
+Kiến thức AI dùng danh sách và trình soạn thảo Payload tại
+`/admin/collections/knowledge`, dùng chung trình soạn nội dung với Bài viết.
+`/admin/knowledge` chuyển hướng sau khi kiểm tra quyền. Có danh mục, tag,
+tìm kiếm, bộ lọc và nháp/xuất bản; nội dung này vẫn riêng cho AI, không có
+permalink/preview công khai. Danh sách loại các bản đồng bộ `articleOrigin`
+từ Bài viết; các bản đó tiếp tục được quản lý tại Bài viết.
+
+Dữ liệu/ID cũ được giữ nguyên, quan hệ danh mục/tag được thêm vào bảng chính
+và bảng phiên bản. Nội dung rich-text dùng marker hiện hữu, được làm sạch phía
+server rồi chuyển thành văn bản cho RAG/quy tắc. Văn bản cũ không có marker
+không tự chuyển thành HTML. Các API kho kiến thức cũ vẫn kiểm tra quyền và
+phiên bản để tương thích, không còn một trình soạn thứ hai trong điều hướng.
+Quy tắc vẫn lưu trạng thái draft theo ràng buộc an toàn. Lưu bản nháp chỉ
+lưu ý định; Xuất bản mới ghi cờ bật/tắt và nội dung được áp dụng. Ô trạng thái
+đọc bản chính bằng quyền tài khoản hiện tại, không lấy cờ từ bản nháp để báo đã bật.
+
 ## Kho riêng cho AI và quy tắc — 01.23
 
-`/admin/knowledge` chỉ quản lý bài riêng cho AI và quy tắc trả lời: tiêu đề,
+Nền tảng kho riêng quản lý bài dành cho AI và quy tắc trả lời: tiêu đề,
 nội dung, loại nội dung; lưu nháp hoặc bật sử dụng. Không tạo bài trong collection
 articles, không hiển thị permalink công khai, không có khối nguồn nhập trực tiếp,
 liên kết bài công khai hay danh sách mã hội thoại cần bổ sung. Bài công khai đã bật

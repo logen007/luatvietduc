@@ -1,7 +1,8 @@
 import type { Access, CollectionConfig } from "payload";
 import { articleLock, auditArticle } from "../content/audit";
 import { owner } from "../shared/access";
-import {lockKnowledgeRules,validateKnowledgeRule} from "./rules-hook";
+import {lockKnowledgeRules,validateKnowledgeRule,stageNativeRule} from "./rules-hook";
+import {knowledgeDefaults} from './content';
 const knowledgeRoles = ["knowledge", "support", "reviewer"];
 const knowledgeScope: Access = ({ req }) => {
   if (req.user?.role === "owner") return true;
@@ -15,25 +16,32 @@ export const Knowledge: CollectionConfig = {
   admin: {
     group: "Kiến thức",
     useAsTitle: "title",
+    defaultColumns:['title','categories','tags','_status','entryType','updatedAt'],
+    listSearchableFields:['title','body','questionAliases'],
+    baseFilter:()=>({articleOrigin:{exists:false}}),
     description:
       "",
   },
   versions: { drafts: true },
+  forceSelect:{entryType:true,ruleEnabled:true,updatedAt:true},
   access: {
     read: knowledgeScope,
     readVersions: knowledgeScope,
     create: ({ req }) => req.user?.role === "owner" || Boolean(
       req.user && knowledgeRoles.includes(req.user.role) &&
-      req.user.jurisdictions?.length
+      req.user.jurisdictions?.some(country=>country==='VN'||country==='DE')
     ),
     update: knowledgeScope,
     delete: owner,
   },
   hooks: {
+    beforeOperation:[({operation,args,req})=>{if(operation==='create'||operation==='update')req.context.knowledgeDraftOnly='draft' in args&&args.draft===true;return args;}],
+    beforeValidate:[({data,originalDoc})=>data?knowledgeDefaults(data,originalDoc):data],
     beforeChange: [
       async args=>{await lockKnowledgeRules(args);return articleLock(args);},
       ({ data, originalDoc, req }) => {
         if(originalDoc?.articleOrigin)throw new Error("Bài viết này được đồng bộ tự động. Hãy chỉnh sửa trong Bài viết.");
+        if(req.user?.role!=='owner'&&!req.user?.jurisdictions?.some(country=>country==='VN'||country==='DE'))throw new Error('Country scope required');
         if (
           req.user?.role !== "owner" &&
           (data.jurisdiction ?? originalDoc?.jurisdiction) !== "BOTH" &&
@@ -44,6 +52,10 @@ export const Knowledge: CollectionConfig = {
           throw new Error("Country scope required");
         if (req.user?.role !== "owner" && !knowledgeRoles.includes(req.user?.role || ""))
           throw new Error("Knowledge staff required");
+        // The native API normalizes draft=false writes to published before hooks.
+        // Preserve the custom service's explicit save/publish intent.
+        if(req.context.knowledgeApiPublish===false){data._status='draft';data.approved=false;}
+        else if(req.context.knowledgeApiPublish===true)data._status='published';
         const changed =
           originalDoc &&
           [
@@ -93,21 +105,25 @@ export const Knowledge: CollectionConfig = {
       validateKnowledgeRule,
     ],
     beforeDelete:[async({req})=>{await lockKnowledgeRules({req});}],
-    afterChange: [auditArticle],
+    afterChange: [stageNativeRule,auditArticle],
   },
   fields: [
-    {name:"ruleEnabled",type:"checkbox",defaultValue:false,admin:{hidden:true}},
-    {name:"entryType",label:"Loại nội dung",type:"select",defaultValue:"knowledge",options:[{label:"Kiến thức",value:"knowledge"},{label:"Quy tắc trả lời",value:"rule"}]},
+    {name:'_status',type:'select',options:[],admin:{components:{Field:false,Cell:'./modules/admin/KnowledgeStatusCell#KnowledgeStatusCell'}}},
+    {name:"ruleEnabled",label:'Bật quy tắc',type:"checkbox",defaultValue:false,admin:{position:'sidebar',condition:(_data,sibling)=>sibling.entryType==='rule'}},
+    {name:"entryType",label:"Loại nội dung",type:"select",defaultValue:"knowledge",options:[{label:"Kiến thức",value:"knowledge"},{label:"Quy tắc trả lời",value:"rule"}],admin:{position:'sidebar'}},
     {name:"articleOrigin",type:"relationship",relationTo:"articles",admin:{hidden:true},access:{create:()=>false,update:()=>false}},
-    { name: "title", label: "Tiêu đề", type: "text", required: true },
-    {name:'questionAliases',label:'Cách hỏi khác đã được chuyên viên xác nhận',type:'textarea',maxLength:4000,admin:{description:'Mỗi dòng một câu hỏi có cùng phạm vi và điều kiện với câu hỏi chuẩn. Không bắt buộc. AI còn tìm theo ý nghĩa trong nội dung bài viết.'}},
+    { name: "title", label: "Tiêu đề", type: "text", required: true,maxLength:240,admin:{className:'lvd-post-title'} },
+    {name:'questionAliases',label:'Cách hỏi khác',type:'textarea',maxLength:4000,admin:{position:'sidebar'}},
     {
       name: "body",
       label: "Nội dung",
-      admin: { description: "FAQ gồm: câu trả lời; điều kiện áp dụng; trường hợp loại trừ; khi nào chuyển chuyên viên. Chỉ dùng nội dung đã được kiểm chứng và cho phép dùng để trả lời khách." },
+      admin: {rows:28,className:'lvd-post-body'},
       type: "textarea",
       required: true,
+      maxLength:16000,
     },
+    {name:'categories',label:'Danh mục',type:'relationship',relationTo:'categories',hasMany:true,admin:{position:'sidebar',allowCreate:true}},
+    {name:'tags',label:'Tag',type:'relationship',relationTo:'tags',hasMany:true,admin:{position:'sidebar',allowCreate:true}},
     {
       name: "jurisdiction",
       label: "Quốc gia",
@@ -122,6 +138,7 @@ export const Knowledge: CollectionConfig = {
       label: "Nguồn gốc HTTPS",
       type: "text",
       required: true,
+      admin:{hidden:true},
       validate: (v: unknown) => {
         try {
           return new URL(String(v)).protocol === "https:" || "HTTPS required";
@@ -135,29 +152,34 @@ export const Knowledge: CollectionConfig = {
       label: "Hiệu lực từ",
       type: "date",
       required: true,
+      admin:{hidden:true},
     },
-    { name: "expiresAt", label: "Hết hiệu lực", type: "date" },
+    { name: "expiresAt", label: "Hết hiệu lực", type: "date",admin:{hidden:true} },
     {
       name: "reviewDueAt",
       label: "Rà soát trước",
       type: "date",
       required: true,
+      admin:{hidden:true},
     },
     {
       name: "approved",
       label: "Đã xác nhận nội dung cho kho kiến thức AI",
       type: "checkbox",
       defaultValue: false,
+      admin:{hidden:true},
     },
     {
       name: "reviewedBy",
       type: "relationship",
       relationTo: "users",
+      admin:{hidden:true},
       access: { create: () => false, update: () => false },
     },
     {
       name: "reviewedAt",
       type: "date",
+      admin:{hidden:true},
       access: { create: () => false, update: () => false },
     },
   ],

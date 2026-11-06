@@ -6,6 +6,7 @@ import {knowledgeArticles,writeKnowledgeArticle} from '../src/modules/knowledge/
 import {activeAnswerRules,answerRuleInstruction,rulesRevision} from '../src/modules/assistant/rules';
 import {eligible,findFaq,suggestedQuestions} from '../src/modules/assistant/faq';
 import {GET} from '../src/app/service/knowledge-source/[token]/route';
+import {testNativeKnowledge} from './test-native-knowledge';
 export async function testPrivateKnowledge(payload:Payload,owner:User){
  const db=new URL(process.env.DATABASE_URL||'');if(db.pathname!=='/lvd_test'||!['127.0.0.1','localhost'].includes(db.hostname))throw new Error('Isolated private knowledge checks only');
  const prefix='Private AI fixture '+crypto.randomUUID(),ids:number[]=[];
@@ -29,9 +30,14 @@ export async function testPrivateKnowledge(payload:Payload,owner:User){
   await assert.rejects(()=>writeKnowledgeArticle(payload,owner,{title:prefix+' invalid',body:'x'.repeat(4001),entryType:'rule',publish:true}),/4.000/);
   await pool.query("INSERT INTO knowledge(title,body,jurisdiction,source_url,entry_type,rule_enabled,approved,_status,effective_from,review_due_at) SELECT $1||n::text,'Synthetic rule','BOTH','https://example.invalid/rule','rule',true,false,'draft',now()-interval '1 day',now()+interval '1 day' FROM generate_series(1,20) n",[prefix+' cap ']);
   await assert.rejects(()=>writeKnowledgeArticle(payload,owner,{title:prefix+' capacity',body:'Synthetic policy',entryType:'rule',publish:true}),/20 quy tắc/);
+  const pending=await payload.create({collection:'knowledge',user:owner,overrideAccess:false,draft:true,data:{title:prefix+' pending rule',body:'Synthetic staged policy',entryType:'rule',ruleEnabled:true}});ids.push(pending.id);
+  assert.equal((await pool.query('SELECT rule_enabled FROM knowledge WHERE id=$1',[pending.id])).rows[0].rule_enabled,false,'A draft can stage a rule even when runtime capacity is full');
+  await assert.rejects(()=>payload.update({collection:'knowledge',id:pending.id,user:owner,overrideAccess:false,data:{ruleEnabled:true,_status:'published'}}),/20 quy tắc/);
+  assert.equal((await pool.query('SELECT rule_enabled FROM knowledge WHERE id=$1',[pending.id])).rows[0].rule_enabled,false,'A rejected Publish cannot partially activate a staged rule');
   console.log('Private AI knowledge checks passed: no public articles/API/source pages/suggestions, authorized staff editing, rules excluded from answers, immediate withdrawal and rule capacity limits.');
  }finally{
   await pool.query('DELETE FROM knowledge WHERE title LIKE $1',[prefix+' cap %']);
   for(const id of ids.reverse())await payload.delete({collection:'knowledge',id,user:owner,overrideAccess:false});
  }
+ await testNativeKnowledge(payload,owner);
 }
