@@ -420,8 +420,8 @@
     flex-wrap: nowrap;
   }
   .live-footer-inner {
-    grid-template-columns: 1fr;
-    gap: 36px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 36px 24px;
   }
   .live-footer-identity {
     margin-bottom: 8px;
