@@ -83,7 +83,7 @@ export async function testDialogueCampaign(payload:Payload,owner:User,support:Us
   scenarios.push({group:'08 Vụ nhà đất thứ hai',label:`${place} / ${owner}`,steps:[c('Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi và muốn biết thủ tục','property.timeline'),c(`Còn mảnh đất khác tôi định mua ở ${place}, thủ tục thế nào?`,'property-2.owner'),c(owner,'property-2.document'),c('Có rồi','property-2.timeline'),a('Mảnh đất khác đó đang chuẩn bị'),a('Chi phí?')]});
   const vague=['Hay','Thử','Tôi cần','Tôi muốn'][Math.floor(n/5)];
   scenarios.push({group:'09 Hội thoại dài và thiếu dữ kiện',label:`${place} / ${vague}`,steps:[c(vague),c('Về đầu tư','investment.country'),c(place,'investment.form'),c('thành lập GmbH','investment.timeline'),...Array.from({length:10+n%5},(_,i)=>c(['chưa biết ngày nào','không rõ thời hạn','chưa xác định ngày','chưa rõ thời hạn'][i%4],'investment.timeline')),c('chưa thực hiện','investment.goal'),a('muốn biết thủ tục'),a('Chi phí?'),c('Cảm ơn')]});
-  const failure=['invented','omit-condition','bad-json','quota','no-source'][Math.floor(n/4)];
+  const failure=['invented','wrong-source','bad-json','quota','no-source'][Math.floor(n/4)];
   scenarios.push({group:'10 Không đủ nguồn và lỗi nhà cung cấp',label:`${place} / ${failure} / ${n%4}`,failure:failure==='no-source'?undefined:failure,noSource:failure==='no-source',duplicate:true,staff:true,steps:[c(`Tôi muốn đầu tư ở ${place}`,'investment.form'),c(forms[n%4],'investment.timeline'),c('chưa thực hiện','investment.goal'),h('muốn biết thủ tục')]});
  }
  assert.equal(scenarios.length,200);

@@ -37,7 +37,7 @@ test('provider quotas and outages fail once without exposing response diagnostic
 });
 
 test('malformed, truncated, invented and incomplete model answers fail closed before becoming chat text',async t=>{
- for(const response of [null,{},generated(selection,'MAX_TOKENS'),generated({kind:'answer',passages:[]}),generated({kind:'answer',passages:[{key:'source-1',quote:'Invented unsupported legal conclusion.'}]}),generated({...selection,passages:selection.passages.slice(0,1)})]){
+ for(const response of [null,{},generated(selection,'MAX_TOKENS'),generated({kind:'answer',passages:[]}),generated({kind:'answer',passages:[{key:'source-1',quote:'Invented unsupported legal conclusion.'}]}),generated({kind:'answer',passages:[{key:'source-1',quote:'approved answer'}]})]){
   let calls=0;t.mock.method(globalThis,'fetch',async()=>{calls++;return Response.json(response);});
   await assert.rejects(selectPassages('Synthetic question',evidence,connection,700));assert.equal(calls,1);t.mock.restoreAll();
  }
@@ -102,4 +102,9 @@ test('quick reply catalog permits enabled templates to specialists and reserves 
   for(const role of [undefined,'member','support'])assert.equal(QuickReplies.access[action](request(role)),false);
  }
  assert.deepEqual(QuickReplies.fields.map(field=>field.name),['title','body','enabled']);
+});
+
+test('a correct model paragraph can restore the exact mandatory exception without a second provider request',async t=>{
+ let calls=0;t.mock.method(globalThis,'fetch',async()=>{calls++;return Response.json(generated({...selection,passages:selection.passages.slice(0,1)}));});
+ assert.deepEqual(await selectPassages('Synthetic question',evidence,connection,700),selection);assert.equal(calls,1);
 });

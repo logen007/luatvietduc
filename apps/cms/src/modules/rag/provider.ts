@@ -2,7 +2,7 @@ import {detailKinds,clarificationLanguage,currentIntakeContext} from '../assista
 import type {Values} from '../integrations/catalog';
 import {pool} from '../shared/db';
 import {answerRuleInstruction,type AnswerRule} from '../assistant/rules';
-import {DIMENSIONS,EMBEDDING_MODEL,vector,validateSelection,wholeParagraphSelection,type Evidence} from './core';
+import {DIMENSIONS,EMBEDDING_MODEL,vector,completeSourceSelection,type Evidence} from './core';
 export async function reserveBudget(limit:number){
  if(!limit)throw new Error('Budget disabled');
  const result=await pool.query('INSERT INTO lvd_ai_usage(day,count) VALUES(current_date,1) ON CONFLICT(day) DO UPDATE SET count=lvd_ai_usage.count+1 WHERE lvd_ai_usage.count<$1 RETURNING count',[limit]);
@@ -23,7 +23,7 @@ export async function selectPassages(question:string,evidence:Evidence[],connect
   generationConfig:{temperature:0,maxOutputTokens:Math.max(256,Math.min(2000,maxTokens)),responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{kind:{type:'STRING',enum:['answer','handoff','clarify-country','clarify-details']},detail:{type:'STRING',enum:[...detailKinds]},passages:{type:'ARRAY',items:{type:'OBJECT',properties:{key:{type:'STRING'},quote:{type:'STRING'}},required:['key','quote']}}},required:['kind']}},
  },13000);
  const content=result.candidates?.[0];if(content?.finishReason!=='STOP')throw new Error('Incomplete response');
- return validateSelection(wholeParagraphSelection(JSON.parse(content.content?.parts?.filter((p:any)=>!p.thought).map((p:any)=>p.text||'').join('')||'null'),evidence),evidence);
+ return completeSourceSelection(JSON.parse(content.content?.parts?.filter((p:any)=>!p.thought).map((p:any)=>p.text||'').join('')||'null'),evidence);
 }
 
 export type IntakeAssessment={status:'low'|'needs_details'|'ready';detail?:typeof detailKinds[number]|'country';question?:string};

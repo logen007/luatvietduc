@@ -160,6 +160,11 @@ export type ClarificationMessage={role:string;body:unknown;metadata?:{kind?:stri
 // Bind only unambiguous short answers to our own specific factual question.
 // These labels preserve context, not proof of title or a legal conclusion.
 export function contextualIntakeReply(body:string,key?:string){
+ if(/^family(?:-\d+)?\.parties$/.test(key||'')){
+  const self=normalized(body);
+  if(/^(?:toi|minh|chinh toi|cho toi|cho minh)$/.test(self))return 'Tôi là một trong hai vợ chồng.';
+  if(/^(?:ich|ich selbst|fur mich|ich bin selbst betroffen)$/.test(self))return 'Ich bin selbst einer der Ehepartner.';
+ }
  const kind=/^property(?:-\d+)?\.(owner|document)$/.exec(key||'')?.[1],text=normalized(body);
  if(!kind)return body;
  const de=/^(?:ich|mein|meine|meinen|ja|nein|noch|weiss|weiß|keine)\b/.test(text);
@@ -211,7 +216,9 @@ function propertyFacts(value:string){
  for(const clause of value.split(/[\n,;]/)){
   const text=normalized(clause),unclear=/\b(khong biet|chua biet|chua ro|khong ro|weiss nicht|weiß nicht|keine ahnung|unklar)\b/.test(text);
   if(/\b(dung ten|chua dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text)&&(unclear||! /\b(ai (?:dang )?dung ten|dung ten ai|auf wen.*eingetragen|wer.*eingetragen)\b/.test(text)))ownerKnown=!unclear;
-  if(/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch|urkunde|nachweis)\b/.test(text))documentKnown=!unclear;
+  const documentMention=/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch\w*|urkunde\w*|(?:eigentums)?nachweis\w*)\b/.test(text);
+  const documentQuestion=/\b(la gi|la sao|nghia la gi|co nghia|was ist|was bedeutet|was heisst|was heißt)\b/.test(text)||/\b(?:so do|so hong|giay chung nhan) (?:chua|khong)\b/.test(text)||/^(?:gibt es|habe ich|haben sie)\b/.test(text)&&/[?？]/.test(clause);
+  if(documentMention&&(unclear||!documentQuestion))documentKnown=!unclear;
  }
  const land=/\b(dat|dat dai|manh dat|thua dat|dat cua|ve dat|so do|so hong|grundstuck\w*)\b/.test(normalized(value.normalize('NFC').replace(/(?<!\p{L})(?:đặt|đạt)(?!\p{L})/giu,'action')));
  return {ownerKnown,documentKnown,complete:!land||ownerKnown&&documentKnown};

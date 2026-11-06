@@ -38,6 +38,21 @@ export function wholeParagraphSelection(value:unknown,evidence:Evidence[]):unkno
   return matches.length===1&&matches[0].length<=2400?{...passage,quote:matches[0]}:passage;
  })};
 }
+// Complete only a missing mandatory paragraph of an already validated source.
+// No provider-written claims, new sources or weakened limits enter this repair.
+export function completeSourceSelection(value:unknown,evidence:Evidence[]):Selection{
+ const restored=wholeParagraphSelection(value,evidence);
+ try{return validateSelection(restored,evidence);}catch(error){
+  if(!(error instanceof Error)||error.message!=='Missing source conditions')throw error;
+ }
+ const selected=restored as {kind:'answer';passages:{key:string;quote:string}[]};
+ const passages=[...selected.passages];
+ for(const source of evidence.filter(source=>selected.passages.some(p=>p.key===source.key))){
+  for(const quote of requiredParagraphs(source.text))if(!passages.some(p=>p.key===source.key&&p.quote===quote))passages.push({key:source.key,quote});
+ }
+ return validateSelection({...selected,passages},evidence);
+}
+const requiredParagraphs=(text:string)=>text.split(/\n\s*\n/).map(p=>p.trim()).filter(p=>/điều kiện|ngoại lệ|trừ khi|chỉ áp dụng|không áp dụng|lưu ý|hạn chế|cần chuyên viên|mandatory|exception|voraussetzung|bedingung|ausnahme|es sei denn|nur wenn|gilt nur|gelten nur|gilt nicht|gelten nicht|einschränkung|hinweis/i.test(p));
 // The model selects relevant source passages, never authors legal claims. Exact text and citations are enforced here.
 export function validateSelection(value:unknown,evidence:Evidence[]):Selection{
  const v=value as any;
@@ -54,7 +69,7 @@ export function validateSelection(value:unknown,evidence:Evidence[]):Selection{
   seen.add(p.key+'\n'+p.quote.trim());passages.push({key:p.key,quote:p.quote.trim()});
  }
  for(const source of evidence.filter(e=>passages.some(p=>p.key===e.key))){
-  const required=source.text.split(/\n\s*\n/).map(p=>p.trim()).filter(p=>/điều kiện|ngoại lệ|trừ khi|chỉ áp dụng|không áp dụng|lưu ý|hạn chế|cần chuyên viên|mandatory|exception|voraussetzung|bedingung|ausnahme|es sei denn|nur wenn|gilt nur|gelten nur|gilt nicht|gelten nicht|einschränkung|hinweis/i.test(p));
+  const required=requiredParagraphs(source.text);
   if(required.some(quote=>!passages.some(p=>p.key===source.key&&p.quote===quote)))throw new Error('Missing source conditions');
  }
  if(passages.reduce((sum,p)=>sum+p.quote.length,0)>7000)throw new Error('Answer too long');

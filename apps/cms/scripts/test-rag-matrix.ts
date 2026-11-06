@@ -132,6 +132,17 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   }
   another=await turn(another,'Mảnh đất khác đó đang chuẩn bị');assert.equal(last(another).metadata.kind,'ai');assert.equal(last(another).body,texts.private);
   assert.ok(queryEmbeddings>beforeRetrieval[0],'Only the completed second case reaches retrieval');
+  await ready(k.id);beforeRetrieval=retrievalCounts();
+  let selfReply=await start('Tôi muốn hỏi về ly hôn ở Đức, chia tài sản, đã ly hôn');
+  assert.equal(last(selfReply).metadata.clarificationKey,'family.parties');assert.deepEqual(retrievalCounts(),beforeRetrieval);
+  selfReply=await turn(selfReply,'Tôi');assert.equal(last(selfReply).metadata.kind,'ai');assert.equal(last(selfReply).body,texts.private);
+  beforeRetrieval=retrievalCounts();
+  let paperQuestion=await start('Tôi muốn sang tên đất ở Việt Nam, đất đứng tên mẹ tôi, đang chuẩn bị, muốn biết thủ tục');
+  for(const body of ['Sổ đỏ là gì?','Có sổ đỏ chưa là sao?']){
+   paperQuestion=await turn(paperQuestion,body);assert.equal(last(paperQuestion).metadata.clarificationKey,'property.document');assert.equal(last(paperQuestion).metadata.kind,'clarify');assert.deepEqual(retrievalCounts(),beforeRetrieval,'A question about the document is not evidence of having one');
+  }
+  paperQuestion=await turn(paperQuestion,'Có rồi');assert.equal(last(paperQuestion).metadata.kind,'ai');assert.equal(last(paperQuestion).body,texts.private);
+  console.log('Stored natural short replies passed: self role resolves family intake, document questions keep intake incomplete until an actual yes/no fact.');
   console.log('Stored same-topic new-matter dialogue passed: fresh owner/papers/stage, contextual short answers, no repeated reset and no retrieval before completion.');
   console.log('Stored intake dialogues passed: vague opening, missing/unknown dates, source answer only after facts, new-topic reset, country correction and completed no-source handoff.');
   const off=await article('AI-OFF','Synthetic excluded opt-out content must never reach any provider.', 'BOTH',{aiAllowed:false});const offSource=await mirror(off.id);assert.ok(!offSource?.approved);if(offSource){await ready(offSource.id);assert.equal((await retrieve('Synthetic opt-out','BOTH',connection)).sources.length,0);}
@@ -151,8 +162,11 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   }
   // Exact unambiguous fragments may restore only their original whole paragraph.
   allowed=[k.id];selected=[k.id];mode='fragment';result=await start('Xin giải thích bộ dữ liệu BETA?');assert.equal(last(result).metadata.kind,'ai');assert.equal(last(result).body,texts.private,'Restored text preserves the entire original answer and its exception');
+  for(const repairedMode of ['omit-condition','fragment-without-condition']){
+   allowed=[k.id];selected=[k.id];mode=repairedMode;result=await start('Xin giải thích bộ dữ liệu BETA?');assert.equal(last(result).metadata.kind,'ai');assert.equal(last(result).body,texts.private,'Only exact mandatory source paragraphs are restored');
+  }
   // Provider response failures never become unsupported customer answers.
-  for(const failure of ['invented','wrong-source','omit-condition','fragment-without-condition','truncated','bad-json','quota','handoff']){
+  for(const failure of ['invented','wrong-source','truncated','bad-json','quota','handoff']){
    allowed=[k.id];selected=[k.id];mode=failure;result=await start('Xin giải thích bộ dữ liệu BETA?');assert.equal(last(result).metadata.kind,'handoff',failure);assert.equal(result.result.conversation.aiEnabled,false);
    const beforeCalls=providerCalls;await turn(result,'Xin bổ sung thông tin BETA.');assert.equal(providerCalls,beforeCalls,'A handed-off conversation cannot silently restart AI');
   }

@@ -52,3 +52,22 @@ test('ordinary land-transfer wording finds the property topic without confusing 
  for(const question of ['Tôi muốn sang tên đất','Tôi muốn chuyển nhượng đất','Tôi muốn tặng cho đất'])assert.equal(intakeClarification(question)?.key,'property.country');
  assert.equal(intakeClarification('Tôi muốn hỏi thủ tục thế chấp tài sản ở Việt Nam, dự định đặt lịch'),null);
 });
+
+
+test('self replies bind only to a family party question, including scoped German replies',()=>{
+ const vi='Tôi muốn hỏi ly hôn ở Đức\nChia tài sản\nĐã ly hôn';
+ const de='Ich möchte zur Scheidung in Deutschland fragen\nVermögensaufteilung\nBereits geschieden';
+ for(const answer of ['Tôi','Mình','Chính tôi','Cho tôi'])assert.equal(intakeClarification(vi+'\n'+contextualIntakeReply(answer,'family.parties')),null,answer);
+ for(const answer of ['Ich','Ich selbst','Für mich'])assert.equal(intakeClarification(de+'\n'+contextualIntakeReply(answer,'family-2.parties')),null,answer);
+ for(const key of [undefined,'goal','family.timeline','property.document'])assert.equal(contextualIntakeReply('Tôi',key),'Tôi',String(key));
+ for(const answer of ['Không phải tôi','Tôi chưa hiểu','Ai vậy?'])assert.equal(contextualIntakeReply(answer,'family.parties'),answer);
+});
+test('asking what a document is never asserts that the customer already has one',()=>{
+ const vi='Tôi muốn sang tên đất ở Việt Nam\nĐất đứng tên mẹ tôi\nĐang chuẩn bị, muốn biết thủ tục';
+ const de='Ich möchte das Grundstück in Deutschland übertragen\nDie Mutter ist als Eigentümerin eingetragen\nIn Vorbereitung, ich möchte das Verfahren wissen';
+ for(const answer of ['Sổ đỏ là gì?','Có sổ đỏ chưa là sao?','Giấy chứng nhận nghĩa là gì?','Có sổ đỏ chưa?'])assert.equal(intakeClarification(vi+'\n'+answer)?.key,'property.document',answer);
+ for(const answer of ['Was ist ein Eigentumsnachweis?','Was bedeutet Grundbuchauszug?','Habe ich einen Nachweis?'])assert.equal(intakeClarification(de+'\n'+answer)?.key,'property.document',answer);
+ assert.equal(intakeClarification(de+'\nIch habe einen Eigentumsnachweis.'),null);
+ assert.equal(intakeClarification(de+'\nIch habe einen Grundbuchauszug.'),null);
+ assert.equal(intakeClarification(vi+'\nCó sổ đỏ\nSổ đỏ là gì?'),null,'An explanatory question does not withdraw an already supplied fact');
+});
