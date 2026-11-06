@@ -1138,3 +1138,7 @@ body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-history-error butt
 .lvd-chat .chat-thinking span{background:#aaa}
 body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) :is(button,a,input):focus-visible{outline-color:#bdbdbd}
 .lvd-chat :is(.chat-log,.chat-history-list){scrollbar-color:#565656 transparent}
+
+/* The composer owns its focus border; never draw a second box on the textarea. */
+.lvd-chat .chat-compose:focus-within{border-color:#555;outline:none;box-shadow:none}
+.lvd-chat .chat-compose textarea:is(:focus,:focus-visible){outline:none;box-shadow:none}
