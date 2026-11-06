@@ -6,7 +6,15 @@ export type Clarification={key:string;text:string};
 type Pair=readonly [string,string];
 type Slot={key:string;text:Pair;retry?:Pair;known?:RegExp|((value:string)=>boolean)};
 const normalized=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase().trim().replace(/[.!?…]+$/g,'').replace(/\s+/g,' ');
-const german=(question:string)=>/\b(ich|mochte|brauche|frage|hallo|bitte|zum|zur|uber|wissen|deutschland|investition|aufenthalt|arbeitsvertrag|prufung\w*|fuhrerschein\w*|durchgefallen|versicherung\w*|scheidung|erbschaft|mietvertrag|kosten)\b/.test(normalized(question));
+const hasGerman=(question:string)=>/\b(ich|mochte|brauche|frage|hallo|bitte|zum|zur|uber|wissen|deutschland|investition|aufenthalt|arbeitsvertrag|prufung\w*|fuhrerschein\w*|durchgefallen|versicherung\w*|scheidung|erbschaft|mietvertrag|kosten)\b/.test(normalized(question));
+export function clarificationLanguage(question:string):'vi'|'de'{
+ const marker='\nCâu hỏi tiếp: ',position=question.lastIndexOf(marker);
+ const latest=position>=0?question.slice(position+marker.length):question.split('\n').at(-1)||question;
+ if(/[đĐ\u031b\u0302\u0306]/.test(latest.normalize('NFD'))||/\b(toi|minh|ban muon|can hoi|giay to|ho so|thu tuc|chi phi|o duc|tai duc)\b/.test(normalized(latest)))return 'vi';
+ return hasGerman(latest)||hasGerman(question)?'de':'vi';
+}
+const german=(question:string)=>clarificationLanguage(question)==='de';
+
 const texts:Record<DetailKind,Pair>={
  goal:['Bạn đang cần tư vấn về việc gì và muốn giải quyết vấn đề nào?','Zu welchem Thema benötigen Sie Beratung und was möchten Sie klären?'],
  situation:['Việc gì đã xảy ra và điều nào đang khiến bạn vướng mắc?','Was ist passiert und wobei besteht die Schwierigkeit?'],

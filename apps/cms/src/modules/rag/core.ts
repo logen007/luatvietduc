@@ -24,6 +24,20 @@ export function pointId(source:number,revision:string,ordinal:number){
 }
 export type Evidence={key:string;sourceId:number;title:string;text:string;revision:string;score:number};
 export type Selection={kind:'answer';passages:{key:string;quote:string}[]}|{kind:'clarify-country'}|{kind:'clarify-details';detail:DetailKind}|{kind:'handoff'};
+// A model may omit a paragraph's opening words. Repair only an exact,
+// unambiguous substring by restoring its complete source paragraph. Validation
+// below still checks sources, scores, duplicates, limits and every condition.
+export function wholeParagraphSelection(value:unknown,evidence:Evidence[]):unknown{
+ const data=value as any;
+ if(data?.kind!=='answer'||!Array.isArray(data.passages)||data.passages.length>6)return value;
+ return {...data,passages:data.passages.map((passage:any)=>{
+  if(typeof passage?.quote!=='string'||passage.quote.trim().length<20||passage.quote.length>2400)return passage;
+  const source=evidence.find(item=>item.key===passage.key);if(!source)return passage;
+  const quote=passage.quote.trim(),paragraphs=source.text.split(/\n\s*\n/).map(text=>text.trim()).filter(Boolean);
+  const matches=paragraphs.filter(paragraph=>paragraph.includes(quote));
+  return matches.length===1&&matches[0].length<=2400?{...passage,quote:matches[0]}:passage;
+ })};
+}
 // The model selects relevant source passages, never authors legal claims. Exact text and citations are enforced here.
 export function validateSelection(value:unknown,evidence:Evidence[]):Selection{
  const v=value as any;

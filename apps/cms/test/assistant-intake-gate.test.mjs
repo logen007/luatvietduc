@@ -121,3 +121,7 @@ test('later explicit timing uncertainty supersedes old timing but unrelated unce
  const german='Ich möchte in Deutschland investieren und eine GmbH gründen, in Vorbereitung, und das Verfahren wissen';
  assert.equal(intakeClarification(german+'\nDer Zeitpunkt ist noch unklar')?.key,'investment.timeline');
 });
+
+test('the latest explicit language takes precedence over a previous German topic',()=>{
+ const context='Ich möchte in Deutschland investieren\nỞ Việt Nam';assert.ok(!/Land|Planen|Möchten/.test(intakeClarification(context).text));
+});

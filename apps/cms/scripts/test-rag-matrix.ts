@@ -46,7 +46,8 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   if(mode==='invented')value={kind:'answer',passages:[{key:prompt.sources[0].key,quote:'Invented statement which never existed in any approved content.'}]};
   if(mode==='wrong-source')value={kind:'answer',passages:[{key:'source-999999999',quote:prompt.sources[0].text.split(/\n\s*\n/)[0]}]};
   if(mode==='omit-condition')value.passages=value.passages.slice(0,1);
-  if(mode==='fragment')value.passages[0].quote=value.passages[0].quote.slice(0,35);
+  if(mode==='fragment'||mode==='fragment-without-condition')value.passages[0].quote=value.passages[0].quote.slice(0,35);
+  if(mode==='fragment-without-condition')value.passages=value.passages.slice(0,1);
   return json({candidates:[{finishReason:mode==='truncated'?'MAX_TOKENS':'STOP',content:{parts:[{text:mode==='bad-json'?'not-json':JSON.stringify(value)}]}}]});
  };
  async function article(title:string,body:string,country:'VN'|'DE'|'BOTH'='BOTH',extra:any={}){
@@ -134,8 +135,10 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
    long=await turn(long,'Còn bộ dữ liệu '+(turnIndex%2?'BETA':'ALPHA')+' thì sao? Lượt '+turnIndex);
    assert.equal(long.result.messages.length,turnIndex*2);assert.equal(last(long).metadata.kind,'ai');assert.equal(last(long).metadata.sources[0].id,id);assert.ok(prompts.at(-1).question.includes('MATRIX-ANCHOR'));
   }
+  // Exact unambiguous fragments may restore only their original whole paragraph.
+  allowed=[k.id];selected=[k.id];mode='fragment';result=await start('Xin giải thích bộ dữ liệu BETA?');assert.equal(last(result).metadata.kind,'ai');assert.equal(last(result).body,texts.private,'Restored text preserves the entire original answer and its exception');
   // Provider response failures never become unsupported customer answers.
-  for(const failure of ['invented','wrong-source','omit-condition','fragment','truncated','bad-json','quota','handoff']){
+  for(const failure of ['invented','wrong-source','omit-condition','fragment-without-condition','truncated','bad-json','quota','handoff']){
    allowed=[k.id];selected=[k.id];mode=failure;result=await start('Xin giải thích bộ dữ liệu BETA?');assert.equal(last(result).metadata.kind,'handoff',failure);assert.equal(result.result.conversation.aiEnabled,false);
    const beforeCalls=providerCalls;await turn(result,'Xin bổ sung thông tin BETA.');assert.equal(providerCalls,beforeCalls,'A handed-off conversation cannot silently restart AI');
   }

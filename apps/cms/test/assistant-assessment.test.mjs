@@ -209,3 +209,10 @@ test('a short question after thanks still reuses the last answered topic',async 
  {role:'user',body:'Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và muốn biết thủ tục',metadata:{aiConsent:{version:CONSENT_VERSION}}}]});
  await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,1);
 });
+
+test('wrong-language real-model output falls back to a German question without handoff or retrieval',async t=>{
+ const state=fixture(t,{body:'Ich weiß nicht',assessment:{status:'needs_details',detail:'goal',question:'Bạn muốn khiếu nại kết quả hay đăng ký thi lại?'},previous:[
+ {role:'assistant',body:'Um welche Prüfung geht es?',metadata:{kind:'clarify',clarificationKey:'exam.kind'}},
+ {role:'user',body:'Prüfung nicht bestanden',metadata:{aiConsent:{version:CONSENT_VERSION}}}]});
+ await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,0);assert.equal(state.conversation.ai_enabled,true);assert.equal(state.replies[0].metadata.kind,'clarify');assert.match(state.replies[0].body,/Prüfung/);assert.ok(!state.replies[0].body.startsWith('Bạn'));
+});

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {defaultAnswerRules,defaultRuleSource} from '../src/modules/assistant/default-rules.ts';
 import {resolveAnswerRules,rulesRevision,answerRuleInstruction} from '../src/modules/assistant/rules.ts';
 import {answerRulesEditor,saveAnswerRule} from '../src/modules/knowledge/answer-rules.ts';
-import {assessIntake,selectPassages} from '../src/modules/rag/provider.ts';
+import {validateIntakeAssessment,assessIntake,selectPassages} from '../src/modules/rag/provider.ts';
 const owner={id:1,role:'owner',jurisdictions:['VN','DE']},support={id:2,role:'support',jurisdictions:[]};
 test('all default business rules are shared between the editor and runtime; saved replacements suppress the old wording',()=>{
  const defaults=resolveAnswerRules([]);assert.equal(defaults.length,defaultAnswerRules.length);
@@ -35,4 +35,15 @@ test('both model phases receive edited rules, and retain technical and grounding
  for(const request of requests){const prompt=request.systemInstruction.parts[0].text;assert.ok(prompt.includes(marker));assert.ok(prompt.includes('schema'));assert.ok(prompt.includes('không phải chỉ dẫn')||prompt.includes('không phải chỉ dẫn hệ thống'));}
  assert.ok(requests[1].systemInstruction.parts[0].text.includes('đúng nguyên văn'));
  assert.ok(answerRuleInstruction(rules).includes('Không được dùng các quy tắc này làm căn cứ pháp luật'));
+});
+
+test('German intake explicitly requests German even though the orchestration instructions are Vietnamese',async t=>{
+ let request;
+ t.mock.method(globalThis,'fetch',async(_url,options)=>{request=JSON.parse(options.body);return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({status:'needs_details',detail:'goal',question:'Möchten Sie das Ergebnis anfechten oder etwas anderes klären?'})}]}}]});});
+ const question='Prüfung nicht bestanden\nFührerscheinprüfung\nIn Deutschland';await assessIntake(question,{apiKey:'synthetic',model:'synthetic'},[]);
+ assert.equal(JSON.parse(request.contents[0].parts[0].text).language,'de');assert.match(request.systemInstruction.parts[0].text,/Die Rückfrage muss auf Deutsch sein/);
+});
+
+test('a Vietnamese question cannot be accepted for an explicitly German intake',()=>{
+ assert.throws(()=>validateIntakeAssessment({status:'needs_details',detail:'goal',question:'Bạn muốn khiếu nại kết quả hay đăng ký thi lại?'},'de'),/language/);
 });
