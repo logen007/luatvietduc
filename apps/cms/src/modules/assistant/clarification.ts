@@ -26,7 +26,7 @@ function countryState(value:string){
  return {known,corrected};
 }
 const country:Slot={key:'country',text:['Việc này liên quan đến quốc gia hoặc địa phương nào?','Um welches Land oder welchen Ort geht es?'],known:value=>countryState(value).known};
-const timeline:Slot={key:'timeline',text:texts.timeline,known:/\b(du dinh|du kien|dang tim hieu|chua bat dau|chua (?:thuc hien|ky|nop|trien khai)|(?:vua|moi) (?:thuc hien|ky|nop|mua|ban)|chuan bi|da (?:thuc hien|ky|nop|mua|ban|ket hon|trien khai)|dang (?:trien khai|thuc hien|kinh doanh)|thang|nam 20\d\d|ngay|thoi han|geplant|planung|vorbereitung|bereits|noch nicht (?:begonnen|gestartet|unterschrieben|eingereicht)|frist|monat|jahr)\b/};
+const timeline:Slot={key:'timeline',text:texts.timeline,known:/\b(du dinh|du kien|dang tim hieu|chua bat dau|chua (?:thuc hien|ky|nop|trien khai)|(?:vua|moi) (?:thuc hien|ky|nop|mua|ban)|chuan bi|da (?:thuc hien|ky|nop|mua|ban|ket hon|trien khai)|dang (?:trien khai|thuc hien|kinh doanh)|(?:ngay|thang) \d{1,2}|nam 20\d\d|(?:hom|tuan|thang|nam) (?:qua|nay|truoc|sau|toi)|geplant|planung|vorbereitung|bereits|noch nicht (?:begonnen|gestartet|unterschrieben|eingereicht)|gestern|heute|morgen|(?:am|bis zum|frist bis) \d{1,2}|(?:nachste|letzte)(?:n|r)? (?:woche|monat|jahr))\b/};
 const goalKnown=/\b(dieu kien|thu tuc|giay to|giay phep|chi phi|rui ro|quyen|nghia vu|muc tieu|muon biet|can biet|quy trinh|voraussetzung\w*|verfahren|genehmigung|kosten|risik\w*|rechte|pflichten|ziel|mochte wissen)\b/;
 type Topic={id:string;match:RegExp;bare:RegExp;slots:Slot[]};
 const topics:Topic[]=[

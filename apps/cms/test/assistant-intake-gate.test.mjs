@@ -35,3 +35,8 @@ test('family parties supplied in the initial situation do not need a duplicate q
  assert.equal(intakeClarification('Tôi muốn hỏi việc ly hôn tại Đức, tài sản liên quan đến anh chị em, đang chuẩn bị'),null);
  assert.equal(intakeClarification('Tôi muốn hỏi việc ly hôn tại Đức, tài sản liên quan, đang chuẩn bị, chưa biết các bên là ai').key,'family.parties');
 });
+test('asking about a date or deadline does not supply that date or deadline',()=>{
+ for(const answer of ['chưa biết ngày nào','không rõ thời hạn','chưa biết tháng nào'])assert.equal(intakeClarification('Tôi muốn đầu tư thành lập doanh nghiệp ở Đức\nmuốn biết thủ tục\n'+answer)?.key,'investment.timeline',answer);
+ assert.equal(intakeClarification('Ich möchte in Deutschland investieren\nGründung einer GmbH\nIch möchte das Verfahren wissen\nDie Frist ist noch unklar')?.key,'investment.timeline');
+ for(const answer of ['ngày 15/11/2026','tháng sau','đang chuẩn bị, chưa biết ngày nào'])assert.equal(intakeClarification('Tôi muốn đầu tư thành lập doanh nghiệp ở Đức\nmuốn biết thủ tục\n'+answer),null,answer);
+});

@@ -70,6 +70,28 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   // real SQL scope filtering, not this fixture, must reject it.
   allowed=[aSource.id,gSource.id,k.id];selected=[aSource.id];result=await start('Xin giải thích ALPHA tại Việt Nam?');assert.ok(prompts.at(-1).sources.every((s:any)=>s.key!=='source-'+gSource.id));
   selected=[gSource.id];result=await start('Không phải Việt Nam mà tại Đức: giải thích GAMMA?');assert.ok(prompts.at(-1).sources.every((s:any)=>s.key!=='source-'+aSource.id));assert.equal(last(result).body,texts.german);
+  // Actual stored multi-turn intake: unknown facts cannot reach a provider.
+  await ready(k.id);let beforeIntakeCalls=providerCalls;
+  let intake=await start('Hay');
+  assert.equal(last(intake).metadata.kind,'clarify');
+  for(const [body,key] of [['Tôi muốn đầu tư','investment.country'],['ở Đức','investment.form'],['thành lập GmbH','investment.timeline'],['muốn biết thủ tục','investment.timeline'],['chưa biết ngày nào','investment.timeline'],['không rõ thời hạn','investment.timeline']]){
+   intake=await turn(intake,body);assert.equal(last(intake).metadata.kind,'clarify',body);assert.equal(last(intake).metadata.clarificationKey,key,body);assert.equal(providerCalls,beforeIntakeCalls,'No provider requests before facts are supplied: '+body);assert.equal(intake.result.conversation.aiEnabled,true);
+  }
+  intake=await turn(intake,'chưa thực hiện');assert.equal(last(intake).metadata.kind,'ai');assert.equal(last(intake).metadata.sources[0].id,k.id);assert.ok(providerCalls>beforeIntakeCalls,'Completed intake reaches source retrieval');
+  beforeIntakeCalls=providerCalls;let switched=await start('Tôi muốn đầu tư tại Đức');
+  for(const [body,key] of [['Tôi muốn hỏi về ly hôn','family.country'],['Việt Nam','family.situation'],['tài sản','family.timeline'],['chưa ký','family.parties']]){
+   switched=await turn(switched,body);assert.equal(last(switched).metadata.kind,'clarify',body);assert.equal(last(switched).metadata.clarificationKey,key,body);assert.equal(providerCalls,beforeIntakeCalls,'Changing topic must collect its own facts');
+  }
+  allowed=[];switched=await turn(switched,'vợ chồng');assert.equal(last(switched).metadata.kind,'handoff','Only a completed uncovered situation goes to staff');
+  beforeIntakeCalls=providerCalls;let corrected=await start('Tôi muốn đầu tư tại Đức');
+  corrected=await turn(corrected,'Không phải Đức, chưa biết nước nào');assert.equal(last(corrected).metadata.clarificationKey,'investment.country');
+  corrected=await turn(corrected,'Việt Nam');assert.equal(last(corrected).metadata.clarificationKey,'investment.form');assert.equal(providerCalls,beforeIntakeCalls);
+  await ready(gSource.id);beforeIntakeCalls=providerCalls;let germanIntake=await start('Hallo');
+  for(const [body,key] of [['Ich möchte investieren','investment.country'],['Deutschland','investment.form'],['Gründung einer GmbH','investment.timeline'],['Die Frist ist noch unklar','investment.timeline'],['noch nicht begonnen','investment.goal']]){
+   germanIntake=await turn(germanIntake,body);assert.equal(last(germanIntake).metadata.kind,'clarify',body);assert.equal(last(germanIntake).metadata.clarificationKey,key,body);assert.equal(providerCalls,beforeIntakeCalls);
+  }
+  germanIntake=await turn(germanIntake,'Das Verfahren');assert.equal(last(germanIntake).metadata.kind,'ai');assert.equal(last(germanIntake).body,texts.german);
+  console.log('Stored intake dialogues passed: vague opening, missing/unknown dates, source answer only after facts, new-topic reset, country correction and completed no-source handoff.');
   const off=await article('AI-OFF','Synthetic excluded opt-out content must never reach any provider.', 'BOTH',{aiAllowed:false});const offSource=await mirror(off.id);assert.ok(!offSource?.approved);if(offSource){await ready(offSource.id);assert.equal((await retrieve('Synthetic opt-out','BOTH',connection)).sources.length,0);}
   const draft=await article('DRAFT','Synthetic unpublished article must never reach any provider.','BOTH',{_status:'draft'});const draftSource=await mirror(draft.id);assert.ok(!draftSource?.approved);if(draftSource){await ready(draftSource.id);assert.equal((await retrieve('Synthetic draft','BOTH',connection)).sources.length,0);}
   const privateDraft=await writeKnowledgeArticle(payload,support,{title:synthetic+' PRIVATE-DRAFT',body:'Synthetic private draft must not appear in retrieval.',publish:false});knowledge.push(privateDraft.id);await ready(privateDraft.id);assert.equal((await retrieve('Synthetic private draft','BOTH',connection)).sources.length,0);
