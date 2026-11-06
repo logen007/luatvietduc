@@ -53,15 +53,27 @@ export function useWorkspace(staff=false,manageList=true){
       const element = shell.current;
       if (!element) return;
       element.style.setProperty("--lvd-chat-vh", `${height}px`);
+      element.style.setProperty("--lvd-chat-offset", `${viewport?.offsetTop||0}px`);
+      const editing=element.contains(document.activeElement)&&document.activeElement?.matches('textarea,input,[contenteditable="true"]');
+      element.dataset.keyboardOpen=String(Boolean(editing&&viewport&&viewport.scale===1&&height<document.documentElement.clientHeight-120));
       element.dataset.compactViewport = String(height <= 620);
       element.dataset.shortViewport = String(height <= 420);
     };
+    let frame=0;
+    const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(measure);};
     measure();
-    window.addEventListener("resize", measure);
-    viewport?.addEventListener("resize", measure);
+    window.addEventListener("resize", schedule);
+    viewport?.addEventListener("resize", schedule);
+    viewport?.addEventListener("scroll", schedule);
+    document.addEventListener("focusin", schedule);
+    document.addEventListener("focusout", schedule);
     return () => {
-      window.removeEventListener("resize", measure);
-      viewport?.removeEventListener("resize", measure);
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", schedule);
+      viewport?.removeEventListener("resize", schedule);
+      viewport?.removeEventListener("scroll", schedule);
+      document.removeEventListener("focusin", schedule);
+      document.removeEventListener("focusout", schedule);
     };
   }, []);
   const refreshList = async () => {
