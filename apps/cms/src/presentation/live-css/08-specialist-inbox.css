@@ -22,3 +22,8 @@
 @media(max-width:760px){.operator-quick-panel input{font-size:calc(16px * var(--lvd-admin-font-scale, 1))}.operator-quick-panel{max-width:none}.operator-quick-replies>button{font-size:calc(11px * var(--lvd-admin-font-scale, 1))}}
 
 .operator-template-error{padding:0 16px 8px;font-size:calc(12px * var(--lvd-admin-font-scale, 1));color:var(--op-muted)!important}
+
+/* Embedded inbox uses the available admin workspace without an outer card. */
+html.lvd-admin .lvd-admin-inbox-page{padding:0;min-width:0}
+html.lvd-admin .operator-workspace.is-embedded{margin:0;max-width:none;border:0;border-radius:0;min-height:0;height:var(--lvd-chat-vh,100dvh)}
+@media(max-width:1100px){html.lvd-admin .operator-workspace.is-embedded{height:calc(var(--lvd-chat-vh,100dvh) - 56px)}}
