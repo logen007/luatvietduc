@@ -41,7 +41,7 @@ export async function testRag(payload:Payload,owner:User,support:User){
   return json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(selection)}]}}]});
  };
  async function indexSource(){await pool.query("UPDATE lvd_rag_jobs SET status='pending',available_at=now()-interval '2 days' WHERE source_id=$1",[source.id]);await indexNext();}
- async function start(question='Synthetic paraphrase with no exact title match',consent=true){
+ async function start(question='Xin giải thích nội dung bằng cách diễn đạt khác?',consent=true){
   const actor:chat.Actor={user:null,guestHash:crypto.randomUUID()},conversation=await chat.createConversation(actor,{consent:true},{assistantEnabled:true});
   const message=await chat.message(actor,conversation.id,{body:question,key:crypto.randomUUID(),...(consent?{aiConsentVersion:CONSENT_VERSION}:{})},2000);return {actor,conversation,message};
  }

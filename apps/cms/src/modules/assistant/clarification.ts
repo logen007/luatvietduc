@@ -125,7 +125,8 @@ export function clarificationHistory(previous:ClarificationMessage[],consentVers
 // not mean that the customer supplied it; vague replies must stay in intake.
 const emptyReply=/^(?:hay(?: qua)?|cam on(?: ban)?|danke|gut|giup toi(?: voi)?|thu(?: xem)?|test(?:ing)?|abc|asdf\w*|ok(?:ay)?|uh|u|um|vang|da|khong|co|sao|sao vay|gi|khong biet|chua biet|khong ro|chua ro|khong hieu|nichts|ja|nein|weiss nicht|keine ahnung)$/;
 const partyRoles=/\b(cha|me|con|vo|chong|nguoi mua|nguoi ban|ngan hang|doanh nghiep|ca nhan|chu so huu|nguoi lao dong|nguoi su dung lao dong|eltern|kind\w*|ehepartner|kaufer|verkaufer|bank|unternehmen|arbeitnehmer|arbeitgeber)\b/;
-const usableReply=(text:string)=>{const value=normalized(text);return Boolean(value)&&!vague.test(value)&&!emptyReply.test(value)&&/[\p{L}\p{N}]/u.test(value);};
+const fillerWords=new Set('toi minh em anh chi ban muon can dang hoi nho giup tu van ho tro mot chut ti it ve nay kia do ay no the vay nhu la xin chao voi nhe a ah uh vang da ich mochte will brauche etwas fragen bitte hilfe ja gut'.split(' '));
+const usableReply=(text:string)=>{const value=normalized(text);return Boolean(value)&&!value.split(' ').every(word=>fillerWords.has(word))&&!vague.test(value)&&!emptyReply.test(value)&&/[\p{L}\p{N}]/u.test(value);};
 export function intakeClarification(question:string,asked:readonly string[]=[],answers:Record<string,string>={}):Clarification|null{
  const state=intakeState(question),text=normalized(state.text),last=state.text.split('\n').at(-1)||question;
  const prompt=(key:string,pair:Pair):Clarification=>({key,text:pair[german(state.text)?1:0]});
@@ -139,6 +140,6 @@ export function intakeClarification(question:string,asked:readonly string[]=[],a
   return null;
  }
  if(!usableReply(last))return prompt('goal',asked.includes('goal')?['Bạn đang cần hỗ trợ chuyện gì? Bạn mô tả cụ thể điều đang vướng nhé.','Wobei benötigen Sie Hilfe? Beschreiben Sie bitte konkret, was Sie klären möchten.']:texts.goal);
- if(text.split(' ').length<3||text.split(' ').length<=6&&!/[?？]/.test(state.text)&&!goalKnown.test(text)&&! /\b(hoi|giai thich|tu van|question|frage|klaren|erklaren)\b/.test(text))return prompt('goal',texts.goal);
+ if(text.split(' ').length<3||!/[?？]/.test(state.text)&&!goalKnown.test(text)&&! /\b(hoi|giai thich|tu van|question|frage|klaren|erklaren)\b/.test(text))return prompt('goal',texts.goal);
  return nextClarification(question,asked);
 }
