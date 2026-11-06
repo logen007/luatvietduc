@@ -785,3 +785,8 @@ html.lvd-admin[data-theme='dark']{
 @media(forced-colors:active){
  :is(.lvd-public-site,.lvd-redesign,.live-shell,.live-page,.lvd-admin) select:not([multiple]):not([size]){appearance:auto!important;-webkit-appearance:auto!important;background-image:none!important}
 }
+
+/* A single field surface; no extra focus rectangles while entering text. */
+html :is(input,textarea,select):is(:focus,:focus-visible){outline:none!important;box-shadow:none!important}
+html .pm-ask-row:focus-within{outline:none;box-shadow:none}
+html .lvd-chat .chat-compose:focus-within{outline:none;box-shadow:none}

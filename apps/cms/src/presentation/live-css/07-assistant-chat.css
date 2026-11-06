@@ -171,3 +171,5 @@ body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) :is(button,a,input):focu
 .lvd-chat .chat-message.user>.chat-message-time{display:block;margin-top:6px;text-align:right}
 .lvd-chat .chat-answer-text .chat-login-message{margin-top:12px;color:#bcbcbc}
 @media(max-width:600px){.lvd-chat .chat-answer-label{flex-wrap:wrap;row-gap:4px}}
+
+html .lvd-chat .chat-top h1{display:none}
