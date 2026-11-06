@@ -18,11 +18,11 @@ export function CustomerWorkspace(){
  const empty=!state.selected,loading=(!state.loaded&&!state.initializationFailed)||Boolean(state.selected&&!state.conversation&&!state.connectionError);
  useEffect(()=>{let active=true;setQuestions([]);void api('assistant/questions').then(value=>{if(active)setQuestions(value.questions||[]);}).catch(()=>{});return()=>{active=false;};},[]);
  const human=state.preferHuman||Boolean(state.conversation&&!state.conversation.aiEnabled);
- const mode=state.conversation?.state==='closed'?'Đã hoàn tất':state.conversation?.state==='human'?'Đang trao đổi với chuyên viên':human?'Đang chờ chuyên viên':'Trợ lý pháp luật';
+ const mode=state.conversation?.state==='closed'?'Đã hoàn tất':state.conversation?.state==='human'?'Đang trao đổi với chuyên viên':human?'Đang chờ chuyên viên':'';
  return <><Header onAccountNavigate={accountNavigate}/><main ref={state.shell} className={'chat-shell live-shell live-customer-shell lvd-chat'+(empty?' is-empty':'')}>
   <aside className="chat-sidebar"><ChatHistory state={state} onSelect={choose} onNew={startNew}/></aside>
   <section className="chat-main" aria-label={t("Nội dung trò chuyện")}>
-   <header className="chat-top"><div className="chat-top-title"><button type="button" className="chat-history-toggle" aria-label={t("Mở lịch sử hội thoại")} aria-expanded={historyOpen} onClick={()=>{dialog.current?.showModal();setHistoryOpen(true);}}><ChatIcon name="history"/></button><h1>{t(mode)}</h1></div>
+   <header className="chat-top"><div className="chat-top-title"><button type="button" className="chat-history-toggle" aria-label={t("Mở lịch sử hội thoại")} aria-expanded={historyOpen} onClick={()=>{dialog.current?.showModal();setHistoryOpen(true);}}><ChatIcon name="history"/></button>{mode&&<h1>{t(mode)}</h1>}</div>
     <div className="chat-top-actions">{state.conversation?.state==='closed'&&<button type="button" onClick={()=>void state.act('reopen')} disabled={state.busy||state.uploading||!state.loaded}>{t("Mở lại")}</button>}<button type="button" className="chat-new-mobile" aria-label={t("Cuộc trò chuyện mới")} onClick={startNew} disabled={state.busy||state.uploading||!state.loaded}><ChatIcon name="new"/></button></div>
    </header>
    <div className="chat-log" ref={state.log} role="log" aria-live="polite" aria-busy={loading}>{loading?<div className="chat-welcome" role="status"><span className="live-spinner" aria-hidden="true"/><p>{t("Đang mở cuộc trò chuyện…")}</p></div>:state.initializationFailed?null:empty?<div className="chat-welcome"><span className="chat-welcome-mark" aria-hidden="true"><ChatIcon name="spark"/></span><h2>{t("Bạn cần giải đáp điều gì?")}</h2></div>:<ChatMessages state={state}/>}</div>
