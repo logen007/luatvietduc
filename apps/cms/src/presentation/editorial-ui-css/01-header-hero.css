@@ -40,7 +40,8 @@
 .lvd-redesign .pm-ask textarea::placeholder { color:#737373; }
 .lvd-redesign .pm-ask textarea:focus { outline:none; }
 .pm-ask-row:focus-within { outline:2px solid #fff; outline-offset:4px; }
-.lvd-redesign .pm-ask .button { flex-shrink:0; }
+.lvd-redesign .pm-ask .button { flex:0 0 48px; width:48px; min-width:48px; min-height:48px; padding:0; gap:0; font-size:0; }
+.lvd-redesign .pm-ask .button svg { width:24px; height:24px; }
 .pm-hero-links { margin-top:24px; }
 .pm-hero-links a { display:inline-flex; align-items:center; gap:10px; color:rgba(255,255,255,.85); text-decoration:none; font:400 14px/20px var(--lvd-font); }
 .pm-hero-links a:hover { color:#fff; }
