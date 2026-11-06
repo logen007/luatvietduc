@@ -21,6 +21,7 @@
     "prebuild": "node scripts/prepare-frontend.mjs",
     "predev": "node scripts/prepare-frontend.mjs",
     "test:system": "payload run scripts/test-system.ts",
+    "test:dialogues": "payload run scripts/run-dialogue-campaign.ts",
     "test:http": "payload run scripts/test-http.ts",
     "postbuild": "node scripts/check-browser-ci.mjs",
     "test:browser": "node --import tsx scripts/test-browser.mjs"

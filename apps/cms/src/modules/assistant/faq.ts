@@ -9,7 +9,7 @@ export const normalizeQuestion=(text:string)=>text.normalize('NFD').replace(/[\u
 // A reference to staff is not itself a request to transfer. Keep this separate
 // from personal-record/identifier guards, which must never be masked by a denial.
 const person='(?:chuyen vien|nguoi that|nguoi tu van|nhan vien|luat su|tu van truc tiep|nguoi)';
-const contact='(?:gap(?: truc tiep)?|noi chuyen voi|trao doi voi|lien he(?: voi)?|ket noi(?: (?:toi|minh))? (?:voi|den)|chuyen(?: (?:toi|minh))?(?: (?:cho|sang|den))?|goi)';
+const contact='(?:gap(?: truc tiep)?|noi chuyen voi|trao doi voi|lien he(?: voi)?|ket noi(?: (?:toi|minh))?(?: (?:voi|den))?|chuyen(?: (?:toi|minh))?(?: (?:cho|sang|den))?|goi)';
 const request=new RegExp('\\b(?:'+contact+'|can|muon|nho|cho (?:toi|minh))(?: (?:mot|nguoi))? '+person+'\\b');
 const declined=new RegExp('\\b(?:khong|chua|dung)(?: (?:can|muon|yeu cau|co nhu cau|de nghi))?(?: '+contact+')?(?: (?:mot|nguoi))? '+person+'\\b|\\b'+person+' (?:thi )?(?:khong|chua) (?:can|muon)\\b','g');
 const barePerson=new RegExp('^'+person+'(?: (?:nhe|voi|a))?$');

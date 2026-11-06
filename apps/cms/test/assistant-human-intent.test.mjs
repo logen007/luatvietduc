@@ -17,7 +17,7 @@ test('declined or future conditional specialist contact does not force immediate
   'Khi cần mới gặp chuyên viên',
   'Nếu cần, chuyển chuyên viên',
   'Tôi muốn gặp chuyên viên, à không, chưa cần gặp chuyên viên',
-  'Tôi không có nhu cầu gặp chuyên viên',
+  'Tôi không có nhu cầu gặp chuyên viên', 'Đừng kết nối chuyên viên', 'Chưa cần kết nối chuyên viên cho tôi', 'Nếu không trả lời được thì kết nối chuyên viên',
   'Tôi không yêu cầu gặp chuyên viên',
   'Tôi muốn gặp chuyên viên\nÀ không, chưa cần gặp chuyên viên',
  ])assert.equal(requiresHuman(question),false,question);
@@ -26,7 +26,7 @@ test('declined or future conditional specialist contact does not force immediate
 test('an actual current request for staff still hands off, including after declining earlier',()=>{
  for(const question of [
   'Tôi muốn gặp chuyên viên', 'Tôi muốn nói chuyện với người', 'Gặp chuyên viên', 'Cho tôi gặp chuyên viên',
-  'Kết nối tôi với chuyên viên', 'Chuyển sang một chuyên viên', 'Người thật',
+  'Kết nối chuyên viên cho tôi', 'Kết nối luật sư', 'Kết nối tôi với chuyên viên', 'Chuyển sang một chuyên viên', 'Người thật',
   'Tôi cần chuyên viên hỗ trợ', 'Nhờ luật sư tư vấn',
   'Không cần AI nữa, chuyển chuyên viên',
   'Chưa cần chuyên viên\nBây giờ tôi muốn gặp chuyên viên',
