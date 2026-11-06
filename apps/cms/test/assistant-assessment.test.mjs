@@ -124,5 +124,26 @@ test('land fragment after a clarification stays in intake instead of personal-ca
   {role:'assistant',body:'Bạn cần tư vấn việc gì?',metadata:{kind:'clarify',clarificationKey:'goal'}},
   {role:'user',body:'Tôi cần'},
  ]});
- await state.run();assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,'property.country');assert.match(state.replies[0].body,/Việt Nam, Đức/);assert.equal(state.conversation.ai_enabled,true);assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.conversation.qualification,'needs_details');
+ await state.run();assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,'property.country');assert.match(state.replies[0].body,/Việt Nam, Đức/);assert.equal(state.conversation.ai_enabled,true);assert.equal(state.assessments,1);assert.equal(state.embeddings,0);assert.equal(state.conversation.qualification,'needs_details');
+});
+
+const repeatedExam=[{role:'assistant',body:'Bạn đang nói đến kỳ thi nào: bằng lái, ngoại ngữ, nghề nghiệp hay kỳ thi khác?',metadata:{kind:'clarify',clarificationKey:'exam.kind'}},{role:'user',body:'Tôi thi mãi không được',metadata:{aiConsent:{version:CONSENT_VERSION}}}];
+test('repeated missing facts can use a contextual intake question before retrieval',async t=>{
+ const next='Bạn đang thi bằng lái, chứng chỉ ngoại ngữ hay một kỳ thi khác?';
+ const state=fixture(t,{body:'Thi không đỗ',previous:repeatedExam,assessment:{status:'needs_details',detail:'situation',question:next}});await state.run();
+ assert.equal(state.replies[0].body,next);assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.conversation.ai_enabled,true);assert.equal(state.embeddings,0);assert.equal(state.assessments,1);
+});
+for(const options of [{assessment:{status:'ready'}},{unavailable:true},{assessment:{status:'needs_details',detail:'situation',question:repeatedExam[0].body}}])test('an incomplete exam stays in intake with a different question on '+JSON.stringify(options),async t=>{
+ const state=fixture(t,{body:'Thi không đỗ',previous:repeatedExam,...options});await state.run();assert.equal(state.replies[0].metadata.kind,'clarify');assert.notEqual(state.replies[0].body,repeatedExam[0].body);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.conversation.ai_enabled,true);
+});
+test('unconsented repeated intake never calls the external provider',async t=>{
+ const state=fixture(t,{body:'Thi không đỗ',previous:repeatedExam,consented:false});await state.run();assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.replies[0].metadata.kind,'clarify');assert.notEqual(state.replies[0].body,repeatedExam[0].body);
+});
+test('generated intake accepts one bounded factual question and rejects advice, identifiers and markup',()=>{
+ const value={status:'needs_details',detail:'situation',question:'Bạn đang nói đến kỳ thi nào?'};assert.deepEqual(validateIntakeAssessment(value),value);
+ for(const question of ['Bạn có quyền yêu cầu bồi thường theo luật nào?','Gửi số CCCD 123456789012 nhé?','<b>Bạn thi gì?</b>','Bạn thi gì? Ở đâu?','Gửi email me@example.invalid?','Đã đủ thông tin.','x'.repeat(250)+'?'])assert.throws(()=>validateIntakeAssessment({...value,question}));
+});
+
+test('an invalidated contextual intake question falls back locally without specialist handoff',async t=>{
+ const state=fixture(t,{body:'Thi không đỗ',previous:repeatedExam,assessment:{status:'needs_details',detail:'situation',question:'Bạn đang thi chứng chỉ ngoại ngữ hay bằng lái?'},onAssess:state=>state.provider.version++});await state.run();assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.conversation.ai_enabled,true);assert.equal(state.embeddings,0);assert.equal(state.conversation.expires,false);
 });

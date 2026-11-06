@@ -1,5 +1,5 @@
 import {answerHistory,questionWithHistory,groundedPreviousAnswer} from './conversation-context';
-import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply} from './clarification';
+import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply,unrepeatedClarification,isRepeatedClarification} from './clarification';
 import type {Qualification} from '../chat/qualification';
 import {randomUUID} from 'node:crypto';
 import {pool,transaction} from '../shared/db';
@@ -29,7 +29,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   await db.query('UPDATE lvd_conversations SET ai_generation=$2,ai_message_id=$3,ai_started_at=now() WHERE id=$1',[id,token,message.id]);
   const previous=(await db.query("SELECT role,body,metadata FROM ((SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 80) UNION (SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND role='user' AND NOT internal ORDER BY id LIMIT 4)) history ORDER BY id DESC",[id,message.id])).rows;
   const history=clarificationHistory(previous,CONSENT_VERSION);
-  return {retainHistory:Boolean(conversation.retain_history),meaningfulHistory:previous.some(row=>row.role==='user'&&!isVagueIntakeReply(String(row.body))),previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
+  return {previousQuestions:previous.filter(row=>row.role==='assistant'&&row.metadata?.kind==='clarify').map(row=>String(row.body)).slice(0,6),retainHistory:Boolean(conversation.retain_history),meaningfulHistory:previous.some(row=>row.role==='user'&&!isVagueIntakeReply(String(row.body))),previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
  });
  if(!work)return;
  let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined,clarificationKey:string|undefined;
@@ -37,13 +37,15 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
  let ragSources:Faq[]=[],rules:AnswerRule[]=[],rag=false,clarification=false,localClarification=false;
  const localQuestion=[work.localContext,work.question].filter(Boolean).join('\n');
  const intake=currentIntakeContext(localQuestion);
+ const initial=intakeClarification(localQuestion,work.clarificationKeys,work.intakeAnswers);
+ const clarify=(value:{key:string;text:string})=>unrepeatedClarification(value,work.previousQuestions,localQuestion);
  const admitReady=async()=>Boolean((await pool.query("UPDATE lvd_conversations SET qualification='ready',retain_history=true,low_priority_expires_at=NULL WHERE id=$1 AND state='queued' AND ai_enabled AND ai_generation=$2 AND version=$3 AND $4::bigint=(SELECT max(id) FROM lvd_messages WHERE conversation_id=$1 AND role='user')",[id,token,work.version,messageId])).rowCount);
  try{
   if(policy.customerAIEnabled===false||policy.chatEnabled===false)throw new Error('Disabled');
   if(requiresHuman(localQuestion))throw new Error('Specialist required');
-  const initial=intakeClarification(localQuestion,work.clarificationKeys,work.intakeAnswers);
-  if(initial){qualification=!work.retainHistory&&!work.meaningfulHistory&&!intake.topic&&isVagueIntakeReply(work.question)?'low':'needs_details';answer=initial.text;clarificationKey=initial.key;clarification=true;localClarification=true;}else{
-  unqualifiedAssessment=work.consented&&!work.retainHistory&&!intake.topic;
+  const semanticIntake=work.consented&&initial&&!isVagueIntakeReply(work.question)&&work.clarificationCount>0&&(!intake.topic||work.clarificationKeys.includes(initial.key));
+  if(initial&&!semanticIntake){qualification=!work.retainHistory&&!work.meaningfulHistory&&!intake.topic&&isVagueIntakeReply(work.question)?'low':'needs_details';answer=clarify(initial);clarificationKey=initial.key;clarification=true;localClarification=true;}else{
+  unqualifiedAssessment=Boolean(initial)||work.consented&&!work.retainHistory&&!intake.topic;
   providerVersion=(await readRow('ai'))?.version;
   const connection=await activeValues('ai');if(!connection)throw new Error('Provider not connected');
   const ruleQuestion=questionWithHistory(work.question,work.context);
@@ -55,15 +57,18 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    if(requiresHuman(question)){unqualifiedAssessment=false;throw new Error('Specialist required');}
    await reserveBudget(limit);
    let assessment;
-   try{assessment=await assessIntake(question,connection,rules);}catch{
+   try{assessment=await assessIntake(question,connection,rules,{asked:work.clarificationKeys,required:initial?.key});}catch{
     if(unqualifiedAssessment)throw new Error('Intake unavailable');
     console.info('Intake assessment unavailable; using local completeness gate');
    }
    unqualifiedAssessment=false;
+   if(initial&&(!assessment||assessment.status==='ready'))assessment={status:'needs_details' as const,detail:'situation' as const};
    if(assessment&&assessment.status!=='ready'){
     qualification=assessment.status==='low'&&(work.retainHistory||work.meaningfulHistory)?'needs_details':assessment.status;
     clarification=true;localClarification=true;assessed=true;rag=false;
-    const detail=assessment.detail||'goal';clarificationKey='intake.'+detail;answer=clarificationText(detail,question);
+    const detail=assessment.detail||'goal';clarificationKey=initial?.key||'intake.'+detail;
+    const followup=initial||{key:clarificationKey,text:clarificationText(detail,question)};
+    const proposed=assessment.question;answer=proposed&&!isRepeatedClarification(proposed,work.previousQuestions)?proposed:clarify(followup);
    }else{
    if(!await admitReady())return;
    const found=await retrieve(question,work.country,connection);
@@ -91,7 +96,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   // Bounded operational codes only; no question, transcript or credentials in logs.
   const reasons:Record<string,string>={'Disabled':'disabled','Specialist required':'personal-case','Provider not connected':'provider-disabled','Budget disabled':'budget-disabled','Budget exceeded':'budget-exhausted','Provider quota':'provider-quota','Provider unavailable':'provider-unavailable','Outside approved coverage':'no-source','Insufficient evidence':'insufficient-evidence'};
   if(unqualifiedAssessment){
-   qualification='needs_details';rag=false;clarification=true;localClarification=true;clarificationKey='intake.goal';answer=clarificationText('goal',work.question);
+   qualification='needs_details';rag=false;clarification=true;localClarification=true;clarificationKey=initial?.key||'intake.goal';answer=clarify(initial||{key:clarificationKey,text:clarificationText('goal',work.question)});
    console.info('Intake assessment unavailable; retaining unqualified request');
   }else console.info('Assistant handoff',error instanceof Error?reasons[error.message]||'processing-error':'processing-error');
  }
@@ -107,7 +112,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    if(rulesRevision(currentRules)!==rulesRevision(rules)){answer=null;invalidAssessment=assessed;}
   }
   if(answer&&assessed){const provider=(await db.query("SELECT enabled,version FROM lvd_integrations WHERE provider='ai' FOR SHARE")).rows[0];if(!provider?.enabled||provider.version!==providerVersion){answer=null;invalidAssessment=true;}}
-  if(invalidAssessment&&!work.retainHistory&&!intake.topic){qualification='needs_details';clarificationKey='intake.goal';answer=clarificationText('goal',work.question);}
+  if(invalidAssessment&&(initial||!work.retainHistory&&!intake.topic)){qualification='needs_details';clarificationKey=initial?.key||'intake.goal';answer=clarify(initial||{key:clarificationKey,text:clarificationText('goal',work.question)});}
   if(answer&&localClarification){
    const settings=(await db.query('SELECT customer_a_i_enabled,chat_enabled FROM site_settings LIMIT 1 FOR SHARE')).rows[0];
    if(settings?.customer_a_i_enabled===false||settings?.chat_enabled===false)answer=null;

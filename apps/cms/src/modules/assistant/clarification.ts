@@ -47,6 +47,11 @@ const topics:Topic[]=[
  {id:'work',match:/\b(lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)\b/,bare:/^(?:lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)$/,slots:[country,
   {key:'work.relationship',text:['Bạn hỏi với vai trò người lao động hay người sử dụng lao động? Hợp đồng đã được ký chưa?','Fragen Sie als Arbeitnehmer oder Arbeitgeber? Wurde der Vertrag bereits unterschrieben?'],known:/\b(nguoi lao dong|nguoi su dung lao dong|nhan vien|chu doanh nghiep|arbeitnehmer|arbeitgeber|mitarbeiter)\b/},timeline,
   {key:'work.goal',text:['Bạn muốn làm rõ việc ký hợp đồng, tiền lương, chấm dứt công việc hay vấn đề nào khác?','Geht es um Vertragsabschluss, Vergütung, Beendigung der Arbeit oder eine andere Frage?'],known:goalKnown}]},
+ {id:'exam',match:/\b(thi(?: (?:mai|khong|chua|truot|do|bang|tieng|lai|nghe|tot nghiep|dai hoc))?|ky thi|phuc khao|prufung\w*|durchgefallen|bestehen)\b/,bare:/^(?:thi|ky thi|thi khong do|thi truot|prufung\w*)$/,slots:[
+  {key:'exam.kind',text:['Bạn đang nói đến kỳ thi nào: bằng lái, ngoại ngữ, nghề nghiệp hay kỳ thi khác?','Um welche Prüfung geht es: Führerschein, Sprache, Beruf oder eine andere Prüfung?'],retry:['Đó là kỳ thi gì và do đơn vị nào tổ chức?','Wie heißt die Prüfung und wer führt sie durch?'],known:/\b(bang lai|lai xe|ielts|telc|goethe|b1|b2|a1|a2|ngoai ngu|tieng duc|tieng anh|nghe|tot nghiep|dai hoc|fuhrerschein|sprachprufung|berufsprufung|abschlussprufung)\b/},
+  country,
+  {key:'exam.goal',text:['Bạn muốn làm rõ quyền phúc khảo, khiếu nại kết quả hay vấn đề nào khác sau kỳ thi?','Geht es um Einsicht, eine Überprüfung des Ergebnisses, einen Widerspruch oder ein anderes Anliegen?'],retry:['Bạn muốn được hỗ trợ điều gì về kết quả thi?','Was möchten Sie hinsichtlich des Prüfungsergebnisses klären?'],known:/\b(phuc khao|khieu nai|quyen|thu tuc|xem lai ket qua|widerspruch|einsicht|uberprufung|rechte|verfahren)\b/},timeline,
+ ]},
  {id:'property',match:/\b(the chap|nha dat|dat dai|manh dat|thua dat|ve dat|dat (?:cua|o|tai)|so do|so hong|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)\b|^dat$/,bare:/^(?:the chap(?: tai san)?|nha dat|dat|dat dai|manh dat|thua dat|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)$/,slots:[
   {...country,text:['Nhà hoặc mảnh đất bạn hỏi nằm ở tỉnh/thành phố nào, thuộc Việt Nam, Đức hay nước khác?','In welcher Stadt oder Region liegt das Haus oder Grundstück, und in welchem Land?'],retry:['Bạn cho biết nhà hoặc mảnh đất ở Việt Nam, Đức hay nước khác nhé?','Liegt das Haus oder Grundstück in Vietnam, Deutschland oder einem anderen Land?']},
   {key:'property.transaction',text:['Bạn muốn hỏi về mua bán, sang tên, thế chấp hay vướng mắc nào của nhà đất?','Geht es um Kauf, Verkauf, Eigentumsübertragung, Miete, Besicherung oder ein anderes Anliegen?'],retry:['Cụ thể bạn muốn làm gì với nhà đất, hoặc đang gặp trở ngại gì?','Was möchten Sie mit der Immobilie konkret tun, oder welches Problem ist aufgetreten?'],known:/\b(mua|ban|thue|the chap|tang cho|sang ten|chuyen nhuong|tranh chap|cap so|tach thua|thu hoi|boi thuong|kauf|verkauf|miete|hypothek|ubertrag\w*|schenk\w*|streit)\b/},
@@ -69,7 +74,7 @@ const topicIntent=/\b((?:toi|minh|em|anh|chi) (?:muon|can|hoi)|ich (?:mochte|wil
 const sameCountry=/\b(cung (?:o|tai|quoc gia|nuoc)|van (?:o|tai)|cung noi|same (?:country|place)|selben land|weiterhin dort|auch dort)\b/;
 function findTopic(value:string){
  // Preserve the tax/rent distinction before removing Vietnamese accents.
- let text=normalized(value.normalize('NFC').replace(/(?<!\p{L})thuế(?!\p{L})/giu,'Steuer').replace(/(?<!\p{L})thuê(?!\p{L})/giu,'Miete'));
+ let text=normalized(value.normalize('NFC').replace(/(?<!\p{L})thì(?!\p{L})/giu,'THEN').replace(/(?<!\p{L})thuế(?!\p{L})/giu,'Steuer').replace(/(?<!\p{L})thuê(?!\p{L})/giu,'Miete'));
  if(/\b(khong phai|nicht)\b/.test(text))text=text.replace(/\b(?:khong phai|nicht)\b.*?(?=\b(?:ma|sondern|stattdessen)\b|[,;.!?]|$)/g,' ').split(/\b(?:ma|sondern|stattdessen)\b/).at(-1)||text;
  return topics.map(topic=>({topic,index:topic.match.exec(text)?.index??Infinity})).sort((a,b)=>a.index-b.index).find(match=>match.index<Infinity)?.topic;
 }
@@ -162,3 +167,19 @@ export function intakeClarification(question:string,asked:readonly string[]=[],a
  if(text.split(' ').length<3||!/[?？]/.test(state.text)&&!goalKnown.test(text)&&! /\b(hoi|giai thich|tu van|question|frage|klaren|erklaren)\b/.test(text))return prompt('goal',asked.includes('goal')?texts.situation:texts.goal);
  return nextClarification(question,asked);
 }
+
+// A repeated missing slot needs a clearer question, not the same sentence again.
+export function unrepeatedClarification(initial:Clarification,previous:readonly string[],question:string):string{
+ const last=previous[0]||'',recent=previous.slice(0,3).map(normalized),state=intakeState(question);
+ const suffix=initial.key.split('.').at(-1),slot=state.topic?.slots.find(slot=>slot.key.split('.').at(-1)===suffix);
+ const variants:Pair[]=suffix==='country'?[
+  ['Bạn cho biết quốc gia nơi sự việc xảy ra nhé?','In welchem Land findet die Angelegenheit statt?'],
+  ['Sự việc diễn ra ở Việt Nam, Đức hay một nước khác?','Geht es um Vietnam, Deutschland oder ein anderes Land?'],
+ ]:suffix==='kind'?[
+  ['Bạn có thể cho biết tên kỳ thi hoặc lĩnh vực được kiểm tra không?','Wie heißt die Prüfung oder welches Fach wird geprüft?'],
+ ]:[texts[suffix as DetailKind]||texts.situation,texts.goal];
+ const candidates=[initial.text,...(slot?[slot.text,...(slot.retry?[slot.retry]:[])].map(pair=>pair[german(question)?1:0]):[]),...variants.map(pair=>pair[german(question)?1:0])];
+ return candidates.find(value=>!recent.includes(normalized(value)))||candidates.find(value=>normalized(value)!==normalized(last))||initial.text;
+}
+
+export const isRepeatedClarification=(question:string,previous:readonly string[])=>previous.some(value=>normalized(value)===normalized(question));

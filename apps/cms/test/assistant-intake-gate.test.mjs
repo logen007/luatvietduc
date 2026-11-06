@@ -58,3 +58,10 @@ test('Vietnam followed by a first-person turn is not mistaken for next year',()=
  assert.equal(intakeClarification('Về đất đai\nỞ Việt Nam\nTôi muốn sang tên\nSổ đỏ đang đứng tên tôi').key,'property.timeline');
  assert.equal(intakeClarification('Về đất đai ở Việt Nam tôi muốn sang tên, sổ đỏ đang đứng tên tôi').key,'property.timeline');
 });
+
+test('exam fragments ask about the exam and do not mistake the Vietnamese conjunction for an exam',()=>{
+ assert.equal(intakeClarification('Tôi thi mãi không được').key,'exam.kind');assert.equal(intakeClarification('Thi không đỗ').key,'exam.kind');
+ assert.match(intakeClarification('Tôi thi mãi không được\nThi không đỗ',['exam.kind']).text,/đơn vị nào/);
+ assert.notEqual(intakeClarification('Tôi thì muốn mua bảo hiểm').key,'exam.kind');
+ assert.equal(intakeClarification('Tôi thi telc B1 tại Đức\nmuốn phúc khảo\nvừa thi hôm qua'),null);
+});
