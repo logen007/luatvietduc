@@ -18,6 +18,9 @@ export async function testChatQualification(owner:User){
  try{
   const fresh=await make(),initial=await read(fresh);
   assert.equal(initial.qualification,'unassessed');assert.equal(initial.retain_history,false);assert.equal(initial.low_priority_expires_at,null);
+  await pool.query("UPDATE lvd_conversations SET updated_at=now()-interval '2 minutes' WHERE id=$1",[fresh]);
+  assert.equal((await specialistInbox(staff,{view:'queue',query:fresh})).rows.length,0,'Unassessed new requests are not staff work when the worker stalls');
+  assert.ok(!(await chat.queue(staff)).some((item:{id:string})=>item.id===fresh),'Legacy queue also excludes fresh unqualified requests');
   await low(fresh);
   let row=await read(fresh);assert.equal(row.qualification,'low');assert.equal(row.retain_history,false);
   const remaining=new Date(row.low_priority_expires_at).getTime()-Date.now();assert.ok(remaining>7190000&&remaining<=7201000);
