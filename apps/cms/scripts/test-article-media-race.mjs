@@ -46,5 +46,10 @@ export async function testArticleMediaRace({page, base, pool, suffix, mediaFixtu
  } finally {
   await heldRead?.abort().catch(()=>{});
   await page.unroute(metadataURL,holdRead);
+  // Do not leak this public editor fixture into the later library assertions.
+  // Keep its ID in the outer safety cleanup if deletion fails unexpectedly.
+  await pool.query('DELETE FROM media WHERE id=$1 AND filename=$2',[row.id,filename]);
+  const fixtureIndex=mediaFixtureIds.indexOf(row.id);
+  if(fixtureIndex!==-1)mediaFixtureIds.splice(fixtureIndex,1);
  }
 }
