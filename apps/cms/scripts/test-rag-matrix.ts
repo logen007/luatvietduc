@@ -119,6 +119,20 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   assert.ok(intakeCalls>beforeSemantic,'German repeated intake may ask contextually before retrieval');
   germanIntake=await turn(germanIntake,'Das Verfahren');assert.equal(last(germanIntake).metadata.kind,'ai');assert.equal(last(germanIntake).body,texts.german);
   germanIntake=await turn(germanIntake,'Kosten?');assert.equal(last(germanIntake).metadata.kind,'ai');assert.equal(last(germanIntake).body,texts.german);assert.ok(prompts.at(-1).question.endsWith('Câu hỏi tiếp: Kosten?'));
+  await ready(k.id);beforeRetrieval=retrievalCounts();
+  let another=await start('Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi và muốn biết thủ tục');
+  assert.equal(last(another).metadata.clarificationKey,'property.timeline');
+  for(const [body,key] of [
+   ['Còn mảnh đất khác tôi định mua ở Đức, thủ tục thế nào?','property-2.owner'],
+   ['Cha tôi','property-2.document'],
+   ['Có rồi','property-2.timeline'],
+  ]){
+   another=await turn(another,body);assert.equal(last(another).metadata.kind,'clarify',body);assert.equal(last(another).metadata.clarificationKey,key,body);
+   assert.deepEqual(retrievalCounts(),beforeRetrieval,'A second land case cannot inherit the first owner, papers or stage');
+  }
+  another=await turn(another,'Mảnh đất khác đó đang chuẩn bị');assert.equal(last(another).metadata.kind,'ai');assert.equal(last(another).body,texts.private);
+  assert.ok(queryEmbeddings>beforeRetrieval[0],'Only the completed second case reaches retrieval');
+  console.log('Stored same-topic new-matter dialogue passed: fresh owner/papers/stage, contextual short answers, no repeated reset and no retrieval before completion.');
   console.log('Stored intake dialogues passed: vague opening, missing/unknown dates, source answer only after facts, new-topic reset, country correction and completed no-source handoff.');
   const off=await article('AI-OFF','Synthetic excluded opt-out content must never reach any provider.', 'BOTH',{aiAllowed:false});const offSource=await mirror(off.id);assert.ok(!offSource?.approved);if(offSource){await ready(offSource.id);assert.equal((await retrieve('Synthetic opt-out','BOTH',connection)).sources.length,0);}
   const draft=await article('DRAFT','Synthetic unpublished article must never reach any provider.','BOTH',{_status:'draft'});const draftSource=await mirror(draft.id);assert.ok(!draftSource?.approved);if(draftSource){await ready(draftSource.id);assert.equal((await retrieve('Synthetic draft','BOTH',connection)).sources.length,0);}

@@ -539,3 +539,14 @@ ràng dùng đúng mục còn thiếu tại chỗ, tránh model hỏi tiếp d�
 rút lại. Không gọi model hoặc tra cứu trong bước hỏi lại này. Chính sách vẫn là
 quy tắc Thu thập dữ kiện đang hiển thị trong Kiến thức AI; không thêm nhận định
 pháp lý hay thay đổi điều kiện chuyển chuyên viên.
+
+## Vụ việc mới trong cùng lĩnh vực
+
+Bộ tiếp nhận tách phạm vi khi khách chủ động chuyển sang mảnh đất, hợp đồng
+hoặc kỳ thi khác, kể cả vẫn trong cùng lĩnh vực. Dữ kiện người đứng tên, giấy
+tờ và giai đoạn của vụ trước không hoàn thành dữ kiện cho vụ mới. Các cách nhắc
+lại như “mảnh đất khác đó” hoặc “Das andere Grundstück” giữ phạm vi đang trao
+đổi, không khởi động lại liên tục. Chỉ mang địa điểm sang khi khách xác nhận
+cùng nơi/cùng quốc gia. Có kiểm tra hội thoại lưu trên DB thử, trả lời ngắn và
+chỉ truy xuất nguồn khi vụ thứ hai đủ thông tin; giữ các kiểm tra đồng ý xử lý,
+nguồn hiện hành và chuyên viên tiếp nhận.

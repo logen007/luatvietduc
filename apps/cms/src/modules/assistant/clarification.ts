@@ -93,19 +93,21 @@ const topics:Topic[]=[
  ]},
  {id:'property',match:/\b(the chap|sang ten dat|chuyen nhuong dat|tang cho dat|nha dat|dat dai|manh dat|thua dat|ve dat|dat (?:cua|o|tai)|so do|so hong|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)\b|^dat$/,bare:/^(?:the chap(?: tai san)?|nha dat|dat|dat dai|manh dat|thua dat|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)$/,slots:[
   {...country,text:['Nhà hoặc mảnh đất bạn hỏi nằm ở tỉnh/thành phố nào, thuộc Việt Nam, Đức hay nước khác?','In welcher Stadt oder Region liegt das Haus oder Grundstück, und in welchem Land?'],retry:['Bạn cho biết nhà hoặc mảnh đất ở Việt Nam, Đức hay nước khác nhé?','Liegt das Haus oder Grundstück in Vietnam, Deutschland oder einem anderen Land?']},
-  {key:'property.transaction',text:['Bạn muốn hỏi về mua bán, sang tên, thế chấp hay vướng mắc nào của nhà đất?','Geht es um Kauf, Verkauf, Eigentumsübertragung, Miete, Besicherung oder ein anderes Anliegen?'],retry:['Cụ thể bạn muốn làm gì với nhà đất, hoặc đang gặp trở ngại gì?','Was möchten Sie mit der Immobilie konkret tun, oder welches Problem ist aufgetreten?'],known:orderedFact(/\b(mua|ban|thue|the chap|tang cho|sang ten|chuyen nhuong|tranh chap|cap so|tach thua|thu hoi|boi thuong|kauf|verkauf|miete|hypothek|(?:eigentums)?ubertrag\w*|schenk\w*|streit)\b/,'giao dich|mua ban|sang ten|the chap|vorhaben|geschaft|(?:eigentums)?ubertragung')},
+  {key:'property.transaction',text:['Bạn muốn hỏi về mua bán, sang tên, thế chấp hay vướng mắc nào của nhà đất?','Geht es um Kauf, Verkauf, Eigentumsübertragung, Miete, Besicherung oder ein anderes Anliegen?'],retry:['Cụ thể bạn muốn làm gì với nhà đất, hoặc đang gặp trở ngại gì?','Was möchten Sie mit der Immobilie konkret tun, oder welches Problem ist aufgetreten?'],known:orderedFact(/\b(mua|ban|thue|the chap|tang cho|sang ten|chuyen nhuong|tranh chap|cap so|tach thua|thu hoi|boi thuong|(?:kauf|verkauf|miet)(?:e|en|t|te|ten)?|hypothek|(?:eigentums)?ubertrag\w*|schenk\w*|streit)\b/,'giao dich|mua ban|sang ten|the chap|vorhaben|geschaft|(?:eigentums)?ubertragung')},
   {key:'property.ownership',text:['Mảnh đất hiện đứng tên ai và đã có giấy chứng nhận chưa? Bạn chỉ cần nói quan hệ, không cần gửi tên hoặc số giấy tờ.','Auf wen ist das Grundstück eingetragen und gibt es einen Eigentumsnachweis? Die Beziehung genügt; Namen oder Dokumentnummern sind nicht nötig.'],retry:['Bạn đang đứng tên trên giấy chứng nhận hay đất vẫn đứng tên người khác? Nếu chưa rõ, cứ nói phần bạn biết nhé.','Sind Sie selbst als Eigentümer eingetragen oder eine andere Person? Wenn Sie unsicher sind, nennen Sie nur die bekannten Angaben.'],known:value=>propertyFacts(value).complete},timeline,
   {key:'property.goal',text:['Bạn muốn làm rõ điều kiện, giấy tờ, thủ tục hay vướng mắc nào của giao dịch?','Welche Voraussetzungen, Unterlagen, Verfahren oder Schwierigkeiten des Geschäfts möchten Sie klären?'],known:goalKnown}]},
  {id:'tax',match:/\b(thue|steuer\w*)\b/,bare:/^(?:thue|steuer\w*)$/,slots:[country,
   {key:'tax.activity',text:['Vấn đề thuế liên quan đến thu nhập, hoạt động kinh doanh, tài sản hay giao dịch nào?','Geht es um Einkommen, eine Geschäftstätigkeit, Vermögen oder ein bestimmtes Geschäft?'],known:/\b(thu nhap|kinh doanh|tai san|tien luong|einkommen|geschaft|vermogen|gehalt)\b/},timeline,
   {key:'tax.goal',text:['Bạn muốn làm rõ nghĩa vụ, cách kê khai, thời hạn hay vấn đề nào khác?','Geht es um Pflichten, die Erklärung, Fristen oder eine andere Frage?'],known:goalKnown}]},
- {id:'contract',match:/\b(hop dong|vertrag\w*)\b/,bare:/^(?:hop dong|vertrag\w*)$/,slots:[country,
-  {key:'contract.kind',text:['Đây là hợp đồng về việc gì và các bên có vai trò nào? Không cần nêu tên.','Worum geht es in dem Vertrag und welche Rollen haben die Parteien? Namen sind nicht erforderlich.'],known:/\b(mua ban|dich vu|vay|thue|kauf|dienstleistung|darlehen|miet)\b/},timeline,
+ {id:'contract',match:/\b(hop dong|dienstleistungsvertrag\w*|vertrag\w*)\b/,bare:/^(?:hop dong|vertrag\w*)$/,slots:[country,
+  {key:'contract.kind',text:['Đây là hợp đồng về việc gì và các bên có vai trò nào? Không cần nêu tên.','Worum geht es in dem Vertrag und welche Rollen haben die Parteien? Namen sind nicht erforderlich.'],known:/\b(mua ban|dich vu|vay|thue|kauf|dienstleistung(?:svertrag)?|darlehen|miet)\b/},timeline,
   {key:'contract.goal',text:['Bạn muốn làm rõ việc giao kết, thực hiện, chấm dứt hay vướng mắc nào khác?','Geht es um Abschluss, Erfüllung, Beendigung oder eine andere Vertragsfrage?'],known:goalKnown}]},
 ];
 const vague=/^(?:xin chao|chao(?: ban)?|hello|hi|hallo|guten tag|toi (?:muon|can)(?: hoi| tu van| ho tro| giup do)?(?: ve phap luat)?|toi dang can(?: hoi| tu van| ho tro)?|tu van(?: phap luat)?|can giup do|ich (?:mochte|will|brauche)(?: fragen| hilfe| beratung| etwas fragen)?|hilfe(?: bitte)?)$/;
 const stripPrefix=(value:string)=>value.replace(/^(?:toi (?:muon|can|dang can)(?: hoi| tim hieu| tu van)?(?: ve)?|cho (?:toi|minh) hoi(?: ve)?|ich habe eine frage (?:zu|zum|zur)|ve|zum|zur|uber)\s+/,'');
 const topicIntent=/\b((?:toi|minh|em|anh|chi) (?:muon|can|hoi)|ich (?:mochte|will|habe eine frage)|bay gio|chuyen sang|doi chu de|cau hoi khac|jetzt|anderes thema)\b/;
+const differentMatter=/\b(?:(?:manh dat|thua dat|can nha|bat dong san|hop dong|vu viec|ke hoach|ky thi) (?:khac|moi)|ander\w* (?:grundstuck\w*|haus|vertrag\w*|vorhaben|fall|prufung\w*))\b/;
+const sameMatterReference=/\b(?:(?:manh dat|thua dat|can nha|bat dong san|hop dong|vu viec|ke hoach|ky thi) khac (?:nay|do|ay)|(?:das|dieses|dem|diesem|diesen|den) ander\w* (?:grundstuck\w*|haus|vertrag\w*|vorhaben|fall|prufung\w*))\b/;
 const sameCountry=/\b(cung (?:o|tai|quoc gia|nuoc)|van (?:o|tai)|cung noi|same (?:country|place)|selben land|weiterhin dort|auch dort)\b/;
 function findTopic(value:string){
  // Preserve the tax/rent distinction before removing Vietnamese accents.
@@ -119,7 +121,9 @@ function intakeState(question:string){
  for(let i=0;i<lines.length;i++){
   const found=findTopic(lines[i]),line=normalized(lines[i]);if(!found)continue;
   const newIntent=topicIntent.test(line)||/^(?:ve|zum|zur|uber|con|the con|vay con|und(?: die| das| der)?|was ist mit)\b/.test(line);
-  if(!topic||found.id!==topic.id&&newIntent){
+  const asserted=line.replace(/\b(?:khong phai|nicht)\b.*?(?=\b(?:ma|sondern|stattdessen)\b|[,;.!?]|$)/g,' ');
+  const anotherMatter=found.id===topic?.id&&differentMatter.test(asserted)&&!sameMatterReference.test(asserted);
+  if(!topic||found.id!==topic.id&&newIntent||anotherMatter){
    const previous=lines.slice(start,i).join('\n');priorCountry=sameCountry.test(normalized(previous))&&countryState(priorCountry).known?priorCountry+'\n'+previous:previous;
    topic=found;start=i;segment++;visits[topic.id]=(visits[topic.id]||0)+1;
   }

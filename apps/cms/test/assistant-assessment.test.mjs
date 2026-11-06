@@ -236,3 +236,17 @@ for(const item of [
  ]});
  await state.run();assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.conversation.ai_enabled,true);assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,item.key);assert.notEqual(state.replies[0].body,'Earlier factual question?');
 });
+
+for(const item of [
+ {body:'Còn mảnh đất khác tôi định mua ở Đức, thủ tục thế nào?',base:'Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi, muốn biết thủ tục',oldKey:'property.timeline',key:'property-2.owner'},
+ {body:'Tôi muốn hỏi kỳ thi khác',base:'Tôi thi bằng lái ở Đức, muốn phúc khảo',oldKey:'exam.timeline',key:'exam-2.kind'},
+ {body:'Bây giờ tôi muốn hỏi một hợp đồng khác',base:'Tôi muốn hỏi thủ tục hợp đồng dịch vụ ở Việt Nam',oldKey:'contract.timeline',key:'contract-2.country'},
+ {body:'Ich möchte ein anderes Grundstück kaufen',base:'Ich möchte ein Grundstück in Deutschland übertragen, meine Mutter ist im Grundbuch eingetragen und ich möchte das Verfahren wissen',oldKey:'property.timeline',key:'property-2.country'},
+])test('a distinct new matter does not reuse the earlier facts or hand off: '+item.body,async t=>{
+ const previous=[
+ {role:'assistant',body:'Earlier timing question?',metadata:{kind:'clarify',clarificationKey:item.oldKey}},
+ {role:'user',body:item.base,metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ];
+ const state=fixture(t,{body:item.body,previous});await state.run();
+ assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,item.key);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.assessments,0);assert.equal(state.conversation.ai_enabled,true);
+});
