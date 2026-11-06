@@ -1,5 +1,5 @@
 import {answerHistory,questionWithHistory,groundedPreviousAnswer} from './conversation-context';
-import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply,isBriefIntakeFollowup,unrepeatedClarification,isRepeatedClarification} from './clarification';
+import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply,isBriefIntakeFollowup,acknowledgementText,unrepeatedClarification,isRepeatedClarification} from './clarification';
 import type {Qualification} from '../chat/qualification';
 import {randomUUID} from 'node:crypto';
 import {pool,transaction} from '../shared/db';
@@ -44,8 +44,9 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
  try{
   if(policy.customerAIEnabled===false||policy.chatEnabled===false)throw new Error('Disabled');
   if(requiresHuman(localQuestion))throw new Error('Specialist required');
+  const acknowledgement=work.previousAnswer&&!work.clarificationCount?acknowledgementText(work.question):null;
   const semanticIntake=work.consented&&initial&&!isVagueIntakeReply(work.question)&&work.clarificationCount>0&&(!intake.topic||work.clarificationKeys.includes(initial.key));
-  if(initial&&!semanticIntake){qualification=!work.retainHistory&&!work.meaningfulHistory&&!intake.topic&&isVagueIntakeReply(work.question)?'low':'needs_details';answer=clarify(initial);clarificationKey=initial.key;clarification=true;localClarification=true;}else{
+  if(acknowledgement){qualification='needs_details';answer=acknowledgement;clarificationKey='acknowledgement';clarification=true;localClarification=true;}else if(initial&&!semanticIntake){qualification=!work.retainHistory&&!work.meaningfulHistory&&!intake.topic&&isVagueIntakeReply(work.question)?'low':'needs_details';answer=clarify(initial);clarificationKey=initial.key;clarification=true;localClarification=true;}else{
   unqualifiedAssessment=Boolean(initial)||work.consented&&!work.retainHistory&&!intake.topic;
   providerVersion=(await readRow('ai'))?.version;
   const connection=await activeValues('ai');if(!connection)throw new Error('Provider not connected');

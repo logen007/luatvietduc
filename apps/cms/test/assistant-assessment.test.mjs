@@ -153,6 +153,12 @@ for(const [language,turns] of [
   ['Hay','goal'],['Tôi muốn đầu tư','investment.country'],['Chưa rõ ở đâu','investment.country'],['ở Đức','investment.form'],['thành lập GmbH','investment.timeline'],['muốn biết thủ tục','investment.timeline'],['không biết ngày nào','investment.timeline'],['Không phải Đức, chưa biết nước nào','investment.country'],['Việt Nam','investment.timeline'],['còn gì nữa?','investment.timeline'],
   ['Bây giờ hỏi việc ly hôn','family.country'],['Đức','family.situation'],['tài sản','family.timeline'],['chưa ký','family.parties'],['còn gì nữa?','family.parties'],['không rõ các bên','family.parties'],['gì vậy?','family.parties'],['tôi chưa rõ','family.parties'],['bạn cần biết gì?','family.parties'],['tôi đang chưa hiểu','family.parties'],['còn thiếu điều nào?','family.parties'],['không rõ bạn đang hỏi gì','family.parties'],['còn những gì nữa?','family.parties'],['vợ chồng',null],
  ]],
+ ['VI corrections and topic switch',[
+  ['Về đất đai','property.country'],['Việt Nam','property.transaction'],['Sang tên','property.ownership'],['Sổ đỏ đứng tên mẹ','property.timeline'],['Đã thực hiện','property.goal'],['À không, tôi chưa rõ thời điểm','property.timeline'],['Dự kiến tháng sau','property.goal'],['Còn ly hôn thì sao?','family.country'],['Ở Đức','family.situation'],['Về tài sản','family.timeline'],['Chưa ký','family.parties'],['Vợ chồng',null],
+ ]],
+ ['DE exam fragments',[
+  ['Prüfung nicht bestanden','exam.kind'],['Führerscheinprüfung','exam.country'],['Deutschland','exam.goal'],['Ich möchte Widerspruch einlegen','exam.timeline'],['Der Zeitpunkt ist unklar','exam.timeline'],['noch nicht begonnen',null],
+ ]],
  ['DE',[
   ['Hallo','goal'],['Ich möchte investieren','investment.country'],['Deutschland','investment.form'],['GmbH gründen','investment.timeline'],['Der Termin steht noch nicht fest','investment.timeline'],['noch nicht begonnen','investment.goal'],['Das Verfahren',null],
  ]],
@@ -173,7 +179,7 @@ for(const [language,turns] of [
  assert.ok(state.assessments>=2,'Repeated missing facts and completion exercise actual assessment parsing');
 });
 
-for(const [body,context] of [['Chi phí?','Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và muốn biết thủ tục'],['Kosten?','Ich möchte in Deutschland eine GmbH gründen, in Vorbereitung, und das Verfahren wissen']])test('short follow-up '+body+' retains the completed consented topic after an AI answer',async t=>{
+for(const [body,context] of [['Cảm ơn, vậy còn chi phí thì sao?','Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và muốn biết thủ tục'],['Danke, und die Kosten?','Ich möchte in Deutschland investieren und eine GmbH gründen, in Vorbereitung, und das Verfahren wissen'],['Chi phí?','Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và muốn biết thủ tục'],['Kosten?','Ich möchte in Deutschland eine GmbH gründen, in Vorbereitung, und das Verfahren wissen']])test('short follow-up '+body+' retains the completed consented topic after an AI answer',async t=>{
  const state=fixture(t,{body,retained:true,previous:[
   {role:'assistant',body:'Synthetic approved source paragraph.',metadata:{kind:'ai',sources:[{id:1,revision:'synthetic-prior-revision'}]}},
   {role:'user',body:context,metadata:{aiConsent:{version:CONSENT_VERSION}}},
@@ -185,9 +191,21 @@ for(const [name,options] of [
  ['standalone',{body:'Chi phí?'}],
  ['no current consent',{body:'Chi phí?',consented:false}],
  ['no prior consent',{body:'Chi phí?',legacyContext:true}],
- ['acknowledgement',{body:'Cảm ơn'}],
  ['explicit new topic',{body:'Tôi muốn hỏi về ly hôn'}],
 ])test(name+' cannot reuse the prior answer to skip new intake facts',async t=>{
  const previous=name==='standalone'?[]:[{role:'assistant',body:'Synthetic source answer',metadata:{kind:'ai'}},{role:'user',body:'Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và muốn biết thủ tục',metadata:options.legacyContext?{}:{aiConsent:{version:CONSENT_VERSION}}}];
  const state=fixture(t,{...options,previous});await state.run();assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,name==='explicit new topic'?'family.country':'goal');
+});
+
+for(const [body,expected] of [['Cảm ơn',/Rất vui/],['Danke',/Gern/],['Đã hiểu rồi',/Rất vui/]])test('polite closure '+body+' does not restart intake after an answer',async t=>{
+ const state=fixture(t,{body,retained:true,previous:[{role:'assistant',body:'Synthetic source answer',metadata:{kind:'ai'}},{role:'user',body:'Synthetic complete question'}]});
+ await state.run();assert.match(state.replies[0].body,expected);assert.equal(state.replies[0].metadata.clarificationKey,'acknowledgement');assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.conversation.expires,false);assert.equal(state.conversation.ai_enabled,true);
+});
+test('a short question after thanks still reuses the last answered topic',async t=>{
+ const state=fixture(t,{body:'Chi phí?',retained:true,previous:[
+ {role:'assistant',body:'Rất vui được hỗ trợ bạn.',metadata:{kind:'clarify',clarificationKey:'acknowledgement'}},
+ {role:'user',body:'Cảm ơn',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ {role:'assistant',body:'Synthetic source answer',metadata:{kind:'ai'}},
+ {role:'user',body:'Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và muốn biết thủ tục',metadata:{aiConsent:{version:CONSENT_VERSION}}}]});
+ await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,1);
 });

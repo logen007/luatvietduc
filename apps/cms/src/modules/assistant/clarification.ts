@@ -6,7 +6,7 @@ export type Clarification={key:string;text:string};
 type Pair=readonly [string,string];
 type Slot={key:string;text:Pair;retry?:Pair;known?:RegExp|((value:string)=>boolean)};
 const normalized=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase().trim().replace(/[.!?…]+$/g,'').replace(/\s+/g,' ');
-const german=(question:string)=>/\b(ich|mochte|brauche|frage|hallo|bitte|zum|zur|uber|wissen|deutschland|investition|aufenthalt|arbeitsvertrag)\b/.test(normalized(question));
+const german=(question:string)=>/\b(ich|mochte|brauche|frage|hallo|bitte|zum|zur|uber|wissen|deutschland|investition|aufenthalt|arbeitsvertrag|prufung\w*|fuhrerschein\w*|durchgefallen|versicherung\w*|scheidung|erbschaft|mietvertrag|kosten)\b/.test(normalized(question));
 const texts:Record<DetailKind,Pair>={
  goal:['Bạn đang cần tư vấn về việc gì và muốn giải quyết vấn đề nào?','Zu welchem Thema benötigen Sie Beratung und was möchten Sie klären?'],
  situation:['Việc gì đã xảy ra và điều nào đang khiến bạn vướng mắc?','Was ist passiert und wobei besteht die Schwierigkeit?'],
@@ -26,8 +26,21 @@ function countryState(value:string){
  return {known,corrected};
 }
 const country:Slot={key:'country',text:['Việc này liên quan đến quốc gia hoặc địa phương nào?','Um welches Land oder welchen Ort geht es?'],known:value=>countryState(value).known};
-const timelinePattern=/\b(du dinh|du kien|dang tim hieu|chua bat dau|chua (?:thuc hien|ky|nop|trien khai)|(?:vua|moi) (?:thuc hien|ky|nop|mua|ban)|chuan bi|da (?:thuc hien|ky|nop|mua|ban|ket hon|trien khai)|dang (?:trien khai|thuc hien|kinh doanh)|(?:ngay|thang) \d{1,2}|nam 20\d\d|(?:hom|tuan|thang|nam) (?:qua|nay|truoc|sau|toi)|geplant|planung|vorbereitung|bereits|noch nicht (?:begonnen|gestartet|unterschrieben|eingereicht)|gestern|heute|morgen|(?:am|bis zum|frist bis) \d{1,2}|(?:nachste|letzte)(?:n|r)? (?:woche|monat|jahr))\b/;
-const timeline:Slot={key:'timeline',text:texts.timeline,known:value=>value.split('\n').some(line=>timelinePattern.test(normalized(line.normalize('NFC').replace(/vi[eệ]t nam/giu,'Vietnam'))))};
+const timelineStage=/\b(du dinh|du kien|dang tim hieu|chua bat dau|chua (?:thuc hien|ky|nop|trien khai)|(?:vua|moi) (?:thuc hien|ky|nop|mua|ban)|chuan bi|da (?:thuc hien|ky|nop|mua|ban|ket hon|trien khai)|dang (?:trien khai|thuc hien|kinh doanh)|geplant|planung|vorbereitung|bereits|noch nicht (?:begonnen|gestartet|unterschrieben|eingereicht))\b/;
+const timelineDate=/\b((?:ngay|thang) \d{1,2}|nam 20\d\d|(?:hom|tuan|thang|nam) (?:qua|nay|truoc|sau|toi)|gestern|heute|morgen|(?:am|bis zum|frist bis) \d{1,2}|(?:nachste|letzte)(?:n|r)? (?:woche|monat|jahr))\b/;
+function timelineKnown(value:string){
+ let stage=false,date=false;
+ for(const clause of value.split(/[\n;,]/)){
+  const text=normalized(clause.normalize('NFC').replace(/vi[eệ]t nam/giu,'Vietnam'));
+  const uncertain=/\b(chua ro|khong ro|chua biet|khong biet|chua xac dinh|weiss nicht|weiß nicht|unklar|unbekannt)\b/.test(text);
+  const stageUnclear=uncertain&&/\b(thoi diem|giai doan|bat dau|thuc hien|ky|nop|zeitpunkt|beginn|begonnen|stadium|passiert|geschehen)\b/.test(text);
+  const dateUnclear=uncertain&&/\b(thoi diem|thoi han|ngay|thang|nam|zeitpunkt|frist|termin)\b/.test(text);
+  if(stageUnclear)stage=false;else if(timelineStage.test(text))stage=true;
+  if(dateUnclear)date=false;else if(timelineDate.test(text))date=true;
+ }
+ return stage||date;
+}
+const timeline:Slot={key:'timeline',text:texts.timeline,known:timelineKnown};
 const goalKnown=/\b(dieu kien|thu tuc|giay to|giay phep|chi phi|rui ro|quyen|nghia vu|muc tieu|muon biet|can biet|quy trinh|voraussetzung\w*|verfahren|genehmigung|kosten|risik\w*|rechte|pflichten|ziel|mochte wissen)\b/;
 type Topic={id:string;match:RegExp;bare:RegExp;slots:Slot[]};
 const topics:Topic[]=[
@@ -43,12 +56,12 @@ const topics:Topic[]=[
   {key:'inheritance.situation',text:['Bạn đang tìm hiểu việc lập di chúc hay việc phân chia di sản đã phát sinh?','Geht es um die Erstellung eines Testaments oder um einen bereits eingetretenen Erbfall?'],known:/\b(lap di chuc|phan chia|di san|da mat|erstellung|erbfall|verstorben)\b/},
   {key:'parties',text:texts.parties,known:value=>partyFacts(value)},timeline]},
  {id:'family',match:/\b(ket hon|ly hon|hon nhan|heirat|scheidung|ehe)\b/,bare:/^(?:ket hon|ly hon|hon nhan|heirat|scheidung|ehe)$/,slots:[country,
-  {key:'family.situation',text:['Bạn đang tìm hiểu việc đăng ký, chấm dứt hôn nhân hay vấn đề liên quan đến con hoặc tài sản?','Geht es um Eheschließung, Scheidung oder Fragen zu Kindern oder Vermögen?'],known:/\b(dang ky|cham dut|con|tai san|eheschlie|kind\w*|vermogen)\b/},timeline,{key:'parties',text:texts.parties,known:value=>partyFacts(value)}]},
+  {key:'family.situation',text:['Bạn đang tìm hiểu việc đăng ký, chấm dứt hôn nhân hay vấn đề liên quan đến con hoặc tài sản?','Geht es um Eheschließung, Scheidung oder Fragen zu Kindern oder Vermögen?'],known:value=>/\b(dang ky|cham dut|con|tai san|eheschlie|kind\w*|vermogen)\b/.test(normalized(value.normalize('NFC').replace(/(?<!\p{L})còn(?!\p{L})/giu,'remaining')))},timeline,{key:'parties',text:texts.parties,known:value=>partyFacts(value)}]},
  {id:'work',match:/\b(lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)\b/,bare:/^(?:lao dong|viec lam|hop dong lao dong|sa thai|arbeits\w*|kundigung)$/,slots:[country,
   {key:'work.relationship',text:['Bạn hỏi với vai trò người lao động hay người sử dụng lao động? Hợp đồng đã được ký chưa?','Fragen Sie als Arbeitnehmer oder Arbeitgeber? Wurde der Vertrag bereits unterschrieben?'],known:/\b(nguoi lao dong|nguoi su dung lao dong|nhan vien|chu doanh nghiep|arbeitnehmer|arbeitgeber|mitarbeiter)\b/},timeline,
   {key:'work.goal',text:['Bạn muốn làm rõ việc ký hợp đồng, tiền lương, chấm dứt công việc hay vấn đề nào khác?','Geht es um Vertragsabschluss, Vergütung, Beendigung der Arbeit oder eine andere Frage?'],known:goalKnown}]},
- {id:'exam',match:/\b(thi(?: (?:mai|khong|chua|truot|do|bang|tieng|lai|nghe|tot nghiep|dai hoc))?|ky thi|phuc khao|prufung\w*|durchgefallen|bestehen)\b/,bare:/^(?:thi|ky thi|thi khong do|thi truot|prufung\w*)$/,slots:[
-  {key:'exam.kind',text:['Bạn đang nói đến kỳ thi nào: bằng lái, ngoại ngữ, nghề nghiệp hay kỳ thi khác?','Um welche Prüfung geht es: Führerschein, Sprache, Beruf oder eine andere Prüfung?'],retry:['Đó là kỳ thi gì và do đơn vị nào tổ chức?','Wie heißt die Prüfung und wer führt sie durch?'],known:/\b(bang lai|lai xe|ielts|telc|goethe|b1|b2|a1|a2|ngoai ngu|tieng duc|tieng anh|nghe|tot nghiep|dai hoc|fuhrerschein|sprachprufung|berufsprufung|abschlussprufung)\b/},
+ {id:'exam',match:/\b(thi(?: (?:mai|khong|chua|truot|do|bang|tieng|lai|nghe|tot nghiep|dai hoc))?|ky thi|phuc khao|prufung\w*|fuhrerscheinprufung|durchgefallen|bestehen)\b/,bare:/^(?:thi|ky thi|thi khong do|thi truot|prufung\w*)$/,slots:[
+  {key:'exam.kind',text:['Bạn đang nói đến kỳ thi nào: bằng lái, ngoại ngữ, nghề nghiệp hay kỳ thi khác?','Um welche Prüfung geht es: Führerschein, Sprache, Beruf oder eine andere Prüfung?'],retry:['Đó là kỳ thi gì và do đơn vị nào tổ chức?','Wie heißt die Prüfung und wer führt sie durch?'],known:/\b(bang lai|lai xe|ielts|telc|goethe|b1|b2|a1|a2|ngoai ngu|tieng duc|tieng anh|nghe|tot nghiep|dai hoc|fuhrerschein\w*|sprachprufung|berufsprufung|abschlussprufung)\b/},
   country,
   {key:'exam.goal',text:['Bạn muốn làm rõ quyền phúc khảo, khiếu nại kết quả hay vấn đề nào khác sau kỳ thi?','Geht es um Einsicht, eine Überprüfung des Ergebnisses, einen Widerspruch oder ein anderes Anliegen?'],retry:['Bạn muốn được hỗ trợ điều gì về kết quả thi?','Was möchten Sie hinsichtlich des Prüfungsergebnisses klären?'],known:/\b(phuc khao|khieu nai|quyen|thu tuc|xem lai ket qua|widerspruch|einsicht|uberprufung|rechte|verfahren)\b/},timeline,
  ]},
@@ -79,7 +92,7 @@ function intakeState(question:string){
  let topic:Topic|undefined,start=0,segment=0,priorCountry='';
  for(let i=0;i<lines.length;i++){
   const found=findTopic(lines[i]),line=normalized(lines[i]);if(!found)continue;
-  const newIntent=topicIntent.test(line)||/^(?:ve|zum|zur|uber)\b/.test(line);
+  const newIntent=topicIntent.test(line)||/^(?:ve|zum|zur|uber|con|the con|vay con|und(?: die| das| der)?|was ist mit)\b/.test(line);
   if(!topic||found.id!==topic.id&&newIntent){
    const previous=lines.slice(start,i).join('\n');priorCountry=sameCountry.test(normalized(previous))&&countryState(priorCountry).known?priorCountry+'\n'+previous:previous;
    topic=found;start=i;segment++;visits[topic.id]=(visits[topic.id]||0)+1;
@@ -119,7 +132,7 @@ export type ClarificationMessage={role:string;body:unknown;metadata?:{kind?:stri
 export function clarificationHistory(previous:ClarificationMessage[],consentVersion:string){
  const trail:ClarificationMessage[]=[];let count=0;const keys:string[]=[];
  for(const row of previous){
-  if(row.role==='assistant'){if(row.metadata?.kind!=='clarify')break;count++;const key=row.metadata.clarificationKey||detailKinds.find(kind=>texts[kind].includes(String(row.body)));if(key&&!keys.includes(key))keys.push(key);}
+  if(row.role==='assistant'){if(row.metadata?.kind!=='clarify')break;if(row.metadata.clarificationKey==='acknowledgement')continue;count++;const key=row.metadata.clarificationKey||detailKinds.find(kind=>texts[kind].includes(String(row.body)));if(key&&!keys.includes(key))keys.push(key);}
   else if(row.role!=='user')break;
   trail.push(row);
  }
@@ -158,7 +171,12 @@ const fillerWords=new Set('toi minh em anh chi ban muon can dang hoi nho giup tu
 export function isVagueIntakeReply(text:string){const value=normalized(text);return !value||vague.test(value)||emptyReply.test(value)||value.split(' ').every(word=>fillerWords.has(word));}
 // These fragments refer to the last answered topic only when the caller has
 // an actual prior answer and consented customer context. Alone they stay vague.
-export const isBriefIntakeFollowup=(text:string)=>/^(?:(?:con|the con|vay con|und(?: die| das| der)?|was ist mit) )?(?:chi phi|thu tuc|giay to|thoi han|bao lau|kosten|verfahren|unterlagen|fristen?|dauer)(?: (?:thi sao|nhu the nao|bao nhieu|ra sao|la gi|genau))?$/.test(normalized(text));
+export function acknowledgementText(text:string){
+ const value=normalized(text);
+ if(!/^(?:(?:ok|okay|vang|da|gut) )?(?:cam on(?: ban| nhe| rat nhieu)?|da hieu(?: roi)?|toi hieu roi|danke(?: schon| sehr| fur die hilfe)?|vielen dank|verstanden|alles klar)$/.test(value))return null;
+ return german(text)||/danke|dank|verstanden|alles klar/.test(value)?'Gern. Wenn Sie noch etwas klären möchten, schreiben Sie einfach hier weiter.':'Rất vui được hỗ trợ bạn. Khi cần làm rõ thêm, bạn cứ nhắn tại đây nhé.';
+}
+export const isBriefIntakeFollowup=(text:string)=>/^(?:(?:con|the con|vay con|und(?: die| das| der)?|was ist mit) )?(?:chi phi|thu tuc|giay to|thoi han|bao lau|kosten|verfahren|unterlagen|fristen?|dauer)(?: (?:thi sao|nhu the nao|bao nhieu|ra sao|la gi|genau))?$/.test(normalized(text).replace(/^(?:cam on(?: ban)?|danke(?: schon| sehr)?|vielen dank|vang|ok|okay|verstanden|alles klar)[,;.! ]+/,''));
 const usableReply=(text:string)=>!isVagueIntakeReply(text)&&/[\p{L}\p{N}]/u.test(normalized(text));
 export function intakeClarification(question:string,asked:readonly string[]=[],answers:Record<string,string>={}):Clarification|null{
  const state=intakeState(question),text=normalized(state.text),last=state.text.split('\n').at(-1)||question;

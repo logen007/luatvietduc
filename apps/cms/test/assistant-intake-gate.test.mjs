@@ -100,3 +100,24 @@ test('later land ownership and paper facts resolve uncertainty independently in 
  assert.equal(intakeClarification(context+'\nChưa rõ thủ tục'),null,'An unrelated uncertainty cannot erase known ownership facts');
  assert.equal(intakeClarification('Ich möchte das Grundstück in Deutschland übertragen\nEigentümer und Nachweis sind unklar\nDie Mutter ist im Grundbuch eingetragen\nNoch nicht begonnen, ich möchte das Verfahren wissen'),null);
 });
+
+test('short German exam fragments receive a German intake question',()=>{
+ for(const question of ['Prüfung nicht bestanden','Führerscheinprüfung','Durchgefallen']){
+  const next=intakeClarification(question);assert.ok(next,question);assert.match(next.text,/Prüfung|Thema|Land/);assert.ok(!/Bạn|Việc/.test(next.text));
+ }
+});
+test('conversational topic changes reset the intake rather than continuing the old topic',()=>{
+ for(const shift of ['Còn ly hôn thì sao?','Thế còn ly hôn?','Vậy còn ly hôn?']){
+  const next=intakeClarification('Tôi muốn đầu tư tại Đức\n'+shift);assert.equal(next?.key,'family.country',shift);
+ }
+ assert.equal(intakeClarification('Ich möchte in Deutschland investieren\nUnd Scheidung?')?.key,'family.country');
+});
+test('later explicit timing uncertainty supersedes old timing but unrelated uncertainty does not',()=>{
+ const prefix='Tôi muốn sang tên đất tại Việt Nam\nĐất đứng tên mẹ, có sổ đỏ\nChưa thực hiện\nTôi muốn biết thủ tục';
+ assert.equal(intakeClarification(prefix),null);
+ for(const correction of ['À không, tôi chưa rõ thời điểm','Chưa xác định ngày thực hiện'])assert.equal(intakeClarification(prefix+'\n'+correction)?.key,'property.timeline',correction);
+ assert.equal(intakeClarification(prefix+'\nTôi không rõ chi phí'),null);
+ assert.equal(intakeClarification(prefix+'\nChưa rõ thời điểm\nDự kiến tháng sau'),null);
+ const german='Ich möchte in Deutschland investieren und eine GmbH gründen, in Vorbereitung, und das Verfahren wissen';
+ assert.equal(intakeClarification(german+'\nDer Zeitpunkt ist noch unklar')?.key,'investment.timeline');
+});
