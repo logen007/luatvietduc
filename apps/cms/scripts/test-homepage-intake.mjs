@@ -1,0 +1,39 @@
+import assert from 'node:assert/strict';
+// Local browser transport fixtures only; no customer records or provider calls.
+export async function testHomepageIntake(browser,base){
+ for(const mode of ['enter','button','retry','topic']){
+  const context=await browser.newContext({viewport:{width:390,height:844}});
+  try{
+   await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
+   let creates=0,sends=0,settingsFailed=mode==='retry',messages=[];
+   const id='11111111-2222-4333-8444-555555555555',body='tôi muốn hỏi về thế chấp tài sản';
+   const conversation={id,title:body,state:'queued',version:1,aiEnabled:true};
+   await context.route('**/service/me',route=>route.fulfill({json:{user:null,connections:{}}}));
+   await context.route('**/service/settings',route=>{if(settingsFailed){settingsFailed=false;return route.fulfill({status:503,json:{error:'Synthetic settings unavailable'}});}return route.fulfill({json:{maxMessageLength:2000}});});
+   await context.route('**/service/conversations',route=>{if(route.request().method()==='POST'){creates++;return route.fulfill({json:{id}});}return route.fulfill({json:creates?[conversation]:[]});});
+   await context.route(new RegExp('/service/conversations/'+id+'(?:[/?]|$)'),route=>{
+    if(route.request().url().includes('/messages')&&route.request().method()==='POST'){
+     sends++;const data=route.request().postDataJSON();assert.equal(data.body,body);assert.ok(data.key);
+     messages=[{id:'1',role:'user',body,internal:false,created_at:new Date().toISOString(),client_key:data.key}];
+     return route.fulfill({json:{id:'1',role:'user'}});
+    }
+    return route.fulfill({json:{conversation,messages}});
+   });
+   const page=await context.newPage();page.setDefaultTimeout(12000);
+   if(mode==='topic'){
+    await page.goto(base+'/tro-chuyen?question='+encodeURIComponent(body));
+    await page.locator('.chat-compose textarea:not(:disabled)').waitFor();
+    assert.equal(await page.locator('.chat-compose textarea').inputValue(),body);assert.equal(sends,0);assert.equal(creates,0);
+   }else{
+    await page.goto(base);await page.locator('#home-question').fill(body);
+    if(mode==='button')await page.locator('.pm-ask button[type=submit]').click();else await page.locator('#home-question').press('Enter');
+    await page.waitForURL('**/tro-chuyen');
+    if(mode==='retry'){await page.getByRole('button',{name:'Thử lại',exact:true}).waitFor();assert.equal(sends,0);await page.getByRole('button',{name:'Thử lại',exact:true}).click();}
+    await page.locator('.chat-message.user').filter({hasText:body}).waitFor();
+    assert.equal(sends,1,'Homepage submission sends exactly once, without a second click');assert.equal(creates,1);
+    assert.equal(await page.evaluate(()=>sessionStorage.getItem('lvd-question-submit')),null);
+   }
+  }finally{await context.close();}
+ }
+ console.log('Homepage Enter/button/recovery submit once; topic links remain editable drafts');
+}

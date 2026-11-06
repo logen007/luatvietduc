@@ -1142,3 +1142,6 @@ body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) :is(button,a,input):focu
 /* The composer owns its focus border; never draw a second box on the textarea. */
 .lvd-chat .chat-compose:focus-within{border-color:#555;outline:none;box-shadow:none}
 .lvd-chat .chat-compose textarea:is(:focus,:focus-visible){outline:none;box-shadow:none}
+
+.lvd-chat .chat-login-message a{display:inline-flex;align-items:center;gap:5px;margin-left:4px;color:#d8d8d8;font-weight:500;text-decoration:none}
+.lvd-chat .chat-login-message a:hover{color:#fff}

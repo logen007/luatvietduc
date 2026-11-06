@@ -33,6 +33,7 @@ export function useWorkspace(staff=false,manageList=true){
   const [maxLength, setMaxLength] = useState(2000);
   const stickToBottom=useRef(true),revision=useRef(0),listRevision=useRef(0),wakeTranscript=useRef<(reset?:boolean)=>void>(()=>{});
   const mode=useRef(staff);mode.current=staff;
+  const homepageSubmit=useRef('');
   const operations=useRef(createOperationGate()),deliveries=useRef(createDeliveryGuard()),selection=useRef(''),uploadRequest=useRef<AbortController|null>(null);
   const drafts=useRef(createDraftBook());
   const ownerKey=JSON.stringify([staff,manageList,draftOwnerKey(me?.user)]),effectKey=JSON.stringify([staff,manageList,session.revision,session.status,intakeAttempt]);
@@ -159,6 +160,7 @@ export function useWorkspace(staff=false,manageList=true){
             if(restored){setText(restored.text.slice(0,s.maxMessageLength||2000));setAttachments(restored.attachments);}
           }else{try{takeDraftHandoff(sessionStorage,me?.user?.id||null,[],requested);}catch{}if(list[0])changeSelection(list[0].id);}
         }
+        if(draft&&!new URLSearchParams(window.location.search).has('question'))try{if(sessionStorage.getItem('lvd-question-submit')===savedDraft)homepageSubmit.current=draft.slice(0,s.maxMessageLength||2000);}catch{}
         if(draft)try{if(sessionStorage.getItem('lvd-question')===draft)sessionStorage.removeItem('lvd-question');}catch{}
       } catch (e) {
         if (valid()){setError((e as Error).message);setInitializationFailed(true);}
@@ -266,8 +268,8 @@ export function useWorkspace(staff=false,manageList=true){
       if(operations.current.end(operation)&&current())setBusy(false);
     }
   };
-  const send = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const send = async (e?: Pick<React.FormEvent,'preventDefault'>) => {
+    e?.preventDefault();
     if (!visible || !current() || reauthorizing || (!text.trim()&&!attachments.length) || busy || uploading || !loaded) return;
     const operation=operations.current.begin();if(!operation)return false;
     let delivery:symbol|undefined;
@@ -310,6 +312,12 @@ export function useWorkspace(staff=false,manageList=true){
       if(operations.current.end(operation)&&current()){setBusy(false);setSendingBody("");}
     }
   };
+  useEffect(()=>{
+    if(staff||!visible||!current()||!loaded||initializationFailed||reauthorizing||busy||uploading||operations.current.busy()||selected||!homepageSubmit.current||text!==homepageSubmit.current)return;
+    homepageSubmit.current='';
+    try{sessionStorage.removeItem('lvd-question-submit');}catch{}
+    void send();
+  },[staff,visible,loaded,initializationFailed,reauthorizing,busy,uploading,selected,text]);
   async function attachFiles(files:File[]){
     if(!visible||!current()||reauthorizing||uploading||busy||!loaded)return;
     if(!files.length)return;

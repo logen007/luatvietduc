@@ -1,3 +1,4 @@
+import {initialClarification,clarificationText} from './clarification';
 import {randomUUID} from 'node:crypto';
 import {transaction} from '../shared/db';
 import {activeValues,readRow} from '../integrations/store';
@@ -24,17 +25,21 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   if(!message||String(message.id)!==String(messageId))return null;
   if(conversation.ai_generation&&new Date(conversation.ai_started_at).getTime()>Date.now()-35000)return null;
   await db.query('UPDATE lvd_conversations SET ai_generation=$2,ai_message_id=$3,ai_started_at=now() WHERE id=$1',[id,token,message.id]);
-  const previous=(await db.query("SELECT role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 3",[id,message.id])).rows;
+  const previous=(await db.query("SELECT role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 12",[id,message.id])).rows;
   const clarify=previous[0]?.role==='assistant'&&previous[0]?.metadata?.kind==='clarify';
-  const context=clarify?previous.find(row=>row.role==='user'&&row.metadata?.aiConsent?.version===CONSENT_VERSION)?.body:null;
-  return {question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context,clarify,country:conversation.jurisdiction,version:conversation.version};
+  const trail:typeof previous=[];if(clarify)for(const row of previous){if(row.role==='assistant'&&row.metadata?.kind!=='clarify')break;trail.push(row);}
+  const context=clarify?trail.filter(row=>row.role==='user'&&row.metadata?.aiConsent?.version===CONSENT_VERSION).reverse().map(row=>String(row.body)).join('\n'):null;
+  const clarificationCount=trail.filter(row=>row.role==='assistant'&&row.metadata?.kind==='clarify').length;
+  return {question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context,clarify,clarificationCount,country:conversation.jurisdiction,version:conversation.version};
  });
  if(!work)return;
  let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined;
- let ragSources:Faq[]=[],rules:AnswerRule[]=[],rag=false,clarification=false;
+ let ragSources:Faq[]=[],rules:AnswerRule[]=[],rag=false,clarification=false,localClarification=false;
  try{
   if(policy.customerAIEnabled===false||policy.chatEnabled===false)throw new Error('Disabled');
   if(requiresHuman(work.question))throw new Error('Specialist required');
+  const initial=initialClarification(work.context?String(work.context)+'\n'+work.question:work.question);
+  if(initial&&work.clarificationCount<3){answer=initial;clarification=true;localClarification=true;}else{
   providerVersion=(await readRow('ai'))?.version;
   const connection=await activeValues('ai');if(!connection)throw new Error('Provider not connected');
   const ruleQuestion=work.context?String(work.context)+'\nCâu hỏi tiếp: '+work.question:work.question;
@@ -52,7 +57,9 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
     const used=new Set(selection.passages.map(p=>p.key));
     ragSources=found.sources.filter(source=>used.has('source-'+source.id));
     answer=selection.passages.map(p=>p.quote).join('\n\n');
-   }else if(selection.kind==='clarify-country'&&!work.clarify){
+   }else if(selection.kind==='clarify-details'&&work.clarificationCount<3){
+    ragSources=found.sources;clarification=true;answer=clarificationText(selection.detail,question);
+   }else if(selection.kind==='clarify-country'&&work.clarificationCount<3){
     ragSources=found.sources;clarification=true;answer='Bạn muốn tìm hiểu quy định tại Việt Nam, tại Đức hay liên quan đến cả hai nước?';
    }else throw new Error('Insufficient evidence');
   }else{
@@ -60,6 +67,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    faq=await findFaq(work.country,work.question);
    if(!faq)throw new Error('Outside approved coverage');
    answer=await formatter(faq,connection,policy.aiMaxOutputTokens||700,limit,rules);
+  }
   }
  }catch(error){
   // Bounded operational codes only; no question, transcript or credentials in logs.
@@ -71,10 +79,14 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   if(!conversation||conversation.state!=='queued'||!conversation.ai_enabled||conversation.ai_generation!==token||conversation.version!==work.version)return;
   const latest=(await db.query("SELECT id FROM lvd_messages WHERE conversation_id=$1 AND role='user' ORDER BY id DESC LIMIT 1",[id])).rows[0];
   if(String(latest?.id)!==String(messageId))return;
-  if(answer){
+  if(answer&&!localClarification){
    const ruleQuestion=work.context?String(work.context)+'\nCâu hỏi tiếp: '+work.question:work.question;
    const currentRules=await activeAnswerRules(work.country,ruleQuestion,db,true);
    if(rulesRevision(currentRules)!==rulesRevision(rules))answer=null;
+  }
+  if(answer&&localClarification){
+   const settings=(await db.query('SELECT customer_a_i_enabled,chat_enabled FROM site_settings LIMIT 1 FOR SHARE')).rows[0];
+   if(settings?.customer_a_i_enabled===false||settings?.chat_enabled===false)answer=null;
   }
   if(answer&&faq){
    const current=(await db.query('SELECT * FROM knowledge WHERE id=$1 FOR SHARE',[faq.id])).rows[0] as Faq|undefined;

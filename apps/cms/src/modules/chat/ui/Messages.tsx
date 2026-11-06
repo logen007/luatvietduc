@@ -23,5 +23,6 @@ export function ChatMessages({state}:{state:WorkspaceState}){
   </article>)}
   {pending&&<article className="chat-message user is-pending"><div className="chat-answer-text"><p>{state.sendingBody}</p></div></article>}
   {((state.busy&&state.sendingBody)||(state.conversation?.aiEnabled&&state.messages.at(-1)?.role==='user'))&&<div className="chat-thinking" role="status" aria-label={t("Đang chuẩn bị phản hồi")}><span/><span/><span/></div>}
+  {!state.me?.user&&state.conversation?.state==='queued'&&state.conversation.aiEnabled===false&&<article className="chat-message assistant chat-login-message"><div className="chat-answer-label"><ChatIcon name="spark"/><strong>Luật Việt Đức</strong></div><div className="chat-answer-text"><p>{t("Bạn hãy đăng nhập để lưu cuộc trò chuyện và được chuyên viên ưu tiên trả lời.")} <a href={'/tai-khoan?conversation='+encodeURIComponent(state.selected)} aria-disabled={state.busy||state.uploading} onClick={event=>{if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();void state.openAccount();}}>{t("Đăng nhập")} <span aria-hidden="true">↗</span></a></p></div></article>}
  </div>;
 }

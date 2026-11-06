@@ -1,3 +1,4 @@
+import {detailKinds,type DetailKind} from '../assistant/clarification';
 import {createHash} from 'node:crypto';
 export const EMBEDDING_MODEL='gemini-embedding-001';
 export const DIMENSIONS=768;
@@ -22,11 +23,12 @@ export function pointId(source:number,revision:string,ordinal:number){
  return `${h.slice(0,8)}-${h.slice(8,12)}-4${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`;
 }
 export type Evidence={key:string;sourceId:number;title:string;text:string;revision:string;score:number};
-export type Selection={kind:'answer';passages:{key:string;quote:string}[]}|{kind:'clarify-country'}|{kind:'handoff'};
+export type Selection={kind:'answer';passages:{key:string;quote:string}[]}|{kind:'clarify-country'}|{kind:'clarify-details';detail:DetailKind}|{kind:'handoff'};
 // The model selects relevant source passages, never authors legal claims. Exact text and citations are enforced here.
 export function validateSelection(value:unknown,evidence:Evidence[]):Selection{
  const v=value as any;
  if(v?.kind==='handoff'||v?.kind==='clarify-country')return {kind:v.kind};
+ if(v?.kind==='clarify-details'){if(!detailKinds.includes(v.detail))throw new Error('Unsupported clarification');return {kind:'clarify-details',detail:v.detail};}
  if(v?.kind!=='answer'||!Array.isArray(v.passages)||!v.passages.length||v.passages.length>6)throw new Error('Unsupported answer');
  const seen=new Set<string>(),passages:{key:string;quote:string}[]=[];
  for(const p of v.passages){

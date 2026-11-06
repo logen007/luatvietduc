@@ -38,6 +38,17 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
  }
  try{
   clearFaqCatalog();
+  const incomplete=await start('tôi muốn');
+  await Promise.all([replyToMessage(incomplete.actor,incomplete.conversation.id,incomplete.message.id,policy,formatter),replyToMessage(incomplete.actor,incomplete.conversation.id,incomplete.message.id,policy,formatter)]);
+  let intake=await chat.transcript(incomplete.actor,incomplete.conversation.id);
+  assert.equal(intake.messages.length,2);assert.equal(intake.messages[1].metadata.kind,'clarify');assert.equal(intake.conversation.aiEnabled,true);assert.equal(calls,0);
+  assert.ok(!(await queued(incomplete.conversation.id)),'An incomplete question is not a specialist handoff');
+  for(let round=0;round<3;round++){
+   const followup=await chat.message(incomplete.actor,incomplete.conversation.id,{body:'tôi muốn',key:crypto.randomUUID()},2000);
+   await replyToMessage(incomplete.actor,incomplete.conversation.id,followup.id,policy,formatter);
+  }
+  intake=await chat.transcript(incomplete.actor,incomplete.conversation.id);
+  assert.equal(intake.messages.at(-1)?.metadata.kind,'handoff');assert.equal(intake.conversation.aiEnabled,false);assert.equal(calls,0);
   const answered=await start(alias.toUpperCase());
   assert.ok(!(await queued(answered.conversation.id)),'Fresh AI work is not a specialist request');
   await Promise.all([replyToMessage(answered.actor,answered.conversation.id,answered.message.id,policy,formatter),replyToMessage(answered.actor,answered.conversation.id,answered.message.id,policy,formatter)]);
