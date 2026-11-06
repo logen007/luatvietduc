@@ -88,3 +88,24 @@ root with mode 0600. Its fine-grained token is limited to this repository and
 Actions: Read / Contents: Read. The token is sent only to api.github.com, never to
 public asset requests, logs, the repository or deployment configuration responses.
 Anonymous rate-limit backoff remains enabled if no token has been installed.
+
+## Short CI for presentation releases (2026-11-06)
+
+`release-scope` compares the full candidate diff against the revision actually
+served at `/release.json`, using the same conservative presentation allowlist as
+the installed release engine. CSS-only releases run presentation and deployment
+safety checks without starting PostgreSQL, application tests or a Next.js build.
+Unknown live revision, failed fetch, ancestry failure, mixed code changes and
+policy changes retain full validation. The server independently recalculates the
+diff and still requires `cms-checks: success` for application releases.
+
+Same-repository PRs from `feat/platform-*` reuse their exact-source push checks;
+forks and branches outside that push trigger retain full PR checks. No production
+credentials are given to GitHub jobs. Compiler cache contains only `.next/cache`,
+keyed by operating system, Node major, dependency lockfile and source commit.
+Cache misses still build normally; no test or build step depends on a cache hit.
+
+Changing this workflow requires its exact hash to be reviewed and installed once
+through `install-presentation-lane.py`, with a pinned seven-file policy manifest
+and a successful full push run. It does not change the engine allowlist, schema
+gate, backup, candidate probes, rollback or deployment locking.
