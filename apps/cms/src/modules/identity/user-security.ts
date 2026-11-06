@@ -62,7 +62,7 @@ export const guardAccountLogin:CollectionBeforeLoginHook=async({req,user})=>{
 // Payload resetPassword validates the reset token and hashes the new password
 // before this hook, within the same transaction as its native session changes.
 export const revokeResetSessions:CollectionBeforeValidateHook=async({operation,data,req})=>{
- if(operation==='update'&&resetting.has(req)&&data?.id&&data.hash&&data.salt){await revokeAppUserSessions(Number(data.id),req);resetting.delete(req);}
+ if(operation==='update'&&resetting.has(req)&&data?.id&&data.hash&&data.salt){await revokeAppUserSessions(Number(data.id),req);if(req.context.verifiedReset===true)data._verified=true;resetting.delete(req);}
  return data;
 };
 export const revokeChangedCredentials:CollectionBeforeChangeHook=async({operation,data,originalDoc,req})=>{

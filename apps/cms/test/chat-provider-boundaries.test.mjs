@@ -5,6 +5,8 @@ import {formatFaq} from '../src/modules/assistant/format.ts';
 import {pool} from '../src/modules/shared/db.ts';
 import {DIMENSIONS} from '../src/modules/rag/core.ts';
 import {QuickReplies} from '../src/modules/quick-replies/collection.ts';
+import {retrieve} from '../src/modules/rag/retrieve.ts';
+import {faqRevision} from '../src/modules/assistant/faq.ts';
 
 const connection={apiKey:'synthetic-mock-only-key',model:'synthetic-model'};
 const evidence=[{key:'source-1',sourceId:1,title:'Synthetic approved source',text:'Synthetic approved answer for this question.\n\nSynthetic mandatory exception must remain.',revision:'approved-revision',score:0.95,customerRecord:'PRIVATE-FIELD-MUST-NOT-LEAVE',objectKey:'PRIVATE-OBJECT-KEY'}];
@@ -58,6 +60,22 @@ test('mocked document embedding sends only explicit content and rejects malforme
  assert.deepEqual(await embed('Synthetic approved document','RETRIEVAL_DOCUMENT',connection,'Synthetic public title'),values);assert.equal(calls,1);
  t.mock.restoreAll();t.mock.method(globalThis,'fetch',async()=>Response.json({embedding:{values:[1]}}));
  await assert.rejects(embed('Synthetic query','RETRIEVAL_QUERY',connection),/Invalid embedding/);
+});
+
+test('native retrieval rejects malformed vector HTTP hits before loading any approved source rows',async t=>{
+ const point='11111111-2222-4333-8444-555555555555',source={id:41,title:'Synthetic approved source',body:'Synthetic approved answer with its complete conditions.',question_aliases:null,jurisdiction:'BOTH',source_url:'https://example.invalid/approved',updated_at:new Date('2026-11-01'),effective_from:new Date('2020-01-01'),review_due_at:new Date('2030-01-01'),expires_at:null,approved:true,_status:'published',entry_type:'knowledge'};
+ const row={...source,point_id:point,indexed_revision:faqRevision(source)},values=Array.from({length:DIMENSIONS},(_,index)=>index===0?1:0);
+ for(const hits of [[{id:point}],[{id:point,score:'0.99'}],[{id:41,score:0.99}],[{id:'invalid-point',score:0.99}]]){
+  let queries=0,calls=0;
+  t.mock.method(pool,'query',async()=>{queries++;return {rows:[row]};});
+  t.mock.method(globalThis,'fetch',async url=>{calls++;if(url.endsWith(':embedContent'))return Response.json({embedding:{values}});assert.ok(url.startsWith('http://vectors:6333/collections/'));return Response.json({result:{points:hits}});});
+  await assert.rejects(retrieve('Synthetic consented question','BOTH',connection),/Vector index unavailable/);
+  assert.equal(queries,0,'Malformed remote scores/IDs must not be promoted through otherwise valid SQL source rows');assert.equal(calls,2,'No hidden vector or provider retry');t.mock.restoreAll();
+ }
+ let queries=0;
+ t.mock.method(pool,'query',async sql=>{queries++;assert.match(sql,/lvd_rag_chunks/);return {rows:[row]};});
+ t.mock.method(globalThis,'fetch',async url=>url.endsWith(':embedContent')?Response.json({embedding:{values}}):Response.json({result:{points:[{id:point,score:0.9}]}}));
+ const found=await retrieve('Synthetic consented question','BOTH',connection);assert.equal(queries,1);assert.equal(found.sources[0].id,source.id);assert.equal(found.evidence[0].score,0.9);
 });
 
 test('legacy FAQ formatting never transmits customer fields and rule revisions invalidate the format cache',async t=>{

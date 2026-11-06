@@ -4,6 +4,7 @@ import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {applyTransitionReceipt} from '../src/modules/chat/transition-receipt.ts';
 import {Composer} from '../src/modules/chat/staff/Composer.tsx';
+import {InboxList} from '../src/modules/chat/staff/InboxList.tsx';
 
 const thread={id:'synthetic-thread',title:'Synthetic private title',state:'human',version:4,assignedTo:7,assignedName:'Synthetic staff',customer:{name:'Synthetic customer',email:'test@example.invalid'},aiEnabled:true,aiStartedAt:'2026-11-05T00:00:00Z',aiMessageId:'41',registered:true,createdAt:'2026-11-05T00:00:00Z'};
 test('a confirmed close keeps its authoritative state without needing a follow-up read',()=>{
@@ -46,4 +47,10 @@ test('a completed thread or recoverable read error retains an authorized unsent 
   const html=renderToStaticMarkup(createElement(Composer,{state:{...draftState(conversation),connectionError:'Synthetic temporary read failure'},canReply:false,onSent(){}}));
   assert.ok(html.includes('PRIVATE-SYNTHETIC-REPLY'));assert.ok(html.includes('PRIVATE-SYNTHETIC-FILE'));
  }
+});
+
+test('the mobile inbox list owns one retry row for session or initialization failure',()=>{
+ const inbox={rows:[],counts:{},total:0,totalPages:1,page:1,view:'queue',query:'',loading:false,error:'',refresh(){},setView(){},setQuery(){},setPage(){}};
+ const html=renderToStaticMarkup(createElement(InboxList,{inbox,selected:'',onSelect(){},workspaceError:{message:'Synthetic failed session check',retry(){},busy:false}}));
+ assert.match(html,/^<aside/);assert.ok(html.includes('Synthetic failed session check'));assert.ok(html.includes('class="operator-error"'));assert.equal(html.split('Thử lại').length-1,1,'The list has one shared recovery action');
 });

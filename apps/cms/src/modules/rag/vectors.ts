@@ -14,5 +14,10 @@ export async function ensureCollection(){
 }
 export async function searchVectors(query:number[],scopes:string[]){
  const result=await vectorRequest('/points/query','POST',{query,filter:{must:[{key:"jurisdiction",match:{any:scopes}}]},limit:32,with_payload:false,with_vector:false,score_threshold:0.72,params:{hnsw_ef:128}});
- return (result.result?.points||[]) as {id:string;score:number}[];
+ const points=result?.result?.points;
+ if(!Array.isArray(points))throw new Error('Vector index unavailable');
+ return points.map(point=>{
+  if(!point||typeof point.id!=='string'||!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(point.id)||typeof point.score!=='number'||!Number.isFinite(point.score))throw new Error('Vector index unavailable');
+  return {id:point.id,score:point.score};
+ });
 }

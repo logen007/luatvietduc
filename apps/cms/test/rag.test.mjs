@@ -33,3 +33,15 @@ test('German source conditions and exceptions cannot be omitted from a selected 
   assert.equal(validateSelection({kind:'answer',passages:[{key:source.key,quote:answer},{key:source.key,quote:condition}]},[source]).kind,'answer');
  }
 });
+
+test('RAG evidence needs a finite numeric score rather than a coercible or missing value',()=>{
+ const answer={kind:'answer',passages:evidence[0].text.split('\n\n').map(quote=>({key:evidence[0].key,quote}))};
+ for(const score of [undefined,NaN,Infinity,-Infinity,'0.99',{value:0.99}])assert.throws(()=>validateSelection(answer,[{...evidence[0],score}]),/Unsupported passage/);
+ assert.equal(validateSelection(answer,[{...evidence[0],score:0.72}]).kind,'answer');
+});
+
+test('whitespace variants cannot select the same approved paragraph twice',()=>{
+ const quote='Synthetic mandatory exception must remain visible.',source={...evidence[0],text:'Synthetic approved answer for this question.\n\n  '+quote+'\n\nSynthetic final paragraph remains available.'};
+ assert.throws(()=>validateSelection({kind:'answer',passages:[{key:source.key,quote},{key:source.key,quote:' '+quote}]},[source]),/Unsupported passage/);
+ assert.deepEqual(validateSelection({kind:'answer',passages:[{key:source.key,quote:' '+quote}]},[source]),{kind:'answer',passages:[{key:source.key,quote}]});
+});

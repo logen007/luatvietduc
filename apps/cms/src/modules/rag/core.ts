@@ -31,11 +31,11 @@ export function validateSelection(value:unknown,evidence:Evidence[]):Selection{
  const seen=new Set<string>(),passages:{key:string;quote:string}[]=[];
  for(const p of v.passages){
   const source=evidence.find(e=>e.key===p.key);
-  if(!source||source.score<MIN_SCORE||typeof p.quote!=='string'||p.quote.trim().length<20||p.quote.length>2400||!source.text.includes(p.quote)||seen.has(p.key+'\n'+p.quote))throw new Error('Unsupported passage');
+  if(!source||!Number.isFinite(source.score)||source.score<MIN_SCORE||typeof p.quote!=='string'||p.quote.trim().length<20||p.quote.length>2400||!source.text.includes(p.quote)||seen.has(p.key+'\n'+p.quote.trim()))throw new Error('Unsupported passage');
   // Whole paragraphs preserve nearby conditions; arbitrary fragments can reverse a legal meaning.
   const paragraphs=source.text.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
   if(!paragraphs.includes(p.quote.trim()))throw new Error('Incomplete paragraph');
-  seen.add(p.key+'\n'+p.quote);passages.push({key:p.key,quote:p.quote.trim()});
+  seen.add(p.key+'\n'+p.quote.trim());passages.push({key:p.key,quote:p.quote.trim()});
  }
  for(const source of evidence.filter(e=>passages.some(p=>p.key===e.key))){
   const required=source.text.split(/\n\s*\n/).map(p=>p.trim()).filter(p=>/điều kiện|ngoại lệ|trừ khi|chỉ áp dụng|không áp dụng|lưu ý|hạn chế|cần chuyên viên|mandatory|exception|voraussetzung|bedingung|ausnahme|es sei denn|nur wenn|gilt nur|gelten nur|gilt nicht|gelten nicht|einschränkung|hinweis/i.test(p));

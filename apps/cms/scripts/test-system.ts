@@ -1,3 +1,4 @@
+import {testStorageAdmission} from './test-storage-admission';
 import {testChatAccountRetry} from './test-chat-account-retry';
 import {testAccountLifecycleRaces} from './test-account-lifecycle-races';
 import {testPasswordLoginAdmission} from './test-password-login-admission';
@@ -51,6 +52,7 @@ try {
       role: "owner",
     },
   });
+  await testStorageAdmission();
   await testQuickReplies(payload,owner);
   await testPrivateKnowledge(payload,owner);
   await testMediaLibrary(payload,owner);

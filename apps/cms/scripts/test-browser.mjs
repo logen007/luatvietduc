@@ -88,7 +88,7 @@ try{
  assert.equal(await nav.getByRole('link',{name:'Đăng nhập',exact:true}).count(),0);await page.getByRole('button',{name:'Đóng menu',exact:true}).click();
  const {testPublicReview,testHeroLoading,testContactAndSettings}=await import('./test-public-review.mjs');await testPublicReview({page,context,base,owner});await testHeroLoading({context,base});await testContactAndSettings({page,base});
  const {testAccountRecovery}=await import('./test-account-recovery.mjs');await testAccountRecovery({page,base});
- const {testChatReview,testCustomerHistoryRecovery,testChatLoginDraftHandoff}=await import('./test-chat-review.mjs');await testCustomerHistoryRecovery({page,base});await testChatLoginDraftHandoff({page,base});await testChatReview({page,base,owner});
+ const {testChatReview,testCustomerHistoryRecovery,testChatLoginDraftHandoff,testChatSessionRecovery}=await import('./test-chat-review.mjs');await testCustomerHistoryRecovery({page,base});await testChatLoginDraftHandoff({page,base});await testChatReview({page,base,owner});await testChatSessionRecovery({page,base,owner});
  // Drive callback failures remain bound to the original owner, nonce and
  // configuration revision. These synthetic failures never contact Google.
  const callback=code=>context.request.get(base+'/service/backups/google/callback?'+code,{maxRedirects:0,headers:{'sec-fetch-site':'cross-site'}});

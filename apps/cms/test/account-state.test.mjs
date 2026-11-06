@@ -53,3 +53,19 @@ test('expired sessions and network failures clear staff links rather than preten
  next={user:null};await store.refresh(true);assert.equal(accountView(store.getSnapshot()).label,'Đăng nhập');assert.equal(accountView(store.getSnapshot()).management,null);
  next=new Error('offline');await assert.rejects(store.refresh(true));assert.equal(accountView(store.getSnapshot()).label,'Tài khoản');assert.equal(store.getSnapshot().status,'error');
 });
+
+test('session errors retain only their current request status and clear that metadata after recovery',async()=>{
+ for(const status of [0,503,401,403]){
+  let fail=true;const store=createSessionStore(async()=>{if(fail)throw Object.assign(new Error('Synthetic session failure'),{status});return {user:null};});
+  await assert.rejects(store.refresh());assert.equal(store.getSnapshot().failureStatus,status);assert.equal(store.getSnapshot().data,null);
+  fail=false;await store.refresh();assert.equal(store.getSnapshot().failureStatus,null);
+  store.invalidate();assert.equal(store.getSnapshot().failureStatus,null);
+ }
+});
+test('a late old session error cannot replace the definitive status of a newer request',async()=>{
+ const failures=[];const store=createSessionStore(()=>new Promise((resolve,reject)=>failures.push(reject)));
+ const old=store.refresh(),oldFailure=assert.rejects(old);await Promise.resolve();store.invalidate();
+ const next=store.refresh(),nextFailure=assert.rejects(next);await Promise.resolve();failures[1](Object.assign(new Error('New access denied'),{status:403}));await nextFailure;
+ failures[0](Object.assign(new Error('Old service unavailable'),{status:503}));await oldFailure;
+ assert.equal(store.getSnapshot().failureStatus,403);assert.equal(store.getSnapshot().status,'error');
+});

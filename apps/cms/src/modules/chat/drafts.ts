@@ -1,5 +1,7 @@
 import type {Attachment} from './contracts';
 export type ChatDraft={text:string;attachments:Attachment[]};
+export function draftOwnerKey(user:{id:number|string;role?:string;jurisdictions?:string[]}|null|undefined){return user?JSON.stringify([String(user.id),user.role||'',...(user.jurisdictions||[]).slice().sort()]):'guest';}
+export function draftMatchesDelivery(draft:ChatDraft,body:string,fileIds:string[]){return draft.text.trim()===body&&draft.attachments.length===fileIds.length&&draft.attachments.every((file,index)=>file.id===fileIds[index]);}
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const empty=():ChatDraft=>({text:'',attachments:[]});
 export const handoffKey='lvd-chat-handoff-v1';

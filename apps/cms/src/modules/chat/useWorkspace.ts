@@ -9,7 +9,7 @@ import {uploadChatAttachment} from './client-upload';
 import type {Conversation,Message,Transcript,Attachment,TransitionReceipt} from './contracts';
 import {initialChatQuestion} from './intake';
 import {applyTransitionReceipt} from './transition-receipt';
-import {createDraftBook,saveDraftHandoff,takeDraftHandoff} from './drafts';
+import {createDraftBook,draftMatchesDelivery,draftOwnerKey,handoffKey,saveDraftHandoff,takeDraftHandoff} from './drafts';
 export function useWorkspace(staff=false,manageList=true){
   const session=usePublicSession(),me=session.status==='ready'?session.data:null;
   const [ownerRevision,setOwnerRevision]=useState(-1),[intakeAttempt,setIntakeAttempt]=useState(0),[initializationFailed,setInitializationFailed]=useState(false);
@@ -26,6 +26,7 @@ export function useWorkspace(staff=false,manageList=true){
     [internal, setInternal] = useState(false),
     [busy, setBusy] = useState(false),
     [loaded, setLoaded] = useState(false),
+    [reauthorizing,setReauthorizing]=useState(false),
     [notice, setNotice] = useState("");
   const [preferHuman,setPreferHuman]=useState(false),[sendingBody,setSendingBody]=useState("");
   const [attachments,setAttachments]=useState<Attachment[]>([]),[uploading,setUploading]=useState(false);
@@ -34,6 +35,10 @@ export function useWorkspace(staff=false,manageList=true){
   const mode=useRef(staff);mode.current=staff;
   const operations=useRef(createOperationGate()),selection=useRef(''),uploadRequest=useRef<AbortController|null>(null);
   const drafts=useRef(createDraftBook());
+  const ownerKey=JSON.stringify([staff,manageList,draftOwnerKey(me?.user)]),effectKey=JSON.stringify([staff,manageList,session.revision,session.status,intakeAttempt]);
+  const lifecycle=useRef({key:effectKey,status:session.status,ownerKey,failureStatus:session.failureStatus});lifecycle.current={key:effectKey,status:session.status,ownerKey,failureStatus:session.failureStatus};
+  const retainedOwner=useRef<{key:string;scope:string;id:number|null}|null>(null),recoveringSession=useRef(false),continuity=useRef(0);
+  const activeDraft=useRef({selected,text,attachments});activeDraft.current={selected,text,attachments};
   const outbox=useRef(createMessageOutbox((id,draft)=>api<MessageReceipt>(`conversations/${id}/messages`,{...draft,...(!mode.current?{aiConsentVersion:'gemini-rag-v1'}:{})}))),
     log = useRef<HTMLDivElement>(null),
     shell = useRef<HTMLElement>(null);
@@ -68,6 +73,17 @@ export function useWorkspace(staff=false,manageList=true){
   function rememberCreated(id:string){listRevision.current++;setRows(previous=>rememberCreatedConversation(previous,id));}
   function changeSelection(id:string){selection.current=id;revision.current++;setSelected(id);}
   function forgetDraft(id:string){drafts.current.remove(id);outbox.current.reset(id);if(staff)try{sessionStorage.removeItem(`lvd-staff-draft:${me?.user?.id}:${id}:reply`);}catch{}}
+  function transientFailure(status:number|null|undefined){return status===0||typeof status==='number'&&status>=500&&status<=599;}
+  function sameContinuity(epoch:number,owner:string|undefined){const view=lifecycle.current;return Boolean(owner)&&epoch===continuity.current&&owner===retainedOwner.current?.key&&(view.status==='ready'?view.ownerKey===owner:view.status==='error'&&transientFailure(view.failureStatus));}
+  function clearRetiredDrafts(id:number|null){try{if(id!=null)for(let i=sessionStorage.length-1;i>=0;i--){const key=sessionStorage.key(i);if(key?.startsWith(`lvd-staff-draft:${id}:`))sessionStorage.removeItem(key);}sessionStorage.removeItem(handoffKey);}catch{}}
+  function acknowledgeRetainedDraft(id:string,body:string,files:Attachment[]){
+    const snapshot=activeDraft.current,ids=files.map(file=>file.id),selectedMatch=snapshot.selected===id&&draftMatchesDelivery(snapshot,body,ids);
+    const matches=snapshot.selected===id?selectedMatch:draftMatchesDelivery(drafts.current.get(id),body,ids);
+    if(matches)drafts.current.remove(id);
+    if(selectedMatch){activeDraft.current={...snapshot,text:'',attachments:[]};setText('');setAttachments([]);setError('');}
+    if(staff&&matches)try{const key=`lvd-staff-draft:${retainedOwner.current?.id}:${id}:reply`;if(sessionStorage.getItem(key)?.trim()===body)sessionStorage.removeItem(key);}catch{}
+    if(lifecycle.current.status==='ready'&&snapshot.selected===id)wakeTranscript.current();
+  }
   function selectConversation(id:string){
     if(!visible||!current()||!loaded||selected!==selection.current||operations.current.busy()||(!staff&&!rows.some(row=>row.id===id)))return false;
     if(id===selection.current)return true;
@@ -78,19 +94,34 @@ export function useWorkspace(staff=false,manageList=true){
     return true;
   }
   useEffect(() => {
-    revision.current++;
-    operations.current.reset();outbox.current.reset();selection.current='';
-    drafts.current.clear();
-    setRows([]);setSelected('');setConversation(null);setMessages([]);
-    setAttachments([]);setUploading(false);setBusy(false);setSendingBody('');
-    setError('');setConnectionError('');setText('');setInternal(false);setCountry('');setPreferHuman(false);setLoaded(false);setInitializationFailed(false);
-    setOwnerRevision(session.revision);
-    if(session.status!=='ready')return;
-    let active = true;
+    let active=true;
+    const key=effectKey,scope=JSON.stringify([staff,manageList]);
+    const cleanup=()=>{
+      active=false;operations.current.reset();uploadRequest.current?.abort();uploadRequest.current=null;
+      // A real unmount retires this owner. Dependency changes are classified by
+      // the next effect before any private result can be applied.
+      if(lifecycle.current.key===key){continuity.current++;outbox.current.reset();drafts.current.clear();retainedOwner.current=null;recoveringSession.current=false;}
+    };
+    revision.current++;operations.current.reset();setUploading(false);setBusy(false);setSendingBody('');setLoaded(false);setInitializationFailed(false);
+    if(session.status==='error'&&transientFailure(session.failureStatus)&&retainedOwner.current?.scope===scope){
+      drafts.current.save(selection.current,activeDraft.current);recoveringSession.current=true;
+      setOwnerRevision(-1);setReauthorizing(true);
+      return cleanup;
+    }
+    const restore=session.status==='ready'&&recoveringSession.current&&retainedOwner.current?.key===ownerKey;
+    const restoreSelected=restore?selection.current:'';
+    if(!restore){
+      if(retainedOwner.current&&(session.status!=='ready'||retainedOwner.current.key!==ownerKey))clearRetiredDrafts(retainedOwner.current.id);
+      continuity.current++;outbox.current.reset();drafts.current.clear();selection.current='';recoveringSession.current=false;
+      setSelected('');setAttachments([]);setText('');setError('');setInternal(false);setCountry('');setPreferHuman(false);
+    }
+    setRows([]);setConversation(null);setMessages([]);setConnectionError('');setReauthorizing(restore);setOwnerRevision(session.revision);
+    if(session.status!=='ready'){retainedOwner.current=null;return cleanup;}
+    retainedOwner.current={key:ownerKey,scope,id:me?.user?.id??null};
     const valid=()=>active&&current();
     let savedDraft:string|null=null;
     if(!staff)try{savedDraft=sessionStorage.getItem('lvd-question');}catch{}
-    const draft = staff ? '' : initialChatQuestion(window.location.search,savedDraft);
+    const draft = restore||staff ? '' : initialChatQuestion(window.location.search,savedDraft);
     if (draft) setText(draft);
     (async () => {
       try {
@@ -110,7 +141,16 @@ export function useWorkspace(staff=false,manageList=true){
         if (!valid()) return;
         setRows(list);
         // A question from the homepage starts its own intake, even with saved history.
-        if (staff){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&/^[a-f0-9-]{36}$/i.test(requested))changeSelection(requested);}
+        if(restore){
+          if(restoreSelected&&(staff||list.some(item=>item.id===restoreSelected))){
+            const saved=drafts.current.get(restoreSelected);changeSelection(restoreSelected);setText(saved.text);setAttachments(saved.attachments);setReauthorizing(true);
+          }else{
+            if(restoreSelected)forgetDraft(restoreSelected);
+            const saved=restoreSelected?{text:'',attachments:[]}:drafts.current.get('');setText(saved.text);setAttachments(saved.attachments);
+            if(restoreSelected&&!staff&&list[0])changeSelection(list[0].id);else changeSelection('');setReauthorizing(false);
+          }
+          recoveringSession.current=false;
+        }else if (staff){const requested=new URLSearchParams(window.location.search).get('conversation');if(requested&&/^[a-f0-9-]{36}$/i.test(requested))changeSelection(requested);}
         else if(!draft){
           const requested=new URLSearchParams(window.location.search).get('conversation');
           if(requested&&list.some(item=>item.id===requested)){
@@ -126,12 +166,7 @@ export function useWorkspace(staff=false,manageList=true){
         if (valid()) setLoaded(true);
       }
     })();
-    return () => {
-      active = false;
-      operations.current.reset();outbox.current.reset();
-      uploadRequest.current?.abort();uploadRequest.current=null;
-      drafts.current.clear();
-    };
+    return cleanup;
   }, [staff,manageList,session.revision,session.status,intakeAttempt]);
   useEffect(() => {
     stickToBottom.current=true;revision.current++;setConversation(null);
@@ -158,6 +193,7 @@ export function useWorkspace(staff=false,manageList=true){
           recovering=true;void api(`conversations/${selected}/answer`,{messageId:String(latestUser)}).catch(()=>{}).finally(()=>{recovering=false;});
         }
         if(v.conversation.restricted){forgetDraft(selected);setMessages([]);setText('');setAttachments([]);setInternal(false);cursor=0;}
+        setReauthorizing(false);
         setConversation(v.conversation);
         setRows((current) =>
           current.map((row) =>
@@ -178,7 +214,7 @@ export function useWorkspace(staff=false,manageList=true){
         waiting=Boolean(v.conversation.aiEnabled&&latestUser>latestAnswered);
         setConnectionError("");
       } catch (e) {
-        if (active&&current()&&ticket===revision.current) {setConnectionError((e as Error).message);if(e instanceof ClientApiError&&[401,403,404].includes(e.status)){forgetDraft(selected);setConversation(null);setMessages([]);setAttachments([]);setText('');cursor=0;}}
+        if (active&&current()&&ticket===revision.current) {setConnectionError((e as Error).message);if(e instanceof ClientApiError&&[401,403,404].includes(e.status)){forgetDraft(selected);setConversation(null);setMessages([]);setAttachments([]);setText('');setReauthorizing(false);cursor=0;}}
       }
     };
     setMessages([]);
@@ -208,7 +244,7 @@ export function useWorkspace(staff=false,manageList=true){
     return visiblePoll(()=>refreshList(),5000,{initial:false});
   }, [staff,visible,session.revision,manageList]);
   const act = async (action: string) => {
-    if (!visible || !current() || !conversation || busy || uploading) return;
+    if (!visible || !current() || reauthorizing || !conversation || busy || uploading) return;
     const operation=operations.current.begin();if(!operation)return false;
     const valid=()=>current()&&operations.current.isCurrent(operation);
     setBusy(true);revision.current++;
@@ -232,10 +268,11 @@ export function useWorkspace(staff=false,manageList=true){
   };
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!visible || !current() || (!text.trim()&&!attachments.length) || busy || uploading || !loaded) return;
+    if (!visible || !current() || reauthorizing || (!text.trim()&&!attachments.length) || busy || uploading || !loaded) return;
     const operation=operations.current.begin();if(!operation)return false;
     const valid=()=>current()&&operations.current.isCurrent(operation);
     const body=text.trim(),files=[...attachments];
+    const epoch=continuity.current,owner=retainedOwner.current?.key;
     setBusy(true);revision.current++;
     setSendingBody(text.trim()||"Tệp đính kèm");
     stickToBottom.current=true;
@@ -255,7 +292,7 @@ export function useWorkspace(staff=false,manageList=true){
         drafts.current.remove('');changeSelection(id);
       }
       const {receipt,key}=await outbox.current.send(id,{body,internal,fileIds:files.map(file=>file.id)});
-      if(!valid())return false;
+      if(!valid()){if(sameContinuity(epoch,owner))acknowledgeRetainedDraft(id,body,files);return false;}
       setText("");setAttachments([]);drafts.current.remove(id);
       setMessages(old=>receipt.duplicate&&old.some(message=>String(message.id)===String(receipt.id))?old:mergeMessages(old,[{id:receipt.id,role:receipt.role,body,internal:receipt.role==='staff'&&internal,created_at:new Date().toISOString(),client_key:key,attachments:files,author_name:me?.user?.name}]));
       // Delivery is already acknowledged. Reuse the single transcript reader;
@@ -264,13 +301,13 @@ export function useWorkspace(staff=false,manageList=true){
       void refreshList().catch(()=>{});
       return true;
     } catch (e) {
-      if(valid())setError((e as Error).message);return false;
+      if(valid()||sameContinuity(epoch,owner))setError((e as Error).message);return false;
     } finally {
       if(operations.current.end(operation)&&current()){setBusy(false);setSendingBody("");}
     }
   };
   async function attachFiles(files:File[]){
-    if(!visible||!current()||uploading||busy||!loaded)return;
+    if(!visible||!current()||reauthorizing||uploading||busy||!loaded)return;
     if(!files.length)return;
     try{validateAttachmentBatch(files,attachments.length);}catch(error){setError((error as Error).message);return;}
     const operation=operations.current.begin();if(!operation)return;
@@ -290,9 +327,9 @@ export function useWorkspace(staff=false,manageList=true){
   }
   const staffAllowed =
     canEnterAdmin(me?.user);
-  const startNew=()=>{if(!visible||!current()||!loaded||selected!==selection.current||operations.current.busy())return false;if(!selected)return true;drafts.current.save(selected,{text,attachments});const draft=drafts.current.get('');changeSelection('');setConversation(null);setMessages([]);setAttachments(draft.attachments);setError('');setConnectionError('');setText(draft.text);setInternal(false);setPreferHuman(false);return true;};
+  const startNew=()=>{if(!visible||!current()||reauthorizing||!loaded||selected!==selection.current||operations.current.busy())return false;if(!selected)return true;drafts.current.save(selected,{text,attachments});const draft=drafts.current.get('');changeSelection('');setConversation(null);setMessages([]);setAttachments(draft.attachments);setError('');setConnectionError('');setText(draft.text);setInternal(false);setPreferHuman(false);return true;};
   async function openAccount(destination:'/tai-khoan'|'/auth/google'='/tai-khoan'){
-    if(staff||!visible||!current()||!loaded||selected!==selection.current)return;
+    if(staff||!visible||!current()||reauthorizing||!loaded||selected!==selection.current)return;
     const ticket=operations.current.begin();if(!ticket)return;
     const valid=()=>current()&&operations.current.isCurrent(ticket);
     setBusy(true);setError('');
@@ -313,7 +350,7 @@ export function useWorkspace(staff=false,manageList=true){
   // Mask private state during the render that observes a new session, before
   // effects have a chance to clear the previous workspace.
   function retry(){if(busy||uploading)return;if(session.status==='error'){void loadPublicSession().catch(()=>{});}else if(initializationFailed){setIntakeAttempt(value=>value+1);}else{wakeTranscript.current();}}
-  const draftVisible=visible&&!conversation?.restricted&&(!staff||Boolean(conversation));
-  return {openAccount,initializationFailed:session.status==='error'||visible&&initializationFailed,retry,attachments:draftVisible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>{if(!operations.current.busy())setAttachments(previous=>previous.filter(file=>file.id!==id));},me,rows:visible?rows:[],selected:visible?selected:'',setSelected:selectConversation,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:draftVisible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded&&!initializationFailed,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',pendingKey:visible?outbox.current.pendingKey(selected):undefined,sessionRevision:session.revision,sessionStatus:session.status};
+  const draftVisible=visible&&!reauthorizing&&!conversation?.restricted&&(!staff||Boolean(conversation));
+  return {openAccount,initializationFailed:session.status==='error'||visible&&initializationFailed,retry,attachments:draftVisible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>{if(!reauthorizing&&!operations.current.busy())setAttachments(previous=>previous.filter(file=>file.id!==id));},me,rows:visible?rows:[],selected:visible?selected:'',setSelected:selectConversation,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:draftVisible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded&&!initializationFailed&&!reauthorizing,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',pendingKey:visible?outbox.current.pendingKey(selected):undefined,sessionRevision:session.revision,sessionStatus:session.status};
 }
 export type WorkspaceState=ReturnType<typeof useWorkspace>;

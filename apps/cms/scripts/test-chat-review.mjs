@@ -129,3 +129,63 @@ export async function testChatLoginDraftHandoff({page,base}){
   await page.evaluate(values=>{for(const [key,value] of values){if(value===null)sessionStorage.removeItem(key);else sessionStorage.setItem(key,value);}},previous);
  }
 }
+
+// Actual mounted workspaces; all session/chat traffic is synthetic and local.
+export async function testChatSessionRecovery({page,base,owner}){
+ const origin=new URL(base).origin;assert.ok(['localhost','127.0.0.1'].includes(new URL(origin).hostname));
+ for(const staff of [true,false]){
+  const id=staff?'88888888-8888-4888-8888-888888888888':'99999999-9999-4999-8999-999999999999',initial={id:owner.id,name:'Synthetic recovery owner',role:staff?'support':'member',jurisdictions:['VN','DE']};
+  const draftKey=`lvd-staff-draft:${owner.id}:${id}:reply`,previous=await page.evaluate(key=>sessionStorage.getItem(key),draftKey);
+  let user={...initial},failure=0,mode='reject',uploads=0,holdRead=false,readCaptured,releaseRead,sendCaptured,releaseSend;
+  const posts=[],saved=[],sessionReads=[],files=new Map(),thread=()=>({id,title:'Synthetic recovery thread',state:staff?'human':'queued',version:1,assignedTo:user.id,aiEnabled:false,registered:true,customer:{name:'Synthetic recovery customer',email:null}});
+  const session=route=>{sessionReads.push(failure);return route.fulfill(failure?{status:failure,json:{error:'Synthetic session unavailable'}}:{json:{user,connections:{google:false}}});};
+  const inbox=route=>route.fulfill({json:{rows:[{...thread(),updated_at:'2026-11-06T00:00:00Z'}],counts:{all:1,active:1,queue:0},total:1,totalPages:1,page:1}});
+  const questions=route=>route.fulfill({json:{questions:[]}});
+  const matches=url=>url.origin===origin&&(url.pathname==='/service/conversations'||url.pathname.startsWith('/service/conversations/'+id));
+  const handler=async route=>{
+   const request=route.request(),path=new URL(request.url()).pathname;
+   if(path==='/service/conversations')return route.fulfill({json:[thread()]});
+   if(path.endsWith('/files')){const fileId='abababab-abab-4bab-8bab-'+String(++uploads).padStart(12,'0'),file={id:fileId,name:'Synthetic session.txt',size:10,mimeType:'text/plain',url:'/service/chat-files/'+fileId};files.set(fileId,file);return route.fulfill({json:file});}
+   if(path.endsWith('/messages')){
+    const value=request.postDataJSON();posts.push(value);let message=saved.find(item=>item.client_key===value.key);
+    const duplicate=Boolean(message);if(!message){message={id:String(600+saved.length),role:staff?'staff':'user',body:value.body,client_key:value.key,created_at:'2026-11-06T00:00:00Z',attachments:(value.fileIds||[]).map(key=>files.get(key))};saved.push(message);}
+    const attempt=mode;if(attempt==='hold'){sendCaptured?.();await new Promise(resolve=>{releaseSend=resolve;});}
+    return route.fulfill(attempt==='reject'?{status:503,json:{error:'Synthetic ambiguous save'}}:{json:{id:message.id,role:message.role,duplicate}});
+   }
+   assert.equal(request.method(),'GET');if(holdRead){holdRead=false;readCaptured?.();await new Promise(resolve=>{releaseRead=resolve;});}
+   const after=Number(new URL(request.url()).searchParams.get('after')||0);return route.fulfill({json:{conversation:thread(),messages:saved.filter(item=>Number(item.id)>after)}});
+  };
+  try{
+   await page.route('**/service/me',session);await page.route('**/service/inbox?*',inbox);await page.route('**/service/assistant/questions',questions);await page.route(matches,handler);
+   await page.goto(origin+(staff?'/admin/inbox':'/tro-chuyen'));
+   const box=page.locator(staff?'.operator-composer textarea':'.chat-compose textarea'),send=()=>page.getByRole('button',{name:staff?'Gửi phản hồi':'Gửi câu hỏi',exact:!staff}),error=page.locator(staff?'.operator-error':'.chat-error');
+   const select=async()=>{if(staff){await page.locator('.operator-workspace[aria-busy=false]').waitFor();await page.locator('.operator-thread').filter({hasText:'Synthetic recovery thread'}).click();}await page.waitForFunction(selector=>{const input=document.querySelector(selector);return input&&!input.disabled;},staff?'.operator-composer textarea':'.chat-compose textarea');};
+   const attach=async()=>{await page.locator(staff?'.operator-composer input[type=file]':'.chat-compose input[type=file]').setInputFiles({name:'Synthetic session.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic!')});await page.getByRole('button',{name:'Bỏ tệp Synthetic session.txt',exact:true}).waitFor();};
+   const failSession=async(status=503)=>{
+    failure=status;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    try{await error.getByRole('button',{name:'Thử lại',exact:true}).waitFor();}catch(problem){
+     const view=await page.evaluate(()=>({workspace:Boolean(document.querySelector('.operator-workspace')),busy:document.querySelector('.operator-workspace')?.getAttribute('aria-busy'),errors:[...document.querySelectorAll('.operator-error,.chat-error')].map(node=>node.textContent),buttons:[...document.querySelectorAll('.operator-workspace button')].map(node=>node.textContent),composers:document.querySelectorAll('.operator-composer').length}));
+     console.error('Synthetic session recovery diagnostics',JSON.stringify({staff,status,sessionReads,href:page.url(),view}));throw problem;
+    }
+    assert.equal(await page.getByRole('button',{name:'Bỏ tệp Synthetic session.txt',exact:true}).count(),0,'Private attachments stay hidden during a failed session check');
+   };
+   const retry=async()=>{failure=0;await error.getByRole('button',{name:'Thử lại',exact:true}).click();};
+   await select();await box.fill('Synthetic retained draft with files');await attach();await send().click();await error.getByText('Synthetic ambiguous save',{exact:false}).waitFor();assert.equal(posts.length,1);
+   await failSession();holdRead=true;const capturedRead=new Promise(resolve=>{readCaptured=resolve;});await retry();await capturedRead;
+   assert.equal(await box.inputValue(),'','Same identity does not reveal a draft before a fresh transcript authorizes the conversation');assert.equal(await page.getByRole('button',{name:'Bỏ tệp Synthetic session.txt',exact:true}).count(),0);releaseRead();
+   await page.waitForFunction(selector=>document.querySelector(selector)?.value==='Synthetic retained draft with files',staff?'.operator-composer textarea':'.chat-compose textarea');await page.getByRole('button',{name:'Bỏ tệp Synthetic session.txt',exact:true}).waitFor();assert.equal(posts.length,1,'Recovery never automatically retries a send');
+   mode='ok';await send().click();await page.waitForFunction(selector=>document.querySelector(selector)?.value==='',staff?'.operator-composer textarea':'.chat-compose textarea');assert.equal(posts.length,2);assert.equal(posts[0].key,posts[1].key,'Manual retry retains the ambiguous idempotency key');assert.equal(saved.length,1);
+   await box.fill('Synthetic pending acknowledgement');mode='hold';const capturedSend=new Promise(resolve=>{sendCaptured=resolve;});await send().click();await capturedSend;await failSession();releaseSend();
+   await page.waitForTimeout(50);await retry();await page.waitForFunction(selector=>{const input=document.querySelector(selector);return input&&!input.disabled;},staff?'.operator-composer textarea':'.chat-compose textarea');assert.equal(await box.inputValue(),'','A late valid save receipt cannot resurrect a sent draft');assert.equal(posts.length,3);
+   for(const change of staff?[{...initial,jurisdictions:['VN']},{...initial,id:owner.id+1}]:[{...initial,id:owner.id+1}]){
+    await box.fill('Synthetic old identity private draft');await attach();await failSession();user=change;await retry();await select();assert.equal(await box.inputValue(),'');assert.equal(await page.getByRole('button',{name:'Bỏ tệp Synthetic session.txt',exact:true}).count(),0);
+    user={...initial};await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await select();assert.equal(await box.inputValue(),'','Returning to the former identity cannot resurrect its retired draft');
+   }
+   for(const status of [401,403]){await box.fill('Synthetic definitively revoked draft');await attach();await failSession(status);await retry();await select();assert.equal(await box.inputValue(),'');assert.equal(await page.getByRole('button',{name:'Bỏ tệp Synthetic session.txt',exact:true}).count(),0);}
+   console.log((staff?'Specialist':'Customer')+' session recovery browser checks passed: hidden same-owner draft/files, original retry key, late ACK, changed identity/scope and definitive denial');
+  }finally{
+   releaseRead?.();releaseSend?.();await page.unroute(matches,handler);await page.unroute('**/service/inbox?*',inbox);await page.unroute('**/service/assistant/questions',questions);await page.unroute('**/service/me',session);await page.goto(origin+'/tai-khoan');
+   await page.evaluate(({key,value})=>{if(value===null)sessionStorage.removeItem(key);else sessionStorage.setItem(key,value);},{key:draftKey,value:previous});
+  }
+ }
+}

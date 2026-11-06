@@ -15,12 +15,13 @@ export function validateChatFile(name:string,buffer:Buffer){
  return types[ext];
 }
 export async function uploadChatFile(actor:Actor,conversationId:string,name:string,buffer:Buffer){
- const mime=validateChatFile(name,buffer),values=await activeValues('r2');
- if(!values)throw new HttpError(503,'Tải tệp chưa sẵn sàng. Quản trị viên cần bật kết nối R2.');
+ const mime=validateChatFile(name,buffer);
  const id=randomUUID(),key='private-chat/'+conversationId+'/'+id;
  let actorKey=actor.user?'user:'+actor.user.id:'guest:'+actor.guestHash;
- await transaction(async db=>{
+ const values=await transaction(async db=>{
   await db.query('SELECT pg_advisory_xact_lock_shared(73041104)');
+  const connection=await activeValues('r2',db);
+  if(!connection)throw new HttpError(503,'Tải tệp chưa sẵn sàng. Quản trị viên cần bật kết nối R2.');
   if((await db.query('SELECT media_locked_until>now() AS locked FROM lvd_backup_runtime WHERE id=1')).rows[0]?.locked)throw new HttpError(409,'Đang sao lưu tệp. Vui lòng thử lại sau.');
   const c=(await db.query('SELECT * FROM lvd_conversations WHERE id=$1 FOR UPDATE',[conversationId])).rows[0];
   if(!c||!allowed(actor,c))throw new HttpError(403,'Không có quyền gửi tệp trong hội thoại này.');
@@ -29,6 +30,7 @@ export async function uploadChatFile(actor:Actor,conversationId:string,name:stri
   const count=(await db.query('SELECT count(*)::int AS n FROM lvd_chat_files WHERE conversation_id=$1',[conversationId])).rows[0].n;
   if(count>=50)throw new HttpError(400,'Hội thoại đã đạt giới hạn 50 tệp.');
   await db.query('INSERT INTO lvd_chat_files(id,conversation_id,actor_key,object_key,name,mime_type,size) VALUES($1,$2,$3,$4,$5,$6,$7)',[id,conversationId,actorKey,key,name.replace(/[\x00-\x1f/\\]/g,'_').slice(0,180),mime,buffer.length]);
+  return connection;
  });
  const client=r2Client(values);
  try{

@@ -1,9 +1,34 @@
 #!/usr/bin/env python3
 """Narrow host worker: app-only capture, encrypted Drive upload, isolated restore drill."""
 import configparser, datetime, fcntl, hashlib, json, os, pathlib, re, shutil, subprocess, tarfile, tempfile, time, uuid, threading
+from contextlib import contextmanager
 BASE=pathlib.Path('/var/lib/luatvietduc-backup')
 PROJECT='luatvietduc'
 class BackupFailure(Exception): pass
+STAGES={
+    'worker':'chuẩn bị tác vụ','application':'tìm ứng dụng','claim':'nhận tác vụ',
+    'database':'tìm cơ sở dữ liệu','workspace':'thư mục làm việc riêng','configuration':'cấu hình công cụ sao lưu',
+    'media-lock':'khóa ghi tệp','inventory':'đọc danh sách tệp','database-dump':'xuất cơ sở dữ liệu',
+    'database-check':'kiểm tra bản xuất','recovery-config':'đọc cấu hình khôi phục',
+    'media-copy':'sao chép tệp R2','media-check':'đối chiếu tệp','archive':'đóng gói và lập danh sách kiểm tra',
+    'encryption':'mã hóa bản sao','media-unlock':'mở khóa ghi tệp','checksum':'tính mã kiểm tra',
+    'daily-upload':'gửi bản hằng ngày lên Drive','daily-check':'xác minh bản hằng ngày trên Drive',
+    'monthly':'tạo và xác minh bản tháng','retention':'dọn bản cũ','restore-test':'khôi phục thử riêng',
+}
+class BackupStageFailure(BackupFailure):
+    def __init__(self,code):
+        self.code=code if code in STAGES else 'worker'
+        super().__init__('Backup stage failed: '+self.code)
+
+@contextmanager
+def stage(code):
+    try:yield
+    except BackupStageFailure:raise
+    except Exception:raise BackupStageFailure(code) from None
+
+def failure_message(message,error):
+    code=error.code if isinstance(error,BackupStageFailure) else 'worker'
+    return message+' Bước chưa hoàn tất: '+STAGES.get(code,STAGES['worker'])+'.'
 
 def run(args, *, data=None, timeout=120, output=None):
     p=subprocess.run(args,input=data,stdout=output or subprocess.PIPE,stderr=subprocess.PIPE,timeout=timeout,check=False)
@@ -76,34 +101,43 @@ def extract_safe(archive,destination):
             with tar.extractfile(member) as src,target.open('xb') as dst: shutil.copyfileobj(src,dst,1024*1024)
 
 def capture(web,db,config,root,rc):
-    bridge(web,'lock')
+    with stage('media-lock'):bridge(web,'lock')
     try:
-        inventory=bridge(web,'inventory');bundle=root/'bundle';bundle.mkdir()
-        with (bundle/'database.dump').open('xb') as out: run(['docker','exec',db,'pg_dump','-U','lvd','-d','luatvietduc','-Fc'],output=out,timeout=600)
-        with (bundle/'database.dump').open('rb') as source:
-            p=subprocess.run(['docker','exec','-i',db,'pg_restore','--list'],stdin=source,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,timeout=120)
-        if p.returncode:raise BackupFailure('Invalid database dump')
-        private=json.loads(pathlib.Path('/etc/luatvietduc-deploy/config.json').read_text())
-        env=pathlib.Path(private['env_file'])
-        if env.stat().st_uid!=0 or env.stat().st_mode & 0o077: raise BackupFailure('Application recovery configuration permissions')
-        shutil.copyfile(env,bundle/'app.env');(bundle/'app.env').chmod(0o600)
-        (bundle/'media').mkdir()
-        if config.get('r2'): run(rc+['copy','media:'+config['r2']['bucket'],str(bundle/'media')],timeout=900)
-        elif inventory: raise BackupFailure('Media exists but R2 is unavailable')
-        for item in inventory:
-            parts=[str(item.get(k) or '').strip('/') for k in ['prefix','_object_key','filename']]
-            key=pathlib.PurePosixPath('/'.join(x for x in parts if x))
-            if key.is_absolute() or '..' in key.parts or not (bundle/'media').joinpath(*key.parts).is_file(): raise BackupFailure('Referenced media missing')
-        files={str(p.relative_to(bundle)):sha(p) for p in bundle.rglob('*') if p.is_file()}
-        manifest={'format':1,'application':'luatvietduc','commit':config['release']['commit'],'created_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'media_count':len(inventory),'files':files}
-        (bundle/'manifest.json').write_text(json.dumps(manifest))
-        tarpath=root/'bundle.tar.gz'
-        with tarfile.open(tarpath,'w:gz') as tar:
-            for child in bundle.iterdir(): tar.add(child,arcname=child.name,recursive=True)
-        encrypted=root/'bundle.tar.gz.age'
-        run(['age','--encrypt','-r',config['drive']['ageRecipient'],'-o',str(encrypted),str(tarpath)],timeout=600)
+        with stage('inventory'):
+            inventory=bridge(web,'inventory');bundle=root/'bundle';bundle.mkdir()
+        with stage('database-dump'):
+            with (bundle/'database.dump').open('xb') as out: run(['docker','exec',db,'pg_dump','-U','lvd','-d','luatvietduc','-Fc'],output=out,timeout=600)
+        with stage('database-check'):
+            with (bundle/'database.dump').open('rb') as source:
+                p=subprocess.run(['docker','exec','-i',db,'pg_restore','--list'],stdin=source,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,timeout=120)
+            if p.returncode:raise BackupFailure('Invalid database dump')
+        with stage('recovery-config'):
+            private=json.loads(pathlib.Path('/etc/luatvietduc-deploy/config.json').read_text())
+            env=pathlib.Path(private['env_file'])
+            if env.stat().st_uid!=0 or env.stat().st_mode & 0o077: raise BackupFailure('Application recovery configuration permissions')
+            shutil.copyfile(env,bundle/'app.env');(bundle/'app.env').chmod(0o600)
+        with stage('media-copy'):
+            (bundle/'media').mkdir()
+            if config.get('r2'): run(rc+['copy','media:'+config['r2']['bucket'],str(bundle/'media')],timeout=900)
+            elif inventory: raise BackupFailure('Media exists but R2 is unavailable')
+        with stage('media-check'):
+            for item in inventory:
+                parts=[str(item.get(k) or '').strip('/') for k in ['prefix','_object_key','filename']]
+                key=pathlib.PurePosixPath('/'.join(x for x in parts if x))
+                if key.is_absolute() or '..' in key.parts or not (bundle/'media').joinpath(*key.parts).is_file(): raise BackupFailure('Referenced media missing')
+        with stage('archive'):
+            files={str(p.relative_to(bundle)):sha(p) for p in bundle.rglob('*') if p.is_file()}
+            manifest={'format':1,'application':'luatvietduc','commit':config['release']['commit'],'created_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'media_count':len(inventory),'files':files}
+            (bundle/'manifest.json').write_text(json.dumps(manifest))
+            tarpath=root/'bundle.tar.gz'
+            with tarfile.open(tarpath,'w:gz') as tar:
+                for child in bundle.iterdir(): tar.add(child,arcname=child.name,recursive=True)
+        with stage('encryption'):
+            encrypted=root/'bundle.tar.gz.age'
+            run(['age','--encrypt','-r',config['drive']['ageRecipient'],'-o',str(encrypted),str(tarpath)],timeout=600)
         return encrypted,manifest
-    finally: bridge(web,'unlock')
+    finally:
+        with stage('media-unlock'):bridge(web,'unlock')
 
 def restore_drill(db,config,root,rc):
     snapshot=config['snapshot']
@@ -145,7 +179,8 @@ def once():
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:return
         clean_private_work(BASE)
-        web=container('web');config=bridge(web,'claim')
+        with stage('application'):web=container('web')
+        with stage('claim'):config=bridge(web,'claim')
         if not config:return
         stop=threading.Event()
         def heartbeat():
@@ -155,31 +190,38 @@ def once():
         monitor=threading.Thread(target=heartbeat,daemon=True);monitor.start()
         job=config['job'];result={'id':job['id'],'ok':False,'message':'Sao lưu chưa đạt; không có thay đổi vào dữ liệu đang chạy.'}
         try:
-            db=container('database')
-            with tempfile.TemporaryDirectory(prefix='job-',dir=BASE) as tmp:
-                root=pathlib.Path(tmp);rc=rclone_config(root,config)
+            with stage('database'):db=container('database')
+            with stage('workspace'),tempfile.TemporaryDirectory(prefix='job-',dir=BASE) as tmp:
+                root=pathlib.Path(tmp)
+                with stage('configuration'):rc=rclone_config(root,config)
                 if job['kind']=='restore-test':
-                    result.update(ok=True,tested=restore_drill(db,config,root,rc),message='Khôi phục thử đạt trong PostgreSQL riêng, không kết nối mạng. Dữ liệu đang chạy không thay đổi.')
+                    with stage('restore-test'):result.update(ok=True,tested=restore_drill(db,config,root,rc),message='Khôi phục thử đạt trong PostgreSQL riêng, không kết nối mạng. Dữ liệu đang chạy không thay đổi.')
                 else:
-                    encrypted,manifest=capture(web,db,config,root,rc);checksum=sha(encrypted);path='daily/'+job['id']+'.tar.gz.age'
-                    run(rc+['copyto',str(encrypted),remote_path(path)],timeout=600);verify_remote(rc,path,checksum)
+                    encrypted,manifest=capture(web,db,config,root,rc)
+                    with stage('checksum'):checksum=sha(encrypted);path='daily/'+job['id']+'.tar.gz.age'
+                    with stage('daily-upload'):run(rc+['copyto',str(encrypted),remote_path(path)],timeout=600)
+                    with stage('daily-check'):verify_remote(rc,path,checksum)
                     monthly=None;now=datetime.datetime.now(datetime.timezone.utc)
                     result.update(ok=True,snapshot={'path':path,'monthly':None,'sha256':checksum,'bytes':encrypted.stat().st_size,'commit':manifest['commit'],'media':bool(config.get('r2'))},message='Bản hằng ngày đã được xác minh. Bản tháng hoặc dọn bản cũ chưa hoàn tất; các bản cũ được giữ lại.')
-                    if not any(h.get('monthly_path') and str(h['created_at'])[:7]==now.strftime('%Y-%m') for h in config['history']):
-                        monthly='monthly/'+job['id']+'.tar.gz.age';run(rc+['copyto',str(encrypted),remote_path(monthly)],timeout=600);verify_remote(rc,monthly,checksum)
+                    with stage('monthly'):
+                        if not any(h.get('monthly_path') and str(h['created_at'])[:7]==now.strftime('%Y-%m') for h in config['history']):
+                            monthly='monthly/'+job['id']+'.tar.gz.age';run(rc+['copyto',str(encrypted),remote_path(monthly)],timeout=600);verify_remote(rc,monthly,checksum)
                     result.update(ok=True,snapshot={'path':path,'monthly':monthly,'sha256':checksum,'bytes':encrypted.stat().st_size,'commit':manifest['commit'],'media':bool(config.get('r2'))},message='Đã mã hóa, gửi lên Drive và đối chiếu SHA-256 của bản tải xuống.')
                     daily_trashed=[];monthly_trashed=[]
                     result.update(dailyTrashed=daily_trashed,monthlyTrashed=monthly_trashed,message='Bản sao mới đã được xác minh. Chưa dọn hết bản cũ; sẽ thử lại trong lượt sao lưu sau.')
-                    old_daily,old_monthly=retention_plan(config['history'],monthly)
-                    for old in old_daily:
-                        run(rc+['deletefile',remote_path(old['remote_path'])],timeout=120);daily_trashed.append(old['id'])
-                    for old in old_monthly:
-                        run(rc+['deletefile',remote_path(old['monthly_path'])],timeout=120);monthly_trashed.append(old['id'])
+                    with stage('retention'):
+                        old_daily,old_monthly=retention_plan(config['history'],monthly)
+                        for old in old_daily:
+                            run(rc+['deletefile',remote_path(old['remote_path'])],timeout=120);daily_trashed.append(old['id'])
+                        for old in old_monthly:
+                            run(rc+['deletefile',remote_path(old['monthly_path'])],timeout=120);monthly_trashed.append(old['id'])
                     result.update(ok=True,snapshot={'path':path,'monthly':monthly,'sha256':checksum,'bytes':encrypted.stat().st_size,'commit':manifest['commit'],'media':bool(config.get('r2'))},dailyTrashed=daily_trashed,monthlyTrashed=monthly_trashed,message='Đã mã hóa, gửi lên Drive và đối chiếu SHA-256 của bản tải xuống.')
-        except Exception:
+        except Exception as error:
             # Never write provider exceptions, tokens, archive content, or private restore identities to logs.
-            pass
+            result['message']=failure_message(result['message'],error)
         finally:
             stop.set();monitor.join(timeout=65)
             bridge(container('web'),'finish',**result)
-if __name__=='__main__':once()
+if __name__=='__main__':
+    try:once()
+    except Exception as error:raise SystemExit(failure_message('Chưa khởi động được tác vụ sao lưu.',error)) from None

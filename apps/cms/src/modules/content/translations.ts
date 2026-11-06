@@ -36,16 +36,23 @@ export async function articleTranslation(payload:Payload,user:User|null,input:Re
  const source=await editableArticle(payload,user,Number(input.id)),language=input.language as ArticleLanguage;
  if(source.language===language)throw new HttpError(400,'Chọn ngôn ngữ khác với bản gốc.');
  if(source.updatedAt!==input.updatedAt)throw new HttpError(409,'Bài gốc đã thay đổi. Tải lại trước khi dịch.');
+ const findSibling=async()=>(await payload.find({collection:'articles',user,overrideAccess:false,draft:true,depth:0,limit:1,where:{and:[{translationGroup:{equals:source.translationGroup}},{language:{equals:language}}]}})).docs[0];
+ if(input.mode==='ai'){
+  const existing=await findSibling();
+  if(existing)return {id:existing.id,existing:true};
+ }
+ // Reading settings borrows the shared SQL pool too. Finish that read before
+ // holding an advisory-lock client, so parallel articles cannot exhaust it.
+ const connection=['copy','manual'].includes(String(input.mode))?null:await activeValues('translation');
  const lock=await pool.connect();let acquired=false;
  try{
   const locked=await lock.query('SELECT pg_try_advisory_lock(hashtext($1)) AS locked',['article-translation:'+source.translationGroup]);
   if(!locked.rows[0].locked)throw new HttpError(409,'Bài này đang được dịch. Chờ hoàn tất rồi thử lại.');
   acquired=true;
-  const existing=(await payload.find({collection:'articles',user,overrideAccess:false,draft:true,depth:0,limit:1,where:{and:[{translationGroup:{equals:source.translationGroup}},{language:{equals:language}}]}})).docs[0];
+  const existing=await findSibling();
   if(existing&&input.mode!=='preview')return {id:existing.id,existing:true};
   let text={title:source.title,body:source.body};
   if(!['copy','manual'].includes(String(input.mode))){
-   const connection=await activeValues('translation');
    if(!connection)throw new HttpError(503,'Chưa bật AI dịch bài viết. Admin thêm khóa riêng tại Cài đặt → Kết nối dịch vụ → Dịch bài viết.');
    text=await translateArticleText(text,language,connection,signal);
   }
@@ -55,7 +62,12 @@ export async function articleTranslation(payload:Payload,user:User|null,input:Re
   try{
    const session=(payload.db as any).sessions[String(tx)];
    const row=(await session.db.execute(sql`SELECT updated_at FROM articles WHERE id=${source.id} FOR UPDATE`)).rows[0];
-   if(!row||new Date(row.updated_at).getTime()!==new Date(source.updatedAt).getTime())throw new HttpError(409,'Bài gốc đã thay đổi trong lúc dịch. Tải lại rồi thử lại.');
+   // Native Save draft advances the latest version without changing the main
+   // row. Read that revision after the same row lock used by editorial writes.
+   const latest=(await session.db.execute(sql`SELECT version_updated_at FROM _articles_v WHERE parent_id=${source.id} AND latest=true ORDER BY updated_at DESC LIMIT 1`)).rows[0];
+   const milliseconds=(value:unknown)=>value instanceof Date?value.getTime():new Date(String(value)).getTime();
+   const timestamp=Math.max(milliseconds(row?.updated_at),latest?milliseconds(latest.version_updated_at):0);
+   if(!row||timestamp!==milliseconds(source.updatedAt))throw new HttpError(409,'Bài gốc đã thay đổi trong lúc dịch. Tải lại rồi thử lại.');
    // Recheck both account role and article scope after the provider call.
    const freshUser=await payload.findByID({collection:'users',id:user.id,overrideAccess:true,req});requireArticleEditor(freshUser);
    await editableArticle(payload,freshUser,source.id);

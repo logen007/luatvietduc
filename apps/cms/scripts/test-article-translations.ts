@@ -69,14 +69,27 @@ export async function testArticleTranslations(payload:Payload,owner:User){
   const copy=await articleTranslation(payload,owner,{id:second.id,language:'vi',updatedAt:second.updatedAt,mode:'copy'});assert.ok('id' in copy);articles.push(copy.id!);assert.equal((await payload.findByID({collection:'articles',id:copy.id!,draft:true})).body,second.body);
   globalThis.fetch=provider as typeof fetch;
   const manualSource=await payload.create({collection:'articles',user:owner,overrideAccess:false,draft:true,data:{title:'Synthetic manual-first '+suffix,body:'Manually authored source',slug:'',language:'vi',jurisdiction:'BOTH'}});articles.push(manualSource.id);
+  const nativeDraft=await payload.update({collection:'articles',id:manualSource.id,user:owner,overrideAccess:false,draft:true,data:{body:'Latest native saved draft text.',_status:'draft'}});
+  const mainBeforeTranslation=(await pool.query('SELECT body,updated_at FROM articles WHERE id=$1',[manualSource.id])).rows[0];
+  assert.equal(mainBeforeTranslation.body,manualSource.body,'Native Save draft leaves the published/main source untouched');
+  assert.notEqual(new Date(mainBeforeTranslation.updated_at).getTime(),new Date(nativeDraft.updatedAt).getTime(),'The regression needs a native version newer than the main row');
   const beforeManual=calls;
-  const manual=await articleTranslation(payload,owner,{id:manualSource.id,language:'de',updatedAt:manualSource.updatedAt,mode:'manual'});assert.ok('id' in manual);articles.push(manual.id!);
+  const manual=await articleTranslation(payload,owner,{id:manualSource.id,language:'de',updatedAt:nativeDraft.updatedAt,mode:'manual'});assert.ok('id' in manual);articles.push(manual.id!);
   const blank=await payload.findByID({collection:'articles',id:manual.id!,draft:true});assert.equal(blank.title,'');assert.equal(blank.body,'');assert.equal(blank.language,'de');assert.equal(blank.translationGroup,manualSource.translationGroup);assert.equal(calls,beforeManual,'Language switching creates a private manual draft without calling AI');
+  globalThis.fetch=(async(input,options)=>{const sent=JSON.parse(String(options?.body));assert.equal(JSON.parse(sent.messages[1].content).body,nativeDraft.body,'Preview translates the latest saved native draft');return provider(input,options);}) as typeof fetch;
+  const nativePreview=await articleTranslation(payload,owner,{id:manualSource.id,language:'de',updatedAt:nativeDraft.updatedAt,mode:'preview'});assert.deepEqual('translation' in nativePreview&&nativePreview.translation,fakeTranslation);
+  globalThis.fetch=(async()=>{
+   await payload.update({collection:'articles',id:manualSource.id,user:owner,overrideAccess:false,draft:true,data:{body:'Concurrent native draft during preview.',_status:'draft'}});
+   return Response.json(providerResult());
+  }) as typeof fetch;
+  await assert.rejects(()=>articleTranslation(payload,owner,{id:manualSource.id,language:'de',updatedAt:nativeDraft.updatedAt,mode:'preview'}),(e:any)=>e.status===409,'A newer native draft must invalidate a held preview even though the main row is unchanged');
+  assert.equal((await pool.query('SELECT body FROM articles WHERE id=$1',[manualSource.id])).rows[0].body,manualSource.body,'Neither preview nor concurrent draft replaces main-table content');
+  globalThis.fetch=provider as typeof fetch;
   const beforeDraft=await payload.count({collection:'articles',overrideAccess:true});
   const draft=await articleTranslation(payload,owner,{mode:'draft',language:'de',title:'Unsaved source',body:'Unsaved source body'});assert.deepEqual('translation' in draft&&draft.translation,fakeTranslation);assert.equal((await payload.count({collection:'articles',overrideAccess:true})).totalDocs,beforeDraft.totalDocs,'Translating unsaved form text never saves or publishes it');
   await assert.rejects(()=>articleTranslation(payload,member,{mode:'draft',language:'de',title:'Forbidden',body:'Forbidden'}),(e:any)=>e.status===403);
   await assert.rejects(()=>articleTranslation(payload,owner,{mode:'draft',language:'de',title:'Missing body',body:''}),(e:any)=>e.status===400);
-  console.log('Article translation checks passed: isolated encrypted key, private draft, no AI eligibility, idempotent retry, immutable source/group, incomplete output rejection and stale source protection.');
+  console.log('Article translation checks passed: isolated encrypted key, private draft, no AI eligibility, idempotent retry, immutable source/group, incomplete output rejection, fresh native draft switching/preview and concurrent native draft rejection.');
  }finally{
   globalThis.fetch=originalFetch;
   for(const id of articles.reverse())await payload.delete({collection:'articles',id,user:owner,overrideAccess:false});

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createDraftBook,saveDraftHandoff,takeDraftHandoff,handoffKey} from '../src/modules/chat/drafts.ts';
+import {createDraftBook,draftMatchesDelivery,draftOwnerKey,saveDraftHandoff,takeDraftHandoff,handoffKey} from '../src/modules/chat/drafts.ts';
 import {invalidatePublicSession} from '../src/modules/shared/session-client.ts';
 const id='11111111-2222-4333-8444-555555555555',other='22222222-2222-4333-8444-555555555555';
 const file={id:other,name:'Synthetic.txt',mimeType:'text/plain',size:12,url:'/service/chat-files/'+other};
@@ -77,4 +77,15 @@ test('session invalidations notify other tabs distinctly even within the same cl
   invalidatePublicSession();invalidatePublicSession();
   assert.equal(notifications.length,2);assert.notEqual(notifications[0],notifications[1],'Browsers suppress a storage event when the value is unchanged');
  }finally{Object.assign(globalThis,previous);}
+});
+
+test('hidden draft recovery requires the same account, role and sorted country scope',()=>{
+ const owner={id:7,role:'support',jurisdictions:['VN','DE']},key=draftOwnerKey(owner);
+ assert.equal(draftOwnerKey({...owner,id:'7',jurisdictions:['DE','VN']}),key);
+ for(const changed of [{...owner,id:8},{...owner,role:'owner'},{...owner,jurisdictions:['VN']},null])assert.notEqual(draftOwnerKey(changed),key);
+});
+test('late acknowledgements match only the exact retained text and attachment selection',()=>{
+ assert.equal(draftMatchesDelivery({...draft,text:'  '+draft.text+'  '},draft.text,[file.id]),true);
+ for(const changed of [{...draft,text:'Newer reply'},{...draft,attachments:[]},{...draft,attachments:[{...file,id}]}])assert.equal(draftMatchesDelivery(changed,draft.text,[file.id]),false);
+ assert.equal(draftMatchesDelivery({text:'',attachments:[file]},'', [file.id]),true);
 });

@@ -3,6 +3,8 @@ import { integrationCatalog, type Provider, type Values } from './catalog';
 import { seal, unseal } from './crypto';
 import { IntegrationError, mergeValues, validateValues } from './validation';
 import {translationVendor} from './translation-policy';
+import {hasStoredFiles} from '../storage/inventory';
+import type {PoolClient} from 'pg';
 type Row = { provider: Provider; encrypted_values: string; enabled: boolean; version: number; check_state: string; checked_at: string | null; updated_at: string };
 const envValues = (p: Provider): Values => {
   const e = process.env;
@@ -13,12 +15,12 @@ const envValues = (p: Provider): Values => {
   if (p === 'r2') return { endpoint: e.R2_ENDPOINT || '', bucket: e.R2_BUCKET || '', accessKeyId: e.R2_ACCESS_KEY_ID || '', secretAccessKey: e.R2_SECRET_ACCESS_KEY || '' };
   return { apiKey: e.RESEND_API_KEY || '', fromAddress: e.EMAIL_FROM_ADDRESS || '', fromName: e.EMAIL_FROM_NAME || 'Luật Việt Đức' };
 };
-export async function readRow(provider: Provider): Promise<Row | null> {
-  try { return (await pool.query('SELECT * FROM lvd_integrations WHERE provider=$1', [provider])).rows[0] || null; }
+export async function readRow(provider: Provider,db:Pick<PoolClient,'query'>=pool): Promise<Row | null> {
+  try { return (await db.query('SELECT * FROM lvd_integrations WHERE provider=$1', [provider])).rows[0] || null; }
   catch (e) { if ((e as { code?: string }).code === '42P01') return null; throw e; }
 }
-export async function activeValues(provider: Provider): Promise<Values | null> {
-  const row = await readRow(provider);
+export async function activeValues(provider: Provider,db:Pick<PoolClient,'query'>=pool): Promise<Values | null> {
+  const row = await readRow(provider,db);
   if (row) {
     if (!row.enabled) return null;
     const values=unseal(provider,row.encrypted_values);
@@ -54,7 +56,11 @@ export async function saveConnection(provider: Provider, input: unknown, expecte
     if (provider === 'r2') {
       const old = row ? unseal(provider, row.encrypted_values) : envValues(provider);
       if ((old.bucket && old.bucket !== values.bucket) || (old.endpoint && old.endpoint !== values.endpoint)) {
-        if ((await db.query('SELECT 1 FROM media LIMIT 1')).rowCount) throw new IntegrationError(409, 'Đã có tệp. Cần chuyển dữ liệu trước khi đổi bucket hoặc endpoint; anh vẫn có thể thay khóa truy cập.');
+        // Serialize relocation admission with media/file creation. Do not wait
+        // while occupying a shared-pool slot that an active upload may need.
+        const admission=await db.query('SELECT pg_try_advisory_xact_lock(73041104) AS locked');
+        if(!admission.rows[0]?.locked)throw new IntegrationError(409,'Đang có thao tác tệp. Chờ hoàn tất rồi thử lại.');
+        if (await hasStoredFiles(db)) throw new IntegrationError(409, 'Đã có tệp. Cần chuyển dữ liệu trước khi đổi bucket hoặc endpoint; anh vẫn có thể thay khóa truy cập.');
       }
     }
     const version = expected + 1;

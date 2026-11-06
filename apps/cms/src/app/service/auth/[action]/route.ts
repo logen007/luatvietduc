@@ -12,6 +12,7 @@ import {activeValues} from '../../../../modules/integrations/store';
 import {pool,hash} from '../../../../modules/shared/db';
 import {setPasswordSession} from '../../../../modules/identity/session-cookies';
 import {withPasswordLoginLock} from '../../../../modules/identity/password-login';
+import {verifyAccountEmail} from '../../../../modules/identity/verify-email';
 export const dynamic='force-dynamic';
 const json=(value:unknown,status=200)=>NextResponse.json(value,{status,headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
 export async function POST(req:Request,context:{params:Promise<{action:string}>}){
@@ -41,15 +42,12 @@ export async function POST(req:Request,context:{params:Promise<{action:string}>}
    return json({ok:true,state:action==='forgot'?'reset-email':'verification-email'},202);
   }
   if(action==='verify'){
-   try{await payload.verifyEmail({collection:'users',token:data.token});}catch{throw new HttpError(400,'This link is invalid or has expired.');}
+   try{await verifyAccountEmail(payload,data.token);}catch(error){if(error instanceof APIError&&error.status===403)throw new HttpError(400,'This link is invalid or has expired.');throw error;}
    return json({ok:true,state:'verified'});
   }
   if(action==='reset'){
-   let result;
-   try{result=await payload.resetPassword({collection:'users',data:{token:data.token,password:data.password},overrideAccess:true});}catch{throw new HttpError(400,'This link is invalid or has expired.');}
-   // A valid reset link proves email ownership, including pending signups.
-   const resetId=Number(result.user.id);if(!Number.isSafeInteger(resetId)||resetId<1)throw new HttpError(503,'Unable to complete this request. Please try again.');
-   await payload.update({collection:'users',id:resetId,overrideAccess:true,context:{verifiedReset:true},data:{}});
+   // Ownership is verified inside the native password/token/session transaction.
+   try{await payload.resetPassword({collection:'users',data:{token:data.token,password:data.password},overrideAccess:true,context:{verifiedReset:true}});}catch(error){if(error instanceof APIError&&error.status===403)throw new HttpError(400,'This link is invalid or has expired.');throw error;}
    return json({ok:true,state:'password-reset'});
   }
   let login;

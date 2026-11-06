@@ -7,6 +7,7 @@ import { googleSessionStrategy } from "./session";
 import {canEnterAdmin} from './permissions';
 import {trackAccountOperation,guardAccountLogin,revokeResetSessions,revokeChangedCredentials,retireGoogleSessionOnLogin} from './user-security';
 import {guardPasswordLoginEmailMutation} from './password-login';
+import {verifyEmailEndpoint} from './verify-email';
 export const Users: CollectionConfig = {
   slug: "users", labels:{singular:"Người dùng",plural:"Người dùng"},admin:{group:"Vận hành",useAsTitle:"name",defaultColumns:["name","email","role","updatedAt"],listSearchableFields:["name","email"],description:"Admin quản lý hệ thống. Chuyên viên quản lý nội dung và trả lời khách. User sử dụng website và hội thoại cá nhân.",components:{beforeListTable:["./modules/identity/UserRoleTabs#UserRoleTabs"]}},
   auth: {
@@ -23,6 +24,7 @@ export const Users: CollectionConfig = {
     lockTime: 600000,
     cookies: { sameSite: "Lax", secure: process.env.NODE_ENV === "production" },
   },
+  endpoints:[verifyEmailEndpoint],
   hooks: {beforeOperation:[async ({operation,args})=>{if(operation==="create"&&args.req.context.publicMember!==true)args.disableVerificationEmail=true;if(["forgotPassword","resetPassword"].includes(operation)&&!(await activeValues("email")))throw new APIError("Email chưa được cấu hình. Liên hệ chủ hệ thống.",503);return args},trackAccountOperation],
     beforeValidate:[revokeResetSessions],
     beforeLogin:[guardAccountLogin],
