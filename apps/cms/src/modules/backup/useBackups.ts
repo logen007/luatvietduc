@@ -5,7 +5,7 @@ import {isPublicSessionCurrent,usePublicSession,loadPublicSession,invalidatePubl
 import {visiblePoll} from '../shared/polling';
 import {createLatestRequest} from '../shared/latest-request';
 import {createOperationGate} from '../chat/client-operations';
-type Status={authorized:boolean;drive:{enabled:boolean};runtime?:{ready:boolean};jobs:{id:string;kind:string;state:string;message?:string;created_at:string}[];snapshots:{id:string;created_at:string;bytes:number;restore_tested_at?:string}[]};
+import {readBackupStatus,readBackupReceipt,type BackupStatus as Status} from './client-contract';
 export function useBackups(){
  const session=usePublicSession(),owner=session.status==='ready'&&session.user?.role==='owner';
  const [value,setValue]=useState<Status|null>(null),[revision,setRevision]=useState(-1),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
@@ -14,7 +14,7 @@ export function useBackups(){
  const valid=()=>owner&&isPublicSessionCurrent(session.revision),visible=owner&&revision===session.revision;
  async function reload(force=false){
   if(!valid())return;
-  const result=await reader.current.load(key,()=>api<Status>('backups'),force);
+  const result=await reader.current.load(key,async()=>readBackupStatus(await api<unknown>('backups')),force);
   if(!valid()||!result.current())return;
   setLoading(false);
   if(result.ok){setValue(result.value);setLoadError('');setAcknowledged(false);setSelected(id=>result.value.snapshots.some(snapshot=>snapshot.id===id)?id:'');}
@@ -35,12 +35,12 @@ export function useBackups(){
   // Recovery keys never enter browser storage or a reusable draft.
   setIdentity('');
   try{
-   const receipt=await api<{message:string}>('backups',data);
+   const receipt=readBackupReceipt(await api<unknown>('backups',data));
    if(!valid()||!gate.current.isCurrent(ticket))return;
    setAcknowledged(true);setMessage(receipt.message);
    // A failed status refresh does not turn an accepted job into a failed write.
    void reload(true);
-  }catch(e){if(valid()&&gate.current.isCurrent(ticket)){setError((e as Error).message);void reload(true);}}
+  }catch(e){if(valid()&&gate.current.isCurrent(ticket)){setError((e as Error).message);await reload(true);}}
   finally{if(gate.current.end(ticket)&&valid())setBusy(false);}
  }
  return {status:visible?value:null,loading:!visible||loading,busy:visible&&busy,active:visible&&active,loadError:visible?loadError:'',error:visible?error:'',message:visible?message:'',selected:visible?selected:'',setSelected,identity:visible?identity:'',setIdentity,run,reload:()=>session.status==='error'?loadPublicSession().catch(()=>{}):reload(true),session,owner};

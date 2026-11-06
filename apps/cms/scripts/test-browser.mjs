@@ -216,9 +216,11 @@ try{
  const translationSource=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic bilingual '+suffix,body:'Synthetic source body.',slug:'',language:'vi',jurisdiction:'BOTH'}});translationArticleIds.push(translationSource.id);
  const translationCopy=await articleTranslation(payload,owner,{id:translationSource.id,language:'de',updatedAt:translationSource.updatedAt,mode:'copy'});translationArticleIds.push(translationCopy.id);
  let releaseTranslation;const translationPending=new Promise(resolve=>{releaseTranslation=resolve;});let translationsRequested=0,notifyTranslation;const translationStarted=new Promise(resolve=>{notifyTranslation=resolve;});
- await page.route('**/service/articles/translations?*',route=>route.fulfill({json:{articles:[{id:translationSource.id,language:'vi'},{id:translationCopy.id,language:'de'}],translationReady:true}}));
- await page.route('**/service/articles/translations',async route=>{translationsRequested++;notifyTranslation();await translationPending;await route.fulfill({json:{translation:{title:'Synthetischer Titel',body:'Vollständiger synthetischer Text.'}}});});
+ let malformedTranslationList=true,malformedTranslationText=true;
+ await page.route('**/service/articles/translations?*',route=>route.fulfill({json:malformedTranslationList?{articles:{},translationReady:true}:{articles:[{id:translationSource.id,language:'vi'},{id:translationCopy.id,language:'de'}],translationReady:true}}));
+ await page.route('**/service/articles/translations',async route=>{translationsRequested++;if(malformedTranslationText)return route.fulfill({json:{translation:{title:'Must not replace draft title'}}});notifyTranslation();await translationPending;await route.fulfill({json:{translation:{title:'Synthetischer Titel',body:'Vollständiger synthetischer Text.'}}});});
  await page.goto(base+'/admin/collections/articles/'+translationSource.id);await page.locator('.lvd-article-language-actions').waitFor();
+ const languageListError=page.locator('.lvd-translation-error').filter({hasText:'Chưa đọc được bản ngôn ngữ.'});await languageListError.waitFor();assert.equal(await page.locator('#field-title').inputValue(),translationSource.title);malformedTranslationList=false;await languageListError.getByRole('button',{name:'Thử lại',exact:true}).click();await languageListError.waitFor({state:'hidden'});
  assert.equal(await page.getByText('Thông tin bổ sung',{exact:true}).count(),0);
  await page.getByRole('button',{name:'Chuyển bài viết sang Tiếng Đức',exact:true}).click();assert.equal(translationsRequested,0,'Switching to an existing language never invokes AI');await page.waitForURL('**/admin/collections/articles/'+translationCopy.id);
  // A stalled source read must time out, retain the editor and unlock actions.
@@ -229,12 +231,13 @@ try{
  await page.locator('.lvd-translation-error').filter({hasText:'Chưa hoàn tất bản dịch. Thử lại sau.'}).waitFor({timeout:20000});
  assert.ok(heldSourceRead,'The source read was actually intercepted');assert.equal(translationsRequested,0,'A timed-out source read never starts provider generation');assert.equal(await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).isEnabled(),true);assert.equal(await page.locator('#field-title').inputValue(),titleBeforeTimeout);assert.equal(await page.locator('#field-body').inputValue(),bodyBeforeTimeout);
  await heldSourceRead.abort().catch(()=>{});await page.unroute(sourceRead,holdSourceRead);
+ await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).click();await page.locator('.lvd-translation-error').filter({hasText:'Chưa đọc được bản ngôn ngữ.'}).waitFor();assert.equal(await page.locator('#field-title').inputValue(),titleBeforeTimeout,'Partial translation leaves title intact');assert.equal(await page.locator('#field-body').inputValue(),bodyBeforeTimeout,'Partial translation leaves content intact');malformedTranslationText=false;
  await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).click();await page.getByRole('progressbar',{name:'Đang dịch bài viết'}).waitFor();
- assert.equal(await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).isDisabled(),true);await Promise.race([translationStarted,pause(12000).then(()=>{throw new Error('Translation request did not start');})]);assert.equal(translationsRequested,1);
+ assert.equal(await page.getByRole('button',{name:'Dịch bằng AI',exact:true}).isDisabled(),true);await Promise.race([translationStarted,pause(12000).then(()=>{throw new Error('Translation request did not start');})]);assert.equal(translationsRequested,2);
  await page.setViewportSize({width:390,height:844});await fits();await page.screenshot({path:'test-results/cms-browser/article-translation-loading-mobile.png'});
  releaseTranslation();await page.getByText('Đã dịch. Lưu bản nháp sau khi đọc lại.',{exact:true}).waitFor();
  assert.equal(await page.locator('#field-title').inputValue(),'Synthetischer Titel');assert.equal(await page.locator('#field-body').inputValue(),'Vollständiger synthetischer Text.');
- await page.getByRole('button',{name:'Chuyển bài viết sang Tiếng Việt',exact:true}).click();await page.waitForURL('**/admin/collections/articles/'+translationSource.id);assert.equal(translationsRequested,1,'Manual switching never starts another translation');
+ await page.getByRole('button',{name:'Chuyển bài viết sang Tiếng Việt',exact:true}).click();await page.waitForURL('**/admin/collections/articles/'+translationSource.id);assert.equal(translationsRequested,2,'Manual switching never starts another translation');
  const savedTranslation=await payload.findByID({collection:'articles',id:translationCopy.id,draft:true});assert.equal(savedTranslation.title,'Synthetischer Titel','Switching preserves edited text as a draft');await page.goto(base+'/admin');
  await page.unroute('**/service/articles/translations');await page.unroute('**/service/articles/translations?*');
  await page.goto(base+'/admin/collections/articles/create');
@@ -381,6 +384,7 @@ try{
  await page.getByRole('button',{name:'Chèn câu mẫu',exact:true}).click();
  await page.locator('.operator-quick-panel').getByRole('alert').waitFor();
  templateFailure=false;await page.locator('.operator-quick-panel').getByRole('button',{name:'Thử lại',exact:true}).click();
+ const snippetSearch=page.getByRole('searchbox',{name:'Tìm câu trả lời nhanh',exact:true});await snippetSearch.fill('Mẫu');await snippetSearch.press('Enter');await page.waitForTimeout(100);assert.equal(replyRequests,0,'Searching quick replies must never send the existing draft');assert.equal(await replyBox.inputValue(),'Bản nháp');
  await page.locator('.operator-quick-list').getByRole('button',{name:'Mẫu kiểm tra Nội dung mẫu.'}).click();
  assert.equal(await replyBox.inputValue(),'Bản nháp\nNội dung mẫu.');assert.equal(replyRequests,0,'Inserting a template never sends it');
  await page.getByRole('button',{name:'Chèn câu mẫu',exact:true}).click();
@@ -412,17 +416,19 @@ try{
  await page.getByRole('link',{name:'Hội thoại của tôi',exact:false}).click();await page.waitForURL('**/tro-chuyen?conversation='+draftA);await page.waitForFunction(()=>document.querySelector('textarea')?.value==='Synthetic draft A');
  // Backup loading is not shown as empty history. An accepted job remains
  // accepted when its following status read fails, with duplicate clicks gated.
- let releaseBackups;const pendingBackups=new Promise(resolve=>{releaseBackups=resolve;});let backupWrites=0,backupReadsFail=false;
+ let releaseBackups;const pendingBackups=new Promise(resolve=>{releaseBackups=resolve;});let backupWrites=0,backupReadsFail=false,malformedBackupStatus=true,malformedBackupReceipt=true;let releaseBackupReconcile;const pendingBackupReconcile=new Promise(resolve=>{releaseBackupReconcile=resolve;});
  await page.route('**/service/backups',async route=>{
-  if(route.request().method()==='POST'){backupWrites++;backupReadsFail=true;return route.fulfill({status:202,json:{id:crypto.randomUUID(),message:'Synthetic backup accepted'}});}
-  await pendingBackups;
+  if(route.request().method()==='POST'){backupWrites++;if(malformedBackupReceipt)return route.fulfill({status:202,json:{}});backupReadsFail=true;return route.fulfill({status:202,json:{id:crypto.randomUUID(),message:'Synthetic backup accepted'}});}
+  if(malformedBackupStatus)return route.fulfill({json:{}});
+  await pendingBackups;if(backupWrites===1&&malformedBackupReceipt)await pendingBackupReconcile;
   return route.fulfill(backupReadsFail?{status:503,json:{error:'Synthetic backup status unavailable'}}:{json:{authorized:true,drive:{enabled:true},runtime:{ready:true},jobs:[],snapshots:[]}});
  });
- await page.goto(base+'/admin/settings/backups?drive=failed&reason=api');await page.getByRole('alert').filter({hasText:'Google Drive API chưa được bật'}).waitFor();await page.getByText('Đang tải trạng thái sao lưu…',{exact:true}).waitFor();assert.equal(await page.getByText('Chưa có tác vụ.',{exact:true}).count(),0);
+ await page.goto(base+'/admin/settings/backups?drive=failed&reason=api');await page.getByRole('alert').filter({hasText:'Google Drive API chưa được bật'}).waitFor();const malformedBackupError=page.getByRole('alert').filter({hasText:'Chưa tải được trạng thái sao lưu.'});await malformedBackupError.waitFor();assert.equal(await page.getByRole('button',{name:'Tạo bản sao lưu',exact:true}).isDisabled(),true);malformedBackupStatus=false;await malformedBackupError.getByRole('button',{name:'Thử lại',exact:true}).click();assert.equal(await malformedBackupError.isVisible(),true,'Retry retains the last load failure until a valid status arrives');assert.equal(await page.getByRole('button',{name:'Tạo bản sao lưu',exact:true}).isDisabled(),true);assert.equal(await page.getByText('Chưa có tác vụ.',{exact:true}).count(),0);
  releaseBackups();await page.getByText('Chưa có tác vụ.',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'Tạo bản sao lưu',exact:true}).click();await page.getByRole('alert').filter({hasText:'Chưa xác nhận tác vụ.'}).waitFor();assert.equal(await page.getByRole('button',{name:'Đang gửi yêu cầu…',exact:true}).isDisabled(),true,'Unknown POST outcome stays gated until reconciliation finishes');assert.equal(backupWrites,1);releaseBackupReconcile();await page.waitForFunction(()=>!Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Tạo bản sao lưu')?.disabled);assert.equal(backupWrites,1,'Unknown receipt is never replayed');malformedBackupReceipt=false;
  await page.getByRole('button',{name:'Tạo bản sao lưu',exact:true}).evaluate(button=>{button.click();button.click();});
  await page.getByText('Synthetic backup accepted',{exact:true}).waitFor();await page.getByText('Synthetic backup status unavailable',{exact:false}).waitFor();
- assert.equal(backupWrites,1);assert.equal(await page.getByRole('button',{name:'Đã có tác vụ đang xử lý',exact:true}).isDisabled(),true);
+ assert.equal(backupWrites,2);assert.equal(await page.getByRole('button',{name:'Đã có tác vụ đang xử lý',exact:true}).isDisabled(),true);
  // A German keyword search with no approved content has a real empty state.
  await page.goto(base+'/phap-luat/duc?q=synthetic-no-results-'+suffix);await page.locator('.native-empty').waitFor();await fits();
  await page.goto(base+'/review-missing-'+suffix);await page.getByRole('heading',{name:'Không tìm thấy trang.',exact:true}).waitFor();await page.getByRole('link',{name:'Mở thư viện',exact:false}).waitFor();await fits();

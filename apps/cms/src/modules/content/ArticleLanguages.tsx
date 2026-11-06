@@ -2,8 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useDocumentInfo,useField,useForm,useFormModified,useFormProcessing} from '@payloadcms/ui';
-type Language='vi'|'de';
-type Sibling={id:number;language:Language};
+import {translationList,translationTarget,translationText,type ArticleLanguage as Language,type LanguageSibling as Sibling} from './translation-client';
 const names={vi:'Tiếng Việt',de:'Tiếng Đức'};
 export function ArticleLanguages(){
  const {id,data,documentIsLocked}=useDocumentInfo(),{getData,submit}=useForm(),modified=useFormModified(),processing=useFormProcessing();
@@ -13,7 +12,7 @@ export function ArticleLanguages(){
  useEffect(()=>{mounted.current=true;setHost(root.current?.closest('.collection-edit--articles')?.querySelector('.doc-controls__meta')||null);return()=>{mounted.current=false;flight.current?.abort();};},[]);
  useEffect(()=>{
   const controller=new AbortController();setSiblings(null);setReady(false);setError('');setMessage('');
-  fetch('/service/articles/translations'+(id?'?id='+encodeURIComponent(id):''),{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)])}).then(async response=>{const body=await response.json();if(!response.ok)throw new Error(body.error||'Chưa tải được bản ngôn ngữ.');return body;}).then(body=>{if(!controller.signal.aborted){setSiblings(body.articles);setReady(body.translationReady);}}).catch(e=>{if(!controller.signal.aborted)setError(e.message||'Chưa tải được bản ngôn ngữ.');});
+  fetch('/service/articles/translations'+(id?'?id='+encodeURIComponent(id):''),{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)])}).then(async response=>{const body=await response.json();if(!response.ok)throw new Error(body.error||'Chưa tải được bản ngôn ngữ.');return translationList(body,controller.signal);}).then(body=>{if(!controller.signal.aborted){setSiblings(body.articles);setReady(body.translationReady);}}).catch(e=>{if(!controller.signal.aborted)setError(e.message||'Chưa tải được bản ngôn ngữ.');});
   return()=>controller.abort();
  },[id,attempt,data?.updatedAt]);
  const disabled=Boolean(busy||processing||documentIsLocked),other:Language=language==='vi'?'de':'vi',source=siblings?.find(a=>a.language===other);
@@ -32,10 +31,10 @@ export function ArticleLanguages(){
     updatedAt=(await latest.json()).updatedAt;
    }
    const sibling=siblings?.find(a=>a.language===other);
-   if(sibling){window.location.assign('/admin/collections/articles/'+sibling.id);return;}
+   if(sibling){if(mounted.current&&!controller.signal.aborted)window.location.assign('/admin/collections/articles/'+sibling.id);return;}
    const response=await fetch('/service/articles/translations',{method:'POST',headers:{'content-type':'application/json'},signal:AbortSignal.any([controller.signal,AbortSignal.timeout(20000)]),body:JSON.stringify({id:Number(id),updatedAt,language:other,mode:'manual'})});
    const result=await response.json();if(!response.ok)throw new Error(result.error||'Chưa mở được bản ngôn ngữ.');
-   if(mounted.current&&!controller.signal.aborted)window.location.assign('/admin/collections/articles/'+result.id);
+   if(mounted.current&&!controller.signal.aborted)window.location.assign('/admin/collections/articles/'+translationTarget(result,controller.signal));
   }catch(e){if(mounted.current&&!controller.signal.aborted)setError(e instanceof Error&&e.name==='Error'?e.message:'Chưa mở được bản ngôn ngữ. Thử lại.');}
   finally{if(flight.current===controller)flight.current=null;if(mounted.current)setBusy(null);}
  }
@@ -54,7 +53,8 @@ export function ArticleLanguages(){
    const result=await response.json();if(!response.ok)throw new Error(result.error||'Chưa dịch được. Thử lại sau.');
    if(!mounted.current||controller.signal.aborted)return;
    if(JSON.stringify(getData())!==snapshot)throw new Error('Bài đang sửa đã thay đổi. Nội dung mới của anh được giữ nguyên.');
-   setTitle(result.translation.title);setBody(result.translation.body);setMessage('Đã dịch. Lưu bản nháp sau khi đọc lại.');
+   const translated=translationText(result,controller.signal);
+   setTitle(translated.title);setBody(translated.body);setMessage('Đã dịch. Lưu bản nháp sau khi đọc lại.');
   }catch(e){if(mounted.current&&!controller.signal.aborted)setError(e instanceof Error&&e.name==='Error'?e.message:'Chưa hoàn tất bản dịch. Thử lại sau.');}
   finally{if(flight.current===controller)flight.current=null;if(mounted.current)setBusy(null);}
  }
