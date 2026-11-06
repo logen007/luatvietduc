@@ -30,11 +30,11 @@ SCHEMA_FILES = {"apps/cms/src/payload.config.ts", "apps/cms/src/modules/identity
 
 FAST_PUBLIC = REVISION_FILES + ['social-icons.json','frontend.html','release.json']
 FAST_SOURCE_PUBLIC = REVISION_FILES + ['social-icons.json']
-FAST_INPUTS = ['apps/cms/src/app/(payload)/admin-custom.css','apps/cms/src/app/(payload)/admin-dashboard.css','index.html','apps/cms/src/presentation','apps/cms/src/modules/shared/site-version.json','apps/cms/src/modules/shared/navigation.json','apps/cms/src/modules/shared/locale/de.json','apps/cms/src/modules/shared/presentation-version.mjs'] + ['apps/cms/scripts/' + name for name in ['prepare-fast-release.mjs','frontend-shell.mjs','assemble-presentation.mjs','locale-build.mjs']] + ['apps/cms/public/' + name for name in FAST_SOURCE_PUBLIC]
+FAST_INPUTS = ['apps/cms/src/modules/content/article-editor.css','apps/cms/src/app/(payload)/admin-custom.css','apps/cms/src/app/(payload)/admin-dashboard.css','index.html','apps/cms/src/presentation','apps/cms/src/modules/shared/site-version.json','apps/cms/src/modules/shared/navigation.json','apps/cms/src/modules/shared/locale/de.json','apps/cms/src/modules/shared/presentation-version.mjs'] + ['apps/cms/scripts/' + name for name in ['prepare-fast-release.mjs','frontend-shell.mjs','assemble-presentation.mjs','locale-build.mjs']] + ['apps/cms/public/' + name for name in FAST_SOURCE_PUBLIC]
 
 def presentation_only(paths):
     changed = [p for p in paths if not p.endswith('.md')]
-    return bool(changed) and all(p.startswith(('apps/cms/src/presentation/editorial-ui-css/','apps/cms/src/presentation/editorial-ui-js/','apps/cms/src/presentation/live-css/','apps/cms/src/presentation/legal-runtime-js/')) or p in {'apps/cms/src/app/(payload)/admin-custom.css','apps/cms/src/app/(payload)/admin-dashboard.css','apps/cms/src/modules/shared/site-version.json'} or p in {'apps/cms/public/'+name for name in FAST_SOURCE_PUBLIC} for p in changed)
+    return bool(changed) and all(p.startswith(('apps/cms/src/presentation/editorial-ui-css/','apps/cms/src/presentation/editorial-ui-js/','apps/cms/src/presentation/live-css/','apps/cms/src/presentation/legal-runtime-js/')) or p in {'apps/cms/src/modules/content/article-editor.css','apps/cms/src/app/(payload)/admin-custom.css','apps/cms/src/app/(payload)/admin-dashboard.css','apps/cms/src/modules/shared/site-version.json'} or p in {'apps/cms/public/'+name for name in FAST_SOURCE_PUBLIC} for p in changed)
 
 
 class ReleaseError(Exception):

@@ -1,5 +1,5 @@
 """Fast CI scope follows live ancestry; failures and code changes keep full CI."""
-import io,json,os,runpy,subprocess,tempfile,unittest
+import importlib.util,io,json,os,runpy,subprocess,tarfile,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 
@@ -31,6 +31,23 @@ class Scope(unittest.TestCase):
             with self.subTest(options=options):self.assertEqual(self.scope(['apps/cms/public/customer-chat.css'],**options),'fast=false')
     def test_pull_requests_keep_full_validation(self):
         self.assertEqual(self.scope(['apps/cms/public/customer-chat.css'],event='pull_request'),'fast=false')
+    def test_archived_fast_inputs_assemble_without_the_application_tree(self):
+        spec=importlib.util.spec_from_file_location('fast_release',SCRIPT.with_name('auto-release.py'))
+        release=importlib.util.module_from_spec(spec);spec.loader.exec_module(release)
+        repo=SCRIPT.resolve().parents[2]
+        with tempfile.TemporaryDirectory() as directory:
+            archive=Path(directory)/'source.tar'
+            subprocess.run(['git','archive','--format=tar','--output='+str(archive),'HEAD',*release.FAST_INPUTS],cwd=repo,check=True,capture_output=True)
+            with tarfile.open(archive) as source:
+                for member in source.getmembers():
+                    self.assertFalse(Path(member.name).is_absolute())
+                    self.assertNotIn('..',Path(member.name).parts)
+                    self.assertTrue(member.isfile() or member.isdir())
+                source.extractall(directory)
+            result=subprocess.run(['node',str(Path(directory)/'apps/cms/scripts/prepare-fast-release.mjs')],capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stderr)
+            for name in release.FAST_PUBLIC:
+                if name!='release.json':self.assertTrue((Path(directory)/'apps/cms/public'/name).is_file(),name)
     def test_empty_change_is_not_a_fast_release(self):
         self.assertEqual(self.scope([]),'fast=false')
 if __name__=='__main__':unittest.main()

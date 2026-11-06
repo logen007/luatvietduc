@@ -109,3 +109,9 @@ Changing this workflow requires its exact hash to be reviewed and installed once
 through `install-presentation-lane.py`, with a pinned seven-file policy manifest
 and a successful full push run. It does not change the engine allowlist, schema
 gate, backup, candidate probes, rollback or deployment locking.
+
+The presentation archive includes the shared article editor CSS referenced by
+`presentation/modules.json`. A deployment test assembles the exact archive in an
+isolated directory without the application tree, so missing source fragments fail
+CI before a snapshot is sent to the server. This also covers admin editor CSS in
+the existing presentation allowlist, without admitting TypeScript or schema files.
