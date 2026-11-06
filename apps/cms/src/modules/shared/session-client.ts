@@ -10,6 +10,7 @@ const store=createSessionStore<PublicSession>(async()=>{
 const initial=store.getSnapshot();
 const refresh=()=>{void store.refresh(true).catch(()=>{});};
 export const loadPublicSession=()=>store.refresh();
+export const refreshPublicProfile=()=>store.refresh(true);
 // Guards client state updates only. Server authorization remains authoritative.
 export const isPublicSessionCurrent=(revision:number)=>store.isCurrent(revision);
 function clearPrivateDrafts(preserveCustomerHandoffFor?:string){

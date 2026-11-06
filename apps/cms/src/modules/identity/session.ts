@@ -1,3 +1,4 @@
+import {authenticateRolePreview} from './role-preview-auth';
 import type { AuthStrategy } from "payload";
 import {appSessionUser} from './app-sessions';
 export const cookieValue = (headers: Headers, name: string) =>
@@ -10,6 +11,7 @@ export const cookieValue = (headers: Headers, name: string) =>
 export const googleSessionStrategy: AuthStrategy = {
   name: "google-session",
   authenticate: async ({ headers, payload }) => {
+    const preview=await authenticateRolePreview(payload,headers);if(preview)return {user:preview};
     const token = cookieValue(headers, "lvd-session");
     const userId=await appSessionUser(token);
     if (!userId) return { user: null };

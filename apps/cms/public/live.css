@@ -390,6 +390,14 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 .native-notice .button-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
 .native-notice .button{min-height:48px}
 .native-notice :is(a,button):focus-visible{outline:2px solid currentColor;outline-offset:3px}
+
+/* Owner-only session role preview. Never changes the account's stored role. */
+.lvd-role-preview{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:10px 0;font:400 12px/1.5 var(--lvd-font);color:inherit}
+.lvd-role-preview-icon{width:20px;height:20px;flex:none;pointer-events:none}
+.lvd-role-preview select,.lvd-role-preview button{min-height:44px;padding:8px 10px;border:1px solid #6666;border-radius:6px;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.lvd-role-preview select{max-width:100%;width:auto;flex:1;min-width:0}.lvd-role-preview option{background:#252525;color:#ccc}.lvd-role-preview [role=alert]{flex-basis:100%;color:#d79d95}
+.live-header .lvd-role-preview{margin:0;max-width:280px;flex-shrink:0}.live-header .lvd-role-preview select{min-width:126px}
+@media(max-width:600px){.live-header .lvd-role-preview{position:fixed;bottom:12px;right:12px;z-index:55;padding:6px;background:#252525;color:#ccc;border:1px solid #555;border-radius:8px;box-shadow:0 4px 16px #0003}}
 /* Black directory footer — the same source geometry as the public reference. */
 .live-footer {
   background: #000;

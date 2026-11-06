@@ -1,3 +1,4 @@
+import {rolePreviewMe,rolePreviewRefresh} from './role-preview-hooks';
 import {accountEmail} from './account-email';
 import {roleOptions} from './roles';
 import {APIError, type CollectionConfig} from "payload";
@@ -25,7 +26,7 @@ export const Users: CollectionConfig = {
     cookies: { sameSite: "Lax", secure: process.env.NODE_ENV === "production" },
   },
   endpoints:[verifyEmailEndpoint],
-  hooks: {beforeOperation:[async ({operation,args})=>{if(operation==="create"&&args.req.context.publicMember!==true)args.disableVerificationEmail=true;if(["forgotPassword","resetPassword"].includes(operation)&&!(await activeValues("email")))throw new APIError("Email chưa được cấu hình. Liên hệ chủ hệ thống.",503);return args},trackAccountOperation],
+  hooks: {afterMe:[rolePreviewMe],afterOperation:[rolePreviewRefresh],beforeOperation:[async ({operation,args})=>{if(operation==="create"&&args.req.context.publicMember!==true)args.disableVerificationEmail=true;if(["forgotPassword","resetPassword"].includes(operation)&&!(await activeValues("email")))throw new APIError("Email chưa được cấu hình. Liên hệ chủ hệ thống.",503);return args},trackAccountOperation],
     beforeValidate:[revokeResetSessions],
     beforeLogin:[guardAccountLogin],
     afterLogin:[retireGoogleSessionOnLogin],

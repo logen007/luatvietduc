@@ -5,6 +5,7 @@ import {useLocale} from "./locale";
 import { useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
+import {RolePreviewControl} from './RolePreviewControl';
 import {LanguageSwitch} from './LanguageSwitch';
 import {usePublicShell} from './usePublicShell';
 import {api} from './client-api';
@@ -36,6 +37,7 @@ export function Header({publicMode=false,activeSection='',onAccountNavigate}:{pu
             {publicLinks.map((link) => <a key={link.href} href={link.href} aria-current={link.key===activeSection?'location':undefined}>{t(link.label)}</a>)}
           </nav>
           <div className={'live-header-actions'+(publicMode?' header-tools':'')}>
+            {session.user?.rolePreview&&<RolePreviewControl compact/>}
             <LanguageSwitch/>
             <a className={'live-header-login-button button'+(publicMode?' header-login':'')} href={account.href} onClick={onAccountNavigate} aria-current={pathname === "/tai-khoan" ? "page" : undefined}>{account.label} {arrow}</a>
             <button className="live-menu-button" type="button" aria-label={t("Mở menu")} aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="live-menu-dialog" onClick={() => { dialog.current?.showModal(); setMenuOpen(true); }}>

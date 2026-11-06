@@ -303,3 +303,9 @@ html.lvd-admin .nav__controls{bottom:12px;right:0}
 @media(max-width:1024px){html.lvd-admin .nav__scroll{--lvd-sidebar-gutter:12px;padding-bottom:0}}
 
 html.lvd-admin .collection-edit--knowledge .doc-controls__meta{display:none}
+
+html.lvd-admin .lvd-role-preview{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0 16px;font:400 12px/1.5 var(--lvd-font);color:var(--admin-muted)}
+html.lvd-admin .lvd-role-preview-icon{width:20px;height:20px;flex:none;pointer-events:none}
+html.lvd-admin .lvd-role-preview :is(select,button){min-height:44px;padding:8px;border:1px solid var(--admin-line);border-radius:6px;background:var(--admin-raised);color:var(--admin-text);font:inherit;cursor:pointer}
+html.lvd-admin .lvd-role-preview select{flex:1;width:0;min-width:0}.lvd-role-preview [role=alert]{flex-basis:100%;color:#d79d95}
+@media(min-width:1025px){html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-role-preview{width:44px;height:44px;justify-content:center;margin:8px auto 12px}html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-role-preview select{position:absolute;inset:0;width:44px;height:44px;opacity:0;cursor:pointer}html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-role-preview :is(button,[role=alert]){display:none}}

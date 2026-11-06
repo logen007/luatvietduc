@@ -1,3 +1,4 @@
+import {testRolePreview} from './test-role-preview';
 import {testStorageAdmission} from './test-storage-admission';
 import {testChatAccountRetry} from './test-chat-account-retry';
 import {testAccountLifecycleRaces} from './test-account-lifecycle-races';
@@ -230,6 +231,7 @@ try {
   await testChatFiles(owner);
   await testEditorial(payload,owner,staff);
   await testAssistant(payload,owner,staff);
+  await testRolePreview(payload,owner);
   await testRag(payload,owner,staff);
   await testRagMatrix(payload,owner,staff);
   await testSharedKnowledge(staff,foreign);

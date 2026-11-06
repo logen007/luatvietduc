@@ -1,3 +1,4 @@
+import {rolePreviewRequest} from '../../../modules/identity/role-preview';
 import {knowledgeRequest} from '../../../modules/knowledge/http';
 import {readJsonRequest} from '../../../modules/http/request';
 import {specialistInbox} from '../../../modules/chat/inbox';
@@ -36,6 +37,7 @@ async function route(
       path = segments.join("/"),
       url = new URL(req.url);
     const payload = await getPayload({ config });
+    if(path==='role-preview')return rolePreviewRequest(req,payload);
     if(path==='logout'&&method==='POST')return logoutRequest(req,payload);
     const { user } = await payload.auth({ headers: req.headers });
     let guest = cookieValue(req.headers, "lvd-guest"),
@@ -76,6 +78,7 @@ async function route(
           ? {
               id: user.id,
               name: user.name,
+              rolePreview: (user as import('../../../modules/identity/role-preview-auth').PreviewUser).rolePreview,
               role: user.role,
               jurisdictions: user.jurisdictions,
             }

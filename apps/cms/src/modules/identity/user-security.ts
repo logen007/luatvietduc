@@ -1,3 +1,4 @@
+import type {User} from '../../payload-types';
 import {APIError,type CollectionBeforeOperationHook,type CollectionBeforeValidateHook,type CollectionBeforeChangeHook,type CollectionBeforeLoginHook} from 'payload';
 import {sql} from '@payloadcms/db-postgres';
 import {lockAccounts,revokeAppUserSessions,revokeAppSession} from './app-sessions';
@@ -42,6 +43,18 @@ export const trackAccountOperation:CollectionBeforeOperationHook=async({operatio
    // Freeze the target set so newly matching rows cannot bypass these locks.
    args.where={and:[args.where,{id:{in:ids}}]};
   }
+ }
+ if(operation==='refresh'&&req.user?.collection==='users'){
+  // Native refresh writes the whole user/session snapshot. Serialize that read
+  // with role/password changes and logout before the snapshot can be taken.
+  await lockAccounts(req,[Number(req.user.id)]);
+  const live=await req.payload.db.findOne({collection:'users',req,where:{id:{equals:req.user.id}}}) as User|null;
+  const principal=req.user as typeof req.user&{_sid?:string;rolePreview?:string;_strategy?:string};
+  const preview=principal._strategy==='role-preview'&&['support','member'].includes(principal.rolePreview||'');
+  const expectedRole=preview?'owner':principal.role;
+  const sid=principal._sid,sessions=live?.sessions||[];
+  const scope=(value:unknown)=>JSON.stringify(Array.isArray(value)?value.slice().sort():[]);
+  if(!live||live._verified!==true||live.role!==expectedRole||(!preview&&scope(live.jurisdictions)!==scope(principal.jurisdictions))||(sid&&!sessions.some(session=>session.id===sid&&new Date(session.expiresAt).getTime()>Date.now())))throw new APIError('Phiên đăng nhập vừa thay đổi. Vui lòng đăng nhập lại.',409);
  }
  if(operation==='login'){
   const email='data' in args&&typeof args.data?.email==='string'?args.data.email.toLowerCase().trim():'';

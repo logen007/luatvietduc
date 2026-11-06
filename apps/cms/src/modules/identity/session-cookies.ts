@@ -1,9 +1,10 @@
+import {ROLE_PREVIEW_COOKIE} from './role-preview-token';
 import type {NextResponse} from 'next/server';
 import {GOOGLE_SESSION_SECONDS} from './session-policy';
 export const LOCAL_COOKIE='payload-token',GOOGLE_COOKIE='lvd-session',OAUTH_COOKIE='lvd-oauth';
 const options=()=>({httpOnly:true,secure:(process.env.APP_URL||'').startsWith('https:'),sameSite:'lax' as const,path:'/'});
 export function clearSessionCookies(response:NextResponse){
- for(const name of [LOCAL_COOKIE,GOOGLE_COOKIE,OAUTH_COOKIE])response.cookies.set(name,'',{...options(),expires:new Date(0),maxAge:0});
+ for(const name of [LOCAL_COOKIE,GOOGLE_COOKIE,OAUTH_COOKIE,ROLE_PREVIEW_COOKIE])response.cookies.set(name,'',{...options(),expires:new Date(0),maxAge:0});
  // OAuth state is scoped separately; clearing '/' alone leaves the flow alive.
  response.cookies.set(OAUTH_COOKIE,'',{...options(),path:'/auth/google',expires:new Date(0),maxAge:0});
 }
