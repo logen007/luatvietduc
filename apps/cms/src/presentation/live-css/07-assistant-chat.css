@@ -108,3 +108,53 @@
 .lvd-chat .chat-submit:disabled{background:#414141;color:#999}
 .lvd-chat .chat-compose :is(button,textarea):focus-visible{outline:2px solid #bbb;outline-offset:2px}
 @media(max-width:600px){.lvd-chat .chat-compose{gap:4px;padding:6px;border-radius:30px}}
+
+/* Customer chat palette: soft charcoal surfaces and muted, readable text. */
+html:has(.lvd-chat),body:has(.lvd-chat){background:#1b1b1b;color:#d1d1d1;color-scheme:dark;--theme-bg:#252525;--theme-text:#d1d1d1}
+body:has(.lvd-chat) .live-header{background:#1b1b1bf5;border-bottom-color:#303030;color:#d1d1d1}
+body:has(.lvd-chat) .live-header :is(.live-brand,.live-nav a,.live-menu-button,.lvd-language-switch){color:#ccc}
+body:has(.lvd-chat) .live-header .live-nav a:is(:hover,[aria-current]){background:#2b2b2b;color:#e0e0e0}
+body:has(.lvd-chat) .live-header .live-header-login-button{background:#303030;border-color:#414141;color:#d8d8d8}
+body:has(.lvd-chat) :is(.live-menu-dialog,.chat-history-dialog){background:#222;border-color:#383838;color:#d1d1d1}
+body:has(.lvd-chat) .live-menu-heading :is(h2,button),body:has(.lvd-chat) .live-menu-dialog nav>:is(a,button){color:#d1d1d1;background:transparent;border-color:#393939}
+.live-shell.chat-shell.lvd-chat,.lvd-chat :is(.chat-main,.chat-compose-wrap){background:#1b1b1b}
+.lvd-chat .chat-sidebar{background:#202020;border-color:#303030;border-radius:16px}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-create{background:#2b2b2b;border-color:#414141;color:#d4d4d4;border-radius:10px}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-create:hover{background:#333}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-history-search{color:#ccc;border-color:#383838}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-history-search::placeholder{color:#a0a0a0}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-history-list>button{color:#c9c9c9}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-history-list>button:is(:hover,.is-selected){background:#303030;color:#dedede}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) :is(.chat-history-list>p,.chat-history-list>button>small,.chat-history-error){color:#aaa}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-account{border-color:#383838;color:#ccc}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-account>span{background:#383838;color:#ccc}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-history-error button{border-color:#555;color:#ccc}
+.lvd-chat .chat-top :is(h1,button),body:has(.lvd-chat) .chat-history-dialog-heading button{color:#b5b5b5}
+.lvd-chat .chat-top button:hover{background:#303030;color:#ddd}
+.lvd-chat .chat-welcome-mark{background:#252525;border-color:#3c3c3c;color:#aaa}
+.lvd-chat .chat-welcome h2{color:#d1d1d1;font-weight:400}
+.lvd-chat .chat-message{color:#cecece}
+.lvd-chat .chat-message.user{background:#303030;color:#d4d4d4}
+.lvd-chat .chat-answer-label{color:#aaa}
+.lvd-chat .chat-sources :is(a,span){background:#232323;border-color:#414141;color:#b8b8b8}
+.lvd-chat .chat-sources a:hover{border-color:#777;color:#ddd}
+.lvd-chat .chat-copy{color:#a8a8a8}.lvd-chat .chat-copy:hover{background:#303030;color:#ddd}
+.lvd-chat .chat-suggestions>button{background:#242424;border-color:#3c3c3c;color:#bcbcbc;border-radius:12px}
+.lvd-chat .chat-suggestions>button:hover{background:#303030;border-color:#626262;color:#ddd}
+.lvd-chat .chat-compose{background:#2b2b2b;border-color:#414141}
+.lvd-chat .chat-compose:focus-within{border-color:#777;box-shadow:0 0 0 2px #ffffff0a}
+.lvd-chat .chat-compose textarea{color:#d8d8d8}
+.lvd-chat .chat-compose textarea::placeholder{color:#aaa}
+.lvd-chat .chat-compose button{width:44px;min-width:44px;height:44px;min-height:44px;border:0;border-radius:50%;padding:10px;box-shadow:none}
+.lvd-chat .chat-compose button.chat-attach{background:transparent;color:#ccc}
+.lvd-chat .chat-compose button.chat-attach:hover{background:#414141}
+.lvd-chat .chat-compose button.chat-submit{background:#ccc;color:#292929}
+.lvd-chat .chat-compose button.chat-submit:hover{background:#dedede}
+.lvd-chat .chat-compose button.chat-submit:disabled{background:#454545;color:#999;opacity:1}
+.lvd-chat .chat-file-chip{background:#292929;border-color:#4b4b4b;color:#ccc}
+.lvd-chat .chat-login-priority{background:#252525;border-color:#414141;color:#ccc}
+.lvd-chat .chat-login-priority p{color:#b0b0b0}.lvd-chat .chat-login-priority>a{background:#3c3c3c;color:#ddd}
+.lvd-chat .chat-error{color:#e3aba4}
+.lvd-chat .chat-thinking span{background:#aaa}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) :is(button,a,input):focus-visible{outline-color:#bdbdbd}
+.lvd-chat :is(.chat-log,.chat-history-list){scrollbar-color:#565656 transparent}
