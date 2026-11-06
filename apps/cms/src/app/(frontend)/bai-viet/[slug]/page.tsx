@@ -1,3 +1,4 @@
+import {photoForArticle} from '../../../../modules/public-site/search';
 import {articleHTML,articleText} from '../../../../modules/content/article-body';
 import {LocaleText,LocaleDate} from "../../../../modules/shared/locale";
 import {notFound,permanentRedirect} from "next/navigation";
@@ -26,11 +27,13 @@ export default async function Page({
   const { slug } = await params,a=await articleForPage(slug);
   const news=a.kind==='news'||content.newsSlugs.includes(a.slug),parent=articleParent(news?'news':a.kind),revision=getPresentationVersion(path.join(process.cwd(),'public'));
   return (
-    <PublicFrame revision={revision} section={news?'news':'lookup'}>
+    <PublicFrame revision={revision} section={news?'news':'lookup'} articleHero>
       <div className="live-reading-page">
         <div className="container">
           <article className="live-reading-article" aria-labelledby="article-title">
-            <header className="live-reading-heading">
+            <header className="live-reading-heading live-reading-hero">
+              <img className="live-reading-backdrop" src={'/assets/photos/'+photoForArticle(a)+'-1200.webp'} alt="" aria-hidden="true" width={1200} height={800} fetchPriority="high"/>
+              <div className="live-reading-heading-inner">
               <div className="live-reading-topline">
                 <a className="live-reading-return" href={parent.href}>
                   <span aria-hidden="true">←</span>
@@ -42,6 +45,7 @@ export default async function Page({
               </div>
               <h1 id="article-title">{a.title}</h1>
               <div className="live-reading-taxonomy">{a.categories?.map(category=>typeof category==='object'&&category?<span key={'category-'+category.id}><LocaleText text={category.name}/></span>:null)}{a.tags?.map(tag=>typeof tag==='object'&&tag?<span key={'tag-'+tag.id}>#{tag.name}</span>:null)}</div>
+              </div>
             </header>
             <div className="live-reading-content">
               <div id="noi-dung" className="live-body" lang={a.language==='de'?'de':'vi'} dangerouslySetInnerHTML={{__html:articleHTML(a.body)}}/>
