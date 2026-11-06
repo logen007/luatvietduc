@@ -1,7 +1,8 @@
 import {answerHistory,questionWithHistory,groundedPreviousAnswer} from './conversation-context';
-import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory,intakeClarification} from './clarification';
+import {MAX_CLARIFICATIONS,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply} from './clarification';
+import type {Qualification} from '../chat/qualification';
 import {randomUUID} from 'node:crypto';
-import {transaction} from '../shared/db';
+import {pool,transaction} from '../shared/db';
 import {activeValues,readRow} from '../integrations/store';
 import {HttpError,isCustomer,type Actor} from '../chat/service';
 import {findFaq,eligible,matchesQuestion,requiresHuman,faqRevision,type Faq} from './faq';
@@ -9,7 +10,7 @@ import {sourceScopes,sourceInScope} from './scope';
 import {formatFaq} from './format';
 import {CONSENT_VERSION} from '../rag/core';
 import {retrieve} from '../rag/retrieve';
-import {reserveBudget,selectPassages} from '../rag/provider';
+import {reserveBudget,selectPassages,assessIntake} from '../rag/provider';
 import {activeAnswerRules,rulesRevision,type AnswerRule} from './rules';
 import {answerCitation} from '../knowledge/citations';
 type Policy={customerAIEnabled?:boolean|null;chatEnabled?:boolean|null;aiDailyRequests?:number|null;aiMaxOutputTokens?:number|null};
@@ -28,17 +29,21 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   await db.query('UPDATE lvd_conversations SET ai_generation=$2,ai_message_id=$3,ai_started_at=now() WHERE id=$1',[id,token,message.id]);
   const previous=(await db.query("SELECT role,body,metadata FROM ((SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 80) UNION (SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND role='user' AND NOT internal ORDER BY id LIMIT 4)) history ORDER BY id DESC",[id,message.id])).rows;
   const history=clarificationHistory(previous,CONSENT_VERSION);
-  return {previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
+  return {retainHistory:Boolean(conversation.retain_history),meaningfulHistory:previous.some(row=>row.role==='user'&&!isVagueIntakeReply(String(row.body))),previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
  });
  if(!work)return;
  let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined,clarificationKey:string|undefined;
+ let qualification:Qualification='ready',assessed=false,unqualifiedAssessment=false;
  let ragSources:Faq[]=[],rules:AnswerRule[]=[],rag=false,clarification=false,localClarification=false;
  const localQuestion=[work.localContext,work.question].filter(Boolean).join('\n');
+ const intake=currentIntakeContext(localQuestion);
+ const admitReady=async()=>Boolean((await pool.query("UPDATE lvd_conversations SET qualification='ready',retain_history=true,low_priority_expires_at=NULL WHERE id=$1 AND state='queued' AND ai_enabled AND ai_generation=$2 AND version=$3 AND $4::bigint=(SELECT max(id) FROM lvd_messages WHERE conversation_id=$1 AND role='user')",[id,token,work.version,messageId])).rowCount);
  try{
   if(policy.customerAIEnabled===false||policy.chatEnabled===false)throw new Error('Disabled');
   if(requiresHuman(localQuestion))throw new Error('Specialist required');
   const initial=intakeClarification(localQuestion,work.clarificationKeys,work.intakeAnswers);
-  if(initial){answer=initial.text;clarificationKey=initial.key;clarification=true;localClarification=true;}else{
+  if(initial){qualification=!work.retainHistory&&!work.meaningfulHistory&&!intake.topic&&isVagueIntakeReply(work.question)?'low':'needs_details';answer=initial.text;clarificationKey=initial.key;clarification=true;localClarification=true;}else{
+  unqualifiedAssessment=work.consented&&!work.retainHistory&&!intake.topic;
   providerVersion=(await readRow('ai'))?.version;
   const connection=await activeValues('ai');if(!connection)throw new Error('Provider not connected');
   const ruleQuestion=questionWithHistory(work.question,work.context);
@@ -47,8 +52,20 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   if(work.consented){
    rag=true;
    const question=questionWithHistory(work.question,work.context);
-   if(requiresHuman(question))throw new Error('Specialist required');
+   if(requiresHuman(question)){unqualifiedAssessment=false;throw new Error('Specialist required');}
    await reserveBudget(limit);
+   let assessment;
+   try{assessment=await assessIntake(question,connection,rules);}catch{
+    if(unqualifiedAssessment)throw new Error('Intake unavailable');
+    console.info('Intake assessment unavailable; using local completeness gate');
+   }
+   unqualifiedAssessment=false;
+   if(assessment&&assessment.status!=='ready'){
+    qualification=assessment.status==='low'&&(work.retainHistory||work.meaningfulHistory)?'needs_details':assessment.status;
+    clarification=true;localClarification=true;assessed=true;rag=false;
+    const detail=assessment.detail||'goal';clarificationKey='intake.'+detail;answer=clarificationText(detail,question);
+   }else{
+   if(!await admitReady())return;
    const found=await retrieve(question,work.country,connection);
    if(!found.evidence.length)throw new Error('Outside approved coverage');
    const selection=await selectPassages(question,found.evidence,connection,policy.aiMaxOutputTokens||700,rules,groundedPreviousAnswer(work.previousAnswer,found.sources));
@@ -59,9 +76,11 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
    }else if(selection.kind==='clarify-details'||selection.kind==='clarify-country'){
     const followup=work.clarificationCount<MAX_CLARIFICATIONS?nextClarification(localQuestion,work.clarificationKeys,selection.kind==='clarify-country'?'country':selection.detail):null;
     if(!followup)throw new Error('Insufficient evidence');
-    ragSources=found.sources;clarification=true;clarificationKey=followup.key;answer=followup.text;
+    qualification='needs_details';ragSources=found.sources;clarification=true;clarificationKey=followup.key;answer=followup.text;
    }else throw new Error('Insufficient evidence');
+   }
   }else{
+   if(!await admitReady())return;
    // Legacy clients never send a customer question to the provider.
    faq=await findFaq(work.country,work.question);
    if(!faq)throw new Error('Outside approved coverage');
@@ -71,18 +90,24 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
  }catch(error){
   // Bounded operational codes only; no question, transcript or credentials in logs.
   const reasons:Record<string,string>={'Disabled':'disabled','Specialist required':'personal-case','Provider not connected':'provider-disabled','Budget disabled':'budget-disabled','Budget exceeded':'budget-exhausted','Provider quota':'provider-quota','Provider unavailable':'provider-unavailable','Outside approved coverage':'no-source','Insufficient evidence':'insufficient-evidence'};
-  console.info('Assistant handoff',error instanceof Error?reasons[error.message]||'processing-error':'processing-error');
+  if(unqualifiedAssessment){
+   qualification='needs_details';rag=false;clarification=true;localClarification=true;clarificationKey='intake.goal';answer=clarificationText('goal',work.question);
+   console.info('Intake assessment unavailable; retaining unqualified request');
+  }else console.info('Assistant handoff',error instanceof Error?reasons[error.message]||'processing-error':'processing-error');
  }
  await transaction(async db=>{
   const conversation=(await db.query('SELECT * FROM lvd_conversations WHERE id=$1 FOR UPDATE',[id])).rows[0];
   if(!conversation||conversation.state!=='queued'||!conversation.ai_enabled||conversation.ai_generation!==token||conversation.version!==work.version)return;
   const latest=(await db.query("SELECT id FROM lvd_messages WHERE conversation_id=$1 AND role='user' ORDER BY id DESC LIMIT 1",[id])).rows[0];
   if(String(latest?.id)!==String(messageId))return;
-  if(answer&&!localClarification){
+  let invalidAssessment=false;
+  if(answer&&(!localClarification||assessed)){
    const ruleQuestion=questionWithHistory(work.question,work.context);
    const currentRules=await activeAnswerRules(work.country,ruleQuestion,db,true);
-   if(rulesRevision(currentRules)!==rulesRevision(rules))answer=null;
+   if(rulesRevision(currentRules)!==rulesRevision(rules)){answer=null;invalidAssessment=assessed;}
   }
+  if(answer&&assessed){const provider=(await db.query("SELECT enabled,version FROM lvd_integrations WHERE provider='ai' FOR SHARE")).rows[0];if(!provider?.enabled||provider.version!==providerVersion){answer=null;invalidAssessment=true;}}
+  if(invalidAssessment&&!work.retainHistory&&!intake.topic){qualification='needs_details';clarificationKey='intake.goal';answer=clarificationText('goal',work.question);}
   if(answer&&localClarification){
    const settings=(await db.query('SELECT customer_a_i_enabled,chat_enabled FROM site_settings LIMIT 1 FOR SHARE')).rows[0];
    if(settings?.customer_a_i_enabled===false||settings?.chat_enabled===false)answer=null;
@@ -112,7 +137,8 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   const cited=rag?ragSources:faq?[faq]:[];
   const metadata=answer?{kind:clarification?'clarify':'ai',...(clarification?{clarificationKey}:{}),...(rag?{retrieval:'semantic-v1'}:{}),sources:clarification?[]:cited.map(source=>({...answerCitation(source),revision:new Date(source.updated_at).toISOString()+'#'+faqRevision(source).slice(0,12)}))}:{kind:'handoff'};
   await db.query("INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,'assistant',$2,false,'assistant',$3,$4) ON CONFLICT(conversation_id,client_key) DO NOTHING",[id,answer||handoffText,replyKey,JSON.stringify(metadata)]);
-  await db.query('UPDATE lvd_conversations SET ai_enabled=$2,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,version=version+$3,updated_at=clock_timestamp() WHERE id=$1',[id,Boolean(answer),answer?0:1]);
+  const finalQualification=qualification==='low'&&conversation.retain_history?'needs_details':qualification;
+  await db.query("UPDATE lvd_conversations SET ai_enabled=$2,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,qualification=$4,low_priority_expires_at=CASE WHEN $4='low' AND $2 THEN clock_timestamp()+interval '2 hours' ELSE NULL END,version=version+$3,updated_at=clock_timestamp() WHERE id=$1",[id,Boolean(answer),answer?0:1,finalQualification]);
   await db.query('INSERT INTO lvd_chat_events(conversation_id,action,version) SELECT id,$2,version FROM lvd_conversations WHERE id=$1',[id,answer?'ai.reply':'ai.handoff']);
  });
 }

@@ -81,7 +81,7 @@ function intakeState(question:string){
  return {topic,text,scope:topic?topic.id+(visits[topic.id]>1?'-'+visits[topic.id]:''):'',segment,countryText:samePlace&&countryState(priorCountry).known?priorCountry+'\n'+text:text};
 }
 export function currentIntakeContext(question:string){const state=intakeState(question);return {text:state.text,topic:state.topic?.id||null,scope:state.scope,countryKnown:countryState(state.countryText).known};}
-export function clarificationText(kind:DetailKind,question:string){return texts[kind][german(question)?1:0];}
+export function clarificationText(kind:DetailKind|'country',question:string){return (kind==='country'?country.text:texts[kind])[german(question)?1:0];}
 export function nextClarification(question:string,asked:readonly string[]=[],detail?:DetailKind|'country'):Clarification|null{
  if(asked.length>=MAX_CLARIFICATIONS)return null;
  const state=intakeState(question),topic=state.topic,text=normalized(state.text),lastRaw=state.text.split('\n').at(-1)||question,last=normalized(lastRaw);
@@ -127,7 +127,10 @@ const emptyReply=/^(?:hay(?: qua)?|cam on(?: ban)?|danke|gut|giup toi(?: voi)?|t
 const partyRoles=/\b(anh chi em|ong ba|cha|me|con|vo|chong|nguoi mua|nguoi ban|ngan hang|doanh nghiep|ca nhan|chu so huu|nguoi lao dong|nguoi su dung lao dong|geschwister|grosseltern|eltern|kind\w*|ehepartner|kaufer|verkaufer|bank|unternehmen|arbeitnehmer|arbeitgeber)\b/;
 const partyFacts=(value:string)=>partyRoles.test(normalized(value))&&!/\b(khong biet|chua biet|khong ro|chua ro|weiss nicht|unklar)\b/.test(normalized(value));
 const fillerWords=new Set('toi minh em anh chi ban muon can dang hoi nho giup tu van ho tro mot chut ti it ve nay kia do ay no the vay nhu la xin chao voi nhe a ah uh vang da ich mochte will brauche etwas fragen bitte hilfe ja gut'.split(' '));
-const usableReply=(text:string)=>{const value=normalized(text);return Boolean(value)&&!value.split(' ').every(word=>fillerWords.has(word))&&!vague.test(value)&&!emptyReply.test(value)&&/[\p{L}\p{N}]/u.test(value);};
+// Unknown topics are not filler. Only positively recognized empty replies may
+// become disposable intake; the caller separately protects retained history.
+export function isVagueIntakeReply(text:string){const value=normalized(text);return !value||vague.test(value)||emptyReply.test(value)||value.split(' ').every(word=>fillerWords.has(word));}
+const usableReply=(text:string)=>!isVagueIntakeReply(text)&&/[\p{L}\p{N}]/u.test(normalized(text));
 export function intakeClarification(question:string,asked:readonly string[]=[],answers:Record<string,string>={}):Clarification|null{
  const state=intakeState(question),text=normalized(state.text),last=state.text.split('\n').at(-1)||question;
  const prompt=(key:string,pair:Pair):Clarification=>({key,text:pair[german(state.text)?1:0]});

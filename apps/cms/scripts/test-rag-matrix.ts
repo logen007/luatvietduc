@@ -15,6 +15,7 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
  const database=new URL(process.env.DATABASE_URL||'');assert.ok(['localhost','127.0.0.1'].includes(database.hostname)&&database.pathname==='/lvd_test');
  const originalFetch=globalThis.fetch,points=new Map<string,any>(),articles:number[]=[],knowledge:number[]=[],conversations:string[]=[],prompts:any[]=[];
  let allowed:number[]=[],selected:number[]=[],mode='answer',score=.94,providerCalls=0,gate:(()=>Promise<void>)|null=null;
+ const intakeMode:{status:'ready'|'low'|'needs_details'|'unavailable'}={status:'ready'};
  const policy={customerAIEnabled:true,chatEnabled:true,aiDailyRequests:1000,aiMaxOutputTokens:2000};
  const synthetic='Synthetic matrix '+crypto.randomUUID();
  const texts={article:'Bộ dữ liệu minh họa ALPHA: đây là nội dung từ bài viết đã xuất bản.\n\nĐiều kiện minh họa ALPHA: chỉ dùng với tình huống mô phỏng, không phải tư vấn pháp luật.',private:'Bộ dữ liệu minh họa BETA: đây là nội dung kiến thức riêng, dùng trong trả lời thử nghiệm.\n\nNgoại lệ minh họa BETA: không được suy diễn thêm ngoài nội dung đã cung cấp.',german:'Synthetischer GAMMA-Datensatz: dieser Text stammt aus dem veröffentlichten Testbeitrag.\n\nBedingung GAMMA: nur für diesen simulierten Ablauf, keine Rechtsberatung.'};
@@ -29,8 +30,14 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   }
   assert.ok(url.startsWith('https://generativelanguage.googleapis.com/v1beta/models/'),'No unexpected external request');providerCalls++;
   if(url.includes(':embedContent'))return json({embedding:{values:Array.from({length:DIMENSIONS},(_,index)=>index===0?1:0)}});
+  const prompt=JSON.parse(data.contents[0].parts[0].text);
+  if(prompt.phase==='intake'){
+   if(intakeMode.status==='unavailable')return json({},503);
+   const assessment={status:intakeMode.status,...(intakeMode.status==='needs_details'?{detail:'situation'}:{})};
+   return json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(assessment)}]}}]});
+  }
   if(mode==='quota')return json({},429);
-  const prompt=JSON.parse(data.contents[0].parts[0].text);prompts.push(prompt);
+  prompts.push(prompt);
   assert.ok(prompt.sources.every((source:any)=>allowed.includes(Number(source.key.split('-')[1]))),'Only allowed retrieval candidates enter selection');
   if(gate)await gate();
   let value:any=mode==='handoff'?{kind:'handoff'}:mode==='clarify'?{kind:'clarify-details',detail:'timeline'}:{kind:'answer',passages:prompt.sources.filter((source:any)=>selected.includes(Number(source.key.split('-')[1]))).flatMap((source:any)=>source.text.split(/\n\s*\n/).map((quote:string)=>({key:source.key,quote})))};
@@ -61,8 +68,21 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   const connection=(await integrations.activeValues('ai'))!;
   const a=await article('ALPHA',texts.article,'VN'),aSource=await mirror(a.id);assert.ok(aSource);await ready(aSource.id);
   let result=await start('Xin giải thích bộ dữ liệu ALPHA tại Việt Nam?');assert.equal(last(result).body,texts.article);assert.ok(last(result).metadata.sources[0].url?.endsWith('/bai-viet/'+a.slug));
+  result=await turn(result,'Cảm ơn');assert.equal(last(result).metadata.kind,'clarify');
+  let qualification=(await pool.query('SELECT qualification,retain_history,low_priority_expires_at FROM lvd_conversations WHERE id=$1',[result.id])).rows[0];
+  assert.equal(qualification.retain_history,true);assert.notEqual(qualification.qualification,'low');assert.equal(qualification.low_priority_expires_at,null,'Thanks cannot make a meaningful conversation disposable');
   const k=await writeKnowledgeArticle(payload,support,{title:synthetic+' BETA',body:texts.private,publish:true});knowledge.push(k.id);await ready(k.id);
   result=await start('Xin giải thích bộ dữ liệu BETA?');assert.equal(last(result).body,texts.private);assert.equal(last(result).metadata.sources[0].url,undefined,'Private knowledge cannot publish its admin/source URL');
+  for(const status of ['low','needs_details','unavailable'] as const){
+   intakeMode.status=status;const selectionCount=prompts.length;
+   const assessed=await start('Xin giải thích nội dung phân loại mô phỏng?');assert.equal(last(assessed).metadata.kind,'clarify',status);
+   assert.equal(prompts.length,selectionCount,'Unqualified intake cannot reach sourced answer selection');
+   qualification=(await pool.query('SELECT qualification,retain_history,low_priority_expires_at FROM lvd_conversations WHERE id=$1',[assessed.id])).rows[0];
+   assert.equal(qualification.qualification,status==='low'?'low':'needs_details',status);
+   assert.equal(qualification.retain_history,status!=='low',status);
+   assert.equal(Boolean(qualification.low_priority_expires_at),status==='low',status);
+  }
+  intakeMode.status='ready';
   const german=await article('GAMMA',texts.german,'DE'),gSource=await mirror(german.id);await ready(gSource.id);result=await start('Bitte erläutern Sie den GAMMA-Datensatz in Deutschland?');assert.equal(last(result).body,texts.german);
   allowed=[aSource.id,k.id];selected=[aSource.id,k.id];mode='answer';result=await start('Xin giải thích ALPHA và BETA tại Việt Nam?');assert.equal(last(result).metadata.sources.length,2);assert.ok(last(result).body.includes(texts.article)&&last(result).body.includes(texts.private));
   const priorBody=last(result).body;result=await turn(result,'Bạn giải thích ý thứ hai trong câu trả lời trên được không?');assert.equal(prompts.at(-1).previousAnswer,priorBody,'A follow-up must identify the actual prior answer using still-valid source paragraphs');

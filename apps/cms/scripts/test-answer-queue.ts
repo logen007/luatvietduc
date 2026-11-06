@@ -3,6 +3,7 @@ import {randomUUID} from 'node:crypto';
 import {pool} from '../src/modules/shared/db';
 import * as chat from '../src/modules/chat/service';
 import {requestAnswer,processNextAnswer} from '../src/modules/assistant/queue';
+import {CONSENT_VERSION} from '../src/modules/rag/core';
 import type {User} from '../src/payload-types';
 export async function testAnswerQueue(owner:User){
  const url=new URL(process.env.DATABASE_URL||'');
@@ -10,7 +11,7 @@ export async function testAnswerQueue(owner:User){
  const guest={user:null,guestHash:randomUUID()},other={user:null,guestHash:randomUUID()};
  const make=async()=>{
   const c=await chat.createConversation(guest,{consent:true},{assistantEnabled:true});
-  const input={body:'Synthetic queue-only question',key:randomUUID()};
+  const input={body:'Synthetic queue-only question',key:randomUUID(),aiConsentVersion:CONSENT_VERSION};
   const sent=await chat.message(guest,c.id,input,2000);
   await pool.query("UPDATE lvd_answer_jobs SET available_at='1900-01-01' WHERE message_id=$1",[sent.id]);
   return {c,sent,input};
@@ -26,7 +27,9 @@ export async function testAnswerQueue(owner:User){
  await processNextAnswer();
  assert.equal((await pool.query('SELECT status FROM lvd_answer_jobs WHERE message_id=$1',[first.sent.id])).rows[0].status,'done','Expired worker lease is recovered');
  const transcript=await chat.transcript(guest,first.c.id);
- assert.equal(transcript.messages.length,2);assert.equal(transcript.messages[1].metadata.kind,'handoff','Unconnected AI hands off without external content');
+ assert.equal(transcript.messages.length,2);assert.equal(transcript.messages[1].metadata.kind,'clarify','An unassessed unknown question asks for context when AI is unavailable');
+ const retained=(await pool.query('SELECT qualification,retain_history,low_priority_expires_at,ai_enabled FROM lvd_conversations WHERE id=$1',[first.c.id])).rows[0];
+ assert.equal(retained.qualification,'needs_details');assert.equal(retained.retain_history,true);assert.equal(retained.low_priority_expires_at,null);assert.equal(retained.ai_enabled,true);
  const claimed=await make();
  await pool.query("UPDATE lvd_conversations SET updated_at=now()-interval '1 minute' WHERE id=$1",[claimed.c.id]);
  await chat.transition({user:owner,guestHash:''},claimed.c.id,{action:'claim',version:1});

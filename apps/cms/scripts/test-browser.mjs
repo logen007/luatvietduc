@@ -451,6 +451,7 @@ try{
  assert.equal((await nativeLoginResponse).status(),200,'Native CMS multipart login must succeed');
  await page.waitForURL(base+'/admin');await page.locator('.lvd-admin-navigation').waitFor();
  await (await import('./test-loading-stability.mjs')).testAdminLoadingStability(context,base);
+ await (await import('./test-chat-qualification-browser.mjs')).testChatQualificationBrowser(context,base);
  await (await import('./test-role-preview-browser.mjs')).testRolePreviewBrowser(context,base,payload,pool,owner);
  await (await import('./test-article-import-browser.mjs')).testArticleImportBrowser(context,base,payload,owner);
  const nativeJSON=await context.request.post(base+'/api/users/login',{headers:{origin:base},data:{email:owner.email,password}});

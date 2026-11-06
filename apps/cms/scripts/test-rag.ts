@@ -34,9 +34,12 @@ export async function testRag(payload:Payload,owner:User,support:User){
    if(failIndex&&data.taskType==='RETRIEVAL_DOCUMENT')return json({},429);
    return json({embedding:{values:Array.from({length:DIMENSIONS},(_,i)=>i===0?1:0)}});
   }
-  assert.ok(url.endsWith(':generateContent'));assert.ok(data.systemInstruction.parts[0].text.includes('Synthetic policy marker'),'Approved operator rules reach the instruction channel');
+  assert.ok(url.endsWith(':generateContent'));
+  const prompt=JSON.parse(data.contents[0].parts[0].text);
+  if(prompt.phase==='intake'){requests.push({task:'intake',text:prompt.question});return json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({status:'ready'})}]}}]});}
+  assert.ok(data.systemInstruction.parts[0].text.includes('Synthetic policy marker'),'Approved operator rules reach the instruction channel');
   if(gate)await gate();
-  const prompt=JSON.parse(data.contents[0].parts[0].text);requests.push({task:'generate',text:JSON.stringify(prompt)});
+  requests.push({task:'generate',text:JSON.stringify(prompt)});
   const selection={kind:'answer',passages:prompt.sources.slice(0,1).flatMap((s:any)=>s.text.split(/\n\s*\n/).map((quote:string)=>({key:s.key,quote:invalid?'Invented unsupported legal statement.':quote})))};
   return json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(selection)}]}}]});
  };
