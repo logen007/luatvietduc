@@ -14,10 +14,10 @@ export async function api<T=any>(path: string, data?: unknown):Promise<T> {
       headers: data ? { "content-type": "application/json" } : undefined,
       body: data ? JSON.stringify(data) : undefined,
       cache: "no-store",
-      signal:data?undefined:AbortSignal.timeout(15000),
+      signal:AbortSignal.timeout(data?45000:15000),
     });
   } catch {
-    throw new ClientApiError("Không thể kết nối. Vui lòng kiểm tra mạng và thử lại.");
+    throw new ClientApiError(data?"Chưa xác nhận được kết quả. Kiểm tra trạng thái trước khi thử lại.":"Không thể kết nối. Vui lòng kiểm tra mạng và thử lại.");
   }
   const result = await response.json().catch(() => null);
   if (!response.ok){
@@ -28,7 +28,7 @@ export async function api<T=any>(path: string, data?: unknown):Promise<T> {
     );
   }
   if (result === null)
-    throw new ClientApiError("Không thể đọc phản hồi của dịch vụ. Vui lòng thử lại.",502);
+    throw new ClientApiError(data?"Chưa xác nhận được kết quả. Kiểm tra trạng thái trước khi thử lại.":"Không thể đọc phản hồi của dịch vụ. Vui lòng thử lại.",502);
   if(path==='logout')invalidatePublicSession();
   return result;
 }

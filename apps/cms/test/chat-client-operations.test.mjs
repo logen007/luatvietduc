@@ -130,7 +130,7 @@ test('workspace cancellation stops uploads without releasing a newer operation',
 
 test('chat uploads preserve raw file payload and server errors while completed requests detach cancellation',async t=>{
  t.mock.timers.enable({apis:['setTimeout']});
- const file=new File(['Synthetic'],'hồ sơ.txt'),session=new AbortController(),receipt={id:'synthetic-file',name:file.name,size:file.size,mimeType:'text/plain',url:'/service/chat-files/synthetic-file'};
+ const file=new File(['Synthetic'],'hồ sơ.txt'),session=new AbortController(),id='11111111-2222-4333-8444-555555555555',receipt={id,name:file.name,size:file.size,mimeType:'text/plain',url:'/service/chat-files/'+id};
  let calls=0,transport;
  t.mock.method(globalThis,'fetch',async(url,options)=>{
   calls++;transport=options.signal;assert.equal(url,'/service/conversations/synthetic-thread/files');assert.equal(options.method,'POST');assert.equal(options.body,file);
@@ -140,6 +140,24 @@ test('chat uploads preserve raw file payload and server errors while completed r
  assert.deepEqual(await uploadChatAttachment('synthetic-thread',file,session.signal),receipt);const completed=transport;
  await assert.rejects(uploadChatAttachment('synthetic-thread',file,session.signal),/Synthetic second-file failure/);
  t.mock.timers.tick(90000);session.abort();assert.equal(completed.aborted,false);assert.equal(transport.aborted,false);assert.equal(calls,2);
+});
+
+test('malformed successful upload receipts fail before they can enter a composer draft',async t=>{
+ const file=new File(['Synthetic'],'review.txt'),id='11111111-2222-4333-8444-555555555555',receipt={id,name:file.name,size:file.size,mimeType:'text/plain',url:'/service/chat-files/'+id};
+ for(const value of [null,{},[],false,'success',{...receipt,id:'invalid'},{...receipt,name:null},{...receipt,size:0},{...receipt,size:1.5},{...receipt,size:10*1024*1024+1},{...receipt,mimeType:null},{...receipt,url:'https://example.invalid/other-file'}]){
+  let calls=0;t.mock.method(globalThis,'fetch',async()=>{calls++;return Response.json(value);});
+  await assert.rejects(uploadChatAttachment('synthetic-thread',file,new AbortController().signal),/phản hồi/);
+  assert.equal(calls,1,'An uncertain upload must not replay automatically');t.mock.restoreAll();
+ }
+});
+
+test('confirmed upload receipts expose only the attachment fields used by the draft',async t=>{
+ const id='11111111-2222-4333-8444-555555555555';
+ for(const [name,mimeType] of [['review.txt','text/plain'],['review.pdf','application/pdf'],['review.docx','application/vnd.openxmlformats-officedocument.wordprocessingml.document'],['review.png','image/png'],['review.jpg','image/jpeg'],['review.webp','image/webp']]){
+  const file=new File(['Synthetic'],name),receipt={id,name:file.name,size:file.size,mimeType,url:'/service/chat-files/'+id};
+  t.mock.method(globalThis,'fetch',async()=>Response.json({...receipt,objectKey:'PRIVATE-SYNTHETIC-STORAGE-KEY',conversation:'PRIVATE-SYNTHETIC-CONTEXT'}));
+  assert.deepEqual(await uploadChatAttachment('synthetic-thread',file,new AbortController().signal),receipt);t.mock.restoreAll();
+ }
 });
 
 test('overlapping transcript pages reconcile acknowledged messages without duplicates or unsafe ID ordering',()=>{

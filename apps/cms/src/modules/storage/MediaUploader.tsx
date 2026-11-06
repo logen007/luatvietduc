@@ -1,13 +1,14 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import {useUnsavedChanges} from '../shared/unsaved-changes';
+import {uploadMediaFile} from './media-client';
 type Row={name:string;progress:number;error?:string;done?:boolean};
 const accept='.jpg,.jpeg,.png,.webp,.svg,.pdf,.mp4,.webm,.mp3,.wav,.ogg';
 export function MediaUploader({onDone,onBusyChange}:{onDone:()=>void;onBusyChange:(busy:boolean)=>void}){
- const input=useRef<HTMLInputElement>(null),request=useRef<XMLHttpRequest|null>(null),active=useRef(false),mounted=useRef(true);
+ const input=useRef<HTMLInputElement>(null),request=useRef<AbortController|null>(null),active=useRef(false),mounted=useRef(true);
  const [rows,setRows]=useState<Row[]>([]),[busy,setBusy]=useState(false),[drag,setDrag]=useState(false);
  useUnsavedChanges(busy);
- useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;request.current?.abort();};},[]);
+ useEffect(()=>{mounted.current=true;onBusyChange(false);return()=>{mounted.current=false;request.current?.abort();};},[]);
  async function upload(files:File[]){
   if(active.current||!files.length)return;active.current=true;setBusy(true);onBusyChange(true);setRows(files.map(file=>({name:file.name,progress:0})));
   let uploaded=false;
@@ -17,13 +18,8 @@ export function MediaUploader({onDone,onBusyChange}:{onDone:()=>void;onBusyChang
    if(file.size>10*1024*1024){update(index,{error:'Tệp vượt quá 10 MB.'});continue;}
    if(!/\.(?:jpe?g|png|webp|svg|pdf|mp4|webm|mp3|wav|ogg)$/i.test(file.name)){update(index,{error:'Định dạng chưa được hỗ trợ.'});continue;}
    try{
-    await new Promise<void>((resolve,reject)=>{
-     const xhr=new XMLHttpRequest();request.current=xhr;xhr.open('POST','/api/media');xhr.timeout=90000;xhr.responseType='json';
-     xhr.upload.onprogress=e=>{if(e.lengthComputable)update(index,{progress:Math.min(99,Math.round(e.loaded/e.total*100))});};
-     xhr.onload=()=>{if(xhr.status>=200&&xhr.status<300){resolve();return;}reject(new Error(xhr.response?.errors?.[0]?.message||'Chưa tải được tệp.'));};
-     xhr.onerror=xhr.ontimeout=()=>reject(new Error('Chưa xác nhận tải xong. Kiểm tra thư viện trước khi thử lại.'));xhr.onabort=()=>reject(new Error('Đã dừng tải tệp.'));
-     const form=new FormData();form.append('file',file);form.append('_payload',JSON.stringify({title:file.name.replace(/\.[^.]+$/,''),alt:''}));xhr.send(form);
-    });uploaded=true;update(index,{done:true,progress:100});
+    const controller=new AbortController();request.current=controller;
+    await uploadMediaFile(file,controller.signal,progress=>update(index,{progress}));uploaded=true;update(index,{done:true,progress:100});
    }catch(e){update(index,{error:e instanceof Error?e.message:'Chưa tải được tệp.'});}
   }}finally{active.current=false;request.current=null;if(mounted.current){setBusy(false);onBusyChange(false);if(uploaded)onDone();}}
  }

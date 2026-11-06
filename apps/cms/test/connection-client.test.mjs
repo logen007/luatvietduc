@@ -37,3 +37,9 @@ test('connection writes have a bounded wait and never retry an uncertain save or
   assert.equal(calls,1,'The browser must not automatically replay a possibly committed mutation');
  }finally{globalThis.fetch=original;}
 });
+
+test('a missing save receipt keeps the outcome uncertain instead of claiming settings were not saved',async()=>{
+ const previous=globalThis.fetch;
+ try{globalThis.fetch=async()=>new Response('not-json');await assert.rejects(()=>requestConnection({action:'save',provider:'google',version:1,values:{}}),error=>error instanceof ConnectionError&&/Chưa xác nhận/.test(error.message));}
+ finally{globalThis.fetch=previous;}
+});

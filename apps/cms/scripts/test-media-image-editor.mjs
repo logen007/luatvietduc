@@ -8,7 +8,7 @@ export async function testMediaImageEditor({page,base,image}){
  const origin=new URL(base).origin;assert.ok(['127.0.0.1','localhost'].includes(new URL(origin).hostname));
  const returnUrl=page.url(),viewport=page.viewportSize(),prefix='/__lvd-image-editor-fixture/'+image.id;
  const sourceBytes=await sharp({create:{width:240,height:160,channels:3,background:'#b9c5ce'}}).png().toBuffer();let editedBytes=sourceBytes;
- let doc={...image,mimeType:'image/png',width:240,height:160,url:prefix+'/source.png',originalImageURL:undefined},requests=[],failNext=false,releaseFirst,fixtureFailure;
+ let doc={...image,mimeType:'image/png',width:240,height:160,url:prefix+'/source.png',originalImageURL:undefined},requests=[],failNext=false,malformedNext=false,releaseFirst,fixtureFailure;
  const firstGate=new Promise(resolve=>{releaseFirst=resolve;});
  const assetPattern=origin+prefix+'/*',filePattern=origin+'/api/media/file/'+encodeURIComponent(image.filename)+'*';
  const metadataPattern=new RegExp('/api/media/'+image.id+'(?:\\?|$)'),operationPattern=origin+'/service/media/image/'+image.id;
@@ -19,6 +19,7 @@ export async function testMediaImageEditor({page,base,image}){
   assert.equal(route.request().method(),'POST');const body=route.request().postDataJSON();requests.push(body);
   assert.equal(body.updatedAt,doc.updatedAt,'Every image operation uses the last confirmed revision');
   if(requests.length===1)await firstGate;
+  if(malformedNext){malformedNext=false;return await route.fulfill({json:{}});}
   if(failNext){failNext=false;return await route.fulfill({status:503,json:{error:'Synthetic image save unavailable'}});}
   let width=240,height=160;
   if(body.operation==='edit'){
@@ -58,6 +59,7 @@ export async function testMediaImageEditor({page,base,image}){
 
   await page.setViewportSize({width:390,height:844});await open();await editor().getByRole('button',{name:'Lật dọc',exact:true}).click();
   assert.ok(await editor().evaluate(element=>{const box=element.getBoundingClientRect();return box.left>=0&&box.right<=innerWidth&&element.scrollWidth<=element.clientWidth;}),'Image editing fits a phone viewport');
+  malformedNext=true;await editor().getByRole('button',{name:'Lưu ảnh',exact:true}).click();await editor().getByRole('alert').filter({hasText:'Chưa xác nhận được tệp đã lưu.'}).waitFor();assert.equal(await editor().getByRole('button',{name:'Lật dọc',exact:true}).getAttribute('aria-pressed'),'true','Malformed save acknowledgement preserves image draft');
   failNext=true;await editor().getByRole('button',{name:'Lưu ảnh',exact:true}).click();await editor().getByText('Synthetic image save unavailable',{exact:true}).waitFor();
   assert.equal(await editor().getByRole('button',{name:'Lật dọc',exact:true}).getAttribute('aria-pressed'),'true','A failed save retains the image draft');
   await editor().getByRole('button',{name:'Lưu ảnh',exact:true}).click();await editor().waitFor({state:'detached'});

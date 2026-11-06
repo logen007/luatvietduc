@@ -4,6 +4,7 @@ import {useAuth} from '@payloadcms/ui';
 import {mediaEditable,mediaName,mediaReadOnly,mediaURL} from './media-view';
 import {confirmDiscardChanges,useUnsavedChanges} from '../shared/unsaved-changes';
 import {MediaImageEditor,canEditMediaImage} from './MediaImageEditor';
+import {mediaReceipt} from './media-client';
 export type MediaItem={id:number;title?:string;filename?:string;alt?:string;caption?:string;description?:string;mimeType?:string;filesize?:number;createdAt?:string;updatedAt?:string;url?:string;thumbnailURL?:string;originalImageURL?:string;sizes?:Record<string,{url?:string;filename?:string;width?:number;height?:number;filesize?:number;mimeType?:string}|null>;width?:number;height?:number;visibility?:string;uploadedBy?:number|{id:number;name?:string}|null;_isLocked?:boolean;_userEditing?:{id:number}};
 type Metadata={title:string;alt:string;caption:string;description:string;visibility:string};
 const metadata=(doc:MediaItem):Metadata=>({title:doc.title||'',alt:doc.alt||'',caption:doc.caption||'',description:doc.description||'',visibility:doc.visibility||'private'});
@@ -15,7 +16,7 @@ export function MediaDetails({id,ids,onSelect,onClose,onChanged}:{id:number;ids:
  useUnsavedChanges(dirty||saving);
  useEffect(()=>{mounted.current=true;dialog.current?.showModal();return()=>{mounted.current=false;};},[]);
  useEffect(()=>{const controller=new AbortController();setDoc(null);setDraft(null);setSaved(null);setError('');setDeleteError('');setConfirmDelete(false);setCopied('');
-  fetch('/api/media/'+id+'?depth=1',{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)])}).then(async r=>{const value=await r.json();if(!r.ok)throw new Error(value.errors?.[0]?.message||'Chưa tải được thông tin tệp.');return value;}).then(value=>{if(!controller.signal.aborted){setDoc(value);setDraft(metadata(value));setSaved(metadata(value));}}).catch(e=>{if(!controller.signal.aborted)setError(e.message||'Chưa tải được thông tin tệp.');});
+  fetch('/api/media/'+id+'?depth=1',{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)])}).then(async r=>{const value=await r.json();if(!r.ok)throw new Error(value.errors?.[0]?.message||'Chưa tải được thông tin tệp.');return mediaReceipt(value,id);}).then(value=>{if(!controller.signal.aborted){setDoc(value);setDraft(metadata(value));setSaved(metadata(value));}}).catch(e=>{if(!controller.signal.aborted)setError(e.message||'Chưa tải được thông tin tệp.');});
   return()=>controller.abort();
  },[id,user?.id,loadAttempt]);
  async function save(){
@@ -24,16 +25,17 @@ export function MediaDetails({id,ids,onSelect,onClose,onChanged}:{id:number;ids:
   try{
    const response=await fetch('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({...snapshot,updatedAt:doc.updatedAt}),signal:AbortSignal.timeout(20000)}),result=await response.json();
    if(!response.ok)throw new Error(result.errors?.[0]?.message||'Chưa lưu được thay đổi.');
-   if(mounted.current){setDoc(result.doc||result);setSaved(snapshot);onChanged();}
+   const savedDoc=mediaReceipt(result,id);
+   if(mounted.current){setDoc(savedDoc);setSaved(snapshot);onChanged();}
   }catch(e){if(mounted.current)setError(e instanceof Error?e.message:'Chưa lưu được thay đổi.');}
   finally{flight.current=false;if(mounted.current)setSaving(false);}
  }
  useEffect(()=>{if(!dirty||!editable||saving||error)return;const timer=setTimeout(()=>void save(),650);return()=>clearTimeout(timer);},[draft,saved,saving,error,editable]);
  useEffect(()=>{if(closing.current&&!dirty&&!saving)onClose();},[dirty,saving]);
- function close(){if(dirty&&error&&!saving){closing.current=false;if(confirmDiscardChanges(true))onClose();return;}if(dirty||saving){closing.current=true;void save();}else onClose();}
+ function close(){if(dirty&&(error||!editable)&&!saving){closing.current=false;if(confirmDiscardChanges(true))onClose();return;}if(dirty||saving){closing.current=true;void save();}else onClose();}
  function move(next:number){if(next<0||next>=ids.length||dirty||saving)return;onSelect(ids[next]);}
  const index=ids.indexOf(id),src=mediaURL(doc?.url),original=mediaURL(doc?.originalImageURL),absolute=src?new URL(src,typeof location==='undefined'?'https://luatvietduc.com':location.origin).href:'';
- async function remove(){if(!doc||!editable||dirty||flight.current)return;flight.current=true;setSaving(true);setDeleteError('');try{const r=await fetch('/api/media/'+id,{method:'DELETE',signal:AbortSignal.timeout(20000)});if(!r.ok&&r.status!==404)throw new Error('Chưa xóa được tệp. Tải lại để kiểm tra.');onChanged();onClose();}catch(e){setDeleteError(e instanceof Error&&e.name==='Error'?e.message:'Chưa xác nhận xóa xong. Kiểm tra thư viện trước khi thử lại.');setSaving(false);}finally{flight.current=false;}}
+ async function remove(){if(!doc||!editable||dirty||flight.current)return;flight.current=true;setSaving(true);setDeleteError('');try{const r=await fetch('/api/media/'+id,{method:'DELETE',signal:AbortSignal.timeout(20000)});if(!r.ok&&r.status!==404)throw new Error('Chưa xóa được tệp. Tải lại để kiểm tra.');if(mounted.current){onChanged();onClose();}}catch(e){if(mounted.current){setDeleteError(e instanceof Error&&e.name==='Error'?e.message:'Chưa xác nhận xóa xong. Kiểm tra thư viện trước khi thử lại.');setSaving(false);}}finally{flight.current=false;}}
  if(!user||!['owner','support'].includes(user.role))return null;
  return <><dialog ref={dialog} className="lvd-media-details" aria-labelledby="media-details-title" onCancel={e=>{e.preventDefault();close();}} onKeyDown={e=>{if((e.target as Element).closest('input,textarea,select,button'))return;if(e.key==='ArrowLeft')move(index-1);if(e.key==='ArrowRight')move(index+1);}}>
   <header><h2 id="media-details-title">Chi tiết tệp</h2><div><button type="button" aria-label="Tệp trước" disabled={index<=0||dirty||saving} onClick={()=>move(index-1)}>‹</button><button type="button" aria-label="Tệp sau" disabled={index<0||index>=ids.length-1||dirty||saving} onClick={()=>move(index+1)}>›</button><button type="button" aria-label="Đóng chi tiết tệp" onClick={close}>×</button></div></header>

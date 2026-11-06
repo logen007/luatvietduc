@@ -7,7 +7,7 @@ export async function testAccountRecovery({page,base}){
  const token='a'.repeat(40),writes=[];let failSession=false;
  const session=route=>route.fulfill(failSession?{status:503,json:{error:'Synthetic session unavailable'}}:{json:{user:null,connections:{google:false}}});
  const matches=url=>url.origin===origin&&/^\/service\/auth\/(verify|reset)$/.test(url.pathname);
- const recovery=route=>{const request=route.request();assert.equal(request.method(),'POST');const value=request.postDataJSON();assert.equal(value.token,token);writes.push({path:new URL(request.url()).pathname,token:value.token});return route.fulfill({json:{ok:true}});};
+ const recovery=route=>{const request=route.request();assert.equal(request.method(),'POST');const value=request.postDataJSON();assert.equal(value.token,token);const path=new URL(request.url()).pathname;writes.push({path,token:value.token});return route.fulfill({json:{ok:true,state:path.endsWith('/verify')?'verified':'password-reset'}});};
  try{
   await page.route('**/service/me',session);await page.route(matches,recovery);
   for(const mode of ['verify','reset']){

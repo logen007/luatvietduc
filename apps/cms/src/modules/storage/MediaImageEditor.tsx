@@ -4,6 +4,7 @@ import {useAuth} from '@payloadcms/ui';
 import type {MediaItem} from './MediaDetails';
 import {mediaEditable,mediaReadOnly,mediaURL} from './media-view';
 import {confirmDiscardChanges,useUnsavedChanges} from '../shared/unsaved-changes';
+import {mediaReceipt} from './media-client';
 import {commitImageDraft,imageCrop,imageEditBody,imageGeometry,imagePreviewTransform,initialImageDraft,initialImageHistory,redoImageDraft,undoImageDraft,type ImageCrop,type ImageDraft} from './image-editor-model';
 
 export const canEditMediaImage=(doc:MediaItem,user:Parameters<typeof mediaEditable>[1])=>Boolean(mediaEditable(doc,user)&&!mediaReadOnly(doc)&&['image/jpeg','image/png','image/webp'].includes(doc.mimeType||'')&&(!doc._isLocked||doc._userEditing?.id===user?.id));
@@ -28,8 +29,8 @@ export function MediaImageEditor({doc,onClose,onSaved}:{doc:MediaItem;onClose:()
   try{
    const response=await fetch('/service/media/image/'+doc.id,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(operation==='restore'?{updatedAt:doc.updatedAt,operation}:request),signal:AbortSignal.timeout(60000)}),result=await response.json();
    if(!response.ok)throw new Error(result.error||result.errors?.[0]?.message||'Chưa lưu được ảnh. Vui lòng thử lại.');
-   if(String(result.doc?.id)!==String(doc.id))throw new Error('Chưa nhận được ảnh đã lưu. Tải lại để kiểm tra.');
-   if(mounted.current&&ownerRef.current===account){setHistory(initialImageHistory());await onSaved(result.doc);}
+   const savedDoc=mediaReceipt(result,doc.id);
+   if(mounted.current&&ownerRef.current===account){setHistory(initialImageHistory());await onSaved(savedDoc);}
   }catch(e){if(mounted.current&&ownerRef.current===account)setError(e instanceof Error&&e.name==='Error'?e.message:'Chưa xác nhận được việc lưu ảnh. Tải lại ảnh để kiểm tra.');}
   finally{flight.current=false;if(mounted.current)setBusy(false);}
  }

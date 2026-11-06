@@ -20,6 +20,6 @@ export async function requestConnection(data?:unknown){
  catch{throw new ConnectionError(data?'Chưa xác nhận được kết quả. Tải lại trang để kiểm tra cấu hình trước khi thử lại.':'Chưa kết nối được. Kiểm tra mạng rồi thử lại.');}
  const body=await response.json().catch(()=>null);
  if(!response.ok){if(typeof window!=='undefined'&&[401,403].includes(response.status))invalidatePublicSession();throw new ConnectionError(response.status===401?'Phiên đăng nhập đã hết. Đăng nhập lại để tiếp tục.':response.status===403?'Tài khoản chưa có quyền quản lý kết nối.':body?.error||'Dịch vụ đang gián đoạn. Vui lòng thử lại.',response.status);}
- if(!body||(!data&&!Array.isArray(body.connections))||(data&&!body.connection))throw new ConnectionError('Chưa đọc được cấu hình. Vui lòng thử lại.');
+ if(!body||(!data&&!Array.isArray(body.connections))||(data&&!body.connection))throw new ConnectionError(data?'Chưa xác nhận được kết quả. Tải lại trang để kiểm tra cấu hình trước khi thử lại.':'Chưa đọc được cấu hình. Vui lòng thử lại.');
  return body;
 }
