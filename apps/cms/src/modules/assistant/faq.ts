@@ -6,10 +6,32 @@ export type Faq={id:number;title:string;body:string;question_aliases:string|null
 type Question=Pick<Faq,'id'|'title'|'question_aliases'>;
 // Keep numbers, operators and internal punctuation: removing them could widen a legal condition.
 export const normalizeQuestion=(text:string)=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase().trim().replace(/[?!]+$/g,'').replace(/\s+/g,' ').trim();
+// A reference to staff is not itself a request to transfer. Keep this separate
+// from personal-record/identifier guards, which must never be masked by a denial.
+const person='(?:chuyen vien|nguoi that|nguoi tu van|nhan vien|luat su|tu van truc tiep|nguoi)';
+const contact='(?:gap(?: truc tiep)?|noi chuyen voi|trao doi voi|lien he(?: voi)?|ket noi(?: (?:toi|minh))? (?:voi|den)|chuyen(?: (?:toi|minh))?(?: (?:cho|sang|den))?|goi)';
+const request=new RegExp('\\b(?:'+contact+'|can|muon|nho|cho (?:toi|minh))(?: (?:mot|nguoi))? '+person+'\\b');
+const declined=new RegExp('\\b(?:khong|chua|dung)(?: (?:can|muon|yeu cau|co nhu cau|de nghi))?(?: '+contact+')?(?: (?:mot|nguoi))? '+person+'\\b|\\b'+person+' (?:thi )?(?:khong|chua) (?:can|muon)\\b','g');
+const barePerson=new RegExp('^'+person+'(?: (?:nhe|voi|a))?$');
+function requestsPerson(question:string){
+ let requested=false;
+ for(const sentence of question.split(/[\n;.!?]|\b(?:nhung|ma|tuy nhien)\b/)){
+  // A fallback condition is not a request to transfer the current turn.
+  const conditional=/\b(neu|khi|chi khi|tru khi)\b/.test(sentence)&&/\b(khong (?:the )?tra loi|khong co (?:cau tra loi|kien thuc|du lieu|can cu)|khong (?:the )?giai dap|khong tim|khong du (?:thong tin|kien thuc|du lieu)|khong ho tro duoc|(?:neu|khi) can(?: thiet)?)\b/.test(sentence);
+  if(conditional)continue;
+  for(const clause of sentence.split(',')){
+   const active=clause.replace(declined,' ').trim();
+   if(active!==clause.trim())requested=false;
+   if(request.test(active)||active!=='nguoi'&&barePerson.test(active))requested=true;
+  }
+ }
+ return requested;
+}
 export function requiresHuman(text:string){
  const question=normalizeQuestion(text);
  return /[\w.+-]+@[\w.-]+\.[a-z]{2,}|\d{8,}/i.test(text)
-  ||/\b((?:xem|kiem tra|danh gia|doc|phan tich)(?: giup)?(?: bo)? ho so|ho so (?:cua toi|ca nhan)|ket luan vu viec|du doan ket qua|nguoi that|chuyen vien|tu van truc tiep|noi chuyen voi nguoi|gap nguoi tu van|bo qua quy tac|bo qua huong dan)\b/.test(question)
+  ||requestsPerson(text.split('\n').map(normalizeQuestion).join('\n'))
+  ||/\b((?:xem|kiem tra|danh gia|doc|phan tich)(?: giup)?(?: bo)? ho so|ho so (?:cua toi|ca nhan)|ket luan vu viec|du doan ket qua|bo qua quy tac|bo qua huong dan)\b/.test(question)
   ||/\b(mein(?:e|er|en|em)? (?:akte|akten|fall|unterlagen|dokumente)|personliche (?:rechts)?beratung)\b/.test(question)
   ||/\b(?:ich (?:mochte|will)|(?:kann|konnte) ich) (?:bitte |gerne? )?(?:mit (?:einem |einer )?|(?:einen |eine )?)(?:menschen|mitarbeiter(?:in)?|berater(?:in)?|anwalt(?:in)?|fachkraft) (?:sprechen|reden|chatten)\b/.test(question);
 }

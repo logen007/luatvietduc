@@ -250,3 +250,24 @@ for(const item of [
  const state=fixture(t,{body:item.body,previous});await state.run();
  assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,item.key);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.assessments,0);assert.equal(state.conversation.ai_enabled,true);
 });
+
+for(const [body,key] of [
+ ['Tôi chưa cần gặp chuyên viên, tôi muốn đầu tư ở Đức','investment.form'],
+ ['Không cần chuyên viên đâu, tôi muốn hỏi về đất đai','property.country'],
+ ['Nếu không trả lời được thì mới chuyển chuyên viên. Tôi muốn hỏi về đất đai','property.country'],
+ ['Nếu không có kiến thức, chuyển chuyên viên. Tôi muốn đầu tư ở Đức','investment.form'],
+])test('declining or conditioning a human reply keeps factual intake active: '+body,async t=>{
+ const state=fixture(t,{body});await state.run();assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,key);assert.equal(state.embeddings,0);assert.equal(state.assessments,0);assert.equal(state.admissions,0);assert.equal(state.conversation.ai_enabled,true);
+});
+test('a later explicit staff request is still respected after earlier declining contact',async t=>{
+ const state=fixture(t,{body:'Bây giờ tôi muốn gặp chuyên viên',previous:[
+ {role:'assistant',body:'Bạn muốn đầu tư theo hình thức nào?',metadata:{kind:'clarify',clarificationKey:'investment.form'}},
+ {role:'user',body:'Tôi chưa cần gặp chuyên viên, tôi muốn đầu tư ở Đức',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ]});await state.run();assert.equal(state.replies[0].metadata.kind,'handoff');assert.equal(state.embeddings,0);assert.equal(state.assessments,0);assert.equal(state.conversation.ai_enabled,false);
+});
+test('a rejected model question during conditional contact falls back to factual intake without handoff',async t=>{
+ const state=fixture(t,{body:'Nếu không trả lời được thì mới chuyển chuyên viên',assessment:{status:'needs_details',detail:'situation',question:'<b>Invalid synthetic question?</b>'},previous:[
+ {role:'assistant',body:'Bạn muốn hỏi mua bán, sang tên hay việc khác?',metadata:{kind:'clarify',clarificationKey:'property.transaction'}},
+ {role:'user',body:'Tôi muốn hỏi về đất đai ở Việt Nam',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ]});await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,'property.transaction');assert.equal(state.conversation.ai_enabled,true);
+});

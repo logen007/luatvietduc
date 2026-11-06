@@ -550,3 +550,13 @@ lại như “mảnh đất khác đó” hoặc “Das andere Grundstück” gi
 cùng nơi/cùng quốc gia. Có kiểm tra hội thoại lưu trên DB thử, trả lời ngắn và
 chỉ truy xuất nguồn khi vụ thứ hai đủ thông tin; giữ các kiểm tra đồng ý xử lý,
 nguồn hiện hành và chuyên viên tiếp nhận.
+
+## Đề nghị và từ chối gặp chuyên viên
+
+Nhắc tới chuyên viên không tự động là yêu cầu chuyển cuộc trò chuyện. Bộ kiểm
+tra phân biệt lời đề nghị hiện tại, lời từ chối và điều kiện “nếu không trả lời
+được thì mới chuyển”. Đính chính từ chối sau lời đề nghị cũ được giữ theo thứ tự
+hội thoại; đề nghị rõ ràng sau đó vẫn chuyển bình thường. Các kiểm tra hồ sơ cá
+nhân, định danh và vượt quy tắc là nhánh riêng, không bị bỏ qua khi khách nói
+chưa cần chuyên viên. Có kiểm tra luồng lưu hội thoại: chưa chuyển khi đang hỏi
+thêm, rồi vào hàng chờ và dừng AI sau khi khách chủ động đổi ý gặp chuyên viên.
