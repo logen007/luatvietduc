@@ -1189,3 +1189,7 @@ body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-history-search{mar
 /* Match the public 1600px container and its gutters without resizing on entry. */
 .live-shell.chat-shell.lvd-chat:not([data-keyboard-open="true"]){width:100%;max-width:1600px;padding-inline:80px;box-sizing:border-box}
 @media(max-width:980px){.live-shell.chat-shell.lvd-chat:not([data-keyboard-open="true"]){width:100%;padding-inline:24px}}
+
+/* Follow growing replies without restarting a smooth scroll on every character. */
+.lvd-chat .chat-log:has([data-revealing="true"]){scroll-behavior:auto}
+.lvd-chat .chat-message:has([data-revealing="true"]) :is(.chat-sources,.chat-copy),.lvd-chat .chat-answer-text:has([data-revealing="true"])>p{display:none}

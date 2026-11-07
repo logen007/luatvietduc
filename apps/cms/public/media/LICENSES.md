@@ -58,3 +58,13 @@ Six 4.5-second scenes with 0.4-second crossfades, 25 fps, H.264, silent, fast-st
 - Download: https://videos.pexels.com/video-files/37552287/15912044_3840_2160_25fps.mp4
 - License: https://www.pexels.com/license/ (checked 2026-11-07).
 - Illustrative stock footage; no endorsement by depicted people, brands or transit operators is implied.
+
+## Vietnam-context revision (2026-11-07)
+
+`legal-hero-stock-v6.mp4`, `legal-hero-stock-mobile-v6.mp4` and `legal-hero-stock-poster-v6.webp` replace the generic Asian office scenes (positions 1 and 3) with footage whose source explicitly describes a Vietnamese setting:
+
+- Anna Tarazevich, **A Woman Wearing the Traditional Dress of Vietnam** (7217096), seconds 0.5–5: https://www.pexels.com/video/a-woman-wearing-the-traditional-dress-of-vietnam-7217096/
+- Thanh-Thang Phan, **nice view around the cafe at the mountainside** (28295726), seconds 22–26.5: https://www.pexels.com/video/nice-view-around-the-cafe-at-the-mountainside-28295726/
+- License checked 2026-11-07: https://www.pexels.com/license/
+
+The sources describe an ao dai on a Vietnamese street and an outdoor Vietnamese cafe. These are Vietnam-context illustrations, not evidence that any individual is Vietnamese, lives in Germany, or is our staff/customer. The remaining document, executive discussion, Berlin bridge and Berlin tram scenes retain the previously documented sources. No nationality is inferred from appearance. Same six-scene encoding and crossfade settings as v5; poster exported from the new opening frame. No AI-generated footage.
