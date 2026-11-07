@@ -342,7 +342,7 @@
   gap: 0 28px;
   padding: 0;
   margin-bottom: 32px;
-  border-bottom: 1px solid rgb(0 0 0 / 10%);
+  border-bottom: 0;
 }
 .lvd-redesign .newsroom-list .press-categories a {
   padding: 15px 0;
