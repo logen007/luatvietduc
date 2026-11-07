@@ -10,21 +10,23 @@ import {ChatMessages} from './ui/Messages';
 import {ChatIcon} from './ui/Icons';
 export function CustomerWorkspace(){
  const {t,language}=useLocale();
- const state=useWorkspace(),dialog=useRef<HTMLDialogElement>(null),[historyOpen,setHistoryOpen]=useState(false),[questions,setQuestions]=useState<{id:number;title:string}[]>([]);
+ const state=useWorkspace(),dialog=useRef<HTMLDialogElement>(null),[historyOpen,setHistoryOpen]=useState(false),[questions,setQuestions]=useState<{id:number;title:string}[]>([]),[entryReady,setEntryReady]=useState(false);
  // Re-enter gently when a browser restores this page from its back/forward cache.
  useEffect(()=>{
-  const enter=(event:PageTransitionEvent)=>{if(!event.persisted||matchMedia('(prefers-reduced-motion: reduce)').matches)return;state.shell.current?.animate([{opacity:.6},{opacity:1}],{duration:420,easing:'cubic-bezier(.22,1,.36,1)'});};
+  const enter=(event:PageTransitionEvent)=>{if(!event.persisted||matchMedia('(prefers-reduced-motion: reduce)').matches)return;state.shell.current?.animate([{opacity:0},{opacity:1}],{duration:650,easing:'cubic-bezier(.22,1,.36,1)'});};
   window.addEventListener('pageshow',enter);return()=>window.removeEventListener('pageshow',enter);
  },[state.shell]);
  const close=()=>dialog.current?.close();
  const choose=(id:string)=>{if(state.setSelected(id))close();};
  const startNew=()=>{if(state.startNew())close();};
  const accountNavigate=(event:React.MouseEvent<HTMLAnchorElement>)=>{if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();void state.openAccount();};
- const empty=!state.selected,loading=(!state.loaded&&!state.initializationFailed)||Boolean(state.selected&&!state.conversation&&!state.connectionError);
+ const empty=!state.selected&&!state.homepageSubmitting,loading=(!state.loaded&&!state.initializationFailed)||state.homepageSubmitting||Boolean(state.selected&&!state.conversation&&!state.connectionError);
+ // Reveal the settled entry once, without replaying on polling or new messages.
+ useEffect(()=>{if(!loading||state.initializationFailed||state.connectionError)setEntryReady(true);},[loading,state.initializationFailed,state.connectionError]);
  useEffect(()=>{let active=true;setQuestions([]);void api('assistant/questions').then(value=>{if(active)setQuestions(value.questions||[]);}).catch(()=>{});return()=>{active=false;};},[]);
  const human=state.preferHuman||Boolean(state.conversation&&!state.conversation.aiEnabled);
  const mode=state.conversation?.state==='closed'?'Đã hoàn tất':state.conversation?.state==='human'?'Đang trao đổi với chuyên viên':human?'Đang chờ chuyên viên':'';
- return <><Header onAccountNavigate={accountNavigate}/><main ref={state.shell} className={'chat-shell live-shell live-customer-shell lvd-chat'+(empty?' is-empty':'')}>
+ return <><Header onAccountNavigate={accountNavigate}/><main ref={state.shell} data-entry-ready={entryReady} className={'chat-shell live-shell live-customer-shell lvd-chat'+(empty&&!loading?' is-empty':'')}>
   <aside className="chat-sidebar"><ChatHistory state={state} onSelect={choose} onNew={startNew}/></aside>
   <section className="chat-main" aria-label={t("Nội dung trò chuyện")}>
    <header className="chat-top"><div className="chat-top-title"><button type="button" className="chat-history-toggle" aria-label={t("Mở lịch sử hội thoại")} aria-expanded={historyOpen} onClick={()=>{dialog.current?.showModal();setHistoryOpen(true);}}><ChatIcon name="history"/></button>{mode&&<h1>{t(mode)}</h1>}</div>

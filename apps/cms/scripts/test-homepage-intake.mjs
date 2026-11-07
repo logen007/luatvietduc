@@ -10,7 +10,15 @@ export async function testHomepageIntake(browser,base){
    const conversation={id,title:body,state:'queued',version:1,aiEnabled:true};
    await context.route('**/service/me',route=>route.fulfill({json:{user:null,connections:{}}}));
    await context.route('**/service/settings',route=>route.fulfill({json:{maxMessageLength:2000}}));
-   await context.route('**/service/conversations',route=>{if(route.request().method()==='POST'){creates++;return route.fulfill({json:{id}});}if(initializationFailed)return route.fulfill({status:503,json:{error:'Synthetic history unavailable'}});return route.fulfill({json:creates?[conversation]:[]});});
+   await context.route('**/service/conversations',async route=>{if(route.request().method()==='POST'){
+    creates++;
+    if(mode==='enter'||mode==='button'){
+     const entry=route.request().frame().page();
+     await entry.waitForFunction(()=>document.querySelector('.lvd-chat')?.getAttribute('data-entry-ready')==='false');
+     assert.equal(await entry.locator('.lvd-chat.is-empty').count(),0,'Homepage intake never flashes the empty welcome layout while creating its conversation');
+    }
+    return route.fulfill({json:{id}});
+   }if(initializationFailed)return route.fulfill({status:503,json:{error:'Synthetic history unavailable'}});return route.fulfill({json:creates?[conversation]:[]});});
    await context.route(new RegExp('/service/conversations/'+id+'(?:[/?]|$)'),route=>{
     if(route.request().url().includes('/messages')&&route.request().method()==='POST'){
      sends++;const data=route.request().postDataJSON();assert.equal(data.body,body);assert.ok(data.key);
@@ -31,10 +39,12 @@ export async function testHomepageIntake(browser,base){
     await page.waitForURL('**/hoi-dap');
     if(mode==='retry'){await page.getByRole('button',{name:'Thử lại',exact:true}).waitFor();assert.equal(sends,0);initializationFailed=false;await page.getByRole('button',{name:'Thử lại',exact:true}).click();}
     await page.locator('.chat-message.user').filter({hasText:body}).waitFor();
+    await page.locator('.lvd-chat[data-entry-ready="true"]').waitFor();
+    assert.equal(await page.locator('.lvd-chat.is-empty').count(),0,'The composer keeps its conversation layout after automatic submission');
     assert.equal(sends,1,'Homepage submission sends exactly once, without a second click');assert.equal(creates,1);
     assert.equal(await page.evaluate(()=>sessionStorage.getItem('lvd-question-submit')),null);
    }
   }finally{await context.close();}
  }
- console.log('Homepage Enter/button/recovery submit once; topic links remain editable drafts');
+ console.log('Homepage Enter/button/recovery submit once without a welcome-layout flash; topic links remain editable drafts');
 }
