@@ -35,6 +35,23 @@ def workflow(**changes):
 
 
 class Gates(unittest.TestCase):
+    def test_short_wait_is_only_for_presentation_ci(self):
+        for presentation,seconds in [(True,5),(False,30)]:
+            with self.subTest(presentation=presentation),self.assertRaises(release.APIBackoff) as caught:
+                release.ci_success(NEW,Mock(return_value=b'{"workflow_runs":[]}'),presentation=presentation)
+            self.assertEqual(caught.exception.seconds,seconds)
+        self.assertEqual(release.APIBackoff('rate limited',180).seconds,180)
+        config=configuration(Path('/isolated'));config['poll_seconds']=1
+        self.assertEqual(release.config_checked(config)['poll_seconds'],5)
+
+    def test_polling_timer_and_bootstrap_agree(self):
+        root=Path(__file__).parent
+        timer=(root/'luatvietduc-release.timer').read_text()
+        bootstrap=(root/'install-auto-deploy.sh').read_text()
+        self.assertIn('OnUnitInactiveSec=5s',timer)
+        self.assertIn(timer,bootstrap)
+        self.assertIn('poll_seconds=5',bootstrap)
+
     def test_ci_exact_identity(self):
         for field, value in [("head_sha", OLD), ("head_branch", "main"), ("event", "pull_request"),
                              ("path", "other.yml"), ("repository", {"full_name": "other/repo"}),

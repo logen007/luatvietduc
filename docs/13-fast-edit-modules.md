@@ -50,3 +50,7 @@ The application image uses one BuildKit cache mount (`luatvietduc-next-v1`) for 
 App retention keeps one running image as before. Its project-scoped layer cleanup excludes compiler cache mounts; this cache is bounded by its own build step. No runtime upload, database, backup or other application's cache enters this budget.
 
 Full CI and production still build separately. Moving prebuilt CI artifacts into production would need a separate verified artifact/compatibility design; this change does not claim to remove that second build. Record real timings rather than promising instant activation.
+
+### Measured delivery probes
+
+On 2026-11-07, separate unchanged-UI probes covered bilingual copy, CSS tokens and a photo with an ignored RIFF chunk (decoded pixels verified identical; chunk removed after the probe). Before shorter polling: copy activation was confirmed 48.7 seconds after push start, CSS appeared publicly in 37.4 seconds, and the photo appeared in 51.2 seconds. These are observed end-to-end samples, not guarantees. The app backend stayed at the same commit for all three. The subsequent policy reduces idle/presentation retry intervals from 15 to 5 seconds; measure follow-up pushes after installation before claiming an improvement.

@@ -2,7 +2,7 @@
 
 Operational status: enabled with the owner's explicit approval on2026-11-03. The first automatic release78f8035 succeeded at18:09:33 Vietnam time, and the next timer run completed with no changes. Check the public `/release.json` for the currently deployed commit; later documentation-only commits do not replace the running image.
 
-This is a pull-based release service for the existing isolated Luật Việt Đức application. GitHub receives no VPS credentials. The VPS checks the public repository each minute and deploys only a successful push run for the exact commit, branch and approved workflow. GitHub API polling backs off while CI is pending. CI errors, rate limits or unknown state leave the running application alone.
+This is a pull-based release service for the existing isolated Luật Việt Đức application. GitHub receives no VPS credentials. The VPS checks the public repository every 5 seconds and deploys only a successful push run for the exact commit, branch and approved workflow. GitHub API polling backs off while CI is pending. CI errors, rate limits or unknown state leave the running application alone.
 
 The production branch remains `feat/platform-cms-bootstrap`. Nothing is merged into `main`. The server-owned engine, Compose file, Dockerfile and CI policy are frozen during the one-time installation; pushing a changed deployment policy does not silently replace them. Routine changes to public UI or application code can use the automatic path. Schema and migration changes require a separate reviewed release because the automatic service never runs migrations.
 
@@ -138,3 +138,9 @@ still runs separately at 03:00 Asia/Ho_Chi_Minh, with no per-deployment dump.
 The live scope read uses the release-service User-Agent, a 16 KiB metadata limit and the same ancestry/allowlist checks. Any HTTP, size, JSON or Git failure still selects full validation and records only the failure class. CMS job concurrency no longer makes a small snapshot wait for an older Next build.
 
 Docker reuses one locked BuildKit compiler cache with a 768 MiB/50,000-entry boundary budget. GitHub trims its cache with the same helper. Retention excludes `exec.cachemount` records while continuing its existing project-description filter and one-current-image policy. Install the reviewed retention script after the policy upgrade; no shared builder configuration or global prune is changed.
+
+## Polling latency (01.38.05)
+
+The project-only release timer checks every 5 seconds. Pending presentation gates and a not-yet-visible presentation workflow retry after 5 seconds; application builds retain the 30-second pending wait. Actual GitHub rate-limit responses retain their Retry-After/reset cooldown (at least 180 seconds). No API calls run while the repository revision is unchanged. The same deployment lock, exact-commit gates, quarantine, candidate checks and rollback remain.
+
+`install-presentation-lane.py` installs the pinned timer together with the reviewed policy. It accepts only the observed legacy timer hash or the exact new contents, validates the unit before promotion, keeps the original timer with the policy backup, and updates the polling configuration after candidate/public health succeeds. The maintenance caller resumes the timer after installation.

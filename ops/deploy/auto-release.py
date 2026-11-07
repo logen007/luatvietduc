@@ -45,7 +45,7 @@ class ReleaseError(Exception):
 class APIBackoff(ReleaseError):
     def __init__(self, message, seconds=30):
         super().__init__(message)
-        self.seconds = max(15, seconds)
+        self.seconds = max(5, seconds)
 
 
 def require(condition, message):
@@ -77,7 +77,7 @@ def config_checked(data):
     require(all(p in policies for p in [WORKFLOW, "ops/deploy/compose.yml", "ops/deploy/auto-release.py", "ops/deploy/Dockerfile"]), "Approved policy hashes required")
     for path, value in policies.items():
         require(not Path(path).is_absolute() and ".." not in Path(path).parts and re.fullmatch(r"[0-9a-f]{64}", value), "Invalid policy hash")
-    data["poll_seconds"] = max(15, int(data.get("poll_seconds", 15)))
+    data["poll_seconds"] = max(5, int(data.get("poll_seconds", 5)))
     return data
 
 
@@ -133,7 +133,7 @@ def ci_success(sha, get=fetch, require_full=False, presentation=False):
     listing = json.loads(get(f"{base}/workflows/platform-foundation.yml/runs?{query}"))
     runs = [item for item in listing.get("workflow_runs", []) if ci_identity(item, sha)]
     if not runs:
-        raise APIBackoff("Exact push workflow run not available")
+        raise APIBackoff("Exact push workflow run not available", 5 if presentation else 30)
     selected = max(runs, key=lambda item: (int(item["run_number"]), int(item["id"])))
     latest = json.loads(get(f"{base}/runs/{int(selected['id'])}"))
     require(ci_identity(latest, sha) and latest.get("id") == selected["id"], "CI run identity mismatch")
@@ -144,7 +144,7 @@ def ci_success(sha, get=fetch, require_full=False, presentation=False):
         for name in ['presentation-checks','deploy-tool-checks']:
             matches=[job for job in jobs if job.get('name')==name]
             if not matches or matches[-1].get('status')!='completed':
-                raise APIBackoff('Presentation checks are pending',15)
+                raise APIBackoff('Presentation checks are pending',5)
             require(matches[-1].get('conclusion')=='success','Presentation check failed: '+name)
         return latest['id'],latest['run_attempt']
     if latest.get("status") != "completed":

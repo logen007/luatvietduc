@@ -1,0 +1,11 @@
+[Unit]
+Description=Check for verified Luat Viet Duc updates every 5 seconds
+
+[Timer]
+OnBootSec=90s
+OnUnitInactiveSec=5s
+AccuracySec=1s
+Unit=luatvietduc-release.service
+
+[Install]
+WantedBy=timers.target
