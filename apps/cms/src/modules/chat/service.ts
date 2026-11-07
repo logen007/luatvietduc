@@ -181,8 +181,8 @@ export async function message(
       [id, own ? "user" : "staff", body, internal, actorKey, key, Object.keys(metadata).length?JSON.stringify(metadata):null],
     );
     await db.query(
-      "UPDATE lvd_conversations SET updated_at=clock_timestamp(),title=CASE WHEN title='Cuộc trò chuyện mới' THEN $2 ELSE title END,ai_generation=CASE WHEN $3 THEN NULL ELSE ai_generation END,ai_started_at=CASE WHEN $3 THEN NULL ELSE ai_started_at END,ai_message_id=CASE WHEN $3 THEN NULL ELSE ai_message_id END WHERE id=$1",
-      [id, (body||"Tài liệu đính kèm").slice(0, 75),own],
+      "UPDATE lvd_conversations SET updated_at=clock_timestamp(),ai_generation=CASE WHEN $2 THEN NULL ELSE ai_generation END,ai_started_at=CASE WHEN $2 THEN NULL ELSE ai_started_at END,ai_message_id=CASE WHEN $2 THEN NULL ELSE ai_message_id END WHERE id=$1",
+      [id,own],
     );
     if(fileIds.length){
       await db.query("UPDATE lvd_chat_files SET message_id=$1,internal=$2 WHERE id=ANY($3::uuid[])",[result.rows[0].id,internal,fileIds]);

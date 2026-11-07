@@ -75,7 +75,7 @@ try{
  // Session is deliberately delayed to verify the loading state, not a fake guest.
  let releaseSession;const heldSession=new Promise(resolve=>{releaseSession=resolve;});
  await page.route('**/service/me',async route=>{await heldSession;await route.continue();});
- await page.goto(base+'/hoi-dap');await page.getByText('Đang mở cuộc trò chuyện…',{exact:true}).waitFor();assert.equal(await page.locator('textarea').isDisabled(),true);
+ await page.goto(base+'/hoi-dap');await page.locator('.chat-log[aria-busy="true"]').waitFor();assert.equal(await page.locator('.chat-log .chat-welcome[role="status"]').isVisible(),false,'Entry stays quiet while the session is checked');assert.equal(await page.locator('textarea').isDisabled(),true);
  releaseSession();await page.locator('textarea').waitFor();
  await page.waitForFunction(()=>!document.querySelector('textarea')?.disabled);await fits();
  assert.equal(await page.getByRole('button',{name:'Choose Files',exact:true}).count(),0,'Hidden file input must not duplicate the accessible attachment action');
@@ -397,11 +397,13 @@ try{
  await question.waitFor();await page.waitForFunction(()=>!document.querySelector('textarea')?.disabled);
  await page.locator('.chat-log[aria-busy="false"]').waitFor();await page.locator('.chat-transcript').waitFor({state:'attached'});
  assert.equal(await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation A/}).getAttribute('aria-current'),'page','The requested human conversation is selected');
+ assert.equal(await page.locator('.chat-sidebar .chat-account').count(),0,'History has no duplicate account footer');
+ assert.equal(await page.locator('.chat-sidebar .chat-history-list small').count(),0,'History uses one line per conversation');
  assert.equal(await page.locator('.chat-error').count(),0,'The human transcript loads without a connection error');assert.equal(await question.isEnabled(),true,'The human conversation composer is ready');
  assert.equal(await page.locator('.chat-provider-label').count(),0,'Human conversations must not claim to send questions to Gemini');
  await question.fill('Synthetic draft A');await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation B/}).click();await question.fill('Synthetic draft B');
  await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation A/}).click();assert.equal(await question.inputValue(),'Synthetic draft A');
- await page.locator('.chat-sidebar .chat-account').click();await page.waitForURL('**/tai-khoan?conversation='+draftA);
+ await page.locator('.live-header-login-button').click();await page.waitForURL('**/tai-khoan?conversation='+draftA);
  await page.getByRole('link',{name:'Hội thoại của tôi',exact:false}).click();await page.waitForURL('**/hoi-dap?conversation='+draftA);await page.waitForFunction(()=>document.querySelector('textarea')?.value==='Synthetic draft A');
  // Backup loading is not shown as empty history. An accepted job remains
  // accepted when its following status read fails, with duplicate clicks gated.

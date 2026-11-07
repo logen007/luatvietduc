@@ -1172,3 +1172,16 @@ html .lvd-chat .chat-top h1{display:none}
 @keyframes lvd-chat-content-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes lvd-chat-sidebar-enter{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.lvd-chat,.lvd-chat :is(.chat-sidebar,.chat-compose-wrap){animation:none}}
+
+/* Keep entry quiet while the existing session and conversation checks settle. */
+.lvd-chat .chat-log[aria-busy="true"]>.chat-welcome[role="status"]{display:none}
+
+/* History shares the compact borders and spacing of the application panels. */
+.lvd-chat .chat-sidebar{padding:0;border-radius:4px;overflow:hidden}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-create{width:calc(100% - 24px);margin:12px;border-radius:4px;min-height:44px;font-size:14px}
+body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-history-search{margin:0;padding:12px 16px;min-height:48px;border-bottom:1px solid #383838}
+:is(.lvd-chat,.chat-history-dialog) .chat-history-list{padding:8px;scrollbar-gutter:stable}
+:is(.lvd-chat,.chat-history-dialog) .chat-history-list>button{display:flex;flex-direction:row;align-items:center;gap:0;min-height:40px;padding:9px 12px;border-radius:4px;font-size:14px;line-height:22px}
+:is(.lvd-chat,.chat-history-dialog) .chat-history-list>button>span{font-weight:400}
+.chat-history-dialog{padding:0;border-radius:4px}
+.chat-history-dialog-heading{margin:0;padding:10px 16px;border-bottom:1px solid #383838}

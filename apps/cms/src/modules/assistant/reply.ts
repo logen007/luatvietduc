@@ -1,3 +1,4 @@
+import {conversationTitle} from '../chat/conversation-title';
 import {answerHistory,questionWithHistory,groundedPreviousAnswer} from './conversation-context';
 import {MAX_CLARIFICATIONS,contextualIntakeReply,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply,isBriefIntakeFollowup,acknowledgementText,unrepeatedClarification,isRepeatedClarification} from './clarification';
 import type {Qualification} from '../chat/qualification';
@@ -154,7 +155,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   const metadata=answer?{kind:clarification?'clarify':'ai',...(clarification?{clarificationKey}:{}),...(rag?{retrieval:'semantic-v1'}:{}),sources:clarification?[]:cited.map(source=>({...answerCitation(source),revision:new Date(source.updated_at).toISOString()+'#'+faqRevision(source).slice(0,12)}))}:{kind:'handoff'};
   await db.query("INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,'assistant',$2,false,'assistant',$3,$4) ON CONFLICT(conversation_id,client_key) DO NOTHING",[id,answer||handoffText,replyKey,JSON.stringify(metadata)]);
   const finalQualification=qualification==='low'&&conversation.retain_history?'needs_details':qualification;
-  await db.query("UPDATE lvd_conversations SET ai_enabled=$2,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,qualification=$4,low_priority_expires_at=CASE WHEN $4='low' AND $2 THEN clock_timestamp()+interval '2 hours' ELSE NULL END,version=version+$3,updated_at=clock_timestamp() WHERE id=$1",[id,Boolean(answer),answer?0:1,finalQualification]);
+  await db.query("UPDATE lvd_conversations SET ai_enabled=$2,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,qualification=$4,title=COALESCE($5,title),low_priority_expires_at=CASE WHEN $4='low' AND $2 THEN clock_timestamp()+interval '2 hours' ELSE NULL END,version=version+$3,updated_at=clock_timestamp() WHERE id=$1",[id,Boolean(answer),answer?0:1,finalQualification,conversationTitle(localQuestion,finalQualification==='ready'&&!clarification)]);
   await db.query('INSERT INTO lvd_chat_events(conversation_id,action,version) SELECT id,$2,version FROM lvd_conversations WHERE id=$1',[id,answer?'ai.reply':'ai.handoff']);
  });
 }

@@ -56,7 +56,7 @@ function fixture(t,options={}){
   if(sql.startsWith('SELECT id FROM lvd_messages'))return {rows:[{id:current.id}],rowCount:1};
   if(sql.startsWith('SELECT customer_a_i_enabled'))return {rows:[{customer_a_i_enabled:true,chat_enabled:true}],rowCount:1};
   if(sql.startsWith('INSERT INTO lvd_messages')){state.replies.push({body:args[1],metadata:JSON.parse(args[3])});return {rows:[],rowCount:1};}
-  if(sql.startsWith('UPDATE lvd_conversations SET ai_enabled=')){c.ai_enabled=args[1];c.ai_generation=null;c.qualification=args[3];c.retain_history||=args[3]!=='low';c.expires=Boolean(args[1]&&args[3]==='low');return {rows:[],rowCount:1};}
+  if(sql.startsWith('UPDATE lvd_conversations SET ai_enabled=')){c.ai_enabled=args[1];c.ai_generation=null;c.qualification=args[3];c.title=args[4]??c.title;c.retain_history||=args[3]!=='low';c.expires=Boolean(args[1]&&args[3]==='low');return {rows:[],rowCount:1};}
   if(sql.startsWith('INSERT INTO lvd_chat_events'))return {rows:[],rowCount:1};
   throw new Error('Unexpected synthetic SQL branch: '+sql.slice(0,75));
  };
@@ -82,7 +82,7 @@ for(const [name,options,qualification] of [
  ['thanks after retained history',{body:'Cảm ơn',retained:true},'needs_details'],
  ['rapid thanks after unanswered meaningful turn',{body:'Hay',previous:[{role:'user',body:'Tôi muốn đòi nợ'}]},'needs_details'],
 ])test(name+' preserves the correct retention class without provider calls',async t=>{
- const state=fixture(t,options);await state.run();assert.equal(state.conversation.qualification,qualification);assert.equal(state.conversation.expires,qualification==='low');assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.assessments,0);assert.equal(state.embeddings,0);
+ const state=fixture(t,options);await state.run();assert.equal(state.conversation.qualification,qualification);assert.equal(state.conversation.expires,qualification==='low');assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.conversation.title,undefined,'Incomplete intake does not name a conversation');
 });
 
 for(const [name,options,qualification] of [
@@ -102,7 +102,7 @@ test('successful ready assessment preserves history before retrieval and retains
 });
 
 test('known complete intake retains operational handoff when assessment is unavailable',async t=>{
- const state=fixture(t,{body:'Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và cần biết chi phí',unavailable:true});await state.run();assert.deepEqual(state.order,['assess','admit','embed']);assert.equal(state.replies[0].metadata.kind,'handoff');assert.equal(state.conversation.retain_history,true);assert.equal(state.conversation.expires,false);
+ const state=fixture(t,{body:'Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và cần biết chi phí',unavailable:true});await state.run();assert.equal(state.conversation.title,'Đầu tư tại Đức','Qualified context names the conversation even when evidence is unavailable');assert.deepEqual(state.order,['assess','admit','embed']);assert.equal(state.replies[0].metadata.kind,'handoff');assert.equal(state.conversation.retain_history,true);assert.equal(state.conversation.expires,false);
 });
 
 test('legacy unconsented questions never enter assessment or retrieval providers',async t=>{
