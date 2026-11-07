@@ -99,7 +99,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
   }
   const staff = isStaff(a.user) && !isCustomer(a, c);
   const messages = await pool.query(
-    "SELECT id,role,body,internal,created_at,client_key,metadata,CASE WHEN role='staff' THEN (SELECT name FROM users WHERE 'staff:'||users.id::text=lvd_messages.actor_key) END AS author_name,COALESCE((SELECT json_agg(json_build_object('id',f.id,'name',f.name,'size',f.size,'mimeType',f.mime_type,'url','/service/chat-files/'||f.id)) FROM lvd_chat_files f WHERE f.message_id=lvd_messages.id AND f.ready=true),'[]'::json) AS attachments FROM lvd_messages WHERE conversation_id=$1 AND id>$2 " +
+    "SELECT id,role,body,internal,created_at,client_key,metadata,CASE WHEN role='staff' THEN (SELECT name FROM users WHERE 'staff:'||users.id::text=lvd_messages.actor_key) END AS author_name,COALESCE((SELECT json_agg(json_build_object('id',f.id,'name',f.name,'size',f.size,'mimeType',f.mime_type,'url','/service/chat-files/'||f.id)) FROM lvd_chat_files f WHERE f.message_id=lvd_messages.id AND f.ready=true),'[]'::json) AS attachments FROM lvd_messages WHERE conversation_id=$1 AND id>$2 AND COALESCE(metadata->>'kind','')<>'deleted' " +
       (staff ? "" : "AND internal=false ") +
       "ORDER BY id LIMIT 200",
     [id, after],
@@ -156,6 +156,7 @@ export async function message(
       )
     ).rows[0];
     if (prior) {
+      if(prior.metadata?.kind==='deleted')throw new HttpError(409,"Tin nhắn này đã được Admin xóa.");
       if (
         prior.actor_key !== actorKey ||
         prior.body !== body ||

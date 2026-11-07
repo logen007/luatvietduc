@@ -2,7 +2,7 @@
 import {useRouter} from 'next/navigation';
 import {useEffect,useRef,useState} from "react";
 import {api,ClientApiError} from "../shared/client-api";
-import {canEnterAdmin} from '../identity/permissions';
+import {isAdmin,canEnterAdmin} from '../identity/permissions';
 import {visiblePoll} from "../shared/polling";
 import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
 import {createDeliveryGuard,createMessageOutbox,createOperationGate,mergeMessages,rememberCreatedConversation,validateAttachmentBatch,type MessageReceipt} from './client-operations';
@@ -198,12 +198,18 @@ export function useWorkspace(staff=false,manageList=true){
     }
     let active = true,
       cursor = 0;
-    let latestUser=0,latestAnswered=0,recovering=false,waiting=false;
+    let latestUser=0,latestAnswered=0,recovering=false,waiting=false,knownVersion:number|null=null,replaceMessages=true;
     const load = async () => {
       const ticket=revision.current;
       try {
-        const v = await api<Transcript>(`conversations/${selected}?after=${cursor}`);
+        let v = await api<Transcript>(`conversations/${selected}?after=${cursor}`);
         if (!active||!current()||selection.current!==selected||ticket!==revision.current) return;
+        if(knownVersion!==null&&v.conversation.version!==knownVersion&&cursor>0){
+          v=await api<Transcript>(`conversations/${selected}?after=0`);
+          if(!active||!current()||selection.current!==selected||ticket!==revision.current)return;
+          cursor=0;latestUser=0;latestAnswered=0;replaceMessages=true;
+        }
+        knownVersion=v.conversation.version;
         for(const message of v.messages){
           if(message.role==='user')latestUser=Math.max(latestUser,Number(message.id));
           if(message.role==='assistant'&&String(message.client_key).startsWith('assistant:'))latestAnswered=Math.max(latestAnswered,Number(String(message.client_key).slice(10))||0);
@@ -227,9 +233,10 @@ export function useWorkspace(staff=false,manageList=true){
               : row,
           ),
         );
-        if (v.messages.length&&!v.conversation.restricted) {
-          cursor = Number(v.messages[v.messages.length-1].id);
-          setMessages(old=>mergeMessages(old,v.messages));
+        if(!v.conversation.restricted){
+          if(v.messages.length)cursor=Number(v.messages[v.messages.length-1].id);
+          const replace=replaceMessages;replaceMessages=false;
+          setMessages(old=>replace?v.messages:mergeMessages(old,v.messages));
         }
         waiting=Boolean(v.conversation.aiEnabled&&latestUser>latestAnswered);
         setConnectionError("");
@@ -241,7 +248,7 @@ export function useWorkspace(staff=false,manageList=true){
     setConnectionError("");
     let idle=0;
     const stop=visiblePoll(async()=>{const before=cursor;await load();idle=cursor===before?idle+1:0;},()=>waiting?1500:idle>=4?10000:2500);
-    wakeTranscript.current=(reset=false)=>{if(reset){cursor=0;latestUser=0;latestAnswered=0;}idle=0;stop.refresh();};
+    wakeTranscript.current=(reset=false)=>{if(reset){cursor=0;latestUser=0;latestAnswered=0;replaceMessages=true;}idle=0;stop.refresh();};
     return () => {
       active = false;
       wakeTranscript.current=()=>{};
@@ -286,6 +293,20 @@ export function useWorkspace(staff=false,manageList=true){
       if(operations.current.end(operation)&&current())setBusy(false);
     }
   };
+  async function deleteMessage(messageId:string|number){
+    if(!staff||!isAdmin(me?.user)||!visible||!current()||reauthorizing||!conversation||selected!==selection.current||busy||uploading)return false;
+    const operation=operations.current.begin();if(!operation)return false;
+    const valid=()=>current()&&operations.current.isCurrent(operation);
+    setBusy(true);setError('');revision.current++;
+    try{
+      const receipt=await api<{id:string;version:number}>(`conversations/${selected}/messages/${messageId}/delete`,{version:conversation.version});
+      if(!valid())return false;
+      revision.current++;setMessages(old=>old.filter(message=>String(message.id)!==String(receipt.id)));
+      setConversation(old=>old?{...old,version:receipt.version,aiStartedAt:null,aiMessageId:null}:old);
+      wakeTranscript.current(true);return true;
+    }catch(e){if(valid()){setError((e as Error).message);wakeTranscript.current();}return false;}
+    finally{if(operations.current.end(operation)&&current())setBusy(false);}
+  }
   const send = async (e?: Pick<React.FormEvent,'preventDefault'>) => {
     e?.preventDefault();
     if (!visible || !current() || reauthorizing || (!text.trim()&&!attachments.length) || busy || uploading || !loaded) return;
@@ -382,6 +403,6 @@ export function useWorkspace(staff=false,manageList=true){
   // effects have a chance to clear the previous workspace.
   function retry(){if(busy||uploading)return;if(session.status==='error'){void loadPublicSession().catch(()=>{});}else if(initializationFailed){setIntakeAttempt(value=>value+1);}else{wakeTranscript.current();}}
   const draftVisible=visible&&!reauthorizing&&!conversation?.restricted&&(!staff||Boolean(conversation));
-  return {openAccount,initializationFailed:session.status==='error'||visible&&initializationFailed,retry,attachments:draftVisible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>{if(!reauthorizing&&!operations.current.busy())setAttachments(previous=>previous.filter(file=>file.id!==id));},me,rows:visible?rows:[],selected:visible?selected:'',setSelected:selectConversation,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:draftVisible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded&&!initializationFailed&&!reauthorizing,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',homepageSubmitting:visible&&Boolean(homepageSubmit.current||!selected&&busy&&sendingBody),pendingKey:visible?outbox.current.pendingKey(selected):undefined,sessionRevision:session.revision,sessionStatus:session.status};
+  return {deleteMessage,openAccount,initializationFailed:session.status==='error'||visible&&initializationFailed,retry,attachments:draftVisible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>{if(!reauthorizing&&!operations.current.busy())setAttachments(previous=>previous.filter(file=>file.id!==id));},me,rows:visible?rows:[],selected:visible?selected:'',setSelected:selectConversation,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:draftVisible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded&&!initializationFailed&&!reauthorizing,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',homepageSubmitting:visible&&Boolean(homepageSubmit.current||!selected&&busy&&sendingBody),pendingKey:visible?outbox.current.pendingKey(selected):undefined,sessionRevision:session.revision,sessionStatus:session.status};
 }
 export type WorkspaceState=ReturnType<typeof useWorkspace>;

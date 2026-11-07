@@ -1,3 +1,4 @@
+import {deleteInboxMessage} from '../../../modules/chat/delete-message';
 import {articleImportRequest} from '../../../modules/content/article-import';
 import {rolePreviewRequest} from '../../../modules/identity/role-preview';
 import {knowledgeRequest} from '../../../modules/knowledge/http';
@@ -110,7 +111,7 @@ async function route(
         if (!Number.isSafeInteger(after) || after < 0)
           throw new chat.HttpError(400, "Cursor không hợp lệ.");
         result = await chat.transcript(actor, id, after);
-      } else if (segments[2] === "messages" && method === "POST") {
+      } else if (segments.length === 3 && segments[2] === "messages" && method === "POST") {
         if ((await settings()).chatEnabled === false)
           throw new chat.HttpError(503, "Tiếp nhận chat đang tạm dừng.");
         const sent = await chat.message(
@@ -120,6 +121,8 @@ async function route(
           (await settings()).maxMessageLength || 2000,
         );
         result=sent;
+      } else if(segments.length===5&&segments[2]==='messages'&&segments[4]==='delete'&&method==='POST'){
+        result=await deleteInboxMessage(actor,id,segments[3],data.version);
       } else if(segments[2]==='answer'&&method==='POST'){
         if((await settings()).chatEnabled===false)throw new chat.HttpError(503,'Tiếp nhận chat đang tạm dừng.');
         if(typeof data.messageId!=='string'||!/^\d{1,19}$/.test(data.messageId))throw new chat.HttpError(400,'Tin nhắn không hợp lệ.');

@@ -13,7 +13,7 @@ export async function requestAnswer(actor:Actor,id:string,messageId:string){
   if(!c||!isCustomer(actor,c))throw new HttpError(403,'Bạn không có quyền truy cập hội thoại này.');
   if(c.state!=='queued'||!c.ai_enabled)return;
   await db.query(`INSERT INTO lvd_answer_jobs(message_id,conversation_id)
-   SELECT m.id,m.conversation_id FROM lvd_messages m WHERE m.id=$2 AND m.conversation_id=$1 AND m.role='user'
+   SELECT m.id,m.conversation_id FROM lvd_messages m WHERE m.id=$2 AND m.conversation_id=$1 AND m.role='user' AND COALESCE(m.metadata->>'kind','')<>'deleted'
    AND m.id=(SELECT max(id) FROM lvd_messages WHERE conversation_id=$1 AND role='user')
    AND NOT EXISTS(SELECT 1 FROM lvd_messages WHERE conversation_id=$1 AND client_key='assistant:'||m.id::text)
    ON CONFLICT(message_id) DO UPDATE SET status='pending',available_at=now(),updated_at=now()
@@ -44,6 +44,7 @@ export async function processNextAnswer(run:RunAnswer=replyToMessage){
   // Another in-flight generation may have briefly owned this conversation.
   // Keep the latest unanswered question pending rather than losing that job.
   const pending=(await pool.query(`SELECT 1 FROM lvd_conversations c WHERE c.id=$1 AND c.state='queued' AND c.ai_enabled
+   AND EXISTS(SELECT 1 FROM lvd_messages q WHERE q.id=$2 AND q.conversation_id=c.id AND COALESCE(q.metadata->>'kind','')<>'deleted')
    AND $2=(SELECT max(id) FROM lvd_messages WHERE conversation_id=c.id AND role='user')
    AND NOT EXISTS(SELECT 1 FROM lvd_messages WHERE conversation_id=c.id AND client_key='assistant:'||$2::text)`,[job.conversation_id,job.message_id])).rowCount;
   await pool.query("UPDATE lvd_answer_jobs SET status=$3,available_at=now()+interval '3 seconds',lease=NULL,lease_until=NULL,error_code=NULL,updated_at=now() WHERE message_id=$1 AND lease=$2",[job.message_id,lease,pending?'pending':'done']);

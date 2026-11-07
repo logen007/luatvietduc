@@ -28,3 +28,10 @@
 html.lvd-admin .lvd-admin-inbox-page{padding:0;min-width:0}
 html.lvd-admin .operator-workspace.is-embedded{margin:0;max-width:none;border:0;border-radius:0;min-height:0;height:var(--lvd-chat-vh,100dvh)}
 @media(max-width:1100px){html.lvd-admin .operator-workspace.is-embedded{height:calc(var(--lvd-chat-vh,100dvh) - 56px)}}
+
+/* Message removal is an explicit Admin-only action, usable on touch screens. */
+.operator-workspace .operator-delete-message{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;padding:6px;border:0;border-radius:4px;color:var(--op-muted);background:transparent}
+.operator-workspace .operator-delete-message:hover{color:var(--op-text);background:var(--op-soft)}
+.operator-delete-confirm{margin-left:auto;display:inline-flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;font-size:calc(12px * var(--lvd-admin-font-scale,1));color:var(--op-muted)}
+.operator-workspace .operator-delete-confirm button{min-height:36px;padding:5px 10px;border-radius:4px;font-size:inherit}
+@media(max-width:760px){.operator-workspace .operator-delete-message,.operator-workspace .operator-delete-confirm button{min-width:44px;min-height:44px}}

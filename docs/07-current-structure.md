@@ -1,5 +1,21 @@
 # Cấu trúc đang chạy
 
+## Xóa tin nhắn trong Hộp thư — 2026-11-07
+
+Admin có nút xóa từng tin, xác nhận ngay tại tin nhắn; chuyên viên/user/khách
+và Admin đang xem trước vai trò chuyên viên không được xóa. POST dùng cùng
+kiểm tra phiên, nguồn yêu cầu và giới hạn tần suất hiện có. Giao dịch khóa hội
+thoại, kiểm tra phiên bản, xóa nội dung/metadata nguồn, hủy thế hệ trả lời cũ
+và ghi sự kiện chỉ gồm mã tin. Giữ ID/khóa gửi làm dấu xóa để retry không tạo
+lại nội dung; transcript và ngữ cảnh trả lời đều bỏ qua tin đã xóa.
+
+Tệp đính kèm của tin được xóa khỏi R2 rồi gỡ bản ghi; lỗi giữ biên nhận để thử
+lại. R2 không nằm trong giao dịch SQL: xóa một phần không thể phục hồi byte
+bằng rollback. Khóa sao lưu dùng cùng thứ tự với tải tệp. Client tải lại lịch sử
+khi phiên bản thay đổi để cửa sổ khách/chuyên viên đang mở nhận được lần xóa.
+Không tự xóa tin khác hoặc tác động các bản sao lưu cũ.
+
+
 ## Điều hướng và tài nguyên đã tải — 2026-11-07
 
 `shared/AppLink.tsx` dùng Next Link cho trang nội bộ ở website và các màn hình
