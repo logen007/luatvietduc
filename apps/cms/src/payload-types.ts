@@ -695,10 +695,25 @@ export interface SiteSetting {
   id: number;
   siteName?: string | null;
   tagline?: string | null;
+  /**
+   * Chọn ảnh công khai trong Thư viện tệp.
+   */
   logo?: (number | null) | Media;
   headerLogoHeight?: number | null;
   footerLogoHeight?: number | null;
   accentColor?: string | null;
+  /**
+   * MP4 hoặc WebM công khai, tối đa 50 MB. Lưu để cập nhật website. Để trống để dùng video mặc định.
+   */
+  heroVideo?: (number | null) | Media;
+  /**
+   * Không bắt buộc. Để trống để dùng video chính.
+   */
+  heroMobileVideo?: (number | null) | Media;
+  /**
+   * Ảnh hiển thị khi video đang tải hoặc không tự phát.
+   */
+  heroPoster?: (number | null) | Media;
   socialLinks?:
     | {
         label: string;
@@ -743,6 +758,9 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   headerLogoHeight?: T;
   footerLogoHeight?: T;
   accentColor?: T;
+  heroVideo?: T;
+  heroMobileVideo?: T;
+  heroPoster?: T;
   socialLinks?:
     | T
     | {

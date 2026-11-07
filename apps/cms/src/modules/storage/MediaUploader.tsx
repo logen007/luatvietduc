@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {useUnsavedChanges} from '../shared/unsaved-changes';
 import {uploadMediaFile} from './media-client';
+import {mediaUploadLimit,isBannerVideo} from './upload-limits';
 type Row={name:string;progress:number;error?:string;done?:boolean};
 const accept='.jpg,.jpeg,.png,.webp,.svg,.pdf,.mp4,.webm,.mp3,.wav,.ogg';
 export function MediaUploader({onDone,onBusyChange}:{onDone:()=>void;onBusyChange:(busy:boolean)=>void}){
@@ -15,7 +16,7 @@ export function MediaUploader({onDone,onBusyChange}:{onDone:()=>void;onBusyChang
   const update=(index:number,patch:Partial<Row>)=>{if(mounted.current)setRows(previous=>previous.map((row,i)=>i===index?{...row,...patch}:row));};
   try{for(const [index,file] of files.entries()){
    if(!mounted.current)break;
-   if(file.size>10*1024*1024){update(index,{error:'Tệp vượt quá 10 MB.'});continue;}
+   if(file.size>mediaUploadLimit(file.type)){update(index,{error:isBannerVideo(file.type)?'Video vượt quá 50 MB.':'Tệp vượt quá 10 MB.'});continue;}
    if(!/\.(?:jpe?g|png|webp|svg|pdf|mp4|webm|mp3|wav|ogg)$/i.test(file.name)){update(index,{error:'Định dạng chưa được hỗ trợ.'});continue;}
    try{
     const controller=new AbortController();request.current=controller;
@@ -25,7 +26,7 @@ export function MediaUploader({onDone,onBusyChange}:{onDone:()=>void;onBusyChang
  }
  return <section className={'lvd-media-upload'+(drag?' is-dragging':'')} aria-label="Tải tệp" aria-busy={busy} onDragOver={e=>{e.preventDefault();if(!busy)setDrag(true);}} onDragLeave={()=>setDrag(false)} onDrop={e=>{e.preventDefault();setDrag(false);void upload(Array.from(e.dataTransfer.files));}}>
   <input ref={input} type="file" multiple hidden accept={accept} onChange={e=>{void upload(Array.from(e.target.files||[]));e.target.value='';}}/>
-  <p>Kéo thả tệp vào đây</p><button type="button" disabled={busy} onClick={()=>input.current?.click()}>Chọn tệp</button><small>Tối đa 10 MB mỗi tệp</small>
+  <p>Kéo thả tệp vào đây</p><button type="button" disabled={busy} onClick={()=>input.current?.click()}>Chọn tệp</button><small>Video tối đa 50 MB; tệp khác 10 MB</small>
   {!!rows.length&&<ul>{rows.map((row,index)=><li key={index}><span>{row.name}</span>{row.error?<span role="alert">{row.error}</span>:<><progress max={100} value={row.progress} aria-label={'Tải '+row.name}/><small>{row.done?'Đã tải':row.progress>=99?'Đang lưu…':row.progress+'%'}</small></>}</li>)}</ul>}
  </section>;
 }

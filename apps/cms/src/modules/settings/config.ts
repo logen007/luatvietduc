@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
 import { owner } from "../shared/access";
+import {heroMediaGuard} from './hero-media-guard';
 const https = (v: unknown) => {
   if (!v) return true;
   try {
@@ -13,6 +14,7 @@ export const SiteSettings: GlobalConfig = {
   label: "Cài đặt website",
   admin: { group: "Vận hành" },
   access: { read: owner, update: owner },
+  hooks:{beforeChange:[heroMediaGuard]},
   fields: [{ type: "tabs", tabs: [
 {label:"Nhận diện",fields:[{
       name: "siteName",
@@ -37,6 +39,11 @@ export const SiteSettings: GlobalConfig = {
       validate: (v: unknown) =>
         /^#[\da-fA-F]{6}$/.test(String(v)) || "Nhập mã màu #RRGGBB",
     }]},
+{label:'Banner trang chủ',fields:[
+ {name:'heroVideo',label:'Video chính',type:'upload',relationTo:'media',filterOptions:{and:[{visibility:{equals:'public'}},{mimeType:{in:['video/mp4','video/webm']}}]},admin:{description:'MP4 hoặc WebM công khai, tối đa 50 MB. Lưu để cập nhật website. Để trống để dùng video mặc định.'}},
+ {name:'heroMobileVideo',label:'Video điện thoại',type:'upload',relationTo:'media',filterOptions:{and:[{visibility:{equals:'public'}},{mimeType:{in:['video/mp4','video/webm']}}]},admin:{description:'Không bắt buộc. Để trống để dùng video chính.'}},
+ {name:'heroPoster',label:'Ảnh chờ',type:'upload',relationTo:'media',filterOptions:{and:[{visibility:{equals:'public'}},{mimeType:{like:'image/'}}]},admin:{description:'Ảnh hiển thị khi video đang tải hoặc không tự phát.'}},
+]},
 {label:"Điều hướng & mạng xã hội",fields:[{
       name: "socialLinks",
       label: "Mạng xã hội",

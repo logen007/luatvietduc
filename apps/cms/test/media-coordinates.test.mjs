@@ -29,3 +29,12 @@ test('ordinary data and unrelated operations retain their semantics',()=>{
  }
  for(const data of [undefined,null,[],false]){const args={data};run('update',args);assert.equal(args.data,data,'Invalid body validation remains native');}
 });
+
+test('video uploads allow 50 MiB while documents and images retain 10 MiB before processing',()=>{
+ const args=(mimetype,size)=>({req:{file:{mimetype,size}},data:{}});
+ assert.doesNotThrow(()=>run('create',args('video/mp4',20*1024*1024)));
+ assert.doesNotThrow(()=>run('update',args('video/webm',50*1024*1024)));
+ assert.throws(()=>run('create',args('video/mp4',50*1024*1024+1)),/50 MB/);
+ assert.throws(()=>run('create',args('image/jpeg',10*1024*1024+1)),/10 MB/);
+ assert.throws(()=>run('update',args('application/pdf',20*1024*1024)),/10 MB/);
+});

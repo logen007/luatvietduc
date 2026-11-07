@@ -10,7 +10,8 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {publicShell} from '../src/modules/shared/public-shell.mjs';
 function load(file,dependencies={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(new URL(file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,require:name=>dependencies[name]??assert.fail(name)});return exports;}
 test('public logo dimensions survive projection and reject malformed settings without exposing private files',()=>{
- const {publicSettings}=load('../src/modules/settings/view.ts'),{readPublicSettings}=load('../src/modules/settings/public-contract.ts');
+ const dependencies={'./hero-banner':load('../src/modules/settings/hero-banner.ts')};
+ const {publicSettings}=load('../src/modules/settings/view.ts',dependencies),{readPublicSettings}=load('../src/modules/settings/public-contract.ts',dependencies);
  const settings={siteName:'Brand',logo:{visibility:'public',url:'/api/media/file/brand.svg'},headerLogoHeight:40,footerLogoHeight:60};
  const projected=readPublicSettings(publicSettings(settings));
  assert.equal(projected.logo,settings.logo.url);assert.equal(projected.headerLogoHeight,40);assert.equal(projected.footerLogoHeight,60);

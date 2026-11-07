@@ -1,3 +1,4 @@
+import {testHeroBanner} from './test-hero-banner';
 import {testArticleImport} from './test-article-import';
 import {testRolePreview} from './test-role-preview';
 import {testStorageAdmission} from './test-storage-admission';
@@ -59,6 +60,7 @@ try {
     },
   });
   await testStorageAdmission();
+  await testHeroBanner(payload,owner);
   await testQuickReplies(payload,owner);
   await testPrivateKnowledge(payload,owner);
   await testMediaLibrary(payload,owner);

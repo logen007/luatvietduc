@@ -3,17 +3,30 @@ import assert from 'node:assert/strict';
 export async function testHeroLoading({context,base}){
  const origin=new URL(base).origin;assert.ok(['localhost','127.0.0.1'].includes(new URL(origin).hostname));
  for(const width of [390,1280]){
- const page=await context.newPage();let videoRequests=0;const videoPath=width<=760?'/media/legal-hero-stock-mobile-v10.mp4':'/media/legal-hero-stock-v10.mp4';
+ const page=await context.newPage();let videoRequests=0,banner;const videoPath=width<=760?'/media/legal-hero-stock-mobile-v10.mp4':'/media/legal-hero-stock-v10.mp4';
  try{
   await page.setViewportSize({width,height:844});await page.emulateMedia({reducedMotion:'no-preference'});
   // Hold only the hero observer's first delivery; real React/media code runs.
   await page.addInitScript(()=>{const Native=window.IntersectionObserver;window.IntersectionObserver=class extends Native{constructor(callback,options){super(callback,options);this.callback=callback;}observe(target){if(target.matches('.pm-hero-video'))window.__showHero=()=>this.callback([{target,isIntersecting:true}],this);else super.observe(target);}};});
-  await page.route('**/media/*.mp4',route=>{videoRequests++;assert.equal(new URL(route.request().url()).pathname,videoPath);return route.fulfill({contentType:'video/mp4',body:''});});
-  await page.goto(origin+'/');await page.waitForFunction(()=>typeof window.__showHero==='function');
+  await page.route('**/media/*.mp4',route=>{videoRequests++;assert.ok([videoPath,'/media/synthetic-banner.mp4','/media/synthetic-phone.mp4'].includes(new URL(route.request().url()).pathname));return route.fulfill({contentType:'video/mp4',body:''});});
+  await page.route('**/service/settings',async route=>banner?route.fulfill({contentType:'application/json',body:JSON.stringify({heroBanner:banner})}):route.fallback());
+  const initialSettings=page.waitForResponse(response=>response.url()===origin+'/service/settings');
+  await page.goto(origin+'/');await (await initialSettings).finished();
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await page.waitForFunction(()=>typeof window.__showHero==='function');
   assert.equal(await page.locator('.pm-hero-video').getAttribute('src'),null,'Initial rendering waits for confirmed visibility before loading video');assert.equal(videoRequests,0);
   const response=page.waitForResponse('**'+videoPath);await page.evaluate(()=>window.__showHero());await response;
   assert.equal(await page.locator('.pm-hero-video').getAttribute('src'),videoPath);assert.equal(videoRequests,1);
-  console.log('Hero loading browser check passed: '+width+'px, no video request before confirmed visibility');
+  banner={video:'/media/synthetic-banner.mp4',mobileVideo:'/media/synthetic-phone.mp4',poster:'/media/legal-hero-stock-poster-v10.webp?synthetic=1',revision:Date.now()+60000};
+  const custom=width<=760?banner.mobileVideo:banner.video;
+  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  await page.waitForFunction(()=>document.querySelector('.pm-hero-video')?.getAttribute('poster')?.endsWith('synthetic=1'));
+  await page.evaluate(()=>window.__showHero());
+  await page.waitForFunction(source=>document.querySelector('.pm-hero-video')?.getAttribute('poster')?.endsWith('synthetic=1')&&document.querySelector('.pm-hero-video')?.getAttribute('src')===source,custom);
+  assert.equal(new URL(page.url()).pathname,'/','Changing saved banner media does not navigate or reload the page');
+  await page.setViewportSize({width:width<=760?1280:390,height:844});
+  await page.waitForFunction(source=>document.querySelector('.pm-hero-video')?.getAttribute('src')===source,width<=760?banner.video:banner.mobileVideo);
+  console.log('Hero loading and saved-settings browser check passed: '+width+'px, no video request before confirmed visibility');
  }finally{await page.close();}
  }
 

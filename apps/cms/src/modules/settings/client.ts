@@ -23,14 +23,14 @@ export function PublicSettingsProvider({settings,children}:{settings:PublicSetti
  return createElement(SettingsContext.Provider,{value:scoped},children);
 }
 export const loadPublicSettings=(force=false)=>store.load(force);
-export function usePublicSettings(){
+export function usePublicSettings(refreshOnMount=false){
  const scoped=useContext(SettingsContext);
  const state=useSyncExternalStore(scoped.subscribe,scoped.getSnapshot,scoped.getServerSnapshot);
  useEffect(()=>{
   const refresh=()=>{void scoped.load(true).catch(()=>{});},visible=()=>{if(!document.hidden)refresh();};
-  void scoped.load().catch(()=>{});
+  void scoped.load(refreshOnMount).catch(()=>{});
   window.addEventListener('focus',refresh);window.addEventListener('pageshow',refresh);document.addEventListener('visibilitychange',visible);
   return()=>{window.removeEventListener('focus',refresh);window.removeEventListener('pageshow',refresh);document.removeEventListener('visibilitychange',visible);};
- },[scoped]);
+ },[scoped,refreshOnMount]);
  return state.data;
 }

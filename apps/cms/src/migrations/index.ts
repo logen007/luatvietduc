@@ -23,6 +23,7 @@ import * as semanticKnowledge from './20261104_050000_semantic_knowledge';
 import * as editorialTaxonomies from './20261104_060000_editorial_taxonomies';
 import * as brandDimensions from './20261107_060000_brand_dimensions';
 import * as userAvatar from './20261107_110000_user_avatar';
+import * as heroBanner from './20261107_180000_hero_banner';
 export const migrations = [
   {
     up: migration_20261103_035530.up,
@@ -56,4 +57,5 @@ export const migrations = [
  {up:chatQualification.up,down:chatQualification.down,name:'20261106_210000_chat_qualification'},
  {up:brandDimensions.up,down:brandDimensions.down,name:'20261107_060000_brand_dimensions'},
  {up:userAvatar.up,down:userAvatar.down,name:'20261107_110000_user_avatar'},
+ {up:heroBanner.up,down:heroBanner.down,name:'20261107_180000_hero_banner'},
 ];

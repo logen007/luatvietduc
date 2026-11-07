@@ -16,6 +16,7 @@ import { Knowledge } from "./modules/knowledge/collection";
 import { Media } from "./modules/storage/collection";
 import {QuickReplies} from "./modules/quick-replies/collection";
 import sharp from 'sharp';
+import {MAX_MEDIA_VIDEO_BYTES} from './modules/storage/upload-limits';
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
   sharp,
@@ -53,7 +54,7 @@ export default buildConfig({
   globals: [SiteSettings],
   plugins: [runtimeStorage()],
   email: runtimeEmail,
-  upload: { limits: { fileSize: 10 * 1024 * 1024 } },
+  upload: { limits: { fileSize: MAX_MEDIA_VIDEO_BYTES } },
   typescript: { outputFile: path.resolve(dirname, "payload-types.ts") },
   graphQL: { disable: true },
 });

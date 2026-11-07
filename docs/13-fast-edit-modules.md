@@ -64,3 +64,11 @@ Homepage benefit photo URLs use the SHA-256 of each photo (12 hexadecimal charac
 After installation, the combined CSS/photo probe (01.38.09) appeared publicly in 29.5 seconds with the backend still at 01.38.08. Fetching all three rendered photo URLs verified that each response SHA-256 matched its URL; only the modified photo URL changed. The temporary nonvisual test chunk is removed in the following cleanup release.
 
 A local isolated benchmark also completed 50 snapshot switches and rejected 10 incomplete packages without changing the active pointer. Median switch plus checks: 12.19 ms, p95: 13.64 ms; these local filesystem timings exclude GitHub, network and production health checks and are not deployment latency claims.
+
+## Runtime homepage banner
+
+Admin → Cài đặt → Website & giao diện → Banner trang chủ owns `heroVideo`, optional `heroMobileVideo` and `heroPoster`. Use public MP4/WebM from the existing media library/R2 (up to 50 MiB); other uploads retain 10 MiB. With no selected main video, the bundled v10 stays visible. With a main video but no mobile override, mobile uses the main video. Clearing a selection restores that fallback.
+
+`settings/hero-banner.ts` projects only public, correctly typed media and versions URLs by the media revision. `public-site/HeroVideo.tsx` renders the same server-selected poster on first paint, lazily starts the selected source, respects reduced motion/save-data and swaps sources on viewport changes. Settings use the existing no-store endpoint, refresh on homepage entry and window focus, and retain the last good value if a request fails. An already open background tab receives the saved selection when revisited; no application build, repository push, deployment backup or process restart is involved. Selecting a private file or wrong media type is rejected server-side. The owner-only settings ACL stays in force.
+
+The initial additive migration requires the reviewed exact-commit helper `release-reviewed-hero-banner.py`; it leaves older application rollback compatible. Subsequent media/configuration edits use the native CMS save path.

@@ -12,6 +12,7 @@ import {publicMetadata,privatePaths,sitemapIndex,sitemapDocument,sitemapPageSize
 import {canonicalCopy} from '../src/modules/public-site/Information.tsx';
 import {keepsLegacyCopy} from '../src/modules/public-site/legacy-news.ts';
 import {News} from '../src/modules/public-site/News.tsx';
+import {defaultHeroBanner} from '../src/modules/settings/hero-banner.ts';
 import {Home} from '../src/modules/public-site/Home.tsx';
 import {Contact} from '../src/modules/public-site/Contact.tsx';
 import LegacyChat from '../src/app/(frontend)/tro-chuyen/page.tsx';
@@ -85,7 +86,7 @@ test('legacy situation searches stay visible and survive news category and pagin
 
 test('question and contact forms keep entered details out of URLs before hydration',()=>{
  const benefitPhotos=['clarity','specialist','records'].map(name=>'/media/benefits/'+name+'.webp?v=0123456789ab');
- const home=renderToStaticMarkup(createElement(AppRouterContext.Provider,{value:{push(){},prefetch(){}}},createElement(Home,{groups:content.groups,partners:[],news:{docs:[],totalDocs:0,totalPages:1,page:1},revision:'synthetic',benefitPhotos})));
+ const home=renderToStaticMarkup(createElement(AppRouterContext.Provider,{value:{push(){},prefetch(){}}},createElement(Home,{groups:content.groups,partners:[],news:{docs:[],totalDocs:0,totalPages:1,page:1},revision:'synthetic',benefitPhotos,banner:defaultHeroBanner})));
  for(const photo of benefitPhotos)assert.ok(home.includes('src="'+photo+'"'));
  const contact=renderToStaticMarkup(createElement(Contact));
  for(const [label,html] of [['home question',home],['contact message',contact]]){
