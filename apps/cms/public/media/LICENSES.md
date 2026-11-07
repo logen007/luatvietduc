@@ -70,3 +70,7 @@ Six 4.5-second scenes with 0.4-second crossfades, 25 fps, H.264, silent, fast-st
 - Credit: Goethe-Institut Hanoi / filmmaker Duc Ngo Ngoc, as credited by the series. Retrieved 2026-11-07.
 
 These are illustrative scenes of life in Germany, not our employees, clients or endorsements. Nationality and location are sourced from the publisher, never inferred from appearance. Audio is removed and the bottom subtitle band is cropped for the silent background. No faces are retouched or generated. Remaining document, Berlin bridge and tram scenes retain the Pexels sources and license recorded above. Same six-scene, 0.4-second crossfade, H.264 yuv420p, fast-start encoding as v5 (1920x1080 desktop and 1280x720 mobile). Poster comes from the new opening shot. Raw films/intermediates are kept outside this public repository.
+
+## Active montage restored (2026-11-07)
+
+At the owner’s request, the homepage again uses `legal-hero-stock-v5.mp4`, its mobile v5 derivative and the v4 opening poster, documented above. The Goethe v7 montage is no longer selected by the homepage. Existing source credits are retained.

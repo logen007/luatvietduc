@@ -1,11 +1,11 @@
   E.home = () => `<section class="pm-hero" aria-labelledby="pm-title">
-    <video class="pm-hero-video" muted loop playsinline preload="none" poster="/media/legal-hero-stock-poster-v7.webp" aria-hidden="true" tabindex="-1"><source data-src="/media/legal-hero-stock-v7.mp4" type="video/mp4"></video>
+    <video class="pm-hero-video" muted loop playsinline preload="none" poster="/media/legal-hero-stock-poster-v4.webp" aria-hidden="true" tabindex="-1"><source data-src="/media/legal-hero-stock-v5.mp4" type="video/mp4"></video>
     <button class="pm-video-toggle" type="button" aria-label="${l('Tạm dừng video','Video anhalten')}" aria-pressed="false"><svg class="pm-video-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><svg class="pm-video-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
     <div class="container pm-hero-inner"><div class="pm-hero-copy">
+      <div class="pm-hero-links"><a href="/hoi-dap">${l('Hội thoại','Gespräche')} ${arrow}</a></div>
       <h1 id="pm-title">${l('Giải đáp pháp luật <br>Việt Nam và Đức.','Recht in Vietnam <br>und Deutschland.')}</h1>
       <p class="pm-hero-description">${l('Từ cư trú, quốc tịch đến các vấn đề về gia đình, tài&nbsp;sản và công việc.','Von Aufenthalt und Staatsangehörigkeit bis zu Familie, Eigentum und Arbeit.')}</p>
       <form id="home-ask" class="pm-ask ask-box"><label class="sr-only" for="home-question">${l('Bạn cần làm rõ vấn đề gì?','Was möchten Sie klären?')}</label><div class="pm-ask-row"><textarea id="home-question" name="question" maxlength="2000" required placeholder="${l('Bạn cần làm rõ vấn đề gì?','Was möchten Sie klären?')}" rows="1"></textarea><button class="button" type="submit" aria-label="${l('Gửi câu hỏi','Frage senden')}">${l('Gửi câu hỏi','Frage senden')} ${arrow}</button></div></form>
-      <div class="pm-hero-links"><a href="#/tra-cuu">${l('Thư viện','Rechtsbibliothek')} ${arrow}</a></div>
     </div></div>${partnerStrip()}
   </section>
   <section class="pm-countries container" aria-label="${l('Thư viện','Rechtsbibliotheken')}">
