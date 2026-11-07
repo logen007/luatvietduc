@@ -26,7 +26,9 @@ export const SiteSettings: GlobalConfig = {
       type: "textarea",
       defaultValue: "Thông tin pháp luật Việt Nam – Đức.",
     },
-{ name: "logo", label: "Logo", type: "upload", relationTo: "media" },
+{ name: "logo", label: "Logo", type: "upload", relationTo: "media", filterOptions:{and:[{visibility:{equals:'public'}},{mimeType:{like:'image/'}}]}, admin:{description:'Chọn ảnh công khai trong Thư viện tệp.'} },
+{ name:'headerLogoHeight',label:'Chiều cao logo header (px)',type:'number',min:16,max:64,defaultValue:32 },
+{ name:'footerLogoHeight',label:'Chiều cao logo footer (px)',type:'number',min:16,max:120,defaultValue:44 },
 {
       name: "accentColor",
       label: "Màu nhấn",

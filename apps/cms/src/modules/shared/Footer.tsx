@@ -14,7 +14,7 @@ export function Footer() {
       <div className="live-footer-inner">
         <div className="live-footer-identity">
           <a className="live-footer-wordmark" href="/">
-            {shell.name}
+            {shell.logo?<img className="public-footer-logo" src={shell.logo} alt={shell.name} style={{height:shell.footerLogoHeight}}/>:shell.name}
           </a>
           <p>{t(shell.tagline)}</p>
           <SocialLinks />

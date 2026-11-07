@@ -21,6 +21,7 @@ import * as faqAssistant from './20261104_030000_faq_assistant';
 import * as sharedKnowledge from './20261104_040000_shared_knowledge_search';
 import * as semanticKnowledge from './20261104_050000_semantic_knowledge';
 import * as editorialTaxonomies from './20261104_060000_editorial_taxonomies';
+import * as brandDimensions from './20261107_060000_brand_dimensions';
 export const migrations = [
   {
     up: migration_20261103_035530.up,
@@ -52,4 +53,5 @@ export const migrations = [
  {up:mediaFamilies.up,down:mediaFamilies.down,name:'20261105_210000_media_families'},
  {up:knowledgeTaxonomies.up,down:knowledgeTaxonomies.down,name:'20261106_160000_knowledge_taxonomies'},
  {up:chatQualification.up,down:chatQualification.down,name:'20261106_210000_chat_qualification'},
+ {up:brandDimensions.up,down:brandDimensions.down,name:'20261107_060000_brand_dimensions'},
 ];

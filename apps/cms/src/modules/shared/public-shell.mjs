@@ -48,6 +48,8 @@ export function publicShell(settings={},navigation={primary:[],footer:[]}){
   name:settings.siteName||'Luật Việt Đức',
   tagline:settings.tagline??'Thông tin pháp luật Việt Nam – Đức.',
   logo:safeURL(settings.logo),
+  headerLogoHeight:Math.min(64,Math.max(16,Number(settings.headerLogoHeight)||32)),
+  footerLogoHeight:Math.min(120,Math.max(16,Number(settings.footerLogoHeight)||44)),
   accent:/^#[\da-f]{6}$/i.test(settings.accentColor||'')?settings.accentColor:null,
   footerText:String(settings.footerText||'').replace(/Thông tin tham khảo; không thay thế việc xem xét hồ sơ cụ thể\.?/gi,'').trim(),
   primary,footer:navigation.footer.map(column=>({...column,links:column.links.map(([label,href])=>[label,publicHref(href)])})),

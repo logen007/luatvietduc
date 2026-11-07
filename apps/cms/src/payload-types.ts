@@ -694,6 +694,8 @@ export interface SiteSetting {
   siteName?: string | null;
   tagline?: string | null;
   logo?: (number | null) | Media;
+  headerLogoHeight?: number | null;
+  footerLogoHeight?: number | null;
   accentColor?: string | null;
   socialLinks?:
     | {
@@ -736,6 +738,8 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   siteName?: T;
   tagline?: T;
   logo?: T;
+  headerLogoHeight?: T;
+  footerLogoHeight?: T;
   accentColor?: T;
   socialLinks?:
     | T

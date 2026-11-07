@@ -1,3 +1,4 @@
+import {brandMetadata} from '../../modules/shared/brand-metadata';
 import {cookies} from 'next/headers';
 import {publicSiteSettings} from '../../modules/public-site/server';
 import {PublicSettingsProvider} from '../../modules/settings/client';
@@ -7,6 +8,7 @@ import { getPresentationVersion } from '../../modules/shared/presentation-versio
 // Public CSS snapshots change independently from the application image.
 export const dynamic = "force-dynamic";
 export const metadata = {
+  ...brandMetadata,
   title: "Luật Việt Đức",
   robots: { index: false, follow: false },
 };

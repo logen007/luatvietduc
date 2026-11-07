@@ -3,6 +3,7 @@ import type {SiteSetting} from '../../payload-types';
 export function publicSettings(settings:SiteSetting){
  return {
   siteName:settings.siteName,logo:typeof settings.logo==='object'&&settings.logo?.visibility==='public'?settings.logo.url:null,
+  headerLogoHeight:settings.headerLogoHeight,footerLogoHeight:settings.footerLogoHeight,
   privacyText:settings.privacyText,maxMessageLength:settings.maxMessageLength,tagline:settings.tagline,
   socialLinks:settings.socialLinks,navigation:settings.navigation,footerText:settings.footerText,
   supportNotice:settings.supportNotice,officeHours:settings.officeHours,timeZone:settings.timeZone,

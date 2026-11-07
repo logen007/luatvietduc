@@ -22,6 +22,17 @@ try {
       role: "owner",
     },
   });
+  // Additive branding settings use the native owner-only save/read path.
+  const previousBrand=await payload.findGlobal({slug:'site-settings',overrideAccess:true});
+  try{
+    await payload.updateGlobal({slug:'site-settings',overrideAccess:false,user:owner,data:{headerLogoHeight:40,footerLogoHeight:60}});
+    const brand=await payload.findGlobal({slug:'site-settings',overrideAccess:true});
+    assert.equal(brand.headerLogoHeight,40);assert.equal(brand.footerLogoHeight,60);
+    await assert.rejects(()=>payload.updateGlobal({slug:'site-settings',overrideAccess:false,user:owner,data:{headerLogoHeight:65}}));
+    await assert.rejects(()=>payload.updateGlobal({slug:'site-settings',overrideAccess:false,user:owner,data:{footerLogoHeight:121}}));
+  }finally{
+    await payload.updateGlobal({slug:'site-settings',overrideAccess:true,data:{headerLogoHeight:previousBrand.headerLogoHeight??32,footerLogoHeight:previousBrand.footerLogoHeight??44}});
+  }
   const password = crypto.randomUUID();
   const editor = await payload.create({
     collection: "users",

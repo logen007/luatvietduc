@@ -1,3 +1,5 @@
+import {brandMetadata} from '../../modules/shared/brand-metadata';
+export const metadata=brandMetadata;
 import config from "@payload-config";
 import "@payloadcms/next/css";
 import path from 'node:path';

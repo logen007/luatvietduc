@@ -30,8 +30,7 @@ export function Header({publicMode=false,activeSection='',onAccountNavigate}:{pu
       <header className="site-header live-header">
         <div className="container header-inner live-header-inner">
           <a className="brand live-brand" href="/" aria-label={`${name} — ${t("Trang chủ")}`}>
-            {shell.logo&&<img className="public-brand-logo" src={shell.logo} alt="" width={36} height={36}/>}
-            <span className="brand-name">{name}</span>
+            {shell.logo?<img className="public-brand-logo" src={shell.logo} alt={name} style={{height:shell.headerLogoHeight}}/>:<span className="brand-name">{name}</span>}
           </a>
           <nav className={'live-nav'+(publicMode?' desktop-nav':'')} aria-label={t("Điều hướng chính")}>
             {publicLinks.map((link) => <a key={link.href} href={link.href} aria-current={link.key===activeSection?'location':undefined}>{t(link.label)}</a>)}
