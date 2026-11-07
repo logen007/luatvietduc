@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {useEffect,useId,useRef,useState} from 'react';
 import {Arrow,usePublicCopy} from './ui';
 
@@ -31,7 +32,7 @@ export function HomeServices(){
   <div id={id+'-panel'} role="tabpanel" aria-labelledby={id+'-tab-'+tab} className="lvd-service-wheel-panel">
    <div className="lvd-service-wheel" aria-label={l('Chọn nội dung','Thema auswählen')}>
     <div key={tab} className={'lvd-service-wheel-track'+(moving?' is-moving':'')} style={{transform:`translate3d(0, calc(${2-step} * var(--service-pitch)), 0)`}} onTransitionEnd={event=>{if(event.target===event.currentTarget&&event.propertyName==='transform')settle();}}>{Array.from({length:9},(_,index)=>{const entry=group.items[index%group.items.length],distance=Math.abs(index-step);return <div className="lvd-service-wheel-row" data-distance={distance} key={index} aria-hidden={distance>1} inert={distance>2}><button type="button" tabIndex={index===step?0:-1} onClick={()=>{setMoving(!reduced);setStep(reduced?3+index%3:index);}}><span className="lvd-service-row-label">{l(entry[0],entry[1])}</span></button></div>;})}</div>
-    <div className="lvd-service-active-frame"><span aria-hidden="true">−</span><a className="button lvd-service-ask" href="/hoi-dap">{l('Hỏi ngay','Jetzt fragen')}</a></div>
+    <div className="lvd-service-active-frame"><span aria-hidden="true">−</span><Link className="button lvd-service-ask" href="/hoi-dap" prefetch={true}>{l('Hỏi ngay','Jetzt fragen')}</Link></div>
    </div>
   </div>
  </section>;
@@ -47,6 +48,6 @@ export function HomeBenefits(){
  return <section className="container lvd-home-benefits" aria-label={l('Đồng hành cùng bạn','An Ihrer Seite')}><div className="lvd-benefit-grid">{benefits.map(([icon,vi,de,description,descriptionDe],index)=><article className="lvd-benefit-card has-photo" key={icon}>
   <img src={photos[index]} alt="" width={1200} height={800} loading="lazy" decoding="async"/>
   <span className="lvd-benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icon==='flag'?'M5 21V3m0 1c5-4 9 4 14 0v10c-5 4-9-4-14 0':icon==='target'?'M12 2v3m0 14v3M2 12h3m14 0h3M19 12a7 7 0 1 1-14 0 7 7 0 0 1 14 0M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0':'M3 7V4h7l2 3h9v13H3ZM3 10h18'}/></svg></span>
-  <div className="lvd-benefit-copy"><h2>{l(vi,de)}</h2><p>{l(description,descriptionDe)}</p><a className="button lvd-benefit-action" href="/hoi-dap">{l('Hỏi đáp ngay','Jetzt Frage stellen')}</a></div>
+  <div className="lvd-benefit-copy"><h2>{l(vi,de)}</h2><p>{l(description,descriptionDe)}</p><Link className="button lvd-benefit-action" href="/hoi-dap" prefetch={true}>{l('Hỏi đáp ngay','Jetzt Frage stellen')}</Link></div>
  </article>)}</div></section>;
 }

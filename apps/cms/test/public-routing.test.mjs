@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {createElement} from 'react';
+import {AppRouterContext} from 'next/dist/shared/lib/app-router-context.shared-runtime.js';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {publicHref,legacyTarget} from '../src/modules/shared/public-shell.mjs';
 import {publicPages,resolvePublicRoute,redirectTarget,positivePage,legacyKeyword} from '../src/modules/public-site/routes.ts';
@@ -83,7 +84,7 @@ test('legacy situation searches stay visible and survive news category and pagin
 });
 
 test('question and contact forms keep entered details out of URLs before hydration',()=>{
- const home=renderToStaticMarkup(createElement(Home,{groups:content.groups,partners:[],news:{docs:[],totalDocs:0,totalPages:1,page:1}}));
+ const home=renderToStaticMarkup(createElement(AppRouterContext.Provider,{value:{push(){},prefetch(){}}},createElement(Home,{groups:content.groups,partners:[],news:{docs:[],totalDocs:0,totalPages:1,page:1},revision:'synthetic'})));
  const contact=renderToStaticMarkup(createElement(Contact));
  for(const [label,html] of [['home question',home],['contact message',contact]]){
   const form=html.match(/<form\b[^>]*>/)?.[0];assert.ok(form);

@@ -33,10 +33,13 @@ export async function testHomepageIntake(browser,base){
     await page.locator('.chat-compose textarea:not(:disabled)').waitFor();
     assert.equal(await page.locator('.chat-compose textarea').inputValue(),body);assert.equal(sends,0);assert.equal(creates,0);
    }else{
-    await page.goto(base);await page.locator('#home-question').fill(body);
+    await page.goto(base);await page.evaluate(()=>{window.__homepageDocument='intake-navigation';});await page.locator('#home-question').fill(body);
+    await page.locator('link[rel="preload"][href^="/customer-chat.css?v="]').waitFor({state:'attached'});
+    assert.equal(creates,0,'Warming the workspace never creates a conversation');assert.equal(sends,0,'Warming never sends the draft');
     if(mode==='retry')initializationFailed=true;
     if(mode==='button')await page.locator('.pm-ask button[type=submit]').click();else await page.locator('#home-question').press('Enter');
     await page.waitForURL('**/hoi-dap');
+    assert.equal(await page.evaluate(()=>window.__homepageDocument),'intake-navigation','Homepage submission reuses the document instead of reloading the page');
     if(mode==='retry'){await page.getByRole('button',{name:'Thử lại',exact:true}).waitFor();assert.equal(sends,0);initializationFailed=false;await page.getByRole('button',{name:'Thử lại',exact:true}).click();}
     await page.locator('.chat-message.user').filter({hasText:body}).waitFor();
     await page.locator('.lvd-chat[data-entry-ready="true"]').waitFor();

@@ -8,6 +8,7 @@ import {createDeliveryGuard,createMessageOutbox,createOperationGate,mergeMessage
 import {uploadChatAttachment} from './client-upload';
 import type {Conversation,Message,Transcript,Attachment,TransitionReceipt} from './contracts';
 import {initialChatQuestion} from './intake';
+import {loadPublicSettings} from '../settings/client';
 import {applyTransitionReceipt} from './transition-receipt';
 import {createDraftBook,draftMatchesDelivery,draftOwnerKey,handoffKey,saveDraftHandoff,takeDraftHandoff} from './drafts';
 export function useWorkspace(staff=false,manageList=true){
@@ -138,7 +139,7 @@ export function useWorkspace(staff=false,manageList=true){
     if (draft) setText(draft);
     (async () => {
       try {
-        const [s,list]=await Promise.all([api<import('../settings/view').PublicSettings>('settings'),staff&&!manageList?Promise.resolve([]):api<Conversation[]>(staff?'queue':'conversations')]);
+        const [s,list]=await Promise.all([loadPublicSettings(),staff&&!manageList?Promise.resolve([]):api<Conversation[]>(staff?'queue':'conversations')]);
         if (valid()) {
           setNotice(
             [
