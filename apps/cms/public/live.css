@@ -1938,9 +1938,11 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
  .live-header .live-nav{justify-self:center;margin:0}
  .live-header .live-header-actions{justify-self:end;margin:0}
 }
-/* Shared public identity; the header owns the logo in both renderers. */
-.public-brand-logo{display:block;width:36px;height:36px;object-fit:contain;flex-shrink:0}
-@media(max-width:600px){.public-brand-logo{width:28px;height:28px}}
+/* A configured wordmark replaces the text brand and retains its natural ratio. */
+.live-header .public-brand-logo{display:block;width:auto;height:auto;max-width:210px;max-height:36px;object-fit:contain;flex-shrink:0;transition:filter .3s ease}
+.live-header .public-brand-logo+.brand-name{display:none}
+.pm-home:not(.pm-scrolled) .public-brand-logo,.pm-article-hero:not(.pm-scrolled) .public-brand-logo,body:has(.lvd-chat) .public-brand-logo{filter:brightness(0) invert(1)}
+@media(max-width:600px){.live-header .public-brand-logo{max-width:180px;max-height:30px}}
 /* Shared native dropdown affordance for public pages and admin tools. */
 :is(.lvd-public-site,.lvd-redesign,.live-shell,.live-page,.lvd-admin) select:not([multiple]):not([size]){
  -webkit-appearance:none!important;

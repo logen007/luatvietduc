@@ -64,7 +64,7 @@
 @media(max-width:980px) {
  .lvd-redesign .container { padding-inline:24px; }
  .pm-hero { min-height:max(800px,100svh); }
- .lvd-redesign .pm-hero-inner { padding-top:160px; padding-bottom:48px; }
+ .lvd-redesign .pm-hero-inner { padding-top:80px; padding-bottom:80px; }
  .lvd-redesign .pm-partners-inner { min-height:100px; padding-top:24px; padding-bottom:24px; }
  .pm-video-toggle { right:24px; bottom:124px; }
  .pm-fields-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
