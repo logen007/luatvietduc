@@ -1011,17 +1011,17 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 .lvd-redesign .lvd-service-tabs button{border:0;border-radius:10px;background:transparent;color:#66645f;padding:11px 16px;font:500 16px/1.4 var(--lvd-font);min-height:44px;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s;flex-shrink:0}
 .lvd-redesign .lvd-service-tabs button[aria-selected=true]{background:#fff;color:#1d1c1a;box-shadow:0 1px 4px #1d1c1a0b}
 /* The source carousel advances vertically every 3s, with faded neighbours. */
-.lvd-service-wheel-panel{max-width:850px;margin:auto;--service-pitch:78px}
-.lvd-service-wheel{height:calc(var(--service-pitch)*5);overflow:hidden;mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
-.lvd-service-wheel-track{transform:translateY(calc(-1*var(--service-pitch)))}
-.lvd-service-wheel-track.is-moving{animation:lvd-service-advance .6s cubic-bezier(.22,.68,0,1) both}
-.lvd-service-wheel-row{height:var(--service-pitch);display:flex;align-items:center;opacity:.28}
+.lvd-service-wheel-panel{max-width:1100px;margin:auto;--service-pitch:78px}
+.lvd-service-wheel{position:relative;height:calc(var(--service-pitch)*5);overflow:hidden;mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+.lvd-service-wheel-track{will-change:transform}.lvd-service-wheel-track.is-moving{transition:transform .75s cubic-bezier(.22,1,.36,1)}
+
+.lvd-service-wheel-row{height:var(--service-pitch);display:flex;align-items:center;opacity:.28;transition:opacity .65s ease}
 .lvd-service-wheel-row[data-distance="1"]{opacity:.55}
-.lvd-service-wheel-row[data-distance="0"]{opacity:1;border-top:1px solid #dedbd5;border-bottom:1px solid #dedbd5}
+.lvd-service-wheel-row[data-distance="0"]{opacity:1}
 .lvd-service-wheel-row[data-distance="2"],.lvd-service-wheel-row[data-distance="3"]{pointer-events:none}
-.lvd-redesign .lvd-service-wheel-row button{display:flex;align-items:center;gap:18px;min-height:48px;width:100%;padding:12px 0;background:none;border:0;border-radius:0;text-align:left;color:#66645f;cursor:pointer;font:400 clamp(24px,2.8vw,40px)/1.15 var(--lvd-display);letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvd-redesign .lvd-service-wheel-row button{display:flex;align-items:center;gap:18px;min-height:48px;width:100%;padding:12px 156px 12px 44px;background:none;border:0;border-radius:0;text-align:left;color:#66645f;cursor:pointer;font:400 clamp(24px,2.8vw,40px)/1.15 var(--lvd-display);letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lvd-redesign .lvd-service-wheel-row[data-distance="0"] button{color:#1d1c1a}
-.lvd-service-wheel-row button>span{flex:0 0 26px;font:400 36px/1 var(--lvd-font)}
+.lvd-service-row-label{display:block;overflow:hidden;text-overflow:ellipsis;min-width:0}.lvd-service-active-frame{position:absolute;top:calc(2*var(--service-pitch));left:0;right:0;height:var(--service-pitch);display:flex;align-items:center;justify-content:space-between;border-top:1px solid #dedbd5;border-bottom:1px solid #dedbd5;pointer-events:none}.lvd-service-active-frame>span{font:400 36px/1 var(--lvd-font)}.lvd-redesign .lvd-service-ask{pointer-events:auto;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 15px;border:0;border-radius:12px;font:500 16px/1.4 var(--lvd-font);color:#fff;background:#1d1c1a;text-decoration:none}
 .lvd-service-wheel-copy{padding:20px 44px 0;min-height:140px;animation:lvd-service-copy .3s ease both}
 .lvd-redesign .lvd-service-wheel-copy p{font:400 18px/1.55 var(--lvd-font);color:#69665f;margin:0 0 18px}
 .lvd-redesign .lvd-service-wheel-copy a{display:inline-flex;align-items:center;gap:12px;color:#1d1c1a;font:500 16px/1.5 var(--lvd-font);text-decoration:none}
@@ -1048,6 +1048,9 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 
 @media(max-width:600px){.lvd-service-wheel-panel{--service-pitch:62px}.lvd-redesign .lvd-service-wheel-row button{font-size:26px;gap:14px}.lvd-service-wheel-copy{padding:16px 40px 0;min-height:160px}}
 @media(prefers-reduced-motion:reduce){.lvd-service-wheel-track.is-moving,.lvd-service-wheel-copy{animation:none}.lvd-benefit-card>img,.lvd-benefit-card.has-photo:after,.lvd-benefit-icon{transition:none;transform:none}}
+
+@media(max-width:600px){.lvd-redesign .lvd-service-wheel-row button{padding-left:34px;padding-right:108px;font-size:23px}.lvd-redesign .lvd-service-ask{font-size:14px;padding:10px 12px;border-radius:10px}.lvd-service-active-frame>span{font-size:30px}}
+@media(prefers-reduced-motion:reduce){.lvd-service-wheel-track.is-moving,.lvd-service-wheel-row{transition:none}.lvd-service-wheel-track{will-change:auto}}
 /* Shared native dropdown affordance for public pages and admin tools. */
 :is(.lvd-public-site,.lvd-redesign,.live-shell,.live-page,.lvd-admin) select:not([multiple]):not([size]){
  -webkit-appearance:none!important;
