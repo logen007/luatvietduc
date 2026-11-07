@@ -1035,17 +1035,17 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 .lvd-benefit-card.has-photo:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(#fffdfd00 20.39%,#fff2e5 69.908%);opacity:0;transition:opacity .3s ease}
 .lvd-benefit-icon{display:grid;place-items:center;width:48px;height:48px;flex-shrink:0;border:1px solid #e7e3df;border-radius:8px;background:#fff;box-shadow:0 2px 5px #1d1c1a14}
 .lvd-benefit-icon svg{width:28px;height:28px;color:#36342f}
-.lvd-redesign .lvd-benefit-copy h2{margin:0 0 12px;font:400 clamp(27px,2.2vw,36px)/1.12 var(--lvd-display);letter-spacing:-.025em;text-wrap:balance}
+.lvd-redesign .lvd-benefit-copy h2{margin:0 0 12px;font:600 clamp(24px,1.8vw,28px)/1.2 var(--lvd-display);letter-spacing:-.02em;text-wrap:balance}
 .lvd-redesign .lvd-benefit-copy p{margin:0;color:#68655f;font:400 18px/1.5 var(--lvd-font)}
-.lvd-redesign .lvd-benefit-action{display:flex;width:max-content;max-width:100%;gap:14px;margin:28px auto 0;border-radius:10px;font-size:16px}
+.lvd-redesign .lvd-benefit-action{display:inline-flex;width:max-content;max-width:100%;min-height:44px;gap:10px;margin:22px 0 0;padding:11px 16px;border-radius:10px;font:500 16px/1.4 var(--lvd-font);background:#1d1c1a;color:#fff;border:0;text-decoration:none}
 @media(max-width:900px){.lvd-service-panel{gap:32px}.lvd-benefit-grid{grid-template-columns:1fr}.lvd-benefit-card{min-height:320px;gap:52px}.lvd-benefit-copy{max-width:60ch}.lvd-benefit-card.has-photo>img{object-position:center 38%}}
-@media(max-width:600px){.lvd-redesign .lvd-home-services{padding-top:48px;padding-bottom:48px}.lvd-home-services>header{margin-bottom:32px}.lvd-redesign .lvd-home-services h2{font-size:34px;margin-bottom:24px}.lvd-service-tab-scroll{text-align:left}.lvd-redesign .lvd-service-tabs button{font-size:15px;padding:10px 12px}.lvd-service-panel{grid-template-columns:minmax(0,1fr);gap:24px}.lvd-service-panel>img{height:240px}.lvd-redesign .lvd-service-item h3{font-size:27px}.lvd-redesign .lvd-service-item h3 button{min-height:68px;gap:14px}.lvd-service-detail>div{padding-left:36px}.lvd-redesign .lvd-service-detail p{font-size:17px}.lvd-redesign .lvd-home-benefits{padding-top:48px;padding-bottom:48px}.lvd-redesign .lvd-benefit-copy h2{font-size:28px}.lvd-redesign .lvd-benefit-copy p{font-size:18px}}
+@media(max-width:600px){.lvd-redesign .lvd-home-services{padding-top:48px;padding-bottom:48px}.lvd-home-services>header{margin-bottom:32px}.lvd-redesign .lvd-home-services h2{font-size:34px;margin-bottom:24px}.lvd-service-tab-scroll{text-align:left}.lvd-redesign .lvd-service-tabs button{font-size:15px;padding:10px 12px}.lvd-service-panel{grid-template-columns:minmax(0,1fr);gap:24px}.lvd-service-panel>img{height:240px}.lvd-redesign .lvd-service-item h3{font-size:27px}.lvd-redesign .lvd-service-item h3 button{min-height:68px;gap:14px}.lvd-service-detail>div{padding-left:36px}.lvd-redesign .lvd-service-detail p{font-size:17px}.lvd-redesign .lvd-home-benefits{padding-top:48px;padding-bottom:48px}.lvd-redesign .lvd-benefit-copy h2{font-size:26px}.lvd-redesign .lvd-benefit-copy p{font-size:18px}}
 @media(prefers-reduced-motion:reduce){.lvd-service-detail,.lvd-service-tabs button{transition:none}}
 
 .lvd-benefit-card:hover>img,.lvd-benefit-card:focus-visible>img,.lvd-benefit-card:focus-within>img{opacity:1;transform:scale(1)}
 .lvd-benefit-card.has-photo:hover:after,.lvd-benefit-card.has-photo:focus-visible:after,.lvd-benefit-card.has-photo:focus-within:after{opacity:1}
 .lvd-benefit-icon{transition:transform .3s ease,box-shadow .3s ease}.lvd-benefit-card:hover .lvd-benefit-icon{transform:translateY(-3px);box-shadow:0 5px 12px #1d1c1a18}
-@media(hover:none){.lvd-benefit-card>img,.lvd-benefit-card.has-photo:after{opacity:1}.lvd-benefit-card>img{transform:none}}
+
 @media(max-width:600px){.lvd-service-wheel-panel{--service-pitch:62px}.lvd-redesign .lvd-service-wheel-row button{font-size:26px;gap:14px}.lvd-service-wheel-copy{padding:16px 40px 0;min-height:160px}}
 @media(prefers-reduced-motion:reduce){.lvd-service-wheel-track.is-moving,.lvd-service-wheel-copy{animation:none}.lvd-benefit-card>img,.lvd-benefit-card.has-photo:after,.lvd-benefit-icon{transition:none;transform:none}}
 /* Shared native dropdown affordance for public pages and admin tools. */
