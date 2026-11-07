@@ -11,10 +11,11 @@ export async function testMediaLibrary(payload:Payload,owner:User){
  const db=new URL(process.env.DATABASE_URL||'');if(db.pathname!=='/lvd_test'||!['127.0.0.1','localhost'].includes(db.hostname))throw new Error('Isolated media checks only');
  const send=S3Client.prototype.send,ids:number[]=[],suffix=crypto.randomUUID(),objects=new Map<string,{body:Buffer;mimeType:string}>(),deletions:string[]=[];let uploads=0,reads=0,failDeleteKey:string|undefined;
  (S3Client.prototype as any).send=async function(command:any){
-  const {Key,Body,ContentType}=command.input;
+  const {Key,Body,ContentType,Range}=command.input;
   if(command.constructor.name==='PutObjectCommand'){uploads++;assert.ok(Buffer.isBuffer(Body));objects.set(Key,{body:Buffer.from(Body),mimeType:ContentType});}
   if(command.constructor.name==='DeleteObjectCommand'){deletions.push(Key);if(Key===failDeleteKey){failDeleteKey=undefined;throw new Error('Synthetic one-time bulk deletion failure');}objects.delete(Key);}
-  if(command.constructor.name==='GetObjectCommand'){reads++;const object=objects.get(Key);if(!object)throw new Error('Synthetic storage object missing');return {Body:Readable.from([object.body]),ContentType:object.mimeType,ContentLength:object.body.length};}
+  if(command.constructor.name==='HeadObjectCommand'){const object=objects.get(Key);if(!object)throw new Error('Synthetic storage object missing');return {ContentLength:object.body.length,ContentType:object.mimeType};}
+  if(command.constructor.name==='GetObjectCommand'){reads++;const object=objects.get(Key);if(!object)throw new Error('Synthetic storage object missing');const range=Range?.match(/^bytes=(\d+)-(\d+)$/),body=range?object.body.subarray(Number(range[1]),Number(range[2])+1):object.body;return {Body:Readable.from([body]),ContentType:object.mimeType,ContentLength:body.length};}
   return {};
  };
  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="#333"/></svg>';
@@ -45,7 +46,9 @@ export async function testMediaLibrary(payload:Payload,owner:User){
    await payload.delete({collection:'media',id:own.id,user:specialist,overrideAccess:false});ids.pop();
    const authenticated=await payload.login({collection:'users',data:{email:specialist.email,password:specialistPassword}}),origin=process.env.APP_URL||'http://localhost:3000';assert.ok(authenticated.token);
    const authenticatedToken=authenticated.token;
-   const readFile=(filename:string,withAuth=false)=>handleEndpoints({config:payload.config,request:new Request(origin+'/api/media/file/'+encodeURIComponent(filename),{headers:withAuth?{authorization:'JWT '+authenticatedToken}:{}})});
+   const readFile=(filename:string,withAuth=false,range?:string)=>handleEndpoints({config:payload.config,request:new Request(origin+'/api/media/file/'+encodeURIComponent(filename),{headers:{...(withAuth?{authorization:'JWT '+authenticatedToken}:{}),...(range?{Range:range}:{})}})});
+   const publicVideo=(await payload.findByID({collection:'media',id:ids[0],user:owner,overrideAccess:false})).filename!;
+   const partial=await readFile(publicVideo,false,'bytes=0-1');assert.equal(partial.status,206);assert.equal(partial.headers.get('Content-Range'),'bytes 0-1/'+objects.get(publicVideo)!.body.length);assert.equal((await partial.arrayBuffer()).byteLength,2,'Native media route answers Safari probe with exactly two bytes');
    const images=[];
    for(const dimensions of [{width:1800,height:1200},{width:80,height:60}]){
     const data=await sharp({create:{...dimensions,channels:3,background:'#888888'}}).jpeg().toBuffer(),filename='synthetic-image-'+dimensions.width+'-'+suffix+'.jpg';
@@ -63,6 +66,7 @@ export async function testMediaLibrary(payload:Payload,owner:User){
     assert.equal((await payload.count({collection:'media',user:owner,overrideAccess:false,where:{filename:{in:filenames}}})).totalDocs,1,'Derivatives do not become independent media records');
     for(const name of filenames){
      const before=reads,denied=await readFile(name);assert.equal(denied.status,403);assert.equal(reads,before,'Private originals and sizes are denied before S3 reads');
+     const deniedRange=await readFile(name,false,'bytes=0-1');assert.equal(deniedRange.status,403);assert.equal(reads,before,'Range requests cannot bypass private-file access');
      const response=await readFile(name,true);assert.equal(response.status,200);assert.deepEqual(Buffer.from(await response.arrayBuffer()),objects.get(name)?.body);
     }
     await assert.rejects(()=>payload.findByID({collection:'media',id:image.id,overrideAccess:false}));
