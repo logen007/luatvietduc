@@ -183,7 +183,13 @@ html .lvd-chat .chat-top h1{display:none}
  .lvd-chat[data-keyboard-open="true"] .chat-suggestions{display:none}
 }
 
-/* Animate opacity only: transformed ancestors would displace the mobile composer. */
-.lvd-chat{animation:lvd-chat-enter .42s cubic-bezier(.22,1,.36,1)}
-@keyframes lvd-chat-enter{from{opacity:.6}to{opacity:1}}
-@media(prefers-reduced-motion:reduce){.lvd-chat{animation:none}}
+/* Keep viewport-owning ancestors untransformed; reveal content when it mounts. */
+.lvd-chat{animation:lvd-chat-enter .6s cubic-bezier(.22,1,.36,1)}
+.lvd-chat>.chat-sidebar{animation:lvd-chat-sidebar-enter .7s cubic-bezier(.22,1,.36,1) both}
+.lvd-chat :is(.chat-welcome:not([role="status"]),.chat-transcript){animation:lvd-chat-content-enter .7s cubic-bezier(.22,1,.36,1) both}
+.lvd-chat .chat-compose-wrap{animation:lvd-chat-content-enter .7s .08s cubic-bezier(.22,1,.36,1) both}
+.lvd-chat .chat-suggestions{animation:lvd-chat-content-enter .7s .14s cubic-bezier(.22,1,.36,1) both}
+@keyframes lvd-chat-enter{from{opacity:0}to{opacity:1}}
+@keyframes lvd-chat-content-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes lvd-chat-sidebar-enter{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.lvd-chat,.lvd-chat :is(.chat-sidebar,.chat-welcome,.chat-transcript,.chat-compose-wrap,.chat-suggestions){animation:none}}
