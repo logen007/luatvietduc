@@ -1,3 +1,4 @@
+import {AppLink} from '../src/modules/shared/AppLink.tsx';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -21,7 +22,7 @@ test('public logo dimensions survive projection and reject malformed settings wi
 test('header and footer replace text with the same configured logo, with independent heights and accessible name',()=>{
  for(const configured of [true,false]){
   const shell=publicShell({siteName:'Brand',logo:configured?'/brand.svg':null,headerLogoHeight:40,footerLogoHeight:60});
-  const dependencies={react:React,'react/jsx-runtime':jsxRuntime,'next/navigation':{usePathname:()=>'/'} ,'./session-client':{usePublicSession:()=>({status:'ready',user:null})},'./account-state.mjs':{accountView:()=>({href:'/tai-khoan',label:'Đăng nhập'})},'./locale':{useLocale:()=>({t:text=>text,language:'vi'})},'./LanguageSwitch':{LanguageSwitch:()=>null},'./RolePreviewControl':{RolePreviewControl:()=>null},'./SocialLinks':{SocialLinks:()=>null},'./site-version.json':{default:{version:'01.00.00'}},'./usePublicShell':{usePublicShell:()=>shell},'./public-shell.mjs':{copyright:()=>''},'./client-api':{api:()=>assert.fail('No network during render')}};
+  const dependencies={'./AppLink':{AppLink},react:React,'react/jsx-runtime':jsxRuntime,'next/navigation':{usePathname:()=>'/'} ,'./session-client':{usePublicSession:()=>({status:'ready',user:null})},'./account-state.mjs':{accountView:()=>({href:'/tai-khoan',label:'Đăng nhập'})},'./locale':{useLocale:()=>({t:text=>text,language:'vi'})},'./LanguageSwitch':{LanguageSwitch:()=>null},'./RolePreviewControl':{RolePreviewControl:()=>null},'./SocialLinks':{SocialLinks:()=>null},'./site-version.json':{default:{version:'01.00.00'}},'./usePublicShell':{usePublicShell:()=>shell},'./public-shell.mjs':{copyright:()=>''},'./client-api':{api:()=>assert.fail('No network during render')}};
   const {Header}=load('../src/modules/shared/Header.tsx',dependencies),{Footer}=load('../src/modules/shared/Footer.tsx',dependencies);
   const header=renderToStaticMarkup(React.createElement(Header)),footer=renderToStaticMarkup(React.createElement(Footer));
   if(configured){assert.match(header,/<img[^>]*class="public-brand-logo"[^>]*alt="Brand"[^>]*height:40px/);assert.doesNotMatch(header,/class="brand-name"/);assert.match(footer,/<img[^>]*class="public-footer-logo"[^>]*alt="Brand"[^>]*height:60px/);}

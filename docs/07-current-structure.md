@@ -581,3 +581,16 @@ hội thoại; đề nghị rõ ràng sau đó vẫn chuyển bình thường. C
 nhân, định danh và vượt quy tắc là nhánh riêng, không bị bỏ qua khi khách nói
 chưa cần chuyên viên. Có kiểm tra luồng lưu hội thoại: chưa chuyển khi đang hỏi
 thêm, rồi vào hàng chờ và dừng AI sau khi khách chủ động đổi ý gặp chuyên viên.
+
+## SEO và tài nguyên công khai — 2026-11-07
+
+Metadata/canonical/robots/schema dùng `public-site/seo.ts`; JSON-LD render phía
+server qua `StructuredData.tsx`. Sitemap chỉ đọc nội dung xuất bản theo ACL công
+khai, bỏ URL trùng và bài không có nội dung. Bài dịch có hreflang khi cả hai bản
+đã công khai; không coi đổi ngôn ngữ cookie là một bản dịch bài viết.
+
+Ảnh responsive dùng `photos.ts`/`photo-sizes.json` và tệp WebP đóng gói cỡ
+480/960/1440, không thay bản gốc hoặc ID Thư viện. Hero dùng video nhẹ riêng
+cho mobile và chờ tải trang/đủ điều kiện hiển thị. Font giữ nguyên, CSS font được
+link trực tiếp và subset tiếng Việt được ưu tiên. Xem `docs/seo-performance.md`
+cho kiểm tra và lệnh tái tạo ảnh. Phiên, API và dữ liệu riêng vẫn không cache.

@@ -24,6 +24,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
         <link rel="preload" href="/fonts/Inter-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/Inter-vietnamese.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/Articulat-web.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="stylesheet" href={`/fonts/inter.css?v=${revision}`} />
         <link rel="stylesheet" href={`/design-system.css?v=${revision}`} />
         <link rel="stylesheet" href={`/live.css?v=${revision}`} />
       </head>

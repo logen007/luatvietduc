@@ -1,4 +1,5 @@
 'use client';
+import {photo,photoSet} from './photos';
 import {AppLink} from '../shared/AppLink';
 import {useLocale} from '../shared/locale';
 import type {ArticleList,Card,GroupSummary} from './types';
@@ -14,12 +15,12 @@ export function GroupGrid({groups,country,home=false}:{groups:GroupSummary[];cou
  const l=usePublicCopy();
  return <div className="pm-fields-grid">{groups.map(group=><AppLink key={group.id} href={(home||!country?'/chu-de/':'/phap-luat/'+(country==='DE'?'duc':'viet-nam')+'/')+group.id}><span className="pm-field-icon"><FieldIcon name={group.icon}/></span><h3>{l(group.title,group.titleDe)}</h3><span className="pm-field-bottom">{country!=='DE'&&<span className="pm-topic-stat"><b className="pm-topic-number">{group.count}</b><span className="pm-topic-unit">{l('chủ đề','Themen')}</span></span>}<Arrow/></span></AppLink>)}</div>;
 }
-export function StoryCard({article}:{article:Card}){
+export function StoryCard({article,priority=false}:{article:Card;priority?:boolean}){
  const l=usePublicCopy(),href=article.href||'/bai-viet/'+encodeURIComponent(article.slug),published=article.published?new Date(article.published):null;
- const validDate=published&&Number.isFinite(published.getTime());
- return <article className="press-card pm-story pm-story-cms"><AppLink className="press-image-link" href={href} aria-label={article.title}><img className="press-photo" src={'/assets/photos/'+article.photo+'-600.webp'} width={600} height={400} alt="" loading="lazy" decoding="async"/></AppLink><div className="press-copy"><div className="pm-story-meta">{validDate&&<time dateTime={article.published!}>{new Intl.DateTimeFormat(l('vi-VN','de-DE'),{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Ho_Chi_Minh'}).format(published)}</time>}{Boolean(article.readingMinutes)&&<span>{l(article.readingMinutes+' phút đọc',article.readingMinutes+' Min. Lesezeit')}</span>}</div><h3><AppLink href={href} lang={article.language}>{article.title}</AppLink></h3>{article.category&&<AppLink className="pm-story-category" href={article.category.href}>{l(article.category.name,article.category.nameDe||article.category.name)}</AppLink>}</div></article>;
+ const validDate=published&&Number.isFinite(published.getTime()),image=photo(article.photo,480);
+ return <article className="press-card pm-story pm-story-cms"><AppLink className="press-image-link" href={href} aria-label={article.title}><img className="press-photo" src={image.src} srcSet={photoSet(article.photo)} sizes="(max-width:760px) calc(100vw - 40px), (max-width:1100px) 45vw, 30vw" width={image.width} height={image.height} alt="" loading={priority?'eager':'lazy'} fetchPriority={priority?'high':'auto'} decoding="async"/></AppLink><div className="press-copy"><div className="pm-story-meta">{validDate&&<time dateTime={article.published!}>{new Intl.DateTimeFormat(l('vi-VN','de-DE'),{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Ho_Chi_Minh'}).format(published)}</time>}{Boolean(article.readingMinutes)&&<span>{l(article.readingMinutes+' phút đọc',article.readingMinutes+' Min. Lesezeit')}</span>}</div><h3><AppLink href={href} lang={article.language}>{article.title}</AppLink></h3>{article.category&&<AppLink className="pm-story-category" href={article.category.href}>{l(article.category.name,article.category.nameDe||article.category.name)}</AppLink>}</div></article>;
 }
-export function ArticleCards({list}:{list:ArticleList}){return <div className="pm-news-grid press-grid">{list.docs.map(article=><StoryCard key={article.id} article={article}/>)}</div>;}
+export function ArticleCards({list,priority=false}:{list:ArticleList;priority?:boolean}){return <div className="pm-news-grid press-grid">{list.docs.map((article,index)=><StoryCard key={article.id} article={article} priority={priority&&index===0}/>)}</div>;}
 export function Pagination({page,pages,path,query=''}:{page:number;pages:number;path:string;query?:string}){
  const l=usePublicCopy();if(pages<=1)return null;
  const link=(value:number)=>{const q=new URLSearchParams(query);q.set('trang',String(value));return path+'?'+q;};

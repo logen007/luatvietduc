@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import {securityHeaders} from '../src/modules/http/security-headers.mjs';
 test('only packaged public fonts and image directories receive reusable browser cache headers',()=>{
  const rules=securityHeaders().filter(rule=>rule.headers.some(header=>header.value==='public, max-age=3600'));
- assert.deepEqual(rules.map(rule=>rule.source),['/fonts/:path*','/assets/photos/:path*','/assets/flags/:path*','/assets/team/:path*','/assets/logos/:path*']);
+ assert.deepEqual(rules.map(rule=>rule.source),['/fonts/:path*','/assets/photos/:path*','/assets/flags/:path*','/assets/team/:path*','/assets/logos/:path*','/assets/optimized-photos/:path*','/media/:path*']);
 });
 test('private pages, OAuth and APIs prohibit caching and referrer disclosure',()=>{
  const rules=securityHeaders();
  for(const source of ['/admin/:path*','/api/:path*','/service/:path*','/auth/:path*','/tai-khoan','/hoi-dap','/tro-chuyen']){
   const rule=rules.find(rule=>rule.source===source);assert.ok(rule,source);
   const headers=Object.fromEntries(rule.headers.map(({key,value})=>[key.toLowerCase(),value]));
-  assert.match(headers['cache-control'],/private/);assert.match(headers['cache-control'],/no-store/);assert.equal(headers['referrer-policy'],'no-referrer');
+  assert.match(headers['cache-control'],/private/);assert.match(headers['cache-control'],/no-store/);assert.equal(headers['referrer-policy'],'no-referrer');assert.equal(headers['x-robots-tag'],'noindex, nofollow');
  }
  const common=Object.fromEntries(rules.find(rule=>rule.source==='/:path*').headers.map(({key,value})=>[key.toLowerCase(),value]));
  assert.equal(common['x-content-type-options'],'nosniff');assert.equal(common['x-frame-options'],'SAMEORIGIN');assert.equal(common['content-security-policy'],"frame-ancestors 'self'");

@@ -1,3 +1,4 @@
+import {AppLink} from '../src/modules/shared/AppLink.tsx';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -31,11 +32,11 @@ test('the mobile menu includes contact exactly once with default or configured c
  const source=fs.readFileSync(new URL('../src/modules/shared/Header.tsx',import.meta.url),'utf8'),compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
  for(const navigation of [[],[{label:'Liên hệ',url:'/#/lien-he'}]]){
   const exports={},shell=publicShell({navigation},{primary:[{key:'news',href:'/tin-tuc',label:'Tin tức'}],footer:[]});
-  vm.runInNewContext(compiled,{exports,require:name=>({react:React,'react/jsx-runtime':jsxRuntime,'next/navigation':{usePathname:()=>'/tai-khoan'},'./session-client':{usePublicSession:()=>({status:'ready',user:null})},'./account-state.mjs':{accountView},'./locale':{useLocale:()=>({t:text=>text,language:'vi'})},'./LanguageSwitch':{LanguageSwitch:()=>null},'./RolePreviewControl':{RolePreviewControl:()=>null},'./usePublicShell':{usePublicShell:()=>shell},'./client-api':{api:()=>assert.fail('Rendering the menu must not send requests')}}[name]||assert.fail(name))});
+  vm.runInNewContext(compiled,{exports,require:name=>({'./AppLink':{AppLink},react:React,'react/jsx-runtime':jsxRuntime,'next/navigation':{usePathname:()=>'/tai-khoan'},'./session-client':{usePublicSession:()=>({status:'ready',user:null})},'./account-state.mjs':{accountView},'./locale':{useLocale:()=>({t:text=>text,language:'vi'})},'./LanguageSwitch':{LanguageSwitch:()=>null},'./RolePreviewControl':{RolePreviewControl:()=>null},'./usePublicShell':{usePublicShell:()=>shell},'./client-api':{api:()=>assert.fail('Rendering the menu must not send requests')}}[name]||assert.fail(name))});
   const html=renderToStaticMarkup(React.createElement(exports.Header,{activeSection:'news'})),dialog=html.match(/<dialog\b[^>]*>([\s\S]*?)<\/dialog>/)?.[1];assert.ok(dialog);
   assert.equal([...dialog.matchAll(/href="\/lien-he"/g)].length,1,'configured contact must reuse its mobile entry');
-  assert.match(dialog,/<a[^>]*href="\/tin-tuc"[^>]*aria-current="location"/);
-  assert.match(dialog,/<a[^>]*href="\/tai-khoan[^"]*"[^>]*aria-current="page"/);
+  assert.match(dialog,/<a(?=[^>]*href="\/tin-tuc")(?=[^>]*aria-current="location")[^>]*>/);
+  assert.match(dialog,/<a(?=[^>]*href="\/tai-khoan[^"]*")(?=[^>]*aria-current="page")[^>]*>/);
  }
 });
 

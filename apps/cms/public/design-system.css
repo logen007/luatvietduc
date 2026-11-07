@@ -1,5 +1,5 @@
 /* Shared source-matched type and neutral tokens. Licensed Articulat stays outside Git. */
-@import url('/fonts/inter.css');
+/* Font CSS is linked directly in the document head to avoid an import waterfall. */
 @font-face {
   font-family: Articulat;
   src: url('/fonts/Articulat-web.woff2') format('woff2');

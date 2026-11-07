@@ -4,6 +4,7 @@ import {cache} from 'react';
 import {getPayload,type Where} from 'payload';
 import config from '../../payload.config';
 import {publicArticles} from '../../access/articles';
+import {sitemapArticles} from './seo';
 import {publicSettings} from '../settings/view';
 import content from './content.json';
 import originalPosts from '../legacy/posts.json';
@@ -16,6 +17,11 @@ export const publicSiteSettings=cache(async()=>publicSettings(await (await publi
 export const publicArticle=cache(async(slug:string)=>{
  const result=await (await publicPayload()).find({collection:'articles',overrideAccess:false,draft:false,where:{and:[publicArticles,{slug:{equals:slug}}]},limit:1,depth:1});
  return result.docs[0]||null;
+});
+export const publicArticleTranslations=cache(async(group?:string|null)=>{
+ if(!group)return [];
+ const result=await (await publicPayload()).find({collection:'articles',overrideAccess:false,draft:false,where:{and:[sitemapArticles,{translationGroup:{equals:group}}]},limit:2,depth:0,select:{slug:true,language:true}});
+ return result.docs;
 });
 export const publicCategories=cache(async()=>{
  const result=await (await publicPayload()).find({collection:'categories',overrideAccess:false,depth:0,limit:1000,sort:'name'});return result.docs;

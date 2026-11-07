@@ -1,3 +1,7 @@
+import {StructuredData} from '../src/modules/public-site/StructuredData.tsx';
+import {photo} from '../src/modules/public-site/photos.ts';
+import {articleSchema} from '../src/modules/public-site/seo.ts';
+import {AppLink} from '../src/modules/shared/AppLink.tsx';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -12,13 +16,13 @@ const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.
 async function render(article){
  const exports={};
  vm.runInNewContext(compiled,{exports,process:{cwd:()=>'/synthetic'},require:name=>({
-  'react/jsx-runtime':jsxRuntime,'../../../../modules/public-site/search':{photoForArticle:()=> 'berlin'},
+  'react/jsx-runtime':jsxRuntime,'../../../../modules/shared/AppLink':{AppLink},'../../../../modules/public-site/search':{photoForArticle:()=> 'berlin'},
   '../../../../modules/content/article-body':{articleHTML:body=>body,articleText:body=>body},
   '../../../../modules/shared/locale':{LocaleText:({text})=>text,LocaleDate:({value})=>value},
   'next/navigation':{notFound:()=>assert.fail('Synthetic article must exist'),permanentRedirect:()=>assert.fail('No redirect expected')},
   '../../../../modules/content/navigation':{articleParent},
   '../../../../modules/public-site/server':{content:{newsSlugs:[],articleAliases:{}},publicArticle:async()=>article},
-  '../../../../modules/public-site/seo':{},'../../../../modules/public-site/Frame':{PublicFrame:({children})=>children},
+  '../../../../modules/public-site/StructuredData':{StructuredData},'../../../../modules/public-site/photos':{photo},'../../../../modules/public-site/seo':{articleSchema},'../../../../modules/public-site/Frame':{PublicFrame:({children})=>children},
   '../../../../modules/shared/presentation-version.mjs':{getPresentationVersion:()=> 'synthetic'},'node:path':{default:{join:(...parts)=>parts.join('/')}},
  }[name]||assert.fail(name))});
  return renderToStaticMarkup(await exports.default({params:Promise.resolve({slug:'synthetic'})}));
