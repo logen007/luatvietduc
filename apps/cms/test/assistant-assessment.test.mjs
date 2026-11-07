@@ -346,3 +346,39 @@ for(const item of [
  await state.run();assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);
  assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,item.key);assert.equal(state.conversation.ai_enabled,true);
 });
+
+test('resolving a withdrawn fact after a prior answer retains the other established facts',async t=>{
+ const state=fixture(t,{body:'Mẹ tôi',retained:true,previous:[
+  {role:'assistant',body:'Ai đang đứng tên mảnh đất?',metadata:{kind:'clarify',clarificationKey:'property.owner'}},
+  {role:'user',body:'Tôi muốn sang tên đất, chưa rõ ai đang đứng tên',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+  {role:'assistant',body:'Synthetic previous approved answer.',metadata:{kind:'ai',sources:[]}},
+  {role:'user',body:'Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ]});
+ await state.run();assert.equal(state.embeddings,1,'Resolving only ownership must not ask again for the known country, documents or stage');
+ assert.equal(state.replies[0].metadata.kind,'handoff');
+});
+
+test('German ownership resolution after an answer retains the known document and timing',async t=>{
+ const state=fixture(t,{body:'Meine Mutter',retained:true,previous:[
+  {role:'assistant',body:'Auf wen ist das Grundstück eingetragen?',metadata:{kind:'clarify',clarificationKey:'property.owner'}},
+  {role:'user',body:'Ich möchte das Grundstück übertragen, weiß aber nicht, wer im Grundbuch eingetragen ist.',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+  {role:'assistant',body:'Synthetic approved answer.',metadata:{kind:'ai',sources:[]}},
+  {role:'user',body:'Ich möchte ein Grundstück in Deutschland übertragen, meine Mutter ist im Grundbuch eingetragen, in Vorbereitung und ich möchte das Verfahren wissen',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ]});
+ await state.run();assert.equal(state.embeddings,1);assert.equal(state.replies[0].metadata.kind,'handoff');
+});
+
+for(const item of [
+ {trail:'Còn mảnh đất khác tại Đức, tôi muốn sang tên',key:'property-2.owner',expected:'property-2.document'},
+ {trail:'Còn ly hôn thì sao?',key:'family.country',body:'Ở Đức',expected:'family.situation'},
+ {trail:'Tôi muốn sang tên đất, chưa rõ ai đứng tên',key:'property.owner',trailConsented:false,expected:'property.country'},
+ {trail:'Tôi muốn sang tên đất, chưa rõ ai đứng tên',key:'property.owner',consented:false,expected:'property.country'},
+])test('clarification continuation isolates new matters and consent boundaries: '+item.trail+' '+String(item.trailConsented)+' '+String(item.consented),async t=>{
+ const state=fixture(t,{body:item.body||'Mẹ tôi',retained:true,consented:item.consented,previous:[
+  {role:'assistant',body:'Synthetic clarification?',metadata:{kind:'clarify',clarificationKey:item.key}},
+  {role:'user',body:item.trail,metadata:item.trailConsented===false?null:{aiConsent:{version:CONSENT_VERSION}}},
+  {role:'assistant',body:'Synthetic approved answer.',metadata:{kind:'ai',sources:[]}},
+  {role:'user',body:'Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục',metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ]});
+ await state.run();assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,item.expected);
+});

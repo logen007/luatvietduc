@@ -25,7 +25,7 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params,a=await articleForPage(slug);
-  const news=a.kind==='news'||content.newsSlugs.includes(a.slug),parent=articleParent(news?'news':a.kind),revision=getPresentationVersion(path.join(process.cwd(),'public'));
+  const news=a.kind==='news'||content.newsSlugs.includes(a.slug),parent=articleParent(news?'news':a.kind,a.jurisdiction),revision=getPresentationVersion(path.join(process.cwd(),'public'));
   return (
     <PublicFrame revision={revision} section={news?'news':'lookup'} articleHero>
       <div className="live-reading-page">
@@ -43,7 +43,7 @@ export default async function Page({
                   <LocaleText text="Cập nhật"/> <LocaleDate value={a.updatedAt}/>
                 </time>
               </div>
-              <h1 id="article-title">{a.title}</h1>
+              <h1 id="article-title" lang={a.language==='de'?'de':'vi'}>{a.title}</h1>
               <div className="live-reading-taxonomy">{a.categories?.map(category=>typeof category==='object'&&category?<span key={'category-'+category.id}><LocaleText text={category.name}/></span>:null)}{a.tags?.map(tag=>typeof tag==='object'&&tag?<span key={'tag-'+tag.id}>#{tag.name}</span>:null)}</div>
               </div>
             </header>

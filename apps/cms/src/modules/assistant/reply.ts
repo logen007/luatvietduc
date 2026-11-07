@@ -29,7 +29,7 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   await db.query('UPDATE lvd_conversations SET ai_generation=$2,ai_message_id=$3,ai_started_at=now() WHERE id=$1',[id,token,message.id]);
   const previous=(await db.query("SELECT role,body,metadata FROM ((SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 80) UNION (SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND role='user' AND NOT internal ORDER BY id LIMIT 4)) history ORDER BY id DESC",[id,message.id])).rows;
   const history=clarificationHistory(previous,CONSENT_VERSION);
-  return {previousQuestions:previous.filter(row=>row.role==='assistant'&&row.metadata?.kind==='clarify').map(row=>String(row.body)).slice(0,6),retainHistory:Boolean(conversation.retain_history),meaningfulHistory:previous.some(row=>row.role==='user'&&!isVagueIntakeReply(String(row.body))),previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),intakeQuestion:contextualIntakeReply(String(message.body),history.pendingKey),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
+  return {previousQuestions:previous.filter(row=>row.role==='assistant'&&row.metadata?.kind==='clarify').map(row=>String(row.body)).slice(0,6),retainHistory:Boolean(conversation.retain_history),meaningfulHistory:previous.some(row=>row.role==='user'&&!isVagueIntakeReply(String(row.body))),previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),intakeQuestion:contextualIntakeReply(String(message.body),history.pendingKey),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,localContextConsented:history.context===history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
  });
  if(!work)return;
  let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined,clarificationKey:string|undefined;
@@ -39,7 +39,11 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
  // Substantive follow-ups in the same recognized topic need the established
  // facts too. Explicit new matters are still reset by currentIntakeContext.
  const followsAnswer=work.consented&&work.previousAnswer&&!work.clarificationCount&&work.context&&(isBriefIntakeFollowup(work.question)||!isVagueIntakeReply(work.question)&&followupTopic&&followupTopic===currentIntakeContext(work.context).topic);
- const localQuestion=[work.localContext||(followsAnswer?work.context:''),work.intakeQuestion].filter(Boolean).join('\n');
+ const clarifiedTopic=currentIntakeContext(work.localContext).topic;
+ // A follow-up clarification does not erase untouched facts from the answered
+ // matter. Never bridge an unconsented trail or an unrecognized topic.
+ const inheritsClarifiedFacts=work.consented&&work.previousAnswer&&work.context&&work.localContext&&work.localContextConsented&&clarifiedTopic&&clarifiedTopic===currentIntakeContext(work.context).topic;
+ const localQuestion=[inheritsClarifiedFacts?work.context:work.localContext||(followsAnswer?work.context:''),work.intakeQuestion].filter(Boolean).join('\n');
  const intake=currentIntakeContext(localQuestion);
  const initial=intakeClarification(localQuestion,work.clarificationKeys,work.intakeAnswers);
  const clarify=(value:{key:string;text:string})=>unrepeatedClarification(value,work.previousQuestions,localQuestion);
