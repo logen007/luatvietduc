@@ -1004,6 +1004,7 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 
 /* Library hierarchy follows the title and lists ancestors only. */
 .lvd-public-site .catalog-page .page-heading>.breadcrumb{margin:18px 0 0;gap:10px;font-size:13px;line-height:1.5}
+.catalog-page>.pm-fields-grid{display:none}
 /* Reference interactions use our existing public typography and 4px corners.
    Reuse these values for additions; reference sites do not define our styling. */
 .lvd-redesign{--lvd-public-control-radius:4px;--lvd-public-card-radius:4px;--lvd-public-action-size:14px;--lvd-public-body-size:16px;--lvd-public-card-title-size:24px;--lvd-public-control-min-height:44px}
