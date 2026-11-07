@@ -1,4 +1,5 @@
 'use client';
+import {AppLink} from '../shared/AppLink';
 import {useRouter} from 'next/navigation';
 import {createContext,useContext,useEffect,useRef,useState} from 'react';
 import {DefaultListView,useAuth,useListDrawerContext,useListQuery,useSelection,useRouteTransition} from '@payloadcms/ui';
@@ -102,9 +103,9 @@ function MediaItems(){
  const href=(doc:MediaDoc)=>'/admin/collections/media/'+doc.id;
  if(mode==='grid')return <><div className="lvd-media-grid">{docs.map(doc=><div key={doc.id} className={'lvd-media-tile'+(selected.get(doc.id)?' is-selected':'')}>
   {bulk&&<label className="lvd-media-checkbox">{checkbox(doc)}</label>}
-  <a href={href(doc)} className="lvd-media-tile-link" title={mediaName(doc)} onClick={e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();if(busy)return;if(bulk){if(editable.has(doc.id))setSelection(doc.id);}else setOpened(doc.id);}}><FilePreview doc={doc}/><span className="lvd-media-tile-name" title={mediaName(doc)}>{mediaName(doc)}</span></a>
+  <AppLink href={href(doc)} className="lvd-media-tile-link" title={mediaName(doc)} onClick={e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();if(busy)return;if(bulk){if(editable.has(doc.id))setSelection(doc.id);}else setOpened(doc.id);}}><FilePreview doc={doc}/><span className="lvd-media-tile-name" title={mediaName(doc)}>{mediaName(doc)}</span></AppLink>
  </div>)}</div>{details}</>;
- return <><div className="lvd-media-table-wrap"><table className="lvd-media-table"><thead><tr><th className="lvd-media-check-col"><PageSelection/></th><th>Tệp</th><th>Loại</th><th>Dung lượng</th><th>Ngày tải lên</th></tr></thead><tbody>{docs.map(doc=><tr key={doc.id} className={selected.get(doc.id)?'is-selected':''}><td className="lvd-media-check-col">{checkbox(doc)}</td><td><a className="lvd-media-file-row" href={href(doc)}><FilePreview doc={doc}/><span><strong>{doc.title||mediaName(doc)}</strong><small>{mediaName(doc)}</small>{doc.alt&&doc.alt!==mediaName(doc)&&<small>{doc.alt}</small>}</span></a></td><td>{doc.mimeType||'—'}</td><td>{size(doc.filesize)}</td><td>{doc.createdAt?new Date(doc.createdAt).toLocaleDateString('vi-VN'):'—'}</td></tr>)}</tbody></table></div>{details}</>;
+ return <><div className="lvd-media-table-wrap"><table className="lvd-media-table"><thead><tr><th className="lvd-media-check-col"><PageSelection/></th><th>Tệp</th><th>Loại</th><th>Dung lượng</th><th>Ngày tải lên</th></tr></thead><tbody>{docs.map(doc=><tr key={doc.id} className={selected.get(doc.id)?'is-selected':''}><td className="lvd-media-check-col">{checkbox(doc)}</td><td><AppLink className="lvd-media-file-row" href={href(doc)}><FilePreview doc={doc}/><span><strong>{doc.title||mediaName(doc)}</strong><small>{mediaName(doc)}</small>{doc.alt&&doc.alt!==mediaName(doc)&&<small>{doc.alt}</small>}</span></AppLink></td><td>{doc.mimeType||'—'}</td><td>{size(doc.filesize)}</td><td>{doc.createdAt?new Date(doc.createdAt).toLocaleDateString('vi-VN'):'—'}</td></tr>)}</tbody></table></div>{details}</>;
 }
 export function MediaLibrary(props:ListViewClientProps){
  const [mode,setMode]=useState<Mode>('grid'),[bulk,setBulk]=useState(false),[busy,setBusy]=useState(false),{isInDrawer}=useListDrawerContext();

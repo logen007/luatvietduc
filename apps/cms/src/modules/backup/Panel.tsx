@@ -1,4 +1,5 @@
 "use client";
+import {AppLink} from '../shared/AppLink';
 import {useEffect,useState} from 'react';
 import {IntegrationPanel} from '../integrations/Panel';
 import {useBackups} from './useBackups';
@@ -9,13 +10,13 @@ export function BackupPanel(){
  useEffect(()=>{const params=new URL(window.location.href).searchParams;setOAuthError(params.get('error')==='save-config-first'?driveOAuthMessage('failed','setup'):driveOAuthMessage(params.get('drive'),params.get('reason')));},[]);
  if(session.status==='error')return <div role="alert"><p>Chưa kiểm tra được phiên đăng nhập.</p><button type="button" onClick={()=>void reload()}>Thử lại</button></div>;
  if(session.status==='loading')return <p role="status">Đang kiểm tra phiên đăng nhập…</p>;
- if(!owner)return <p role="alert">Chỉ quản trị viên được quản lý sao lưu. <a href="/admin/login">Đăng nhập lại</a></p>;
+ if(!owner)return <p role="alert">Chỉ quản trị viên được quản lý sao lưu. <AppLink href="/admin/login">Đăng nhập lại</AppLink></p>;
  const disabled=busy||active||loading||Boolean(loadError)||!status?.runtime?.ready||!status?.drive?.enabled;
  return <div className="backup-panel">
   <p>Giữ 7 bản hằng ngày và 1 bản lưu theo tháng trên Google Drive. Bản sao được mã hóa trước khi gửi.</p>
   <IntegrationPanel providers={['drive']}/>
   <section className="lvd-admin-card"><h2>Kết nối tài khoản Drive</h2><p>Thêm redirect URI dưới đây vào OAuth Client dành riêng cho sao lưu:</p><code className="lvd-wrap-code">https://luatvietduc.com/service/backups/google/callback</code><p>Khóa age công khai dùng để mã hóa. Giữ khóa age bí mật ở nơi an toàn ngoài máy chủ; cần khóa này để khôi phục.</p>
-   <a className="lvd-admin-action" href="/service/backups/google/start">Kết nối Google Drive</a> <button type="button" disabled={busy} onClick={()=>void reload()}>Làm mới trạng thái</button>
+   <AppLink className="lvd-admin-action" href="/service/backups/google/start">Kết nối Google Drive</AppLink> <button type="button" disabled={busy} onClick={()=>void reload()}>Làm mới trạng thái</button>
    {oauthError&&<p role="alert" className="lvd-admin-error">{oauthError}</p>}
    {loading?<p role="status">Đang tải trạng thái sao lưu…</p>:status&&!loadError&&<p>{status.authorized?'Đã cấp quyền Drive. Kiểm tra và bật kết nối ở trên.':'Chưa cấp quyền Drive.'} · {status.runtime?.ready?'Tiến trình sao lưu sẵn sàng.':'Tiến trình sao lưu chưa sẵn sàng.'}</p>}
    {loadError&&<p role="alert" className="lvd-admin-error">{loadError} <button type="button" onClick={()=>void reload()}>Thử lại</button></p>}

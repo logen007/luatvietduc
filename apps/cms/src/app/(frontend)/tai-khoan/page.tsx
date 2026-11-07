@@ -1,4 +1,5 @@
 "use client";
+import {AppLink} from '../../../modules/shared/AppLink';
 import {useLocale} from "../../../modules/shared/locale";
 import {loadPublicSession,usePublicSession} from '../../../modules/shared/session-client';
 import { useEffect, useRef, useState } from "react";
@@ -48,30 +49,30 @@ export default function Page() {
             ) : data.user ? (
               <>
                 <div className="live-account-links">
-                  <a className="button" href={chatHref}> {t("Hội thoại của tôi")} <span aria-hidden="true">↗</span>
-                  </a>
+                  <AppLink className="button" href={chatHref}> {t("Hội thoại của tôi")} <span aria-hidden="true">↗</span>
+                  </AppLink>
                   {["owner", "support"].includes(
                     data.user.role,
                   ) && (
-                    <a className="live-account-link" href="/admin/inbox">
+                    <AppLink className="live-account-link" href="/admin/inbox">
                       <span> {t("Hộp thư chuyên viên")}
                       </span>
                       <span aria-hidden="true">↗</span>
-                    </a>
+                    </AppLink>
                   )}
                   {["owner","support"].includes(data.user.role) && (
-                    <a className="live-account-link" href="/admin">
+                    <AppLink className="live-account-link" href="/admin">
                       <span> {t("Quản trị nội dung")}
                       </span>
                       <span aria-hidden="true">↗</span>
-                    </a>
+                    </AppLink>
                   )}
                   {data.user.role === "owner" && (
-                    <a className="live-account-link" href="/admin/settings">
+                    <AppLink className="live-account-link" href="/admin/settings">
                       <span> {t("Kết nối hệ thống")}
                       </span>
                       <span aria-hidden="true">↗</span>
-                    </a>
+                    </AppLink>
                   )}
                 </div>
                 <button

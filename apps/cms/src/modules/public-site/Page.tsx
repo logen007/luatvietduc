@@ -52,9 +52,9 @@ export async function PublicPage({path:pathname,query}:{path:string;query:URLSea
  const displayQuery=new URLSearchParams(query);if(data.keyword&&!displayQuery.get('q'))displayQuery.set('q',data.keyword);const filter=displayQuery.get('linh-vuc');if(filter&&groupAliases[filter])displayQuery.set('linh-vuc',groupAliases[filter]);
  return <PublicFrame revision={revision} home={route.kind==='home'} articleHero={route.kind==='legacy-news'} section={section}>
   {route.kind==='home'&&articleList&&<Home groups={groups} partners={content.partners} news={articleList} revision={revision}/>}
-  {route.kind==='library'&&articleList&&<Library selectedCategory={data.selectedCategory?{id:data.selectedCategory.slug,title:data.selectedCategory.name}:undefined} groups={groups} group={groupView} country={route.country} topics={topics.slice((page-1)*20,page*20)} total={topics.length} page={page} path={pathname} query={displayQuery.toString()} articles={articleList}/>}
+  {route.kind==='library'&&articleList&&<Library key={pathname+'?'+displayQuery.toString()} selectedCategory={data.selectedCategory?{id:data.selectedCategory.slug,title:data.selectedCategory.name}:undefined} groups={groups} group={groupView} country={route.country} topics={topics.slice((page-1)*20,page*20)} total={topics.length} page={page} path={pathname} query={displayQuery.toString()} articles={articleList}/>}
   {route.kind==='topic'&&groupView&&topic&&<TopicPage group={groupView} topic={topic}/>}
-  {route.kind==='news'&&articleList&&<News articles={articleList} query={query.toString()} categories={content.newsCategories}/>}
+  {route.kind==='news'&&articleList&&<News key={query.toString()} articles={articleList} query={query.toString()} categories={content.newsCategories}/>}
   {route.kind==='legacy-news'&&data.story&&<LegacyStory story={data.story}/>}
   {route.kind==='about'&&<About team={content.team}/>}
   {route.kind==='privacy'&&<Policy copy={content.policies.privacy} extra={data.settings.privacyText||''}/>}

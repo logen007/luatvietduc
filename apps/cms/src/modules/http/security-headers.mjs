@@ -8,6 +8,11 @@ export function securityHeaders(){
    {key:'Content-Security-Policy',value:"frame-ancestors 'self'"},
    {key:'Referrer-Policy',value:'strict-origin-when-cross-origin'},
   ]},
+  // Packaged public visuals/fonts can be reused across documents as well as
+  // client transitions. Never apply this to uploads, transcripts or API files.
+  ...['/fonts/:path*','/assets/photos/:path*','/assets/flags/:path*','/assets/team/:path*','/assets/logos/:path*'].map(source=>({source,headers:[
+   {key:'Cache-Control',value:'public, max-age=3600'},
+  ]})),
   ...privateSources.map(source=>({source,headers:[
    {key:'Cache-Control',value:'private, no-store'},
    {key:'Referrer-Policy',value:'no-referrer'},

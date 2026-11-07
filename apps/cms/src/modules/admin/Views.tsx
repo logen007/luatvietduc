@@ -1,3 +1,4 @@
+import {AppLink} from '../shared/AppLink';
 import React from 'react';
 import {AnswerRulesPanel} from '../knowledge/AnswerRulesPanel';
 import {ArticleImportPanel} from '../content/ArticleImportPanel';
@@ -29,7 +30,7 @@ export function KnowledgeView(props:AdminViewServerProps){if(!guard(props,true))
 export function InboxView(props:AdminViewServerProps){return <Page props={props} page="inbox" compact>{guard(props,true)?<Workspace staff embedded/>:denied}</Page>}
 export function SettingsView(props:AdminViewServerProps){
  if(!guard(props))return <Page props={props} page="settings">{denied}</Page>;
- return <Page props={props} page="settings"><div className="lvd-admin-settings-grid">{adminSettingsSections.map(section=><section key={section.title}><h2>{section.title}</h2>{section.items.map(({label,href})=><a key={href} href={href}>{label}<span aria-hidden="true">↗</span></a>)}</section>)}</div></Page>;
+ return <Page props={props} page="settings"><div className="lvd-admin-settings-grid">{adminSettingsSections.map(section=><section key={section.title}><h2>{section.title}</h2>{section.items.map(({label,href})=><AppLink key={href} href={href}>{label}<span aria-hidden="true">↗</span></AppLink>)}</section>)}</div></Page>;
 }
 
 export function ArticleImportView(props:AdminViewServerProps){return <Page props={props} page="importArticles">{guard(props,true)?<ArticleImportPanel/>:denied}</Page>}

@@ -1,5 +1,26 @@
 # Cấu trúc đang chạy
 
+## Điều hướng và tài nguyên đã tải — 2026-11-07
+
+`shared/AppLink.tsx` dùng Next Link cho trang nội bộ ở website và các màn hình
+admin tùy chỉnh. Giữ thao tác mở tab mới, tải tệp, OAuth và cảnh báo bản nháp.
+Các trang phổ biến được tải trước; không tải trước admin/tài khoản, không lưu
+hội thoại hoặc thông tin xác thực vào bộ nhớ cache. Tìm kiếm Thư viện/Tin tức dùng
+Next Form, giữ đúng query và đặt lại ô nhập theo bộ lọc mới. Link trong bản sao
+chính sách cũng đi qua router. Khung chat giữ trình tự lưu nháp trước khi sang
+tài khoản và khóa chống gửi lặp từ trang chủ.
+
+Next giữ layout, mã và stylesheet đã nạp trong cùng khu vực; Back/Forward dùng
+router cache hiện có. Ảnh giao diện/font công khai dùng browser cache một giờ.
+Nội dung trang và dữ liệu động vẫn được kiểm tra lại khi cần; không cache HTML
+riêng tư lâu dài hoặc dùng service worker chặn mọi yêu cầu. Chuyển giữa hai root
+layout công khai/Payload vẫn do Next tải document mới; đăng nhập/đăng xuất/đổi
+quyền vẫn làm mới phiên. Không ghép hai root layout để bỏ ranh giới xác thực.
+
+Kiểm tra: TypeScript, production build, test phân loại link/cache/nháp/phiên và
+trình duyệt mobile/desktop cho chuyển trang, tìm kiếm, bộ lọc, chính sách, tài
+khoản và Hỏi đáp; dùng dữ liệu giả, không gọi nhà cung cấp.
+
 ## Rà soát phục hồi tiếp theo — 2026-11-05
 
 Trang tài khoản giữ mã verify/reset trong bộ nhớ của chính trang qua lỗi kiểm

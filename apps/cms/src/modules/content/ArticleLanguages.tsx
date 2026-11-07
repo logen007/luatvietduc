@@ -1,10 +1,12 @@
 'use client';
+import {useRouter} from 'next/navigation';
 import {useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useDocumentInfo,useField,useForm,useFormModified,useFormProcessing} from '@payloadcms/ui';
 import {translationList,translationTarget,translationText,type ArticleLanguage as Language,type LanguageSibling as Sibling} from './translation-client';
 const names={vi:'Tiếng Việt',de:'Tiếng Đức'};
 export function ArticleLanguages(){
+ const router=useRouter();
  const {id,data,documentIsLocked}=useDocumentInfo(),{getData,submit}=useForm(),modified=useFormModified(),processing=useFormProcessing();
  const {value:language='vi',setValue:setLanguage}=useField<Language>({path:'language'}),{setValue:setTitle}=useField<string>({path:'title'}),{setValue:setBody}=useField<string>({path:'body'});
  const [host,setHost]=useState<Element|null>(null),[siblings,setSiblings]=useState<Sibling[]|null>(null),[ready,setReady]=useState(false),[busy,setBusy]=useState<'switch'|'translation'|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[attempt,setAttempt]=useState(0);
@@ -31,10 +33,10 @@ export function ArticleLanguages(){
     updatedAt=(await latest.json()).updatedAt;
    }
    const sibling=siblings?.find(a=>a.language===other);
-   if(sibling){if(mounted.current&&!controller.signal.aborted)window.location.assign('/admin/collections/articles/'+sibling.id);return;}
+   if(sibling){if(mounted.current&&!controller.signal.aborted)router.push('/admin/collections/articles/'+sibling.id);return;}
    const response=await fetch('/service/articles/translations',{method:'POST',headers:{'content-type':'application/json'},signal:AbortSignal.any([controller.signal,AbortSignal.timeout(20000)]),body:JSON.stringify({id:Number(id),updatedAt,language:other,mode:'manual'})});
    const result=await response.json();if(!response.ok)throw new Error(result.error||'Chưa mở được bản ngôn ngữ.');
-   if(mounted.current&&!controller.signal.aborted)window.location.assign('/admin/collections/articles/'+translationTarget(result,controller.signal));
+   if(mounted.current&&!controller.signal.aborted)router.push('/admin/collections/articles/'+translationTarget(result,controller.signal));
   }catch(e){if(mounted.current&&!controller.signal.aborted)setError(e instanceof Error&&e.name==='Error'?e.message:'Chưa mở được bản ngôn ngữ. Thử lại.');}
   finally{if(flight.current===controller)flight.current=null;if(mounted.current)setBusy(null);}
  }

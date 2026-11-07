@@ -1,4 +1,5 @@
 'use client';
+import {AppLink} from '../shared/AppLink';
 import {useEffect,useRef,useState} from 'react';
 import {useAuth} from '@payloadcms/ui';
 import {api} from '../shared/client-api';
@@ -27,5 +28,5 @@ export function AnswerRulesPanel(){
 function RulesWorkspace(){
  const [rules,setRules]=useState<Rule[]|null>(null),[error,setError]=useState('');
  useEffect(()=>{let active=true;api('knowledge-answer-rules').then(result=>{if(active)setRules(answerRuleList(result));}).catch(error=>{if(active)setError(error.message);});return()=>{active=false;};},[]);
- return <div className="lvd-answer-rules"><p>Áp dụng cho các lượt trả lời tiếp theo. Quy tắc không phải nguồn căn cứ pháp luật.</p>{error?<p role="alert">{error} <button type="button" onClick={()=>window.location.reload()}>Thử lại</button></p>:!rules?<p role="status">Đang tải…</p>:rules.map(rule=><RuleEditor key={rule.key} initial={rule} onSaved={next=>setRules(previous=>previous!.map(item=>item.key===next.key?next:item))}/>)}<details className="lvd-answer-rule"><summary>Giới hạn hệ thống</summary><ul>{fixedAnswerSafeguards.map(text=><li key={text}>{text}</li>)}</ul><p>Các giới hạn này bảo vệ nguồn trả lời và dữ liệu, không thay đổi bằng nội dung quy tắc.</p></details><a href="/admin/collections/knowledge?where[entryType][equals]=rule">Quy tắc bổ sung →</a></div>;
+ return <div className="lvd-answer-rules"><p>Áp dụng cho các lượt trả lời tiếp theo. Quy tắc không phải nguồn căn cứ pháp luật.</p>{error?<p role="alert">{error} <button type="button" onClick={()=>window.location.reload()}>Thử lại</button></p>:!rules?<p role="status">Đang tải…</p>:rules.map(rule=><RuleEditor key={rule.key} initial={rule} onSaved={next=>setRules(previous=>previous!.map(item=>item.key===next.key?next:item))}/>)}<details className="lvd-answer-rule"><summary>Giới hạn hệ thống</summary><ul>{fixedAnswerSafeguards.map(text=><li key={text}>{text}</li>)}</ul><p>Các giới hạn này bảo vệ nguồn trả lời và dữ liệu, không thay đổi bằng nội dung quy tắc.</p></details><AppLink href="/admin/collections/knowledge?where[entryType][equals]=rule">Quy tắc bổ sung →</AppLink></div>;
 }

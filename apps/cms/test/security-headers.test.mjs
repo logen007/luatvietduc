@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {securityHeaders} from '../src/modules/http/security-headers.mjs';
+test('only packaged public fonts and image directories receive reusable browser cache headers',()=>{
+ const rules=securityHeaders().filter(rule=>rule.headers.some(header=>header.value==='public, max-age=3600'));
+ assert.deepEqual(rules.map(rule=>rule.source),['/fonts/:path*','/assets/photos/:path*','/assets/flags/:path*','/assets/team/:path*','/assets/logos/:path*']);
+});
 test('private pages, OAuth and APIs prohibit caching and referrer disclosure',()=>{
  const rules=securityHeaders();
  for(const source of ['/admin/:path*','/api/:path*','/service/:path*','/auth/:path*','/tai-khoan','/hoi-dap','/tro-chuyen']){

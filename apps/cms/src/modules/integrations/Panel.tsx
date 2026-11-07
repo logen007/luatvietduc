@@ -1,4 +1,5 @@
 "use client";
+import {AppLink} from '../shared/AppLink';
 import { useEffect, useRef, useState } from 'react';
 import { integrationCatalog, type Provider, type Values } from './catalog';
 import {ConnectionInstructions} from './Instructions';
@@ -68,8 +69,8 @@ export function IntegrationPanel({providers=['google','ai','translation','r2','e
   useEffect(()=>{let active=true;setError(null);setConnections(null);setRevision(session.revision);if(owner)request().then(data=>{if(active&&isPublicSessionCurrent(session.revision))setConnections(data.connections);}).catch(e=>{if(active&&isPublicSessionCurrent(session.revision))setError(e);});return()=>{active=false;};},[attempt,owner,session.revision]);
   if(session.status==='error')return <div role="alert"><p>Chưa kiểm tra được phiên đăng nhập.</p><button type="button" onClick={()=>void loadPublicSession().catch(()=>{})}>Thử lại</button></div>;
   if(session.status==='loading')return <p role="status">Đang kiểm tra phiên đăng nhập…</p>;
-  if(!owner)return <p role="alert">Chỉ quản trị viên được quản lý kết nối. <a href="/admin/login">Đăng nhập lại</a></p>;
-  if(error)return <div className="live-card"><p className="live-error" role="alert">{error.message}</p>{error.status===401?<a className="button" href="/admin/login">Đăng nhập lại</a>:error.status===403?<a className="button" href="/admin">Về tổng quan</a>:<button type="button" className="button" onClick={()=>setAttempt(value=>value+1)}>Thử lại</button>}</div>;
+  if(!owner)return <p role="alert">Chỉ quản trị viên được quản lý kết nối. <AppLink href="/admin/login">Đăng nhập lại</AppLink></p>;
+  if(error)return <div className="live-card"><p className="live-error" role="alert">{error.message}</p>{error.status===401?<AppLink className="button" href="/admin/login">Đăng nhập lại</AppLink>:error.status===403?<AppLink className="button" href="/admin">Về tổng quan</AppLink>:<button type="button" className="button" onClick={()=>setAttempt(value=>value+1)}>Thử lại</button>}</div>;
   if(revision!==session.revision||!connections)return <p role="status">Đang tải cấu hình…</p>;
   return <><p className="integration-intro">Lưu cấu hình → Kiểm tra → Bật sử dụng. Để trống ô khóa đã lưu nếu không thay đổi. Lưu bản mới sẽ tạm tắt kết nối đó cho đến khi anh kiểm tra và bật lại.</p><div className="integration-grid">{connections.filter(c=>providers.includes(c.provider)).map(connection=><ConnectionForm key={session.revision+':'+connection.provider} initial={connection} revision={session.revision}/>)}</div></>;
 }

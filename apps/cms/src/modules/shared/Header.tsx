@@ -1,4 +1,5 @@
 "use client";
+import {AppLink} from './AppLink';
 import {usePublicSession} from './session-client';
 import {accountView} from './account-state.mjs';
 import {useLocale} from "./locale";
@@ -29,16 +30,16 @@ export function Header({publicMode=false,activeSection='',onAccountNavigate}:{pu
     <>
       <header className="site-header live-header">
         <div className="container header-inner live-header-inner">
-          <a className="brand live-brand" href="/" aria-label={`${name} — ${t("Trang chủ")}`}>
+          <AppLink className="brand live-brand" href="/" aria-label={`${name} — ${t("Trang chủ")}`}>
             {shell.logo?<img className="public-brand-logo" src={shell.logo} alt={name} style={{height:shell.headerLogoHeight}}/>:<span className="brand-name">{name}</span>}
-          </a>
+          </AppLink>
           <nav className={'live-nav'+(publicMode?' desktop-nav':'')} aria-label={t("Điều hướng chính")}>
-            {publicLinks.map((link) => <a key={link.href} href={link.href} aria-current={link.key===activeSection?'location':undefined}>{t(link.label)}</a>)}
+            {publicLinks.map((link) => <AppLink key={link.href} href={link.href} aria-current={link.key===activeSection?'location':undefined}>{t(link.label)}</AppLink>)}
           </nav>
           <div className={'live-header-actions'+(publicMode?' header-tools':'')}>
             {session.user?.rolePreview&&<RolePreviewControl compact/>}
             <LanguageSwitch/>
-            <a className={'live-header-login-button button'+(publicMode?' header-login':'')} href={account.href} onClick={onAccountNavigate} aria-current={pathname === "/tai-khoan" ? "page" : undefined}>{account.label} {arrow}</a>
+            <AppLink className={'live-header-login-button button'+(publicMode?' header-login':'')} href={account.href} onClick={onAccountNavigate} aria-current={pathname === "/tai-khoan" ? "page" : undefined}>{account.label} {arrow}</AppLink>
             <button className="live-menu-button" type="button" aria-label={t("Mở menu")} aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="live-menu-dialog" onClick={() => { dialog.current?.showModal(); setMenuOpen(true); }}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </button>
@@ -51,10 +52,10 @@ export function Header({publicMode=false,activeSection='',onAccountNavigate}:{pu
           <button type="button" onClick={closeMenu} aria-label={t("Đóng menu")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" /></svg></button>
         </div>
         <nav aria-label={t("Menu")}>
-          {publicLinks.map((link) => <a key={link.href} href={link.href} onClick={closeMenu} aria-current={link.key===activeSection?'location':undefined}>{t(link.label)}{arrow}</a>)}
-          {!publicLinks.some(link=>link.href==='/lien-he')&&<a href="/lien-he" onClick={closeMenu}>{t("Liên hệ")} {arrow}</a>}
-          <a href={account.href} aria-current={pathname === "/tai-khoan" ? "page" : undefined} onClick={event=>{closeMenu();onAccountNavigate?.(event);}}>{account.label} {arrow}</a>
-          {account.management&&<a href={account.management.href} onClick={closeMenu}>{account.management.label} {arrow}</a>}
+          {publicLinks.map((link) => <AppLink key={link.href} href={link.href} onClick={closeMenu} aria-current={link.key===activeSection?'location':undefined}>{t(link.label)}{arrow}</AppLink>)}
+          {!publicLinks.some(link=>link.href==='/lien-he')&&<AppLink href="/lien-he" onClick={closeMenu}>{t("Liên hệ")} {arrow}</AppLink>}
+          <AppLink href={account.href} aria-current={pathname === "/tai-khoan" ? "page" : undefined} onClick={event=>{closeMenu();onAccountNavigate?.(event);}}>{account.label} {arrow}</AppLink>
+          {account.management&&<AppLink href={account.management.href} onClick={closeMenu}>{account.management.label} {arrow}</AppLink>}
           {session.status==='ready'&&session.user&&<button type="button" onClick={()=>void signOut()} disabled={loggingOut} aria-busy={loggingOut}>{t('Đăng xuất')} <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H4v14h5M13 8l4 4-4 4M8 12h13"/></svg></button>}
           {logoutError&&<p className="live-error" role="alert">{t(logoutError)}</p>}
         </nav>

@@ -1,4 +1,5 @@
 "use client";
+import {AppLink} from './AppLink';
 import {useLocale} from "./locale";
 import {useEffect,useState} from 'react';
 import siteVersion from "./site-version.json";
@@ -13,9 +14,9 @@ export function Footer() {
     <footer className="live-footer">
       <div className="live-footer-inner">
         <div className="live-footer-identity">
-          <a className="live-footer-wordmark" href="/">
+          <AppLink className="live-footer-wordmark" href="/">
             {shell.logo?<img className="public-footer-logo" src={shell.logo} alt={shell.name} style={{height:shell.footerLogoHeight}}/>:shell.name}
-          </a>
+          </AppLink>
           <p>{t(shell.tagline)}</p>
           <SocialLinks />
         </div>
@@ -29,7 +30,7 @@ export function Footer() {
             <ul>
               {column.links.map(([label, href]) => (
                 <li key={href}>
-                  <a href={href}>{t(label)}</a>
+                  <AppLink href={href}>{t(label)}</AppLink>
                 </li>
               ))}
             </ul>

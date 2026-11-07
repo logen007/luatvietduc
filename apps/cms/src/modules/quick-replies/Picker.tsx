@@ -1,4 +1,5 @@
 'use client';
+import {AppLink} from '../shared/AppLink';
 import {useEffect,useRef,useState} from 'react';
 import {invalidatePublicSession,isPublicSessionCurrent} from '../shared/session-client';
 type Reply={id:number;title:string;body:string};
@@ -29,7 +30,7 @@ export function QuickReplyPicker({disabled,revision,owner,onInsert}:{disabled:bo
  return <div className="operator-quick-replies" ref={root} onKeyDown={e=>{if(e.key==='Escape'){setOpen(false);root.current?.querySelector('button')?.focus();}}}>
   <button type="button" disabled={disabled} aria-expanded={open} aria-controls="operator-quick-reply-panel" onClick={()=>{setOpen(!open);setRetry(v=>v+1);}}>Chèn câu mẫu</button>
   {open&&!disabled&&<section id="operator-quick-reply-panel" className="operator-quick-panel" aria-label="Câu trả lời nhanh">
-   <header><strong>Câu trả lời nhanh</strong>{owner&&<a href="/admin/collections/quick-replies">Quản lý mẫu</a>}<button type="button" aria-label="Đóng câu trả lời nhanh" onClick={()=>setOpen(false)}>×</button></header>
+   <header><strong>Câu trả lời nhanh</strong>{owner&&<AppLink href="/admin/collections/quick-replies">Quản lý mẫu</AppLink>}<button type="button" aria-label="Đóng câu trả lời nhanh" onClick={()=>setOpen(false)}>×</button></header>
    <input type="search" aria-label="Tìm câu trả lời nhanh" placeholder="Tìm mẫu…" value={query} onChange={e=>{setQuery(e.target.value);setPage(1);}} onKeyDown={event=>{if(event.key==='Enter')event.preventDefault();}} autoFocus/>
    <div className="operator-quick-list" aria-busy={!ready&&!error}>
     {error?<p role="alert">{error} <button type="button" onClick={()=>setRetry(v=>v+1)}>Thử lại</button></p>:!ready?<p role="status">Đang tải…</p>:!result.docs.length?<p>{query?'Không tìm thấy mẫu.':'Chưa có mẫu trả lời.'}</p>:result.docs.map(reply=><button type="button" key={reply.id} onClick={()=>{if(onInsert(reply.body))setOpen(false);}}><strong>{reply.title}</strong><span>{reply.body}</span></button>)}

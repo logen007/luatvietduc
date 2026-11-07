@@ -1,3 +1,4 @@
+import {AppLink} from '../shared/AppLink';
 import React from "react";
 import {Gutter,SetStepNav} from "@payloadcms/ui";
 import {getPayload} from "payload";
@@ -46,28 +47,28 @@ export async function AdminWelcome({ user }: WelcomeProps) {
           <p className="lvd-admin-welcome__intro">{user?.name ? `Chào ${user.name}. ` : ""}Theo dõi công việc và mở nhanh mục cần xử lý.</p>
         </div>
       </header>
-      <div className="lvd-dashboard-stats">{stats.map(stat=><a href={stat.href} key={stat.label}><span>{stat.label}</span><strong>{stat.value===undefined?'—':stat.value.toLocaleString('vi-VN')}</strong><small>{stat.note}</small></a>)}</div>
+      <div className="lvd-dashboard-stats">{stats.map(stat=><AppLink href={stat.href} key={stat.label}><span>{stat.label}</span><strong>{stat.value===undefined?'—':stat.value.toLocaleString('vi-VN')}</strong><small>{stat.note}</small></AppLink>)}</div>
       <div className="lvd-dashboard-section-title"><h2>Thao tác nhanh</h2></div>
       {destinations.length > 0 && <nav className="lvd-admin-destinations" aria-label="Khu vực làm việc">
-        {destinations.map((item) => <a href={item.href} key={item.href} className="lvd-admin-destination">
+        {destinations.map((item) => <AppLink href={item.href} key={item.href} className="lvd-admin-destination">
           <span className="lvd-admin-destination__icon"><WorkIcon name={item.icon} /></span>
           <span className="lvd-admin-destination__body"><strong>{item.title}</strong><span>{item.text}</span></span>
           <span className="lvd-admin-destination__arrow"><WorkIcon name="arrow" /></span>
-        </a>)}
+        </AppLink>)}
       </nav>}
       <div className="lvd-admin-workflow">
         <p><span className="lvd-admin-workflow__dot" aria-hidden="true" />Chỉ bài đã xuất bản và bật dùng cho AI mới được đưa vào kho trả lời.</p>
         <span></span>
       </div>
       {can.owner && connections && <section className="lvd-admin-connections" aria-labelledby="lvd-admin-connections-title">
-        <div className="lvd-admin-connections__heading"><h2 id="lvd-admin-connections-title">Kết nối hệ thống</h2><a href={adminLinks.connections.href}>Thiết lập kết nối <WorkIcon name="arrow" /></a></div>
+        <div className="lvd-admin-connections__heading"><h2 id="lvd-admin-connections-title">Kết nối hệ thống</h2><AppLink href={adminLinks.connections.href}>Thiết lập kết nối <WorkIcon name="arrow" /></AppLink></div>
         <div className="lvd-admin-connection-list">
           {connections.map(item=>{
             const configured=item.version>0||Object.values(item.stored).some(Boolean);
             const failed=item.checkState==='failed';
             const status=failed?'Kiểm tra lỗi':item.enabled?'Đang bật':configured?'Đang tắt':'Chưa cấu hình';
             const tone=failed?'error':item.enabled?'enabled':'disabled';
-            return <a key={item.provider} href={item.provider==='drive'?adminLinks.backups.href:adminLinks.connections.href} className="lvd-admin-connection"><span>{integrationCatalog[item.provider].title}</span><span className={'lvd-admin-status lvd-admin-status--'+tone}>{status}</span></a>;
+            return <AppLink key={item.provider} href={item.provider==='drive'?adminLinks.backups.href:adminLinks.connections.href} className="lvd-admin-connection"><span>{integrationCatalog[item.provider].title}</span><span className={'lvd-admin-status lvd-admin-status--'+tone}>{status}</span></AppLink>;
           })}
         </div>
       </section>}
@@ -80,7 +81,7 @@ export async function GoogleLogin() {
   return (
     <section className="lvd-admin-login" aria-labelledby="lvd-admin-login-title">
       <h1 id="lvd-admin-login-title">Đăng nhập</h1>
-      {googleConfigured && <><a className="lvd-admin-google-link" href="/auth/google"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.5 12.2c0-.6-.1-1.2-.2-1.8H12v3.4h4.8c-.2 1.1-.8 2-1.7 2.6v2.2h2.8c1.6-1.5 2.6-3.7 2.6-6.4ZM12 21c2.4 0 4.4-.8 5.9-2.2l-2.8-2.2c-.8.5-1.8.8-3.1.8-2.3 0-4.3-1.6-5-3.7H4.2V16c1.5 3 4.5 5 7.8 5ZM7 13.7a5.4 5.4 0 0 1 0-3.4V8H4.2a9 9 0 0 0 0 8L7 13.7ZM12 6.6c1.4 0 2.6.5 3.5 1.4L18 5.5A8.8 8.8 0 0 0 12 3c-3.3 0-6.3 2-7.8 5L7 10.3c.7-2.1 2.7-3.7 5-3.7Z" /></svg>Tiếp tục bằng Google</a><div className="lvd-admin-login__divider"><span>hoặc</span></div></>}
+      {googleConfigured && <><AppLink className="lvd-admin-google-link" href="/auth/google"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.5 12.2c0-.6-.1-1.2-.2-1.8H12v3.4h4.8c-.2 1.1-.8 2-1.7 2.6v2.2h2.8c1.6-1.5 2.6-3.7 2.6-6.4ZM12 21c2.4 0 4.4-.8 5.9-2.2l-2.8-2.2c-.8.5-1.8.8-3.1.8-2.3 0-4.3-1.6-5-3.7H4.2V16c1.5 3 4.5 5 7.8 5ZM7 13.7a5.4 5.4 0 0 1 0-3.4V8H4.2a9 9 0 0 0 0 8L7 13.7ZM12 6.6c1.4 0 2.6.5 3.5 1.4L18 5.5A8.8 8.8 0 0 0 12 3c-3.3 0-6.3 2-7.8 5L7 10.3c.7-2.1 2.7-3.7 5-3.7Z" /></svg>Tiếp tục bằng Google</AppLink><div className="lvd-admin-login__divider"><span>hoặc</span></div></>}
     </section>
   );
 }

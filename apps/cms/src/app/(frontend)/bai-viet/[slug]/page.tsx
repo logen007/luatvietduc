@@ -1,3 +1,4 @@
+import {AppLink} from '../../../../modules/shared/AppLink';
 import {photoForArticle} from '../../../../modules/public-site/search';
 import {articleHTML,articleText} from '../../../../modules/content/article-body';
 import {LocaleText,LocaleDate} from "../../../../modules/shared/locale";
@@ -35,10 +36,10 @@ export default async function Page({
               <img className="live-reading-backdrop" src={'/assets/photos/'+photoForArticle(a)+'-1200.webp'} alt="" aria-hidden="true" width={1200} height={800} fetchPriority="high"/>
               <div className="live-reading-heading-inner">
               <div className="live-reading-topline">
-                <a className="live-reading-return" href={parent.href}>
+                <AppLink className="live-reading-return" href={parent.href}>
                   <span aria-hidden="true">←</span>
                   <LocaleText text={parent.label}/>
-                </a>
+                </AppLink>
                 <time className="live-reading-meta" dateTime={a.updatedAt}>
                   <LocaleText text="Cập nhật"/> <LocaleDate value={a.updatedAt}/>
                 </time>
@@ -51,15 +52,15 @@ export default async function Page({
               <div id="noi-dung" className="live-body" lang={a.language==='de'?'de':'vi'} dangerouslySetInnerHTML={{__html:articleHTML(a.body)}}/>
               <footer className="live-reading-footer">
                 {a.sourceUrl && (
-                  <a id="nguon-tham-khao" className="live-reading-source" href={a.sourceUrl} rel="noopener noreferrer">
+                  <AppLink id="nguon-tham-khao" className="live-reading-source" href={a.sourceUrl} rel="noopener noreferrer">
                     <LocaleText text="Nguồn tham khảo"/>
                     <span aria-hidden="true">↗</span>
-                  </a>
+                  </AppLink>
                 )}
-                <a className="live-reading-question" href="/hoi-dap">
+                <AppLink className="live-reading-question" href="/hoi-dap">
                   <LocaleText text="Gửi câu hỏi"/>
                   <span aria-hidden="true">→</span>
-                </a>
+                </AppLink>
               </footer>
             </div>
           </article>

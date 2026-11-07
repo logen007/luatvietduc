@@ -1,4 +1,5 @@
 "use client";
+import {useRouter} from 'next/navigation';
 import {useEffect,useRef,useState} from "react";
 import {api,ClientApiError} from "../shared/client-api";
 import {canEnterAdmin} from '../identity/permissions';
@@ -12,6 +13,7 @@ import {loadPublicSettings} from '../settings/client';
 import {applyTransitionReceipt} from './transition-receipt';
 import {createDraftBook,draftMatchesDelivery,draftOwnerKey,handoffKey,saveDraftHandoff,takeDraftHandoff} from './drafts';
 export function useWorkspace(staff=false,manageList=true){
+  const router=useRouter();
   const session=usePublicSession(),me=session.status==='ready'?session.data:null;
   const [ownerRevision,setOwnerRevision]=useState(-1),[intakeAttempt,setIntakeAttempt]=useState(0),[initializationFailed,setInitializationFailed]=useState(false);
   const visible=session.status==='ready'&&ownerRevision===session.revision;
@@ -370,7 +372,8 @@ export function useWorkspace(staff=false,manageList=true){
       if(!valid())return;
       if(id&&(text||attachments.length))saveDraftHandoff(sessionStorage,me?.user?.id||null,id,{text,attachments},Date.now(),outbox.current.pendingKey(id,{body:text.trim(),internal:false,fileIds:attachments.map(file=>file.id)}));
       // Persist first. A blocked storage write keeps the draft on screen.
-      window.location.assign(destination+(id?'?conversation='+encodeURIComponent(id):''));
+      const href=destination+(id?'?conversation='+encodeURIComponent(id):'');
+      if(destination==='/tai-khoan')router.push(href);else window.location.assign(href);
     }catch(e){if(valid())setError((e as Error).message||'Chưa giữ được bản nháp. Vui lòng thử lại.');}
     finally{if(operations.current.end(ticket)&&current())setBusy(false);}
   }

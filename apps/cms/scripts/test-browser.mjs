@@ -24,6 +24,7 @@ try{
  assert.ok(ready,'Built CMS server did not become ready');browser=await chromium.launch({headless:true,...(process.env.LVD_TEST_BROWSER_EXECUTABLE?{executablePath:process.env.LVD_TEST_BROWSER_EXECUTABLE}:{})});
  await (await import('./test-loading-stability.mjs')).testLoadingStability(browser,base,payload,pool,owner);
  await (await import('./test-homepage-intake.mjs')).testHomepageIntake(browser,base);
+ await (await import('./test-client-navigation.mjs')).testClientNavigation(browser,base);
  await (await import('./test-home-services.mjs')).testHomeServices(browser,base);
  await (await import('./test-chat-login-retry.mjs')).testChatLoginRetry(browser,base,payload,pool,owner);
  const context=await browser.newContext({viewport:{width:390,height:844}});
@@ -206,7 +207,8 @@ try{
  await page.goto(base+'/admin/collections/articles/'+translationSource.id);await page.locator('.lvd-article-language-actions').waitFor();
  const languageListError=page.locator('.lvd-translation-error').filter({hasText:'Chưa đọc được bản ngôn ngữ.'});await languageListError.waitFor();assert.equal(await page.locator('#field-title').inputValue(),translationSource.title);malformedTranslationList=false;await languageListError.getByRole('button',{name:'Thử lại',exact:true}).click();await languageListError.waitFor({state:'hidden'});
  assert.equal(await page.getByText('Thông tin bổ sung',{exact:true}).count(),0);
- await page.getByRole('button',{name:'Chuyển bài viết sang Tiếng Đức',exact:true}).click();assert.equal(translationsRequested,0,'Switching to an existing language never invokes AI');await page.waitForURL('**/admin/collections/articles/'+translationCopy.id);
+ await page.evaluate(()=>{window.__articleLanguageDocument='retained';});
+ await page.getByRole('button',{name:'Chuyển bài viết sang Tiếng Đức',exact:true}).click();assert.equal(translationsRequested,0,'Switching to an existing language never invokes AI');await page.waitForURL('**/admin/collections/articles/'+translationCopy.id);assert.equal(await page.evaluate(()=>window.__articleLanguageDocument),'retained','Manual language switching keeps the native admin document');
  // A stalled source read must time out, retain the editor and unlock actions.
  const sourceRead=url=>url.origin===base&&url.pathname==='/api/articles/'+translationSource.id&&url.searchParams.get('draft')==='true'&&url.searchParams.get('depth')==='0';let heldSourceRead;
  const holdSourceRead=route=>{heldSourceRead=route;};await page.route(sourceRead,holdSourceRead);

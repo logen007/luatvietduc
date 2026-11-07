@@ -115,7 +115,9 @@ export async function testChatLoginDraftHandoff({page,base}){
   await page.locator('.chat-compose input[type=file]').setInputFiles({name:'Synthetic login draft.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic!')});
   await page.getByRole('button',{name:'Bỏ tệp Synthetic login draft.txt',exact:true}).waitFor();
   await page.evaluate(key=>sessionStorage.setItem(key,'Synthetic private staff draft'),staffDraft);
+  await page.evaluate(()=>{window.__chatAccountDocument='retained';});
   if(await page.locator('.live-header-login-button').isVisible())await page.locator('.live-header-login-button').click();else{await page.getByRole('button',{name:'Mở menu',exact:true}).click();await page.locator('.live-menu-dialog').getByRole('link',{name:'Đăng nhập',exact:true}).click();}await page.waitForURL(url=>url.pathname==='/tai-khoan'&&url.searchParams.get('conversation')===id);
+  assert.equal(await page.evaluate(()=>window.__chatAccountDocument),'retained','Opening the account keeps the chat document after saving the draft');
   assert.equal(await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)).conversation,handoff),id);
   await page.locator('.live-auth-switch a').click();await page.getByRole('heading',{name:'Đăng nhập',exact:true}).waitFor();
   await page.getByLabel('Địa chỉ email',{exact:true}).fill('synthetic-login@example.invalid');await page.getByLabel('Mật khẩu',{exact:true}).fill('Synthetic-password-login-123');
