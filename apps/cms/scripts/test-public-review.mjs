@@ -83,9 +83,20 @@ export async function testPublicReview({page,context,base,owner}){
   assert.equal(heroStyle.heroBackground,'rgb(11, 11, 11)');assert.equal(heroStyle.headerBackground[3],0,'The white menu remains visible over the transparent hero header');
   await menu.click();await page.locator('.live-menu-dialog').waitFor({state:'visible'});await page.locator('.live-menu-heading button').click();
   await page.evaluate(()=>window.scrollTo(0,160));
+  await page.waitForFunction(()=>window.scrollY>=159);
+  assert.equal(await page.locator('.pm-home.pm-scrolled').count(),0,'Scrolling within the dark hero must not reveal a white header');
+  checkMenu(await menuStyle(),'rgb(255, 255, 255)');
+  const boundary=await page.evaluate(()=>{const hero=document.querySelector('.pm-hero').getBoundingClientRect(),header=document.querySelector('.site-header').getBoundingClientRect();return window.scrollY+hero.bottom-header.bottom-48;});
+  await page.evaluate(y=>window.scrollTo(0,y),boundary-24);
+  await page.waitForFunction(y=>Math.abs(window.scrollY-y)<2,boundary-24);
+  assert.equal(await page.locator('.pm-home.pm-scrolled').count(),0,'Header stays transparent before the hero boundary');
+  await page.evaluate(y=>window.scrollTo(0,y),boundary+24);
   await page.waitForFunction(()=>document.querySelector('.pm-home.pm-scrolled')&&getComputedStyle(document.querySelector('.site-header')).color==='rgb(11, 11, 11)');
   const scrolledStyle=await menuStyle();checkMenu(scrolledStyle,'rgb(11, 11, 11)');
-  assert.ok(scrolledStyle.headerBackground.slice(0,3).every(channel=>channel>=240)&&scrolledStyle.headerBackground[3]>=.9,'The dark menu contrasts with the white scrolled header');
+  assert.ok(scrolledStyle.headerBackground.slice(0,3).every(channel=>channel>=240)&&scrolledStyle.headerBackground[3]>=.9,'The dark menu contrasts with the white header near light content');
+  await page.evaluate(()=>window.scrollTo(0,0));
+  await page.waitForFunction(()=>document.querySelector('.pm-home:not(.pm-scrolled)')&&getComputedStyle(document.querySelector('.site-header')).color==='rgb(255, 255, 255)');
+  checkMenu(await menuStyle(),'rgb(255, 255, 255)');
   console.log('Public review browser checks passed: persisted session recovery, retained drafts, library view and mobile menu colors');
  }finally{
   held?.release();held=null;await page.unroute(sessionPattern,sessionRoute);
