@@ -53,10 +53,14 @@ Full CI and production still build separately. Moving prebuilt CI artifacts into
 
 ### Measured delivery probes
 
-On 2026-11-07, separate unchanged-UI probes covered bilingual copy, CSS tokens and a photo with an ignored RIFF chunk (decoded pixels verified identical; chunk removed after the probe). Before shorter polling: copy activation was confirmed 48.7 seconds after push start, CSS appeared publicly in 37.4 seconds, and the photo appeared in 51.2 seconds. These are observed end-to-end samples, not guarantees. The app backend stayed at the same commit for all three. The subsequent policy reduces idle/presentation retry intervals from 15 to 5 seconds; measure follow-up pushes after installation before claiming an improvement.
+On 2026-11-07, separate unchanged-UI probes covered bilingual copy, CSS tokens and a photo with an ignored RIFF chunk (decoded pixels verified identical; chunk removed after the probe). Before shorter polling: copy activation was confirmed 48.7 seconds after push start, CSS appeared publicly in 37.4 seconds, and the photo release metadata appeared in 51.2 seconds. The original unversioned CDN photo URL still returned older bytes, which prompted the content-version fix below. These are observed end-to-end samples, not guarantees. The app backend stayed at the same commit for all three. The subsequent policy reduces idle/presentation retry intervals from 15 to 5 seconds; measure follow-up pushes after installation before claiming an improvement.
 
 The first copy-only follow-up after five-second polling appeared publicly in 34.2 seconds (01.38.06). Runner startup and verification time still vary.
 
 ### Photo freshness
 
-Homepage benefit photo URLs use the SHA-256 of each photo (12 hexadecimal characters), calculated from one resolved public snapshot during server rendering. The same URLs hydrate on the client. Replacing a supported photo changes only that photo URL, avoiding stale CDN/browser responses without clearing the cache for unchanged photos. Photo-only updates continue through the snapshot lane after this application support is installed. No post-load DOM rewrite or uncached image download is required.
+Homepage benefit photo URLs use the SHA-256 of each photo (12 hexadecimal characters), calculated from one resolved public snapshot during server rendering. The same URLs hydrate on the client. Replacing a supported photo changes only that photo URL, avoiding stale CDN/browser responses without clearing the cache for unchanged photos. Photo-only updates continue through the snapshot lane after this application support is installed. No post-load DOM rewrite or blanket cache invalidation is required.
+
+After installation, the combined CSS/photo probe (01.38.09) appeared publicly in 29.5 seconds with the backend still at 01.38.08. Fetching all three rendered photo URLs verified that each response SHA-256 matched its URL; only the modified photo URL changed. The temporary nonvisual test chunk is removed in the following cleanup release.
+
+A local isolated benchmark also completed 50 snapshot switches and rejected 10 incomplete packages without changing the active pointer. Median switch plus checks: 12.19 ms, p95: 13.64 ms; these local filesystem timings exclude GitHub, network and production health checks and are not deployment latency claims.
