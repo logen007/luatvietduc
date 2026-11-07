@@ -163,7 +163,7 @@ body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) :is(button,a,input):focu
 .lvd-chat .chat-compose:focus-within{border-color:#555;outline:none;box-shadow:none}
 .lvd-chat .chat-compose textarea:is(:focus,:focus-visible){outline:none;box-shadow:none}
 
-.lvd-chat .chat-login-message a{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;margin:0 8px 4px 0;padding:9px 14px;border:1px solid #555;border-radius:4px;background:#383838;color:#dedede;font:500 14px/20px var(--lvd-font);text-decoration:none;vertical-align:middle;white-space:nowrap;transition:background-color .18s ease,border-color .18s ease,color .18s ease}
+.lvd-chat .chat-login-message a{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:28px;margin:0 6px 0 0;padding:4px 8px;border:1px solid #555;border-radius:4px;background:#383838;color:#dedede;font:500 12px/18px var(--lvd-font);text-decoration:none;vertical-align:middle;white-space:nowrap;transition:background-color .18s ease,border-color .18s ease,color .18s ease}
 .lvd-chat .chat-login-message a:hover{background:#484848;border-color:#6a6a6a;color:#f0f0f0}
 
 .lvd-chat .chat-message-time{color:#999;font:400 11px/1.5 var(--lvd-font);white-space:nowrap}
