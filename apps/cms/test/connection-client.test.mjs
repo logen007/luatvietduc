@@ -43,3 +43,29 @@ test('a missing save receipt keeps the outcome uncertain instead of claiming set
  try{globalThis.fetch=async()=>new Response('not-json');await assert.rejects(()=>requestConnection({action:'save',provider:'google',version:1,values:{}}),error=>error instanceof ConnectionError&&/Chưa xác nhận/.test(error.message));}
  finally{globalThis.fetch=previous;}
 });
+
+test('malformed nested connection responses fail before entering connection form state',async()=>{
+ const previous=globalThis.fetch;
+ try{
+  globalThis.fetch=async()=>Response.json({connections:[{}]});
+  await assert.rejects(()=>requestConnection(),error=>error instanceof ConnectionError&&/đọc được cấu hình/.test(error.message));
+  globalThis.fetch=async()=>Response.json({connection:{}});
+  await assert.rejects(()=>requestConnection({action:'save',provider:'ai'}),error=>error instanceof ConnectionError&&/Chưa xác nhận/.test(error.message));
+ }finally{globalThis.fetch=previous;}
+});
+
+test('catalogue-shaped version-zero and configured connections remain usable without exposing secret values',async()=>{
+ const {integrationCatalog}=await import('../src/modules/integrations/catalog.ts'),previous=globalThis.fetch;
+ const examples=Object.entries(integrationCatalog).map(([provider,definition])=>({provider,values:Object.fromEntries(definition.fields.filter(field=>!field.secret).map(field=>[field.key,''])),stored:Object.fromEntries(definition.fields.filter(field=>field.secret).map(field=>[field.key,false])),version:0,enabled:false,checkState:'untested',checkedAt:null,source:'environment'}));
+ try{
+  globalThis.fetch=async()=>Response.json({connections:examples});assert.deepEqual((await requestConnection()).connections,examples);
+  const configured={...examples.find(item=>item.provider==='ai'),version:1,enabled:true,checkState:'passed',checkedAt:'2026-11-07T00:00:00Z',source:'admin'};
+  globalThis.fetch=async()=>Response.json({connection:configured,message:'Đã lưu.'});assert.deepEqual((await requestConnection({provider:'ai'})).connection,configured);
+  for(const connection of [{...configured,provider:'unknown'},{...configured,values:null},{...configured,stored:null},{...configured,version:-1},{...configured,enabled:'false'},{...configured,checkState:'unknown'},{...configured,checkState:['passed']},{...configured,checkedAt:'not-a-date'},{...configured,values:{model:'',apiKey:'must-not-be-returned'}},{...configured,apiKey:'must-not-be-returned'},{...configured,stored:{apiKey:'true'}}]){
+   globalThis.fetch=async()=>Response.json({connections:[connection]});await assert.rejects(()=>requestConnection(),ConnectionError);
+   globalThis.fetch=async()=>Response.json({connection});await assert.rejects(()=>requestConnection({provider:'ai'}),ConnectionError);
+  }
+  globalThis.fetch=async()=>Response.json({connections:[configured,configured]});await assert.rejects(()=>requestConnection(),ConnectionError);
+  globalThis.fetch=async()=>Response.json({connection:configured});await assert.rejects(()=>requestConnection({provider:'google'}),ConnectionError);
+ }finally{globalThis.fetch=previous;}
+});
