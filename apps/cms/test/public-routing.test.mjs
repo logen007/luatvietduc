@@ -13,7 +13,15 @@ import {keepsLegacyCopy} from '../src/modules/public-site/legacy-news.ts';
 import {News} from '../src/modules/public-site/News.tsx';
 import {Home} from '../src/modules/public-site/Home.tsx';
 import {Contact} from '../src/modules/public-site/Contact.tsx';
+import LegacyChat from '../src/app/(frontend)/tro-chuyen/page.tsx';
 const content=JSON.parse(fs.readFileSync(new URL('../src/modules/public-site/content.json',import.meta.url)));
+
+test('legacy chat redirects with a release-probe-compatible status and preserves conversation queries',async()=>{
+ await assert.rejects(LegacyChat({searchParams:Promise.resolve({conversation:'synthetic',q:'x y',tag:['one','two']})}),error=>{
+  assert.equal(error.digest,'NEXT_REDIRECT;replace;/hoi-dap?conversation=synthetic&q=x+y&tag=one&tag=two;307;');
+  return true;
+ });
+});
 
 test('legacy hash navigation preserves searches, filters, context and aliases without external redirects',()=>{
  const cases=[['#/tra-cuu','/thu-vien'],['#/ve-chuyen-trang?muc=doi-ngu','/gioi-thieu#doi-ngu'],['#/chinh-sach-thong-tin','/quyen-rieng-tu'],['#/chu-de/nha-dat/02','/chu-de/nha-o-dat-dai/02'],['#/hoi-dap/old-article','/bai-viet/old-article'],['#/hoi-dap-ai','/hoi-dap'],['#/tro-chuyen?conversation=example#last','/hoi-dap?conversation=example#last'],['#/thu-vien-quan-tri','/admin/knowledge'],['#/song-o-duc?q=Berlin','/tin-tuc?loai=guide&q=Berlin'],['#/cong-dong','/tin-tuc?nhom=cong-dong'],['#/tin-phap-luat','/tin-tuc']];

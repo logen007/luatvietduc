@@ -38,7 +38,7 @@ try{
   assert.equal(geometry.width,44);assert.equal(geometry.height,44);assert.ok(geometry.dx<=1&&geometry.dy<=1,'Menu icon remains centered inside its only button frame');assert.equal(geometry.shadow,'none','No second frame around the icon');
  };
  const visible=async selector=>{await page.locator(selector).waitFor({state:'visible'});};
- const legacyChat=await context.request.get(base+'/tro-chuyen?conversation=synthetic&q=x%20y',{maxRedirects:0});assert.equal(legacyChat.status(),308);assert.equal(new URL(legacyChat.headers().location,base).pathname,'/hoi-dap');assert.equal(new URL(legacyChat.headers().location,base).searchParams.get('conversation'),'synthetic');assert.equal(new URL(legacyChat.headers().location,base).searchParams.get('q'),'x y');
+ const legacyChat=await context.request.get(base+'/tro-chuyen?conversation=synthetic&q=x%20y',{maxRedirects:0});assert.equal(legacyChat.status(),307);assert.equal(new URL(legacyChat.headers().location,base).pathname,'/hoi-dap');assert.equal(new URL(legacyChat.headers().location,base).searchParams.get('conversation'),'synthetic');assert.equal(new URL(legacyChat.headers().location,base).searchParams.get('q'),'x y');
  const homeResponse=await page.goto(base);await visible('#pm-title');await fits();
  assert.equal(homeResponse.headers()['x-content-type-options'],'nosniff');
  assert.equal(homeResponse.headers()['x-frame-options'],'SAMEORIGIN');
