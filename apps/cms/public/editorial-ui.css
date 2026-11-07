@@ -678,6 +678,13 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 .pm-hero-links a:hover { color:#fff; }
 
 @media(prefers-reduced-motion:reduce){.lvd-redesign .site-header{transition:none}}
+
+/* Keep the focused mobile question directly above the visible keyboard. */
+.pm-ask-slot{width:100%;max-width:640px;min-height:var(--pm-ask-height,0px)}
+@media(max-width:760px){
+ .lvd-redesign .pm-ask[data-docked="true"]{position:fixed;z-index:70;top:var(--pm-ask-bottom);bottom:auto;left:16px;right:16px;width:auto;max-width:none;transform:translateY(-100%);margin:0}
+ .lvd-redesign .pm-ask[data-docked="true"] textarea{resize:none}
+}
 /* Match the reference's footer-of-hero, masked, continuous logo strip. */
 .pm-partners { margin-top:auto; border-top:1px solid rgba(255,255,255,.1); background:linear-gradient(180deg,rgba(20,15,10,.32),rgba(10,8,6,.55)); -webkit-backdrop-filter:blur(12px) saturate(1.1); backdrop-filter:blur(12px) saturate(1.1); }
 .lvd-redesign .pm-partners-inner { display:flex; align-items:center; gap:32px; min-height:120px; padding-top:30px; padding-bottom:30px; }
