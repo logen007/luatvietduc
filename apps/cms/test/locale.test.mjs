@@ -2,7 +2,9 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import ts from 'typescript';
-import {translate} from '../src/modules/shared/locale/index.tsx';
+import {translate,LocaleDate,LocaleProvider} from '../src/modules/shared/locale/index.tsx';
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
 const dictionary=JSON.parse(fs.readFileSync(new URL('../src/modules/shared/locale/de.json',import.meta.url)));
 test('locale preserves original messages and interpolates names',()=>{
  assert.equal(translate('Xin chào, {name}','de',{name:'Nguyễn Văn A'}),'Hallo, Nguyễn Văn A');
@@ -43,4 +45,16 @@ test('account rate-limit feedback is translated to German while preserving Vietn
  const message='Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.';
  assert.equal(translate(message,'vi'),message);
  assert.equal(translate(message,'de'),'Sie führen zu viele Aktionen aus. Bitte versuchen Sie es in einer Minute erneut.');
+});
+
+
+test('article dates keep one calendar day across server and browser timezones',()=>{
+ const original=process.env.TZ,value='2026-11-06T23:30:00.000Z';
+ try{
+  for(const language of ['vi','de']){
+   const render=()=>renderToStaticMarkup(createElement(LocaleProvider,{language},createElement(LocaleDate,{value})));
+   process.env.TZ='UTC';const server=render();
+   for(const timezone of ['Asia/Tokyo','America/Los_Angeles','Europe/Berlin']){process.env.TZ=timezone;assert.equal(render(),server,language+' '+timezone);}
+  }
+ }finally{if(original===undefined)delete process.env.TZ;else process.env.TZ=original;}
 });

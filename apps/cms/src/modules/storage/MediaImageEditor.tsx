@@ -23,7 +23,7 @@ export function MediaImageEditor({doc,onClose,onSaved}:{doc:MediaItem;onClose:()
  function point(event:React.PointerEvent<SVGSVGElement>){const matrix=event.currentTarget.getScreenCTM();if(!matrix)return null;const p=new DOMPoint(event.clientX,event.clientY).matrixTransform(matrix.inverse());return {left:Math.max(0,Math.min(source.width-1,p.x)),top:Math.max(0,Math.min(source.height-1,p.y))};}
  function selection(event:React.PointerEvent<SVGSVGElement>){const start=drag.current,end=point(event);if(!start||!end)return null;return imageCrop(source.width,source.height,{left:Math.min(start.left,end.left),top:Math.min(start.top,end.top),width:Math.abs(end.left-start.left),height:Math.abs(end.top-start.top)});}
  async function save(operation:'edit'|'restore'){
-  if(flight.current||!allowed||!ready||!doc.updatedAt||(operation==='edit'&&!dirty))return;
+  if(flight.current||!allowed||!doc.updatedAt||(operation==='edit'&&(!ready||!dirty))||(operation==='restore'&&!mediaURL(doc.originalImageURL)))return;
   if(operation==='restore'&&!window.confirm('Khôi phục ảnh gốc và bỏ các chỉnh sửa hiện tại?'))return;
   const account=owner;flight.current=true;setBusy(true);setError('');
   try{
@@ -50,7 +50,7 @@ export function MediaImageEditor({doc,onClose,onSaved}:{doc:MediaItem;onClose:()
    <div className="lvd-image-editor-numbers">{([['left','X',0,source.width-1],['top','Y',0,source.height-1],['width','Chiều rộng',1,source.width-geometry.crop.left],['height','Chiều cao',1,source.height-geometry.crop.top]] as const).map(([field,label,min,max])=><label key={field}>{label}<input type="number" aria-label={'Vùng cắt: '+label} min={min} max={max} step="1" value={geometry.crop[field]} onChange={event=>updateCrop(field,Number(event.target.value))}/></label>)}</div>
    <h3>Thu nhỏ ảnh</h3><div className="lvd-image-editor-numbers"><label>Chiều rộng<input type="number" aria-label="Chiều rộng ảnh sau khi lưu" min="1" max={geometry.width} step="1" value={geometry.outputWidth} onChange={event=>change({...draft,scale:Math.max(1,Math.min(geometry.width,Number(event.target.value)||1))/geometry.width})}/></label><label>Chiều cao<input type="number" aria-label="Chiều cao ảnh sau khi lưu" min="1" max={geometry.height} step="1" value={geometry.outputHeight} onChange={event=>change({...draft,scale:Math.max(1,Math.min(geometry.height,Number(event.target.value)||1))/geometry.height})}/></label></div><p className="lvd-image-editor-hint">Giữ tỉ lệ ảnh; chỉ thu nhỏ.</p>
   </fieldset>{error&&<p role="alert">{error}</p>}{busy&&<p role="status">Đang lưu ảnh…</p>}
-  {mediaURL(doc.originalImageURL)&&<button type="button" disabled={busy||!ready} onClick={()=>void save('restore')}>Khôi phục ảnh gốc</button>}
+  {mediaURL(doc.originalImageURL)&&<button type="button" disabled={busy||!doc.updatedAt} onClick={()=>void save('restore')}>Khôi phục ảnh gốc</button>}
   </section></div><footer><button type="button" disabled={busy} onClick={close}>Hủy</button><button type="button" disabled={busy||!ready||!dirty||!doc.updatedAt} onClick={()=>void save('edit')}>Lưu ảnh</button></footer>
  </dialog>;
 }

@@ -8,11 +8,11 @@ export async function testMediaImageEditor({page,base,image}){
  const origin=new URL(base).origin;assert.ok(['127.0.0.1','localhost'].includes(new URL(origin).hostname));
  const returnUrl=page.url(),viewport=page.viewportSize(),prefix='/__lvd-image-editor-fixture/'+image.id;
  const sourceBytes=await sharp({create:{width:240,height:160,channels:3,background:'#b9c5ce'}}).png().toBuffer();let editedBytes=sourceBytes;
- let doc={...image,mimeType:'image/png',width:240,height:160,url:prefix+'/source.png',originalImageURL:undefined},requests=[],failNext=false,malformedNext=false,releaseFirst,fixtureFailure;
+ let doc={...image,mimeType:'image/png',width:240,height:160,url:prefix+'/source.png',originalImageURL:undefined},requests=[],failNext=false,malformedNext=false,failPreview=false,releaseFirst,fixtureFailure;
  const firstGate=new Promise(resolve=>{releaseFirst=resolve;});
  const assetPattern=origin+prefix+'/*',filePattern=origin+'/api/media/file/'+encodeURIComponent(image.filename)+'*';
  const metadataPattern=new RegExp('/api/media/'+image.id+'(?:\\?|$)'),operationPattern=origin+'/service/media/image/'+image.id;
- const assetRoute=route=>route.fulfill({contentType:'image/png',body:route.request().url().includes('/edited.png')?editedBytes:sourceBytes});
+ const assetRoute=route=>failPreview?route.fulfill({status:404,body:'Synthetic preview missing'}):route.fulfill({contentType:'image/png',body:route.request().url().includes('/edited.png')?editedBytes:sourceBytes});
  const metadataRoute=route=>route.request().method()==='GET'?route.fulfill({json:doc}):route.fallback();
  const operationRoute=async route=>{
   try{
@@ -55,6 +55,14 @@ export async function testMediaImageEditor({page,base,image}){
   page.once('dialog',dialog=>dialog.accept());await editor().getByRole('button',{name:'Hủy',exact:true}).click();await editor().waitFor({state:'detached'});assert.equal(requests.length,beforeCancel,'Cancel never writes an image draft');
 
   await open();page.once('dialog',dialog=>dialog.accept());await editor().getByRole('button',{name:'Khôi phục ảnh gốc',exact:true}).click();await editor().waitFor({state:'detached'});
+  assert.deepEqual(Object.keys(requests.at(-1)).sort(),['operation','updatedAt']);assert.equal(requests.at(-1).operation,'restore');
+
+  // Recovery reads the preserved original on the server, never the broken
+  // browser preview. Geometry edits remain blocked until an image loads.
+  failPreview=true;await open();await editor().getByRole('alert').filter({hasText:'Chưa tải được ảnh.'}).waitFor();
+  assert.equal(await editor().getByRole('button',{name:'Lưu ảnh',exact:true}).isDisabled(),true);
+  assert.equal(await editor().getByRole('button',{name:'Khôi phục ảnh gốc',exact:true}).isEnabled(),true);
+  failPreview=false;page.once('dialog',dialog=>dialog.accept());await editor().getByRole('button',{name:'Khôi phục ảnh gốc',exact:true}).click();await editor().waitFor({state:'detached'});
   assert.deepEqual(Object.keys(requests.at(-1)).sort(),['operation','updatedAt']);assert.equal(requests.at(-1).operation,'restore');
 
   await page.setViewportSize({width:390,height:844});await open();await editor().getByRole('button',{name:'Lật dọc',exact:true}).click();
