@@ -38,6 +38,7 @@ try{
   assert.equal(geometry.width,44);assert.equal(geometry.height,44);assert.ok(geometry.dx<=1&&geometry.dy<=1,'Menu icon remains centered inside its only button frame');assert.equal(geometry.shadow,'none','No second frame around the icon');
  };
  const visible=async selector=>{await page.locator(selector).waitFor({state:'visible'});};
+ const legacyChat=await context.request.get(base+'/tro-chuyen?conversation=synthetic&q=x%20y',{maxRedirects:0});assert.equal(legacyChat.status(),308);assert.equal(new URL(legacyChat.headers().location,base).pathname,'/hoi-dap');assert.equal(new URL(legacyChat.headers().location,base).searchParams.get('conversation'),'synthetic');assert.equal(new URL(legacyChat.headers().location,base).searchParams.get('q'),'x y');
  const homeResponse=await page.goto(base);await visible('#pm-title');await fits();
  assert.equal(homeResponse.headers()['x-content-type-options'],'nosniff');
  assert.equal(homeResponse.headers()['x-frame-options'],'SAMEORIGIN');
@@ -73,7 +74,7 @@ try{
  // Session is deliberately delayed to verify the loading state, not a fake guest.
  let releaseSession;const heldSession=new Promise(resolve=>{releaseSession=resolve;});
  await page.route('**/service/me',async route=>{await heldSession;await route.continue();});
- await page.goto(base+'/tro-chuyen');await page.getByText('Đang mở cuộc trò chuyện…',{exact:true}).waitFor();assert.equal(await page.locator('textarea').isDisabled(),true);
+ await page.goto(base+'/hoi-dap');await page.getByText('Đang mở cuộc trò chuyện…',{exact:true}).waitFor();assert.equal(await page.locator('textarea').isDisabled(),true);
  releaseSession();await page.locator('textarea').waitFor();
  await page.waitForFunction(()=>!document.querySelector('textarea')?.disabled);await fits();
  assert.equal(await page.getByRole('button',{name:'Choose Files',exact:true}).count(),0,'Hidden file input must not duplicate the accessible attachment action');
@@ -390,7 +391,7 @@ try{
  const draftRows=[{id:draftA,title:'Draft conversation A',state:'human',version:1,aiEnabled:false},{id:draftB,title:'Draft conversation B',state:'human',version:1,aiEnabled:false}];
  await page.route('**/service/conversations',route=>route.fulfill({json:draftRows}));
  for(const item of draftRows)await page.route(new RegExp('/service/conversations/'+item.id+'(?:[?]|$)'),route=>route.fulfill({json:{conversation:item,messages:[]}}));
- await page.goto(base+'/tro-chuyen?conversation='+draftA);const question=page.getByRole('textbox',{name:'Câu hỏi của bạn',exact:true});
+ await page.goto(base+'/hoi-dap?conversation='+draftA);const question=page.getByRole('textbox',{name:'Câu hỏi của bạn',exact:true});
  await question.waitFor();await page.waitForFunction(()=>!document.querySelector('textarea')?.disabled);
  await page.locator('.chat-log[aria-busy="false"]').waitFor();await page.locator('.chat-transcript').waitFor({state:'attached'});
  assert.equal(await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation A/}).getAttribute('aria-current'),'page','The requested human conversation is selected');
@@ -399,7 +400,7 @@ try{
  await question.fill('Synthetic draft A');await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation B/}).click();await question.fill('Synthetic draft B');
  await page.locator('.chat-sidebar').getByRole('button',{name:/Draft conversation A/}).click();assert.equal(await question.inputValue(),'Synthetic draft A');
  await page.locator('.chat-sidebar .chat-account').click();await page.waitForURL('**/tai-khoan?conversation='+draftA);
- await page.getByRole('link',{name:'Hội thoại của tôi',exact:false}).click();await page.waitForURL('**/tro-chuyen?conversation='+draftA);await page.waitForFunction(()=>document.querySelector('textarea')?.value==='Synthetic draft A');
+ await page.getByRole('link',{name:'Hội thoại của tôi',exact:false}).click();await page.waitForURL('**/hoi-dap?conversation='+draftA);await page.waitForFunction(()=>document.querySelector('textarea')?.value==='Synthetic draft A');
  // Backup loading is not shown as empty history. An accepted job remains
  // accepted when its following status read fails, with duplicate clicks gated.
  let releaseBackups;const pendingBackups=new Promise(resolve=>{releaseBackups=resolve;});let backupWrites=0,backupReadsFail=false,malformedBackupStatus=true,malformedBackupReceipt=true;let releaseBackupReconcile;const pendingBackupReconcile=new Promise(resolve=>{releaseBackupReconcile=resolve;});

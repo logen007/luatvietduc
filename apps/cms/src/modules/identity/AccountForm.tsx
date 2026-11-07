@@ -23,8 +23,8 @@ export function AccountForm({google,conversation,recoveryLink,onRecoveryLink}:{g
    if(!response.ok)throw new Error(typeof data?.error==='string'&&data.error?data.error:'Chưa thực hiện được yêu cầu. Vui lòng thử lại.');
    if(!isAccountSuccess(action,data))throw new Error('Chưa thực hiện được yêu cầu. Vui lòng thử lại.');
    if(action==='login'){
-    const destination=typeof data.redirectTo==='string'&&/^\/(?:tai-khoan|tro-chuyen)(?:\?|$)/.test(data.redirectTo)?data.redirectTo:'/tai-khoan';
-    invalidatePublicSession(destination==='/tro-chuyen?conversation='+encodeURIComponent(conversation)?{preserveCustomerHandoffFor:conversation}:undefined);
+    const destination=typeof data.redirectTo==='string'&&/^\/(?:tai-khoan|hoi-dap|tro-chuyen)(?:\?|$)/.test(data.redirectTo)?data.redirectTo:'/tai-khoan';
+    invalidatePublicSession(['/hoi-dap?conversation=','/tro-chuyen?conversation='].some(prefix=>destination===prefix+encodeURIComponent(conversation))?{preserveCustomerHandoffFor:conversation}:undefined);
     location.assign(destination);return;
    }
    if(action==='verify'||action==='reset'){switchMode('signin');setToken('');setStatus(action==='verify'?'Email đã được xác nhận. Bạn có thể đăng nhập.':'Đã đổi mật khẩu. Hãy đăng nhập bằng mật khẩu mới.');}

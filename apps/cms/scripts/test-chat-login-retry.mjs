@@ -26,7 +26,7 @@ export async function testChatLoginRetry(browser,base,payload,pool,owner){
      if(!lost){lost=true;return route.abort('failed');}
      return route.fulfill({response});
     });
-    await page.goto(base+'/tro-chuyen?conversation='+id);
+    await page.goto(base+'/hoi-dap?conversation='+id);
     const question=page.getByRole('textbox',{name:'Câu hỏi của bạn',exact:true});await question.waitFor();await page.waitForFunction(()=>!document.querySelector('.chat-compose textarea')?.disabled);
     if(withFile)await page.locator('.chat-compose input[type=file]').setInputFiles({name:file.name,mimeType:file.mimeType,buffer:Buffer.from('Synthetic123')});
     const body='Synthetic lost acknowledgment '+(withFile?'with file':'text only');await question.fill(body);await page.locator('.chat-compose button[type=submit]').click();
@@ -35,7 +35,7 @@ export async function testChatLoginRetry(browser,base,payload,pool,owner){
     if(!withFile){await page.getByRole('button',{name:'Mở lịch sử hội thoại',exact:true}).click();await page.locator('.chat-history-dialog .chat-account').click();}else await page.locator('.chat-sidebar .chat-account').click();
     await page.waitForURL('**/tai-khoan?conversation='+id);
     await page.goto(base+'/tai-khoan?mode=signin&conversation='+id);await page.getByLabel('Địa chỉ email',{exact:true}).fill(member.email);await page.getByLabel('Mật khẩu',{exact:true}).fill(password);await page.locator('.live-credentials-form button[type=submit]').click();
-    await page.waitForURL('**/tro-chuyen?conversation='+id);await question.waitFor();await page.waitForFunction(value=>document.querySelector('.chat-compose textarea')?.value===value,body);assert.equal(await question.inputValue(),body);
+    await page.waitForURL('**/hoi-dap?conversation='+id);await question.waitFor();await page.waitForFunction(value=>document.querySelector('.chat-compose textarea')?.value===value,body);assert.equal(await question.inputValue(),body);
     await page.locator('.chat-compose button[type=submit]').click();await page.waitForFunction(()=>document.querySelector('.chat-compose textarea')?.value==='');
     assert.equal(sends.length,2);assert.equal(sends[0].key,sends[1].key,'Login retry keeps the committed request key');
     assert.equal((await pool.query('SELECT count(*)::int AS n FROM lvd_messages WHERE conversation_id=$1',[id])).rows[0].n,39,'No duplicate after lost ACK and login');

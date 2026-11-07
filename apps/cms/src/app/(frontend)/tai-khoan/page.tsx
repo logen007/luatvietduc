@@ -14,7 +14,7 @@ export default function Page() {
   const [error,setError]=useState('');
   const [conversation,setConversation]=useState('');
   useEffect(()=>{const id=new URLSearchParams(window.location.search).get('conversation');if(id&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id))setConversation(id);},[]);
-  const returnQuery=conversation?'?conversation='+encodeURIComponent(conversation):'',chatHref='/tro-chuyen'+returnQuery;
+  const returnQuery=conversation?'?conversation='+encodeURIComponent(conversation):'',chatHref='/hoi-dap'+returnQuery;
   useEffect(()=>{setError(session.status==='error'?'Không thể kiểm tra phiên đăng nhập.':'');},[session.status]);
   return (
     <>

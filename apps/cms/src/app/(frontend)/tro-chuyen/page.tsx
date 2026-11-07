@@ -1,6 +1,9 @@
-import path from 'node:path';
-import {getPresentationVersion} from '../../../modules/shared/presentation-version.mjs';
-import { Workspace } from "../../../modules/chat/Workspace";
-export default function Page() {
-  return <><link rel="stylesheet" precedence="chat" href={'/customer-chat.css?v='+getPresentationVersion(path.join(process.cwd(),'public'))}/><Workspace /></>;
+import {permanentRedirect} from 'next/navigation';
+export default async function Page({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}){
+ const query=new URLSearchParams();
+ for(const [key,value] of Object.entries(await searchParams)){
+  if(Array.isArray(value))for(const entry of value)query.append(key,entry);
+  else if(typeof value==='string')query.set(key,value);
+ }
+ permanentRedirect('/hoi-dap'+(query.size?'?'+query.toString():''));
 }

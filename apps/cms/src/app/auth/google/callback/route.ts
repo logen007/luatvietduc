@@ -106,7 +106,7 @@ export async function GET(req: Request) {
     if (guest&&/^[\w-]{43}$/.test(guest))await linkGuestConversations(Number(userId),await hash(guest));
     const requested=typeof flow.conversationId==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(flow.conversationId)?flow.conversationId:null;
     const ownsRequested=requested&&(await pool.query('SELECT id FROM lvd_conversations WHERE id=$1 AND user_id=$2',[requested,userId])).rowCount===1;
-    const result = NextResponse.redirect(origin+(ownsRequested?'/tro-chuyen?conversation='+encodeURIComponent(requested!):'/tai-khoan'));
+    const result = NextResponse.redirect(origin+(ownsRequested?'/hoi-dap?conversation='+encodeURIComponent(requested!):'/tai-khoan'));
     setGoogleSession(result,token);
     return result;
   } catch {

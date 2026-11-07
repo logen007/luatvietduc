@@ -1,6 +1,6 @@
 // Response policy only. Authentication and resource authorization stay in services.
 export function securityHeaders(){
- const privateSources=['/admin/:path*','/api/:path*','/service/:path*','/auth/:path*','/tai-khoan','/tro-chuyen'];
+ const privateSources=['/admin/:path*','/api/:path*','/service/:path*','/auth/:path*','/tai-khoan','/hoi-dap','/tro-chuyen'];
  return [
   {source:'/:path*',headers:[
    {key:'X-Content-Type-Options',value:'nosniff'},

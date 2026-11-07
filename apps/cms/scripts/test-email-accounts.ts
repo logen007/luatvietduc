@@ -26,7 +26,7 @@ export async function testEmailAccounts(payload:Payload,owner:User){
   assert.equal((await call('login',{email,password})).status,401,'Pending email cannot sign in');
   assert.equal(outbox.length,1);const verification=/token=([a-f0-9]+)/.exec(String(outbox[0].html))![1];assert.ok(verification);assert.equal((await call('verify',{token:verification})).status,200);assert.equal((await call('verify',{token:verification})).status,400,'Verification is single use');
   assert.equal((await call('login',{email,password:'wrong synthetic password'})).status,401);
-  const login=await call('login',{email,password,conversation:conversation.id});assert.equal(login.status,200);const body=await login.json();assert.equal(body.redirectTo,'/tro-chuyen?conversation='+conversation.id);assert.ok(!('token' in body));
+  const login=await call('login',{email,password,conversation:conversation.id});assert.equal(login.status,200);const body=await login.json();assert.equal(body.redirectTo,'/hoi-dap?conversation='+conversation.id);assert.ok(!('token' in body));
   const cookie=login.headers.get('set-cookie')||'';assert.match(cookie,/HttpOnly/i);assert.match(cookie,/SameSite=lax/i);const token=/payload-token=([^;]+)/.exec(cookie)![1];const authenticated=await payload.auth({headers:new Headers({cookie:'payload-token='+token,origin})});assert.equal(authenticated.user?.id,userId);
   const linked=(await pool.query('SELECT user_id,guest_hash FROM lvd_conversations WHERE id=$1',[conversation.id])).rows[0];assert.equal(linked.user_id,userId);assert.equal(linked.guest_hash,null);
   const otherGuest=randomBytes(32).toString('base64url'),otherConversation=await chat.createConversation({user:null,guestHash:await hash(otherGuest)},{consent:true});

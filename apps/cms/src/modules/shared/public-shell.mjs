@@ -1,6 +1,6 @@
 // One public presentation contract for the retained pages and React pages.
 // No session, provider credentials or private settings belong here.
-const publicAliases={'/tra-cuu':'/thu-vien','/chu-de':'/thu-vien','/hoi-dap':'/thu-vien?xem=tat-ca','/ve-chuyen-trang':'/gioi-thieu','/chinh-sach-thong-tin':'/quyen-rieng-tu','/hoi-dap-ai':'/tro-chuyen','/gui-cau-hoi':'/tro-chuyen','/dang-nhap':'/tai-khoan?mode=signin','/tai-khoan/dang-nhap':'/tai-khoan?mode=signin','/khong-gian-ca-nhan':'/tai-khoan','/chuyen-vien':'/admin/inbox','/thu-vien-quan-tri':'/admin/knowledge','/so-do':'/tro-giup','/song-o-duc':'/tin-tuc?loai=guide','/cam-nang':'/tin-tuc?loai=guide','/goc-viet-kieu':'/tin-tuc?loai=guide','/tin-phap-luat':'/tin-tuc','/cong-dong':'/tin-tuc?nhom=cong-dong'};
+const publicAliases={'/tra-cuu':'/thu-vien','/chu-de':'/thu-vien','/tro-chuyen':'/hoi-dap','/ve-chuyen-trang':'/gioi-thieu','/chinh-sach-thong-tin':'/quyen-rieng-tu','/hoi-dap-ai':'/hoi-dap','/gui-cau-hoi':'/hoi-dap','/dang-nhap':'/tai-khoan?mode=signin','/tai-khoan/dang-nhap':'/tai-khoan?mode=signin','/khong-gian-ca-nhan':'/tai-khoan','/chuyen-vien':'/admin/inbox','/thu-vien-quan-tri':'/admin/knowledge','/so-do':'/tro-giup','/song-o-duc':'/tin-tuc?loai=guide','/cam-nang':'/tin-tuc?loai=guide','/goc-viet-kieu':'/tin-tuc?loai=guide','/tin-phap-luat':'/tin-tuc','/cong-dong':'/tin-tuc?nhom=cong-dong'};
 export const legacyGroupAliases={'gia-dinh':'hon-nhan-gia-dinh','lao-dong':'lao-dong-viec-lam-bhxh','cu-tru':'xuat-nhap-canh-cu-tru','nha-dat':'nha-o-dat-dai','dau-tu':'dau-tu-kinh-doanh-thuong-mai','ngan-hang':'tai-chinh-ngan-hang-bao-hiem','hanh-chinh':'to-tung-hanh-chinh'};
 export function publicHref(value){
  let raw=String(value||'').trim();if(raw.startsWith('#/'))raw='/'+raw;
@@ -11,7 +11,7 @@ export function publicHref(value){
  const group=/^(\/chu-de\/|\/phap-luat\/(?:viet-nam|duc)\/)([^/]+)(.*)$/.exec(path);
  if(group&&legacyGroupAliases[group[2]])target=group[1]+legacyGroupAliases[group[2]]+group[3];
  if(/^\/hoi-dap\/[^/]+$/.test(path))target='/bai-viet/'+path.split('/')[2];
- if(/^\/tai-khoan\/cau-hoi\/[^/]+$/.test(path)){target='/tro-chuyen';parsed.searchParams.set('conversation',path.split('/').at(-1));}
+ if(/^\/tai-khoan\/cau-hoi\/[^/]+$/.test(path)){target='/hoi-dap';parsed.searchParams.set('conversation',path.split('/').at(-1));}
  const result=new URL(target,'https://internal.invalid');for(const [key,value] of parsed.searchParams)result.searchParams.set(key,value);
  if(result.pathname==='/gioi-thieu'&&result.searchParams.get('muc')==='doi-ngu'){result.searchParams.delete('muc');result.hash='doi-ngu';}
  if(parsed.hash)result.hash=parsed.hash;

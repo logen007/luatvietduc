@@ -59,7 +59,7 @@ export async function POST(req:Request,context:{params:Promise<{action:string}>}
   const guest=cookieValue(req.headers,'lvd-guest');
   if(guest&&/^[\w-]{43}$/.test(guest))await linkGuestConversations(Number(login.user.id),await hash(guest));
   const owns=data.conversation&&(await pool.query('SELECT id FROM lvd_conversations WHERE id=$1 AND user_id=$2',[data.conversation,login.user.id])).rowCount===1;
-  const response=json({ok:true,redirectTo:owns?'/tro-chuyen?conversation='+encodeURIComponent(data.conversation):'/tai-khoan'});
+  const response=json({ok:true,redirectTo:owns?'/hoi-dap?conversation='+encodeURIComponent(data.conversation):'/tai-khoan'});
   setPasswordSession(response,{token:login.token,exp:login.exp});
   return response;
  }catch(error){

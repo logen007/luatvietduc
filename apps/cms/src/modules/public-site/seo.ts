@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
 import {publicArticles} from '../../access/articles';
 export const sitemapArticles={and:[publicArticles,{body:{not_equals:''}}]};
-export const privatePaths=['/admin','/api','/service','/auth','/health','/tai-khoan','/tro-chuyen','/quan-tri','/kien-thuc','/chuyen-vien'];
+export const privatePaths=['/admin','/api','/service','/auth','/health','/tai-khoan','/hoi-dap','/tro-chuyen','/quan-tri','/kien-thuc','/chuyen-vien'];
 export function siteOrigin(value=process.env.APP_URL||'https://luatvietduc.com'){
  const url=new URL(value);if(!['http:','https:'].includes(url.protocol)||url.username||url.password)throw new Error('Invalid public site origin');return url.origin;
 }

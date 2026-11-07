@@ -182,3 +182,8 @@ html .lvd-chat .chat-top h1{display:none}
  .lvd-chat[data-keyboard-open="true"] .chat-compose-wrap{flex:none;margin:0 auto;padding:8px 0 0}
  .lvd-chat[data-keyboard-open="true"] .chat-suggestions{display:none}
 }
+
+/* Animate opacity only: transformed ancestors would displace the mobile composer. */
+.lvd-chat{animation:lvd-chat-enter .42s cubic-bezier(.22,1,.36,1)}
+@keyframes lvd-chat-enter{from{opacity:.6}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.lvd-chat{animation:none}}

@@ -21,14 +21,14 @@ export async function testHomepageIntake(browser,base){
    });
    const page=await context.newPage();page.setDefaultTimeout(12000);
    if(mode==='topic'){
-    await page.goto(base+'/tro-chuyen?question='+encodeURIComponent(body));
+    await page.goto(base+'/hoi-dap?question='+encodeURIComponent(body));
     await page.locator('.chat-compose textarea:not(:disabled)').waitFor();
     assert.equal(await page.locator('.chat-compose textarea').inputValue(),body);assert.equal(sends,0);assert.equal(creates,0);
    }else{
     await page.goto(base);await page.locator('#home-question').fill(body);
     if(mode==='retry')initializationFailed=true;
     if(mode==='button')await page.locator('.pm-ask button[type=submit]').click();else await page.locator('#home-question').press('Enter');
-    await page.waitForURL('**/tro-chuyen');
+    await page.waitForURL('**/hoi-dap');
     if(mode==='retry'){await page.getByRole('button',{name:'Thử lại',exact:true}).waitFor();assert.equal(sends,0);initializationFailed=false;await page.getByRole('button',{name:'Thử lại',exact:true}).click();}
     await page.locator('.chat-message.user').filter({hasText:body}).waitFor();
     assert.equal(sends,1,'Homepage submission sends exactly once, without a second click');assert.equal(creates,1);

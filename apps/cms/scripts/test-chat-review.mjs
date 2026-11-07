@@ -73,7 +73,7 @@ export async function testCustomerHistoryRecovery({page,base}){
   assert.equal(request.method(),'GET');return route.fulfill({json:{conversation:{id,title:'Synthetic acknowledged chat',state:'queued',version:1,aiEnabled:false},messages:sent?[{id:'301',role:'user',body:sent.body,client_key:sent.key,created_at:'2026-11-05T00:00:00Z'}]:[]}});
  };
  try{
-  await page.route('**/service/me',session);await page.route(matches,handler);await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/tro-chuyen');
+  await page.route('**/service/me',session);await page.route(matches,handler);await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/hoi-dap');
   const question=page.getByRole('textbox',{name:'Câu hỏi của bạn',exact:true});await page.waitForFunction(()=>!document.querySelector('.chat-compose textarea')?.disabled);await question.fill('Synthetic sent question');
   const historyFailure=page.waitForResponse(r=>new URL(r.url()).pathname==='/service/conversations'&&r.status()===503);await page.getByRole('button',{name:'Gửi câu hỏi',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.chat-compose textarea')?.value==='');await historyFailure;
   await question.fill('Synthetic retained draft');await page.locator('.chat-compose input[type=file]').setInputFiles([{name:'Synthetic retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic!')},{name:'Synthetic rejected.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic!')}]);await page.getByRole('button',{name:'Bỏ tệp Synthetic retained.txt',exact:true}).waitFor();await page.getByRole('alert').filter({hasText:'Synthetic second upload unavailable'}).waitFor();assert.equal(uploads,2,'Failed uploads never retry automatically');assert.equal(await question.inputValue(),'Synthetic retained draft');assert.equal(await page.getByRole('button',{name:'Gửi câu hỏi',exact:true}).isEnabled(),true,'Partial failure releases the composer while preserving the first attachment');
@@ -107,10 +107,10 @@ export async function testChatLoginDraftHandoff({page,base}){
  };
  const login=route=>{
   const value=route.request().postDataJSON();assert.equal(value.conversation,id);assert.equal(value.email,'synthetic-login@example.invalid');
-  logins++;signedIn=true;return route.fulfill({json:{ok:true,redirectTo:'/tro-chuyen?conversation='+id}});
+  logins++;signedIn=true;return route.fulfill({json:{ok:true,redirectTo:'/hoi-dap?conversation='+id}});
  };
  try{
-  await page.route('**/service/me',session);await page.route(matches,chat);await page.route('**/service/auth/login',login);await page.goto(origin+'/tro-chuyen');
+  await page.route('**/service/me',session);await page.route(matches,chat);await page.route('**/service/auth/login',login);await page.goto(origin+'/hoi-dap');
   const question=page.getByRole('textbox',{name:'Câu hỏi của bạn',exact:true});await page.waitForFunction(()=>!document.querySelector('.chat-compose textarea')?.disabled);await question.fill(text);
   await page.locator('.chat-compose input[type=file]').setInputFiles({name:'Synthetic login draft.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic!')});
   await page.getByRole('button',{name:'Bỏ tệp Synthetic login draft.txt',exact:true}).waitFor();
@@ -119,7 +119,7 @@ export async function testChatLoginDraftHandoff({page,base}){
   assert.equal(await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)).conversation,handoff),id);
   await page.locator('.live-auth-switch a').click();await page.getByRole('heading',{name:'Đăng nhập',exact:true}).waitFor();
   await page.getByLabel('Địa chỉ email',{exact:true}).fill('synthetic-login@example.invalid');await page.getByLabel('Mật khẩu',{exact:true}).fill('Synthetic-password-login-123');
-  await page.locator('.live-credentials-form').getByRole('button',{name:'Đăng nhập',exact:true}).click();await page.waitForURL(url=>url.pathname==='/tro-chuyen'&&url.searchParams.get('conversation')===id);
+  await page.locator('.live-credentials-form').getByRole('button',{name:'Đăng nhập',exact:true}).click();await page.waitForURL(url=>url.pathname==='/hoi-dap'&&url.searchParams.get('conversation')===id);
   await page.waitForFunction(value=>document.querySelector('.chat-compose textarea')?.value===value,text);await page.getByRole('button',{name:'Bỏ tệp Synthetic login draft.txt',exact:true}).waitFor();
   assert.deepEqual(await page.evaluate(keys=>keys.map(key=>sessionStorage.getItem(key)),[handoff,staffDraft]),[null,null],'Customer handoff is consumed once and staff drafts never cross sign-in');
   assert.equal(uploads,1);assert.equal(logins,1);assert.equal(sends,0,'Restoring a linked guest draft must never send it');
@@ -157,7 +157,7 @@ export async function testChatSessionRecovery({page,base,owner}){
   };
   try{
    await page.route('**/service/me',session);await page.route('**/service/inbox?*',inbox);await page.route('**/service/assistant/questions',questions);await page.route(matches,handler);
-   await page.goto(origin+(staff?'/admin/inbox':'/tro-chuyen'));
+   await page.goto(origin+(staff?'/admin/inbox':'/hoi-dap'));
    const box=page.locator(staff?'.operator-composer textarea':'.chat-compose textarea'),send=()=>page.getByRole('button',{name:staff?'Gửi phản hồi':'Gửi câu hỏi',exact:!staff}),error=page.locator(staff?'.operator-error':'.chat-error');
    const select=async()=>{if(staff){await page.locator('.operator-workspace[aria-busy=false]').waitFor();await page.locator('.operator-thread').filter({hasText:'Synthetic recovery thread'}).click();}await page.waitForFunction(selector=>{const input=document.querySelector(selector);return input&&!input.disabled;},staff?'.operator-composer textarea':'.chat-compose textarea');};
    const attach=async()=>{await page.locator(staff?'.operator-composer input[type=file]':'.chat-compose input[type=file]').setInputFiles({name:'Synthetic session.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic!')});await page.getByRole('button',{name:'Bỏ tệp Synthetic session.txt',exact:true}).waitFor();};

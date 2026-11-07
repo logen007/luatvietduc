@@ -27,7 +27,7 @@ try{
   const robots=await (await fetch(base+'/robots.txt')).text();assert.equal(robots.includes('Sitemap:'),enabled);if(enabled)assert.ok(robots.includes('/admin')&&robots.includes('/service'));
   const sitemap=await (await fetch(base+'/sitemap.xml')).text();assert.equal(sitemap.includes('<sitemap>'),enabled);
   assert.equal((await fetch(base+'/bai-viet/'+draft.slug)).status,404);
-  for(const path of ['/tai-khoan','/tro-chuyen']){const html=await (await fetch(base+path,{headers})).text();assert.match(html,/<meta name="robots" content="noindex, nofollow"\/>/,path);}
+  for(const path of ['/tai-khoan','/hoi-dap']){const html=await (await fetch(base+path,{headers})).text();assert.match(html,/<meta name="robots" content="noindex, nofollow"\/>/,path);}
  }
  const redirect=await fetch(base+'/tra-cuu?q=quoc+tich&trang=2',{redirect:'manual'});assert.equal(redirect.status,308);assert.equal(redirect.headers.get('location'),'/thu-vien?q=quoc+tich&trang=2');
  assert.equal((await fetch(base+'/unknown-public-path')).status,404);assert.equal((await fetch(base+'/chu-de/quoc-tich/99')).status,404);

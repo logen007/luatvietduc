@@ -128,7 +128,7 @@ try {
   );
   for (const path of [
     "/",
-    "/tro-chuyen",
+    "/hoi-dap",
     "/tai-khoan",
     "/chuyen-vien",
     "/bai-viet",

@@ -11,6 +11,11 @@ import {ChatIcon} from './ui/Icons';
 export function CustomerWorkspace(){
  const {t,language}=useLocale();
  const state=useWorkspace(),dialog=useRef<HTMLDialogElement>(null),[historyOpen,setHistoryOpen]=useState(false),[questions,setQuestions]=useState<{id:number;title:string}[]>([]);
+ // Re-enter gently when a browser restores this page from its back/forward cache.
+ useEffect(()=>{
+  const enter=(event:PageTransitionEvent)=>{if(!event.persisted||matchMedia('(prefers-reduced-motion: reduce)').matches)return;state.shell.current?.animate([{opacity:.6},{opacity:1}],{duration:420,easing:'cubic-bezier(.22,1,.36,1)'});};
+  window.addEventListener('pageshow',enter);return()=>window.removeEventListener('pageshow',enter);
+ },[state.shell]);
  const close=()=>dialog.current?.close();
  const choose=(id:string)=>{if(state.setSelected(id))close();};
  const startNew=()=>{if(state.startNew())close();};

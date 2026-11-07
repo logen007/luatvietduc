@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 export async function testLoadingStability(browser,base,payload,pool,owner){
  assert.equal(new URL(base).hostname,'127.0.0.1');
  const before=await payload.findGlobal({slug:'site-settings',user:owner,overrideAccess:false});
- const routes=['/','/phap-luat/viet-nam','/phap-luat/duc','/chu-de/hon-nhan-gia-dinh','/tin-tuc','/gioi-thieu','/lien-he','/quyen-rieng-tu','/dieu-khoan','/tro-giup','/tai-khoan?mode=signin','/tai-khoan?mode=forgot','/tro-chuyen'];
+ const routes=['/','/phap-luat/viet-nam','/phap-luat/duc','/chu-de/hon-nhan-gia-dinh','/tin-tuc','/gioi-thieu','/lien-he','/quyen-rieng-tu','/dieu-khoan','/tro-giup','/tai-khoan?mode=signin','/tai-khoan?mode=forgot','/hoi-dap'];
  const article=(await payload.find({collection:'articles',overrideAccess:true,where:{_status:{equals:'published'}},limit:1})).docs[0];if(article?.slug)routes.push('/bai-viet/'+article.slug);
  let checked=0;
  try{

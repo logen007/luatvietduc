@@ -56,7 +56,7 @@ export default async function Page({
                     <span aria-hidden="true">↗</span>
                   </a>
                 )}
-                <a className="live-reading-question" href="/tro-chuyen">
+                <a className="live-reading-question" href="/hoi-dap">
                   <LocaleText text="Gửi câu hỏi"/>
                   <span aria-hidden="true">→</span>
                 </a>

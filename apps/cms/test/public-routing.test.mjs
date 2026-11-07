@@ -16,7 +16,7 @@ import {Contact} from '../src/modules/public-site/Contact.tsx';
 const content=JSON.parse(fs.readFileSync(new URL('../src/modules/public-site/content.json',import.meta.url)));
 
 test('legacy hash navigation preserves searches, filters, context and aliases without external redirects',()=>{
- const cases=[['#/tra-cuu','/thu-vien'],['#/ve-chuyen-trang?muc=doi-ngu','/gioi-thieu#doi-ngu'],['#/chinh-sach-thong-tin','/quyen-rieng-tu'],['#/chu-de/nha-dat/02','/chu-de/nha-o-dat-dai/02'],['#/hoi-dap/old-article','/bai-viet/old-article'],['#/hoi-dap-ai','/tro-chuyen'],['#/thu-vien-quan-tri','/admin/knowledge'],['#/song-o-duc?q=Berlin','/tin-tuc?loai=guide&q=Berlin'],['#/cong-dong','/tin-tuc?nhom=cong-dong'],['#/tin-phap-luat','/tin-tuc']];
+ const cases=[['#/tra-cuu','/thu-vien'],['#/ve-chuyen-trang?muc=doi-ngu','/gioi-thieu#doi-ngu'],['#/chinh-sach-thong-tin','/quyen-rieng-tu'],['#/chu-de/nha-dat/02','/chu-de/nha-o-dat-dai/02'],['#/hoi-dap/old-article','/bai-viet/old-article'],['#/hoi-dap-ai','/hoi-dap'],['#/tro-chuyen?conversation=example#last','/hoi-dap?conversation=example#last'],['#/thu-vien-quan-tri','/admin/knowledge'],['#/song-o-duc?q=Berlin','/tin-tuc?loai=guide&q=Berlin'],['#/cong-dong','/tin-tuc?nhom=cong-dong'],['#/tin-phap-luat','/tin-tuc']];
  for(const [old,current] of cases)assert.equal(legacyTarget(old),current,old);
  for(const value of ['#section','#//evil.invalid','#/\\evil.invalid','https://evil.invalid'])assert.equal(legacyTarget(value),null,value);
  const query=new URLSearchParams('q=quốc+tịch&linh-vuc=quoc-tich&sap-xep=a-z&trang=2');
@@ -28,7 +28,7 @@ test('legacy hash navigation preserves searches, filters, context and aliases wi
 
 test('public route registry excludes every private area and rejects malformed topic paths',()=>{
  for(const page of publicPages)assert.equal(resolvePublicRoute(page.path)?.kind,page.kind);
- for(const path of ['/admin','/admin/settings','/api/users','/service/me','/auth/google','/health/ready','/tai-khoan','/tro-chuyen','/chu-de/quoc-tich/00','/chu-de/quoc-tich/01/extra','/not-a-page'])assert.equal(resolvePublicRoute(path),null,path);
+ for(const path of ['/admin','/admin/settings','/api/users','/service/me','/auth/google','/health/ready','/tai-khoan','/hoi-dap','/chu-de/quoc-tich/00','/chu-de/quoc-tich/01/extra','/not-a-page'])assert.equal(resolvePublicRoute(path),null,path);
  assert.equal(resolvePublicRoute('/phap-luat/duc/quoc-tich')?.country,'DE');
  assert.equal(resolvePublicRoute('/thu-vien')?.country,'VN');assert.equal(resolvePublicRoute('/tim-kiem')?.country,'VN');
  assert.equal(resolvePublicRoute('/chu-de/gia-dinh/01')?.group,'hon-nhan-gia-dinh');
@@ -107,7 +107,7 @@ test('public indexing switch controls metadata without opening private areas',()
   const metadata=publicMetadata({title:'Synthetic',path:'/thu-vien',enabled});assert.equal(metadata.robots.index,enabled);assert.equal(metadata.robots.follow,enabled);assert.match(metadata.alternates.canonical,/\/thu-vien$/);
   assert.equal(publicMetadata({title:'Search',path:'/tim-kiem',enabled,indexable:false}).robots.index,false);
  }
- for(const path of ['/admin','/api','/service','/auth','/tai-khoan','/tro-chuyen'])assert.ok(privatePaths.includes(path));
+ for(const path of ['/admin','/api','/service','/auth','/tai-khoan','/hoi-dap'])assert.ok(privatePaths.includes(path));
 });
 
 test('sitemap index scales beyond one thousand articles and XML escapes content',()=>{
