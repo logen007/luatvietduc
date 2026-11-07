@@ -679,10 +679,10 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 
 @media(prefers-reduced-motion:reduce){.lvd-redesign .site-header{transition:none}}
 
-/* Keep the focused mobile question directly above the visible keyboard. */
+/* Preserve the question’s pre-keyboard position; move only if the keyboard would cover it. */
 .pm-ask-slot{width:100%;max-width:640px;min-height:var(--pm-ask-height,0px)}
 @media(max-width:760px){
- .lvd-redesign .pm-ask[data-docked="true"]{position:fixed;z-index:70;top:var(--pm-ask-bottom);bottom:auto;left:16px;right:16px;width:auto;max-width:none;transform:translateY(-100%);margin:0}
+ .lvd-redesign .pm-ask[data-docked="true"]{position:fixed;z-index:70;top:var(--pm-ask-top);bottom:auto;left:var(--pm-ask-left);right:auto;width:var(--pm-ask-width);max-width:none;transform:none;margin:0}
  .lvd-redesign .pm-ask[data-docked="true"] textarea{resize:none}
 }
 /* Match the reference's footer-of-hero, masked, continuous logo strip. */

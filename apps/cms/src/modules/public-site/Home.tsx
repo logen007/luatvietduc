@@ -28,20 +28,26 @@ export function Home({groups,partners,news,revision}:{groups:GroupSummary[];part
  const questionForm=useRef<HTMLFormElement>(null);
  useEffect(()=>{
   const viewport=window.visualViewport,form=questionForm.current;if(!viewport||!form)return;
-  const mobile=window.matchMedia('(max-width:760px)');let restingHeight=viewport.height,frame=0;
+  const mobile=window.matchMedia('(max-width:760px)');let restingHeight=viewport.height,frame=0,anchorTop:number|null=null;
+  const capture=()=>{if(anchorTop===null&&mobile.matches){anchorTop=form.getBoundingClientRect().top-viewport.offsetTop;}};
   const measure=()=>{
    const editing=form.contains(document.activeElement);
-   if(!editing)restingHeight=viewport.height;
+   if(!editing){restingHeight=viewport.height;anchorTop=null;}
    const dock=mobile.matches&&editing&&viewport.scale===1&&Math.max(restingHeight,document.documentElement.clientHeight)-viewport.height>120;
    if(dock){
     if(form.dataset.docked!=='true')form.parentElement?.style.setProperty('--pm-ask-height',form.getBoundingClientRect().height+'px');
-    form.style.setProperty('--pm-ask-bottom',viewport.offsetTop+viewport.height-8+'px');
-   }else{form.parentElement?.style.removeProperty('--pm-ask-height');form.style.removeProperty('--pm-ask-bottom');}
+    const top=Math.max(8,Math.min(anchorTop??form.parentElement!.getBoundingClientRect().top-viewport.offsetTop,viewport.height-form.offsetHeight-8));
+    const slot=form.parentElement!.getBoundingClientRect();
+    form.style.setProperty('--pm-ask-top',viewport.offsetTop+top+'px');
+    form.style.setProperty('--pm-ask-left',slot.left+'px');form.style.setProperty('--pm-ask-width',slot.width+'px');
+   }else{form.parentElement?.style.removeProperty('--pm-ask-height');form.style.removeProperty('--pm-ask-top');form.style.removeProperty('--pm-ask-left');form.style.removeProperty('--pm-ask-width');}
    form.dataset.docked=String(dock);
   };
   const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(measure);};
-  viewport.addEventListener('resize',schedule);viewport.addEventListener('scroll',schedule);window.addEventListener('resize',schedule);document.addEventListener('focusin',schedule);document.addEventListener('focusout',schedule);
-  return()=>{cancelAnimationFrame(frame);viewport.removeEventListener('resize',schedule);viewport.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);document.removeEventListener('focusin',schedule);document.removeEventListener('focusout',schedule);};
+  const focus=()=>{if(form.contains(document.activeElement))capture();schedule();};
+  form.addEventListener('pointerdown',capture);
+  viewport.addEventListener('resize',schedule);viewport.addEventListener('scroll',schedule);window.addEventListener('resize',schedule);document.addEventListener('focusin',focus);document.addEventListener('focusout',schedule);
+  return()=>{cancelAnimationFrame(frame);form.removeEventListener('pointerdown',capture);viewport.removeEventListener('resize',schedule);viewport.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);document.removeEventListener('focusin',focus);document.removeEventListener('focusout',schedule);};
  },[]);
  const warmChat=()=>{if(prefetched.current)return;prefetched.current=true;setWarmed(true);router.prefetch('/hoi-dap');};
  function ask(event:React.FormEvent<HTMLFormElement>){event.preventDefault();const question=String(new FormData(event.currentTarget).get('question')||'').trim();if(!question)return;try{sessionStorage.setItem('lvd-question',question);sessionStorage.setItem('lvd-question-submit',question);router.push('/hoi-dap');}catch{setError(l('Không thể lưu câu hỏi trong trình duyệt. Vui lòng mở trò chuyện để gửi.','Die Frage konnte im Browser nicht gespeichert werden. Bitte öffnen Sie den Chat.'));}}
