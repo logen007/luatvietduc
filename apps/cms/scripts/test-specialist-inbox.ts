@@ -11,6 +11,9 @@ export async function testSpecialistInbox(owner:User,staff:User,other:User,forei
  const c=await createConversation(guest,{consent:true});ids.push(c.id);
  await pool.query("UPDATE lvd_conversations SET jurisdiction='VN' WHERE id=$1",[c.id]);
  const title='Inbox-private-'+randomUUID();await message(guest,c.id,{key:randomUUID(),body:title},2000);
+ assert.equal((await transcript(guest,c.id)).conversation.title,'Cuộc trò chuyện mới','An unqualified first message must not name the conversation');
+ // Inbox search/pagination use an explicitly named fixture, independent of intake.
+ await pool.query('UPDATE lvd_conversations SET title=$2 WHERE id=$1',[c.id,title]);
  let list=await specialistInbox(actor,{query:c.id});assert.equal(list.total,1);assert.equal(list.rows[0].title,title);assert.equal(list.rows[0].last_role,'user');assert.equal((await specialistInbox(actor,{query:title})).total,1,'Specialists may search all inbox conversations');
  assert.equal((await specialistInbox({user:foreign,guestHash:''},{query:c.id})).total,1);
  assert.equal((await transcript(actor,c.id)).messages[0].body,title);
