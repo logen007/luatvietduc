@@ -141,6 +141,6 @@ Docker reuses one locked BuildKit compiler cache with a 768 MiB/50,000-entry bou
 
 ## Polling latency (01.38.05)
 
-The project-only release timer checks every 5 seconds. Pending presentation gates and a not-yet-visible presentation workflow retry after 5 seconds; application builds retain the 30-second pending wait. Actual GitHub rate-limit responses retain their Retry-After/reset cooldown (at least 180 seconds). No API calls run while the repository revision is unchanged. The same deployment lock, exact-commit gates, quarantine, candidate checks and rollback remain.
+The project-only release timer checks every 5 seconds. Pending presentation gates and a not-yet-visible presentation workflow retry after 5 seconds; application builds retain the 30-second pending wait. Actual GitHub rate-limit responses retain their Retry-After/reset cooldown (180 seconds by default when no retry header is supplied). No API calls run while the repository revision is unchanged. The same deployment lock, exact-commit gates, quarantine, candidate checks and rollback remain.
 
 `install-presentation-lane.py` installs the pinned timer together with the reviewed policy. It accepts only the observed legacy timer hash or the exact new contents, validates the unit before promotion, keeps the original timer with the policy backup, and updates the polling configuration after candidate/public health succeeds. The maintenance caller resumes the timer after installation.
