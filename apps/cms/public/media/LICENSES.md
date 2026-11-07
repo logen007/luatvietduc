@@ -34,3 +34,18 @@ Output: H.264720p25fps, silent, fast-start,3,049,532bytes. Mild saturation/contr
 `legal-hero-montage-v2.mp4` and `legal-hero-montage-poster-v2.webp` use the same six licensed sources above. Rendered again from source at 1920 × 1080, 25 fps, H.264 CRF 21, silent, fast-start; saturation 1.06 and contrast 1.02. CSS desaturation removed. These illustrative stock scenes do not establish that depicted people are Vietnamese or resident in Germany. Community-specific footage remains subject to sourcing.
 
 `legal-hero-mobile-v3.mp4` is a 1280px H.264 derivative of `legal-hero-montage-v2.mp4`, retaining its original scenes and permissions. Encoded with CRF 27, no audio, and faststart for mobile playback.
+
+## Asian office and Berlin stock montage (2026-11-07)
+
+`legal-hero-stock-v4.mp4`, `legal-hero-stock-mobile-v4.mp4` and `legal-hero-stock-poster-v4.webp` replace the homepage montage with six real stock scenes: an Asian businesswoman discussing work, documents, an Asian colleague at her desk, executive discussion, an evening Berlin bridge and the Berlin skyline.
+
+New sources retrieved and their Pexels license checked on 2026-11-07:
+
+- Felicity Tai, **Woman Talking to Colleagues**: https://www.pexels.com/video/woman-talking-to-colleagues-7953565/
+- Ketut Subiyanto, **A Woman Listening to her Coworkers at the Office**: https://www.pexels.com/video/a-woman-listening-to-her-coworkers-at-the-office-4624083/
+- Alex Moschopoulos, **Couple Enjoying Evening Stroll on Berlin Bridge**: https://www.pexels.com/video/couple-enjoying-evening-stroll-on-berlin-bridge-32201482/
+- License: https://www.pexels.com/license/
+
+The document, executive and skyline sources are credited above. This is an illustrative montage: the office models' nationality and filming location are not established as Vietnamese or Germany. They are not identified as our staff, customers or endorsers. No AI-generated footage is used.
+
+Six 4.5-second scenes with 0.4-second crossfades, 25 fps, H.264, silent, fast-start. Desktop is 1920 × 1080 CRF 22; mobile is 1280 × 720 CRF 26. Mild saturation 1.04 / contrast 1.01. Raw downloads and intermediates are kept outside this public repository.

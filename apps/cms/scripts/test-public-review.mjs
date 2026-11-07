@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 export async function testHeroLoading({context,base}){
  const origin=new URL(base).origin;assert.ok(['localhost','127.0.0.1'].includes(new URL(origin).hostname));
  for(const width of [390,1280]){
- const page=await context.newPage();let videoRequests=0;const videoPath=width<=760?'/media/legal-hero-mobile-v3.mp4':'/media/legal-hero-montage-v2.mp4';
+ const page=await context.newPage();let videoRequests=0;const videoPath=width<=760?'/media/legal-hero-stock-mobile-v4.mp4':'/media/legal-hero-stock-v4.mp4';
  try{
   await page.setViewportSize({width,height:844});await page.emulateMedia({reducedMotion:'no-preference'});
   // Hold only the hero observer's first delivery; real React/media code runs.
