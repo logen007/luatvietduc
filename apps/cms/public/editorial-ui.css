@@ -679,12 +679,7 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 
 @media(prefers-reduced-motion:reduce){.lvd-redesign .site-header{transition:none}}
 
-/* Preserve the question’s pre-keyboard position; move only if the keyboard would cover it. */
-.pm-ask-slot{width:100%;max-width:640px;min-height:var(--pm-ask-height,0px)}
-@media(max-width:760px){
- .lvd-redesign .pm-ask[data-docked="true"]{position:fixed;z-index:70;top:var(--pm-ask-top);bottom:auto;left:var(--pm-ask-left);right:auto;width:var(--pm-ask-width);max-width:none;transform:none;margin:0}
- .lvd-redesign .pm-ask[data-docked="true"] textarea{resize:none}
-}
+.pm-ask-slot{width:100%;max-width:640px}
 /* Match the reference's footer-of-hero, masked, continuous logo strip. */
 .pm-partners { margin-top:auto; border-top:1px solid rgba(255,255,255,.1); background:linear-gradient(180deg,rgba(20,15,10,.32),rgba(10,8,6,.55)); -webkit-backdrop-filter:blur(12px) saturate(1.1); backdrop-filter:blur(12px) saturate(1.1); }
 .lvd-redesign .pm-partners-inner { display:flex; align-items:center; gap:32px; min-height:120px; padding-top:30px; padding-bottom:30px; }
