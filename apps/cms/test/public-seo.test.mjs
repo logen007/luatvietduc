@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createElement} from 'react';
+import {StoryCard} from '../src/modules/public-site/ui.tsx';
 import {StructuredData} from '../src/modules/public-site/StructuredData.tsx';
 import {canonicalPage,filteredPage,publicMetadata,robotsDocument,articleSchema,pageSchema,jsonLd,sitemapDocument,descriptionText} from '../src/modules/public-site/seo.ts';
 import {photo,photoSet} from '../src/modules/public-site/photos.ts';
@@ -35,5 +36,12 @@ test('descriptions stop at word boundaries and duplicate sitemap entries collaps
  const xml=sitemapDocument([{path:'/same'},{path:'/same'}]);assert.equal((xml.match(/<url>/g)||[]).length,1);
 });
 test('responsive photo dimensions preserve source proportions and exclude the original heavy files',()=>{
+ const card=photo('family',960,true);assert.equal(card.height,600);assert.match(card.src,/-card-960.webp$/);assert.match(photoSet('family',true),/-card-480.webp 480w/);
  const image=photo('family',960);assert.equal(image.width,960);assert.equal(image.height,1280);assert.match(image.src,/optimized-photos/);assert.ok(photoSet('family').includes('1440w'));assert.equal(photo('unknown').src,photo('berlin').src);
+});
+
+test('list cards request the cropped source while article photos remain complete',()=>{
+ const html=renderToStaticMarkup(createElement(StoryCard,{article:{id:1,slug:'sample',title:'Mẫu',summary:'',language:'vi',kind:'news',photo:'family'},priority:true}));
+ assert.match(html,/src="\/assets\/optimized-photos\/family-card-480.webp"/);assert.match(html,/width="480" height="300"/);assert.match(html,/family-card-960.webp 960w/);assert.match(html,/loading="eager"/);assert.match(html,/fetchPriority="high"/i);
+ assert.equal(photo('family',960).height,1280);
 });

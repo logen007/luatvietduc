@@ -19,7 +19,8 @@ Robots/sitemap không cache để thay đổi của admin có hiệu lực trên
 
 Ảnh đóng gói có 3 cỡ WebP 480/960/1440 trong `assets/optimized-photos`, giữ nguyên
 ảnh nguồn và bản ghi Thư viện. `photos.ts` + `photo-sizes.json` cung cấp srcset,
-sizes và kích thước đúng; ảnh nền blur chỉ cần cỡ nhỏ. Tái tạo bằng:
+sizes và kích thước đúng; thẻ danh sách dùng ảnh cắt 1.6:1 riêng để không tải
+thừa phần ảnh dọc, còn ảnh trong bài giữ đầy đủ; ảnh nền blur chỉ cần cỡ nhỏ. Tái tạo bằng:
 `cd apps/cms && node scripts/optimize-public-photos.mjs`.
 
 Video điện thoại 1280px có cùng 25,04 giây/các cảnh của bản gốc, 2.575.244 byte

@@ -10,6 +10,9 @@ for(const name of ['berlin','dong-xuan','family','housing','library','train','tr
   const out=root+'/assets/optimized-photos/'+name+'-'+width+'.webp';
   const info=await sharp(source).rotate().resize({width,withoutEnlargement:true}).webp({quality:72,effort:5}).toFile(out);
   manifest[name][width]={width:info.width,height:info.height};bytes+=info.size;
+  // List cards already crop to 1.6:1 in CSS. Generate that visible region instead
+  // of downloading a tall original only to discard most of its pixels.
+  const card=await sharp(source).rotate().resize({width,height:Math.round(width/1.6),fit:'cover',position:'centre',withoutEnlargement:true}).webp({quality:72,effort:5}).toFile(root+'/assets/optimized-photos/'+name+'-card-'+width+'.webp');bytes+=card.size;
  }
 }
 await writeFile(root+'/apps/cms/src/modules/public-site/photo-sizes.json',JSON.stringify(manifest,null,2)+'\n');
