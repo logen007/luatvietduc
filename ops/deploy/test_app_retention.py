@@ -13,9 +13,11 @@ class Retention(unittest.TestCase):
  def test_buildx_writes_only_inside_existing_state_boundary(self):
   unit=pathlib.Path(__file__).with_name('luatvietduc-retention.service').read_text()
   self.assertIn('Environment=DOCKER_CONFIG=/var/lib/luatvietduc-deploy/retention-docker-cli',unit);self.assertIn('ProtectHome=true',unit);self.assertIn('ProtectSystem=strict',unit)
+ def test_bounded_compiler_cache_survives_project_layer_cleanup(self):
+  self.assertIn("'type!=exec.cachemount'",pathlib.Path(m.__file__).read_text())
  def test_prunes_the_presentation_leaf_that_pins_old_build_chains(self):
   dockerfile=pathlib.Path(__file__).with_name('Dockerfile').read_text()
-  command=next(line[4:] for line in dockerfile.splitlines() if line.startswith('RUN mkdir presentation-releases'))
+  command=next(line[4:] for line in dockerfile.splitlines() if 'mkdir presentation-releases' in line)
   self.assertNotRegex(m.CACHE_FILTER,r'\s')
   pattern=m.CACHE_FILTER.removeprefix('description~=')
   self.assertRegex('mount / from exec /bin/sh -c '+command,pattern)

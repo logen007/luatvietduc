@@ -106,7 +106,7 @@ keyed by operating system, Node major, dependency lockfile and source commit.
 Cache misses still build normally; no test or build step depends on a cache hit.
 
 Changing this workflow requires its exact hash to be reviewed and installed once
-through `install-presentation-lane.py`, with a pinned seven-file policy manifest
+through `install-presentation-lane.py`, with a pinned policy manifest
 and a successful full push run. It does not change the engine allowlist, schema
 gate, backup, candidate probes, rollback or deployment locking.
 
@@ -123,8 +123,8 @@ The owner authorized extending the snapshot lane to the seven exact bilingual
 paths and executable code still require full validation. The public layout reads
 the snapshot before rendering; it does not replace visible copy after hydration.
 
-GitHub keeps its running check (`cancel-in-progress: false`) and coalesces the
-pending slot. While the head is pending, the engine may promote the newest fully
+GitHub keeps its running heavy CMS job (`cancel-in-progress: false`) and coalesces
+that job’s pending slot. Lightweight checks run independently, without a workflow-wide lock. While the head is pending, the engine may promote the newest fully
 successful ancestor that passes ancestry, exact CI, policy and schema gates. It
 never retries quarantined revisions through this fallback. A completed build may
 finish if the new branch head descends from its SHA; divergence still blocks it.
@@ -132,3 +132,9 @@ finish if the new branch head descends from its SHA; divergence still blocks it.
 Install the exact reviewed policy manifest through `install-presentation-lane.py`
 once. Ordinary copy/photo/CSS updates then require no manual VPS access. Backup
 still runs separately at 03:00 Asia/Ho_Chi_Minh, with no per-deployment dump.
+
+## Lightweight checks and compiler reuse (2026-11-07)
+
+The live scope read uses the release-service User-Agent, a 16 KiB metadata limit and the same ancestry/allowlist checks. Any HTTP, size, JSON or Git failure still selects full validation and records only the failure class. CMS job concurrency no longer makes a small snapshot wait for an older Next build.
+
+Docker reuses one locked BuildKit compiler cache with a 768 MiB/50,000-entry boundary budget. GitHub trims its cache with the same helper. Retention excludes `exec.cachemount` records while continuing its existing project-description filter and one-current-image policy. Install the reviewed retention script after the policy upgrade; no shared builder configuration or global prune is changed.

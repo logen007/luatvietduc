@@ -7,8 +7,8 @@ COPY assets/ /legacy-assets/
 COPY index.html /legacy-index.html
 RUN mkdir -p public/assets && cp -a /legacy-assets/. public/assets/ && node scripts/prepare-container.mjs && chmod -R a+rX public
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN PAYLOAD_SECRET=build-placeholder-not-for-runtime-secret npm run payload -- generate:importmap && LVD_WORKERS_DISABLED=1 PAYLOAD_SECRET=build-placeholder-not-for-runtime-secret npx next build --webpack
-RUN mkdir presentation-releases && mv public presentation-releases/base && ln -s base presentation-releases/current && ln -s presentation-releases/current public
+RUN --mount=type=cache,id=luatvietduc-next-v1,target=/app/.next/cache,sharing=locked node scripts/trim-build-cache.mjs && PAYLOAD_SECRET=build-placeholder-not-for-runtime-secret npm run payload -- generate:importmap && LVD_WORKERS_DISABLED=1 PAYLOAD_SECRET=build-placeholder-not-for-runtime-secret npx next build --webpack && node scripts/trim-build-cache.mjs
+RUN mkdir -p .next/cache && chown node:node .next/cache && mkdir presentation-releases && mv public presentation-releases/base && ln -s base presentation-releases/current && ln -s presentation-releases/current public
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 USER node

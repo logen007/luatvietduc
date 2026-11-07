@@ -7,9 +7,6 @@ on:
     paths: ['apps/cms/**', 'assets/**', 'index.html', '.dockerignore', 'platform/**', 'ops/**', '.github/workflows/platform-foundation.yml']
 permissions:
   contents: read
-concurrency:
-  group: platform-foundation-${{ github.ref }}
-  cancel-in-progress: false
 jobs:
   # Feature-branch pushes already validate this exact source. Keep PR checks for
   # forks and branches outside that push trigger, without duplicate runner jobs.
@@ -84,6 +81,10 @@ jobs:
       - run: bash -n ops/deploy/install-auto-deploy.sh
       - run: bash -n ops/deploy/backup.sh
   cms-checks:
+    # Light release checks must not queue behind an unrelated application build.
+    concurrency:
+      group: platform-cms-build-${{ github.ref }}
+      cancel-in-progress: false
     needs: release-scope
     if: ${{ needs.release-scope.outputs.fast != 'true' }}
     runs-on: ubuntu-latest
@@ -133,4 +134,6 @@ jobs:
             ${{ runner.os }}-node24-next-${{ hashFiles('apps/cms/package-lock.json') }}-
         env:
           SEGMENT_DOWNLOAD_TIMEOUT_MINS: '1'
+      - run: node scripts/trim-build-cache.mjs
       - run: npm run build
+      - run: node scripts/trim-build-cache.mjs

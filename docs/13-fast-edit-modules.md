@@ -37,8 +37,16 @@ The server reads the current atomic snapshot before the first render and passes 
 
 ## Queue and deployment contract
 
-GitHub completes the running check instead of cancelling it for each push. Its pending slot coalesces intermediate pushes to the newest one. The release engine can promote the latest successful ancestor while a newer head remains pending, but rechecks the exact commit, repository, branch, ancestry, policy hashes and required jobs. A divergent/force-pushed candidate, quarantined revision, schema change or failed check remains blocked.
+Lightweight scope/presentation/deployment checks run independently of an existing application build. Only the heavy CMS job uses a non-cancelling queue; its pending slot coalesces intermediate builds. The live revision request identifies itself consistently so Cloudflare does not unnecessarily send a CSS-only edit to full CI. The release engine can promote the latest successful ancestor while a newer head remains pending, but rechecks the exact commit, repository, branch, ancestry, policy hashes and required jobs. A divergent/force-pushed candidate, quarantined revision, schema change or failed check remains blocked.
 
 A completed immutable build is not discarded merely because a descendant was pushed. Both full and snapshot releases retain the deployment lock, candidate/public probes and rollback. Full builds still validate all changed runtime code. Do not classify React/TypeScript, authentication or database changes as presentation.
 
 Publish through `ops/deploy/publish.sh` once. Copy/CSS/the three supported photo paths then use the short snapshot path without rebuilding or restarting the app. New routes, components and interactions still require a build. The 03:00 Vietnam backup schedule remains separate.
+
+## Reusable compiler cache
+
+The application image uses one BuildKit cache mount (`luatvietduc-next-v1`) for `.next/cache`. Source changes still run the real Next build; they reuse compiler work instead of losing it with the old source layer. `trim-build-cache.mjs` caps that cache at 768 MiB and 50,000 entries at build boundaries, clearing only compiler-cache children and never following symlinks. A cold or cleared cache still produces a complete build. GitHub applies the same budget before/after its build.
+
+App retention keeps one running image as before. Its project-scoped layer cleanup excludes compiler cache mounts; this cache is bounded by its own build step. No runtime upload, database, backup or other application's cache enters this budget.
+
+Full CI and production still build separately. Moving prebuilt CI artifacts into production would need a separate verified artifact/compatibility design; this change does not claim to remove that second build. Record real timings rather than promising instant activation.

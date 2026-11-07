@@ -28,7 +28,7 @@ def main():
             # No force: Docker independently protects a newly referenced image.
             subprocess.run(['docker','image','rm',tag],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=45)
         # Select only this project's recognizable build steps. No volumes, containers, other images or global prune.
-        subprocess.run(['docker','buildx','prune','--force','--filter',CACHE_FILTER,'--filter','until=30m'],check=True,stdout=subprocess.DEVNULL,timeout=180)
+        subprocess.run(['docker','buildx','prune','--force','--filter',CACHE_FILTER,'--filter','type!=exec.cachemount','--filter','until=30m'],check=True,stdout=subprocess.DEVNULL,timeout=180)
         print('App retention complete: current image retained; old app artifacts reclaimed')
 if __name__=='__main__':
     try:main()

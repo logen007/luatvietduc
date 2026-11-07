@@ -12,12 +12,16 @@ class Scope(unittest.TestCase):
             def ancestry(*args,**kwargs):
                 if not ancestor:raise subprocess.CalledProcessError(1,args[0])
             with patch.dict(os.environ,{'EVENT_NAME':event,'GITHUB_OUTPUT':str(output)}), \
-                 patch('urllib.request.urlopen',side_effect=OSError('offline') if offline else None,return_value=io.BytesIO(json.dumps({'commit':base}).encode())), \
+                 patch('urllib.request.urlopen',side_effect=OSError('offline') if offline else None,return_value=io.BytesIO(json.dumps({'commit':base}).encode())) as fetch, \
                  patch('subprocess.run',side_effect=ancestry) as git, \
                  patch('subprocess.check_output',return_value='\n'.join(paths)):
                 runpy.run_path(str(SCRIPT),run_name='__main__')
                 value=output.read_text().strip()
-                if event!='push':git.assert_not_called()
+                if event!='push':git.assert_not_called();fetch.assert_not_called()
+                else:
+                    request=fetch.call_args.args[0]
+                    self.assertEqual(request.get_header('User-agent'),'luatvietduc-release/1')
+                    self.assertEqual(request.get_header('Accept'),'application/json')
                 return value
     def test_css_only_can_use_existing_fast_gate(self):
         self.assertEqual(self.scope(['apps/cms/src/presentation/live-css/07-assistant-chat.css','apps/cms/public/customer-chat.css','apps/cms/src/modules/shared/site-version.json']),'fast=true')
@@ -48,6 +52,11 @@ class Scope(unittest.TestCase):
             self.assertEqual(result.returncode,0,result.stderr)
             for name in release.FAST_PUBLIC:
                 if name!='release.json':self.assertTrue((Path(directory)/'apps/cms/public'/name).is_file(),name)
+    def test_light_checks_are_not_serialized_behind_the_cms_build(self):
+        workflow=SCRIPT.parents[2].joinpath('.github/workflows/platform-foundation.yml').read_text()
+        self.assertNotIn('\nconcurrency:',workflow)
+        self.assertIn('      group: platform-cms-build-${{ github.ref }}',workflow)
+        self.assertIn('      cancel-in-progress: false',workflow)
     def test_empty_change_is_not_a_fast_release(self):
         self.assertEqual(self.scope([]),'fast=false')
 if __name__=='__main__':unittest.main()

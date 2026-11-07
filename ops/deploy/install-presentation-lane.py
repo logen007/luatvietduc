@@ -33,7 +33,7 @@ def main():
   new=load('new_release',candidate)
   new.ci_success(a.approved_sha,new.fetch,require_full=True)
   # Keep the old installed engine/policy intact until candidate and public health pass.
-  app_paths=[path for path in paths if path.startswith(('apps/cms/','assets/')) or path=='index.html']
+  app_paths=[path for path in paths if path.startswith(('apps/cms/','assets/')) or path in {'index.html','.dockerignore','ops/deploy/Dockerfile'}]
   if current.get('backend_sha') and new.presentation_only(app_paths):
    new.Engine(config).activate_presentation(a.approved_sha,current)
   else:
