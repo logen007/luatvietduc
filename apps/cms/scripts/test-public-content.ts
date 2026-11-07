@@ -75,7 +75,7 @@ export async function testPublicContent(payload:Payload,owner:User){
    const index=await (await sitemapIndex()).text();assert.equal(index.includes('<sitemap>'),enabled);
    const files=enabled?[...index.matchAll(/\/sitemaps\/(\d+\.xml)/g)].map(match=>match[1]):['0.xml'];
    let all='';for(const file of files)all+=await (await sitemapPart(new Request('http://127.0.0.1/sitemaps/'+file),{params:Promise.resolve({file})})).text();
-   assert.equal(all.includes('/thu-vien'),enabled);assert.ok(!all.includes('/admin')&&!all.includes('/hoi-dap'));
+   assert.equal(all.includes('/phap-luat/viet-nam'),enabled);assert.ok(!all.includes('/thu-vien'),'Library alias must not duplicate the canonical URL');assert.ok(!all.includes('/admin')&&!all.includes('/hoi-dap'));
    assert.ok(!all.includes(draft.slug)&&!all.includes(withdrawn.slug));
    if(enabled)assert.ok(all.includes(visible.slug)&&all.includes(news.slug));
   }
