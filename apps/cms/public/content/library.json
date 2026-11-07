@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "text": {
+    "Pháp luật Đức": {
+      "vi": "Pháp luật Đức",
+      "de": "Deutsches Recht"
+    },
+    "Pháp luật Việt Nam": {
+      "vi": "Pháp luật Việt Nam",
+      "de": "Vietnamesisches Recht"
+    },
+    "Kết quả tìm kiếm": {
+      "vi": "Kết quả tìm kiếm",
+      "de": "Suchergebnisse"
+    },
+    "Tìm trong thư viện": {
+      "vi": "Tìm trong thư viện",
+      "de": "Bibliothek durchsuchen"
+    },
+    "Nhập từ khóa…": {
+      "vi": "Nhập từ khóa…",
+      "de": "Suchbegriff eingeben…"
+    },
+    "Lĩnh vực": {
+      "vi": "Lĩnh vực",
+      "de": "Rechtsgebiet"
+    },
+    "Tất cả lĩnh vực": {
+      "vi": "Tất cả lĩnh vực",
+      "de": "Alle Rechtsgebiete"
+    },
+    "Sắp xếp": {
+      "vi": "Sắp xếp",
+      "de": "Sortierung"
+    },
+    "Theo danh mục": {
+      "vi": "Theo danh mục",
+      "de": "Nach Verzeichnis"
+    },
+    "Theo tiêu đề A–Z": {
+      "vi": "Theo tiêu đề A–Z",
+      "de": "Titel A–Z"
+    },
+    "Tìm kiếm": {
+      "vi": "Tìm kiếm",
+      "de": "Suchen"
+    },
+    "chủ đề": {
+      "vi": "chủ đề",
+      "de": "Themen"
+    },
+    "Chưa tìm thấy nội dung phù hợp.": {
+      "vi": "Chưa tìm thấy nội dung phù hợp.",
+      "de": "Keine passenden Inhalte gefunden."
+    },
+    "Chưa có bài viết trong lĩnh vực này.": {
+      "vi": "Chưa có bài viết trong lĩnh vực này.",
+      "de": "Für dieses Rechtsgebiet sind noch keine Beiträge veröffentlicht."
+    },
+    "Bạn cần giải đáp điều gì?": {
+      "vi": "Bạn cần giải đáp điều gì?",
+      "de": "Was möchten Sie klären?"
+    },
+    "Chủ đề trong danh mục. Nội dung giải đáp chưa được xuất bản.": {
+      "vi": "Chủ đề trong danh mục. Nội dung giải đáp chưa được xuất bản.",
+      "de": "Thema im Verzeichnis. Ein erläuternder Beitrag wurde noch nicht veröffentlicht."
+    }
+  }
+}

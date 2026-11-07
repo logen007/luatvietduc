@@ -37,7 +37,7 @@ class Scope(unittest.TestCase):
         repo=SCRIPT.resolve().parents[2]
         with tempfile.TemporaryDirectory() as directory:
             archive=Path(directory)/'source.tar'
-            subprocess.run(['git','archive','--format=tar','--output='+str(archive),'HEAD',*release.FAST_INPUTS],cwd=repo,check=True,capture_output=True)
+            subprocess.run(['git','archive','--format=tar','--output='+str(archive),os.environ.get('LVD_TEST_TREE','HEAD'),*release.FAST_INPUTS],cwd=repo,check=True,capture_output=True)
             with tarfile.open(archive) as source:
                 for member in source.getmembers():
                     self.assertFalse(Path(member.name).is_absolute())

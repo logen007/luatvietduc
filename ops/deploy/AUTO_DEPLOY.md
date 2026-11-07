@@ -115,3 +115,20 @@ The presentation archive includes the shared article editor CSS referenced by
 isolated directory without the application tree, so missing source fragments fail
 CI before a snapshot is sent to the server. This also covers admin editor CSS in
 the existing presentation allowlist, without admitting TypeScript or schema files.
+
+## Non-cancelling queue and runtime copy (2026-11-07)
+
+The owner authorized extending the snapshot lane to the seven exact bilingual
+`public/content/*.json` modules and three existing benefit photo paths. Unknown
+paths and executable code still require full validation. The public layout reads
+the snapshot before rendering; it does not replace visible copy after hydration.
+
+GitHub keeps its running check (`cancel-in-progress: false`) and coalesces the
+pending slot. While the head is pending, the engine may promote the newest fully
+successful ancestor that passes ancestry, exact CI, policy and schema gates. It
+never retries quarantined revisions through this fallback. A completed build may
+finish if the new branch head descends from its SHA; divergence still blocks it.
+
+Install the exact reviewed policy manifest through `install-presentation-lane.py`
+once. Ordinary copy/photo/CSS updates then require no manual VPS access. Backup
+still runs separately at 03:00 Asia/Ho_Chi_Minh, with no per-deployment dump.

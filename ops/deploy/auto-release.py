@@ -28,9 +28,10 @@ NEXT_START = ["npx", "next", "start", "--hostname", "0.0.0.0"]
 REVISION_FILES = ["admin-theme.css", "customer-chat.css", "specialist-inbox.css", "design-system.css", "live.css", "editorial-ui.css", "live-bridge.js", "editorial-ui.js", "legal-runtime.js"]
 SCHEMA_FILES = {"apps/cms/src/payload.config.ts", "apps/cms/src/modules/identity/users.ts", "apps/cms/src/modules/content/articles.ts", "apps/cms/src/modules/content/audit.ts", "apps/cms/src/modules/settings/config.ts"}
 
-FAST_PUBLIC = REVISION_FILES + ['social-icons.json','frontend.html','release.json']
-FAST_SOURCE_PUBLIC = REVISION_FILES + ['social-icons.json']
-FAST_INPUTS = ['apps/cms/src/modules/content/article-editor.css','apps/cms/src/app/(payload)/admin-custom.css','apps/cms/src/app/(payload)/admin-dashboard.css','index.html','apps/cms/src/presentation','apps/cms/src/modules/shared/site-version.json','apps/cms/src/modules/shared/navigation.json','apps/cms/src/modules/shared/locale/de.json','apps/cms/src/modules/shared/presentation-version.mjs'] + ['apps/cms/scripts/' + name for name in ['prepare-fast-release.mjs','frontend-shell.mjs','assemble-presentation.mjs','locale-build.mjs']] + ['apps/cms/public/' + name for name in FAST_SOURCE_PUBLIC]
+FAST_CONTENT = ['content/'+name+'.json' for name in ['common','home','library','news','account','information','contact']] + ['media/benefits/clarity.webp','media/benefits/specialist.webp','media/benefits/records.webp']
+FAST_PUBLIC = REVISION_FILES + ['social-icons.json','frontend.html','release.json'] + FAST_CONTENT
+FAST_SOURCE_PUBLIC = REVISION_FILES + ['social-icons.json'] + FAST_CONTENT
+FAST_INPUTS = ['apps/cms/src/modules/content/article-editor.css','apps/cms/src/app/(payload)/admin-custom.css','apps/cms/src/app/(payload)/admin-dashboard.css','index.html','apps/cms/src/presentation','apps/cms/src/modules/shared/site-version.json','apps/cms/src/modules/shared/navigation.json','apps/cms/src/modules/shared/locale/de.json','apps/cms/src/modules/shared/presentation-version.mjs','apps/cms/src/modules/shared/public-copy.mjs'] + ['apps/cms/scripts/' + name for name in ['prepare-fast-release.mjs','frontend-shell.mjs','assemble-presentation.mjs','locale-build.mjs']] + ['apps/cms/public/' + name for name in FAST_SOURCE_PUBLIC]
 
 def presentation_only(paths):
     changed = [p for p in paths if not p.endswith('.md')]
@@ -203,6 +204,37 @@ class Engine:
         require(valid_sha(sha), "Invalid fetched revision")
         return sha
 
+    def verify_candidate_head(self, sha):
+        # A newer push must not throw away an already verified immutable build.
+        # Force-push/divergence still blocks promotion; exact SHA gates stay intact.
+        head = self.head()
+        if head != sha:
+            self.git("merge-base", "--is-ancestor", sha, head)
+
+    def ready_ancestor(self, head, current):
+        # Coalesce waiting commits, but allow the latest successful ancestor to
+        # finish while the new head is still in CI. Never deploy an unchecked SHA.
+        query = urllib.parse.urlencode({"branch": BRANCH,"event":"push","status":"completed","per_page":20})
+        listing = json.loads(self.get(f"https://api.github.com/repos/{REPO}/actions/workflows/platform-foundation.yml/runs?{query}"))
+        failed = load_json(self.retry_path,{}).get('failed_sha')
+        runs = sorted(listing.get("workflow_runs",[]),key=lambda item:(int(item.get("run_number",0)),int(item.get("id",0))),reverse=True)
+        for item in runs:
+            sha = item.get("head_sha")
+            if not valid_sha(sha) or sha in (head,current["current_sha"],failed) or item.get("conclusion")!="success" or not ci_identity(item,sha):
+                continue
+            try:
+                self.git("merge-base","--is-ancestor",current["current_sha"],sha)
+                self.git("merge-base","--is-ancestor",sha,head)
+                self.policies(sha)
+                paths = self.git("diff","--name-only","--no-renames",current["current_sha"],sha).splitlines()
+                if not classify(paths):continue
+                fast = bool(current.get("backend_sha") and presentation_only(paths))
+                ci_success(sha,self.get,require_full=not fast,presentation=fast)
+                return sha,fast
+            except (ReleaseError,subprocess.SubprocessError):
+                continue
+        return None
+
     def compose(self, release, *args):
         require(valid_tag(release), "Invalid release tag")
         env = dict(self.env, RELEASE=release)
@@ -295,8 +327,9 @@ class Engine:
                 (public/'release.json').write_text(json.dumps({'commit':sha,'backend_commit':backend,'version':version,'lane':'presentation'}))
                 package.mkdir(parents=True,exist_ok=True)
                 for name in FAST_PUBLIC:
+                    (package/name).parent.mkdir(parents=True,exist_ok=True)
                     shutil.copyfile(public/name,package/name)
-                require(self.head()==sha,'Branch advanced during presentation preparation')
+                self.verify_candidate_head(sha)
                 ci_success(sha,self.get,presentation=True)
                 previous = self.install_presentation(container,package,sha)
                 revision = self.revision(sha)
@@ -348,7 +381,7 @@ class Engine:
             self.compose(sha, "run", "--detach", "--no-deps", "--pull", "never", "--env", "LVD_WORKERS_DISABLED=1", "--label", "traefik.enable=false", "--label", "lvd.auto-release=true", "--name", CANDIDATE, "--publish", "127.0.0.1:3050:3000", "web", *NEXT_START)
             revision = self.revision(sha)
             self.probe("http://127.0.0.1:3050", sha, revision)
-            require(self.head() == sha, "Branch advanced during candidate verification")
+            self.verify_candidate_head(sha)
             ci_success(sha, self.get)
             activated = True  # Even a partially failed compose up must restore the previous web.
             self.compose(sha, "up", "--detach", "--no-deps", "--no-build", "--pull", "never", "web")
@@ -391,7 +424,12 @@ class Engine:
             if not classify(paths) and not bootstrap:
                 return "no application changes"
             fast = not bootstrap and presentation_only(paths) and current.get('backend_sha')
-            ci_success(sha, self.get, require_full=not fast, presentation=bool(fast))
+            try:
+                ci_success(sha, self.get, require_full=not fast, presentation=bool(fast))
+            except APIBackoff:
+                ready = self.ready_ancestor(sha,current) if not bootstrap else None
+                if not ready:raise
+                sha,fast = ready
             if check:
                 return f"approved candidate {sha}; no Docker/state changes performed"
             if fast:

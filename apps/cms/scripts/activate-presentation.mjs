@@ -1,7 +1,7 @@
 // Invoked only by the root-owned release engine. No HTTP endpoint or user input.
 import fs from 'node:fs';
 import path from 'node:path';
-const files=['admin-theme.css','customer-chat.css','specialist-inbox.css','design-system.css','live.css','editorial-ui.css','live-bridge.js','editorial-ui.js','legal-runtime.js','social-icons.json','frontend.html','release.json'];
+const files=['admin-theme.css','customer-chat.css','specialist-inbox.css','design-system.css','live.css','editorial-ui.css','live-bridge.js','editorial-ui.js','legal-runtime.js','social-icons.json','frontend.html','release.json','media/benefits/clarity.webp','media/benefits/specialist.webp','media/benefits/records.webp',...['common','home','library','news','account','information','contact'].map(name=>'content/'+name+'.json')];
 export function switchPresentation(root,stage,sha){
  if(!/^[a-f0-9]{40}$/.test(sha))throw new Error('Invalid commit');
  const store=path.join(root,'presentation-releases'),current=path.join(store,'current');
@@ -12,7 +12,7 @@ export function switchPresentation(root,stage,sha){
  if(fs.existsSync(target))fs.rmSync(target,{recursive:true});
  function linkTree(source,dest){fs.mkdirSync(dest);for(const e of fs.readdirSync(source,{withFileTypes:true})){const a=path.join(source,e.name),b=path.join(dest,e.name);if(e.isDirectory())linkTree(a,b);else if(e.isFile())fs.linkSync(a,b);else throw new Error('Unexpected public symlink');}}
  linkTree(path.join(store,previous),target);
- for(const name of files){const input=path.join(stage,name);if(!fs.lstatSync(input).isFile())throw new Error('Missing presentation file');const output=path.join(target,name);fs.unlinkSync(output);fs.copyFileSync(input,output);fs.chmodSync(output,0o644);}
+ for(const name of files){const input=path.join(stage,name);if(!fs.lstatSync(input).isFile())throw new Error('Missing presentation file');const output=path.join(target,name);fs.mkdirSync(path.dirname(output),{recursive:true});if(fs.existsSync(output))fs.unlinkSync(output);fs.copyFileSync(input,output);fs.chmodSync(output,0o644);}
  const release=JSON.parse(fs.readFileSync(path.join(target,'release.json')));
  if(release.commit!==sha||!/^\d{2}\.\d{2}\.\d{2}$/.test(release.version))throw new Error('Wrong presentation manifest');
  fs.symlinkSync(sha,current+'.next');fs.renameSync(current+'.next',current);

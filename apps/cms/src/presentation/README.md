@@ -77,3 +77,7 @@ The existing required CMS workflow runs browser checks through npm postbuild on 
 Project copy guidance is .agents/skills/luat-viet-duc-copy/SKILL.md. Keep approved navigation labels and write idiomatic Vietnamese/German without invented legal guarantees or delivery promises.
 
 Language-switch text effect: `modules/shared/locale/ascii-transition.ts` and `ascii.ts`, duration350ms. All visible DOM text ranges are covered, including nested icon labels, lists/tables, article/chat text and unchanged names; no40-item or480-character cap. Empty-field placeholders and native selected labels have their own visual handling. The effect changes the existing text nodes directly, with width-matched ASCII glyphs and no overlay/highlight. Cleanup restores only text still owned by the animation; React updates take precedence. Semantic names and entered form values remain stable, including selects without an explicit option value. Reduced motion and subsequent interaction cancel the effect. New topic-to-chat drafts live in `modules/chat/intake.ts`; the visitor still explicitly sends the question.
+
+## Runtime content modules
+
+See `docs/13-fast-edit-modules.md` from the repository root. Public UI copy is now split into `public/content/{common,home,library,news,account,information,contact}.json`. Edit VI/DE values under stable source keys for a snapshot update; do not edit React for simple wording. The three existing `public/media/benefits/*.webp` paths use the same atomic snapshot lane. New component logic and arbitrary asset paths still require application validation.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """One reviewed bootstrap: install pinned release engine and public snapshot helper."""
 import argparse,fcntl,importlib.util,json,os,pathlib,subprocess,hashlib
-POLICIES=['.github/workflows/platform-foundation.yml','ops/deploy/compose.yml','ops/deploy/auto-release.py','ops/deploy/Dockerfile','ops/deploy/release-scope.py','apps/cms/scripts/activate-presentation.mjs','apps/cms/scripts/prepare-fast-release.mjs']
+POLICIES=['.github/workflows/platform-foundation.yml','ops/deploy/compose.yml','ops/deploy/auto-release.py','ops/deploy/Dockerfile','ops/deploy/release-scope.py','apps/cms/scripts/activate-presentation.mjs','apps/cms/scripts/prepare-fast-release.mjs','apps/cms/src/modules/shared/public-copy.mjs']
 def load(name,path):
  spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 def main():
@@ -25,7 +25,7 @@ def main():
   old.require(old.digest(canonical)==a.manifest_sha256,'Review manifest mismatch')
   # No schema or authorization changes are part of this bootstrap.
   paths=e.git('diff','--name-only','--no-renames',current['current_sha'],a.approved_sha).splitlines();old.classify(paths)
-  backup=state_dir/'before-presentation-lane';backup.mkdir(mode=0o700,exist_ok=True)
+  backup=state_dir/('before-presentation-lane-'+a.approved_sha);backup.mkdir(mode=0o700,exist_ok=True)
   for source in [installed,config_path]:
    target=backup/source.name
    if not target.exists():target.write_bytes(source.read_bytes());target.chmod(0o600)

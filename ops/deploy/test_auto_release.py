@@ -89,6 +89,8 @@ class Gates(unittest.TestCase):
     def test_presentation_scope_rejects_backend_schema_policy_and_mixed_edits(self):
         allowed=['apps/cms/src/presentation/live-css/01-footer.css','apps/cms/public/live.css','apps/cms/src/modules/shared/site-version.json']
         self.assertTrue(release.presentation_only(allowed))
+        self.assertTrue(release.presentation_only(['apps/cms/public/content/home.json','apps/cms/public/media/benefits/specialist.webp']))
+        self.assertFalse(release.presentation_only(['apps/cms/public/content/unknown.json']))
         for path in ['apps/cms/src/modules/chat/reply.ts','apps/cms/src/payload.config.ts','ops/deploy/auto-release.py','.github/workflows/platform-foundation.yml','apps/cms/public/new-script.js','apps/cms/scripts/prepare-fast-release.mjs']:
             self.assertFalse(release.presentation_only(allowed+[path]))
         self.assertFalse(release.presentation_only(['docs/README.md']))
@@ -200,13 +202,25 @@ class Deployment(unittest.TestCase):
         self.engine.activate(NEW, self.current)
         self.assertTrue(any(event[0] == "compose" and "up" in event for event in self.events))
 
-    def test_branch_advance_prevents_activation(self):
+    def test_divergent_branch_advance_prevents_activation(self):
         self.engine.head.return_value = "d" * 40
+        original=self.engine.git.side_effect
+        def git(*args):
+            if args[:2]==('merge-base','--is-ancestor'):raise release.ReleaseError('diverged')
+            return original(*args)
+        self.engine.git.side_effect=git
         with self.assertRaises(release.ReleaseError):
             self.engine.activate(NEW, self.current)
         self.assertFalse(any(event[0] == "compose" and "up" in event for event in self.events))
 
+    def test_descendant_push_does_not_discard_verified_build(self):
+        self.engine.head.return_value='d'*40
+        self.engine.activate(NEW,self.current)
+        self.engine.git.assert_any_call('merge-base','--is-ancestor',NEW,'d'*40)
+        self.assertEqual(json.loads(self.engine.state_path.read_text())['current_sha'],NEW)
+
     def test_pending_backoff_and_quarantine_are_separate_from_success_state(self):
+        self.engine.ready_ancestor=Mock(return_value=None)
         release.ci_success.side_effect = release.APIBackoff("pending", 1)
         before = release.time.time()
         self.assertEqual(self.engine.once(), "pending")
@@ -239,6 +253,35 @@ class Deployment(unittest.TestCase):
 
 
 
+class Queue(unittest.TestCase):
+    def test_only_successful_same_branch_descendant_with_exact_checks_is_selected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            e=release.Engine(configuration(Path(directory)));candidate='c'*40;head='d'*40
+            e.git=Mock(return_value='apps/cms/public/content/home.json');e.policies=Mock()
+            good=workflow(head_sha=candidate)
+            bad=workflow(head_sha='e'*40,run_number=8,conclusion='failure')
+            e.get=Mock(return_value=json.dumps({'workflow_runs':[bad,good]}))
+            with patch.object(release,'ci_success',return_value=(12,1)) as check:
+                self.assertEqual(e.ready_ancestor(head,{'current_sha':OLD,'backend_sha':OLD}),(candidate,True))
+                check.assert_called_once_with(candidate,e.get,require_full=False,presentation=True)
+            e.git.assert_any_call('merge-base','--is-ancestor',OLD,candidate)
+            e.git.assert_any_call('merge-base','--is-ancestor',candidate,head)
+            release.atomic_json(e.retry_path,{'failed_sha':candidate})
+            with patch.object(release,'ci_success') as check:
+                self.assertIsNone(e.ready_ancestor(head,{'current_sha':OLD,'backend_sha':OLD}));check.assert_not_called()
+
+    def test_unrelated_or_policy_drifted_or_schema_candidates_are_not_promoted(self):
+        for reason in ['diverged','policy','schema','pending']:
+            with self.subTest(reason=reason),tempfile.TemporaryDirectory() as directory:
+                e=release.Engine(configuration(Path(directory)));candidate='c'*40
+                e.get=Mock(return_value=json.dumps({'workflow_runs':[workflow(head_sha=candidate)]}))
+                e.git=Mock(return_value='apps/cms/src/migrations/new.ts' if reason=='schema' else 'apps/cms/public/content/home.json');e.policies=Mock()
+                if reason=='diverged':e.git.side_effect=release.ReleaseError('diverged')
+                if reason=='policy':e.policies.side_effect=release.ReleaseError('policy')
+                with patch.object(release,'ci_success',side_effect=release.APIBackoff('pending') if reason=='pending' else None):
+                    self.assertIsNone(e.ready_ancestor('d'*40,{'current_sha':OLD,'backend_sha':OLD}))
+
+
 class Presentation(unittest.TestCase):
     def test_no_build_or_restart_and_failed_public_probe_rolls_back(self):
         for fail in [False,True]:
@@ -252,7 +295,9 @@ class Presentation(unittest.TestCase):
                     if args[:2]==['docker','run']:
                         stage=Path(args[args.index('--volume')+1].split(':')[0]);public=stage/'apps/cms/public';public.mkdir(parents=True)
                         shared=stage/'apps/cms/src/modules/shared';shared.mkdir(parents=True);(shared/'site-version.json').write_text('{"version":"01.15.01"}')
-                        for name in release.FAST_SOURCE_PUBLIC+['frontend.html']:(public/name).write_text('updated')
+                        for name in release.FAST_SOURCE_PUBLIC+['frontend.html']:
+                            (public/name).parent.mkdir(parents=True,exist_ok=True)
+                            (public/name).write_text('updated')
                     return ''
                 e.run=command;e.probe=Mock(side_effect=[None,release.ReleaseError('bad public probe'),None] if fail else None)
                 current={'current_sha':OLD,'current_release':OLD,'backend_sha':OLD,'revision':'old'}

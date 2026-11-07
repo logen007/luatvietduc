@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "text": {
+    "Trang chủ": {
+      "vi": "Trang chủ",
+      "de": "Startseite"
+    },
+    "Điều hướng chính": {
+      "vi": "Điều hướng chính",
+      "de": "Hauptnavigation"
+    },
+    "Mở menu": {
+      "vi": "Mở menu",
+      "de": "Menü öffnen"
+    },
+    "Đóng menu": {
+      "vi": "Đóng menu",
+      "de": "Menü schließen"
+    },
+    "Menu": {
+      "vi": "Menu",
+      "de": "Menü"
+    },
+    "Liên hệ": {
+      "vi": "Liên hệ",
+      "de": "Kontakt"
+    },
+    "Đăng xuất": {
+      "vi": "Đăng xuất",
+      "de": "Abmelden"
+    },
+    "Mạng xã hội": {
+      "vi": "Mạng xã hội",
+      "de": "Soziale Medien"
+    }
+  }
+}

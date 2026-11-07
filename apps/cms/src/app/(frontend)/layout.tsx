@@ -1,3 +1,4 @@
+import {readPublicCopy} from '../../modules/shared/public-copy.server';
 import {brandMetadata} from '../../modules/shared/brand-metadata';
 import {cookies} from 'next/headers';
 import {publicSiteSettings} from '../../modules/public-site/server';
@@ -28,7 +29,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
         <link rel="stylesheet" href={`/design-system.css?v=${revision}`} />
         <link rel="stylesheet" href={`/live.css?v=${revision}`} />
       </head>
-      <body><LocaleProvider language={language}><PublicSettingsProvider settings={settings}>{children}</PublicSettingsProvider></LocaleProvider></body>
+      <body><LocaleProvider language={language} copy={readPublicCopy()}><PublicSettingsProvider settings={settings}>{children}</PublicSettingsProvider></LocaleProvider></body>
     </html>
   );
 }

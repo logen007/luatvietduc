@@ -9,7 +9,7 @@ permissions:
   contents: read
 concurrency:
   group: platform-foundation-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   # Feature-branch pushes already validate this exact source. Keep PR checks for
   # forks and branches outside that push trigger, without duplicate runner jobs.
