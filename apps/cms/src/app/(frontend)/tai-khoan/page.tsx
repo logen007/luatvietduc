@@ -2,13 +2,15 @@
 import {AppLink} from '../../../modules/shared/AppLink';
 import {useLocale} from "../../../modules/shared/locale";
 import {loadPublicSession,usePublicSession} from '../../../modules/shared/session-client';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api } from "../../../modules/shared/client-api";
 import { Header } from "../../../modules/shared/Header";
 import { Footer } from "../../../modules/shared/Footer";
 import {AccountForm,type AccountRecoveryLink} from "../../../modules/identity/AccountForm";
 export default function Page() {
  const {t}=useLocale();
+ // Account entry starts at the form, rather than retaining the chat scroll offset.
+ useLayoutEffect(()=>{window.scrollTo({top:0,left:0,behavior:'instant'});},[]);
   const session=usePublicSession(),data=session.data;
   const recoveryLink=useRef<AccountRecoveryLink|null>(null);
   useEffect(()=>{if(data?.user)recoveryLink.current=null;},[data?.user]);
