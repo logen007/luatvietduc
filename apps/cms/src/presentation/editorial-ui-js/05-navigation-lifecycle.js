@@ -26,7 +26,7 @@
     document.querySelectorAll('[data-shell-vi]').forEach(el => { el.textContent = de ? el.dataset.shellDe : el.dataset.shellVi; });
   }
   let scrolled=null;
-  function scrollState() { const next=scrollY>80;if(next!==scrolled){scrolled=next;document.body.classList.toggle('pm-scrolled',next);} }
+  function scrollState() { const hero=document.querySelector('.pm-hero, .live-reading-hero'),header=document.querySelector('.site-header');const next=Boolean(hero&&header&&hero.getBoundingClientRect().bottom<=header.getBoundingClientRect().bottom+48);if(next!==scrolled){scrolled=next;document.body.classList.toggle('pm-scrolled',next);} }
   document.addEventListener('DOMContentLoaded', () => {
     decorate(); scrollState(); shellLanguage();
     const main = document.getElementById('main');
@@ -41,5 +41,6 @@
   reducedMotion.addEventListener('change', syncVideo);
   navigator.connection?.addEventListener('change',syncVideo);
   window.addEventListener('scroll', scrollState, {passive:true});
+  window.addEventListener('resize', scrollState, {passive:true});
   decorate();
 })();

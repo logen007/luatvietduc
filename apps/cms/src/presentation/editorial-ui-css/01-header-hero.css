@@ -1,4 +1,4 @@
-/* 80px source header; transparent over the hero, white after scrolling. */
+/* Transparent over the hero; fade to white near its lower boundary. */
 .lvd-announcement{display:none}
 .lvd-redesign .site-header{position:sticky;z-index:50;top:0;width:100%;height:80px;background:rgba(255,255,255,.94);color:#0b0b0b;border-bottom:1px solid rgba(0,0,0,.06);-webkit-backdrop-filter:saturate(1.1) blur(10px);backdrop-filter:saturate(1.1) blur(10px);transition:background-color .35s ease,color .35s ease,box-shadow .35s ease,border-color .35s ease,backdrop-filter .35s ease,-webkit-backdrop-filter .35s ease}
 .lvd-redesign .header-inner{height:100%;display:flex;align-items:center;gap:32px}
