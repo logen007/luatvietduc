@@ -74,3 +74,9 @@ These are illustrative scenes of life in Germany, not our employees, clients or 
 ## Active montage restored (2026-11-07)
 
 At the owner’s request, the homepage again uses `legal-hero-stock-v5.mp4`, its mobile v5 derivative and the v4 opening poster, documented above. The Goethe v7 montage is no longer selected by the homepage. Existing source credits are retained.
+
+## Last scene only: Vietnamese resident in Berlin (2026-11-07)
+
+`legal-hero-stock-v8.mp4` and `legal-hero-stock-mobile-v8.mp4` preserve the first five scenes of v5 and replace only the final Berlin tram scene with seconds 263.5–268 of Goethe-Institut Vietnam’s **Berufsperspektive Deutschland: Nguyen Thi Thu im Portrait** (https://www.youtube.com/watch?v=Rua_4GWzarE). The publisher identifies Thu as living/working in Berlin: https://www.goethe.de/ins/vn/en/spr/lad/jvi.html. The owner explicitly confirmed permission to use this series on 2026-11-07. Credit: Goethe-Institut Hanoi / Duc Ngo Ngoc. Depicted people are illustrative, not our staff or endorsers.
+
+The opening is unchanged, so the v4 poster is retained. Same six 4.5-second scenes, 0.4-second crossfades, silent H.264 yuv420p, 25 fps, fast-start; desktop 1920x1080 CRF22 and mobile 1280x720 CRF26. The final clip is reframed above its subtitle band. First five scenes retain the Pexels sources and permissions documented for v5. Raw sources and intermediates remain outside the public repository.
