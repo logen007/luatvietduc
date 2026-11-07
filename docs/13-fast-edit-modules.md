@@ -6,7 +6,7 @@ The public UI keeps the existing React/Next.js/Payload foundation. Separate cont
 
 | Area | Editable module | Delivery |
 | --- | --- | --- |
-| Shared public labels | `apps/cms/public/content/common.json` | Public snapshot |
+| Shared public labels and standard chat handoff/register/optional-phone copy | `apps/cms/public/content/common.json` | Public snapshot |
 | Homepage hero, service tabs and benefits | `apps/cms/public/content/home.json` | Public snapshot |
 | Library controls and labels | `apps/cms/public/content/library.json` | Public snapshot |
 | News controls and labels | `apps/cms/public/content/news.json` | Public snapshot |

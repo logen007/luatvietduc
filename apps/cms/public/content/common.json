@@ -32,6 +32,18 @@
     "Mạng xã hội": {
       "vi": "Mạng xã hội",
       "de": "Soziale Medien"
+    },
+    "Câu hỏi này cần chuyên viên xem xét thêm. Mình đã chuyển cuộc trò chuyện để chuyên viên tiếp tục hỗ trợ tại đây.": {
+      "vi": "Mình đã chuyển nội dung cho chuyên viên để xem xét kỹ hơn và phản hồi tại đây.",
+      "de": "Ich habe Ihr Anliegen an unser Fachteam weitergegeben. Die Rückmeldung erhalten Sie hier im Chat."
+    },
+    "Bạn có thể đăng ký để lưu cuộc trò chuyện và được chuyên viên ưu tiên trả lời.": {
+      "vi": "để lưu trao đổi và được ưu tiên hỗ trợ.",
+      "de": "– so bleibt Ihr Gespräch gespeichert und Sie erhalten bevorzugt Unterstützung."
+    },
+    "Nếu tiện, bạn để lại số điện thoại ngay trong cuộc trò chuyện để chuyên viên liên hệ nhé. Không bắt buộc.": {
+      "vi": "Để lại số điện thoại nếu bạn muốn chuyên viên liên hệ.",
+      "de": "Wenn Sie einen Rückruf wünschen, können Sie Ihre Telefonnummer hinterlassen."
     }
   }
 }
