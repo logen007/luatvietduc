@@ -2,6 +2,7 @@ import {cache} from 'react';
 import path from 'node:path';
 import {notFound,permanentRedirect} from 'next/navigation';
 import {getPresentationVersion} from '../shared/presentation-version.mjs';
+import {homeBenefitPhotos} from '../shared/public-media.mjs';
 import {resolvePublicRoute,positivePage,legacyKeyword,groupAliases} from './routes';
 import {content,publicArticle,publicArticleList,publicSiteSettings,publicLegacyNews,publicNewsList,publicCategories} from './server';
 import {catalogueTopics} from './search';
@@ -67,7 +68,7 @@ export async function PublicPage({path:pathname,query}:{path:string;query:URLSea
  const metadata=metadataInput(data,pathname,query);
  const schema=data.story?articleSchema({title:data.story.title,path:metadata.path,description:data.story.summary,image:photo(data.story.photo,1440).src,published:data.story.published,modified:data.story.checked,parent:{href:'/tin-tuc',label:'Tin tức & đời sống'},news:true}):pageSchema({...metadata,home:route.kind==='home'});
  return <><StructuredData value={schema}/><PublicFrame revision={revision} home={route.kind==='home'} articleHero={route.kind==='legacy-news'} section={section}>
-  {route.kind==='home'&&articleList&&<Home groups={groups} partners={content.partners} news={articleList} revision={revision}/>}
+  {route.kind==='home'&&articleList&&<Home groups={groups} partners={content.partners} news={articleList} revision={revision} benefitPhotos={homeBenefitPhotos(path.join(process.cwd(),'public'))}/>}
   {route.kind==='library'&&articleList&&<Library key={pathname+'?'+displayQuery.toString()} selectedCategory={data.selectedCategory?{id:data.selectedCategory.slug,title:data.selectedCategory.name}:undefined} groups={groups} group={groupView} country={route.country} topics={topics.slice((page-1)*20,page*20)} total={topics.length} page={page} path={pathname} query={displayQuery.toString()} articles={articleList}/>}
   {route.kind==='topic'&&groupView&&topic&&<TopicPage group={groupView} topic={topic}/>}
   {route.kind==='news'&&articleList&&<News key={query.toString()} articles={articleList} query={query.toString()} categories={content.newsCategories}/>}

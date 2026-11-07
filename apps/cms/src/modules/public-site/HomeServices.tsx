@@ -43,8 +43,8 @@ const benefits=[
  ['target','Có chuyên viên cùng tháo gỡ','Mit fachkundiger Unterstützung','Trao đổi trực tiếp, bổ sung hồ sơ và nhận hướng xử lý phù hợp ngay trong cuộc trò chuyện.','Besprechen Sie Ihr Anliegen, ergänzen Sie Unterlagen und erhalten Sie passende Handlungsmöglichkeiten direkt im Gespräch.'],
  ['folder','Mọi trao đổi, cùng một nơi','Alle Gespräche an einem Ort','Giữ câu hỏi, tài liệu và phản hồi trong tài khoản để tiếp tục khi cần.','Speichern Sie Fragen, Unterlagen und Antworten in Ihrem Konto, um bei Bedarf daran anzuknüpfen.'],
 ] as const;
-export function HomeBenefits(){
- const l=usePublicCopy(),photos=['/media/benefits/clarity.webp','/media/benefits/specialist.webp','/media/benefits/records.webp'];
+export function HomeBenefits({photos}:{photos:string[]}){
+ const l=usePublicCopy();
  return <section className="container lvd-home-benefits" aria-label={l('Đồng hành cùng bạn','An Ihrer Seite')}><div className="lvd-benefit-grid">{benefits.map(([icon,vi,de,description,descriptionDe],index)=><article className="lvd-benefit-card has-photo" key={icon}>
   <img src={photos[index]} alt="" width={1200} height={800} loading="lazy" decoding="async"/>
   <span className="lvd-benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icon==='flag'?'M5 21V3m0 1c5-4 9 4 14 0v10c-5 4-9-4-14 0':icon==='target'?'M12 2v3m0 14v3M2 12h3m14 0h3M19 12a7 7 0 1 1-14 0 7 7 0 0 1 14 0M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0':'M3 7V4h7l2 3h9v13H3ZM3 10h18'}/></svg></span>

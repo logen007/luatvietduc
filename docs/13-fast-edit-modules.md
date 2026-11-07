@@ -54,3 +54,9 @@ Full CI and production still build separately. Moving prebuilt CI artifacts into
 ### Measured delivery probes
 
 On 2026-11-07, separate unchanged-UI probes covered bilingual copy, CSS tokens and a photo with an ignored RIFF chunk (decoded pixels verified identical; chunk removed after the probe). Before shorter polling: copy activation was confirmed 48.7 seconds after push start, CSS appeared publicly in 37.4 seconds, and the photo appeared in 51.2 seconds. These are observed end-to-end samples, not guarantees. The app backend stayed at the same commit for all three. The subsequent policy reduces idle/presentation retry intervals from 15 to 5 seconds; measure follow-up pushes after installation before claiming an improvement.
+
+The first copy-only follow-up after five-second polling appeared publicly in 34.2 seconds (01.38.06). Runner startup and verification time still vary.
+
+### Photo freshness
+
+Homepage benefit photo URLs use the SHA-256 of each photo (12 hexadecimal characters), calculated from one resolved public snapshot during server rendering. The same URLs hydrate on the client. Replacing a supported photo changes only that photo URL, avoiding stale CDN/browser responses without clearing the cache for unchanged photos. Photo-only updates continue through the snapshot lane after this application support is installed. No post-load DOM rewrite or uncached image download is required.
