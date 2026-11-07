@@ -48,6 +48,10 @@
     "Đăng ký": {
       "vi": "Đăng ký",
       "de": "Konto erstellen"
+    },
+    "Đăng nhập": {
+      "vi": "Đăng nhập",
+      "de": "Anmelden"
     }
   }
 }
