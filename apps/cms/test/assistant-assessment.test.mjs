@@ -34,7 +34,15 @@ function fixture(t,options={}){
   if(sql.startsWith('SELECT * FROM lvd_conversations'))return {rows:[{...c}],rowCount:1};
   if(sql.startsWith('SELECT 1 FROM lvd_messages'))return {rows:[],rowCount:0};
   if(sql.startsWith('SELECT id,body,metadata FROM lvd_messages'))return {rows:[current],rowCount:1};
-  if(sql.startsWith('SELECT role,body,metadata FROM ('))return {rows:options.previous||[],rowCount:(options.previous||[]).length};
+  if(sql.startsWith('SELECT role,body,metadata FROM ')){
+   state.historySQL=sql;
+   let rows=options.previous||[];
+   if(options.windowedHistory){
+    const recent=rows.slice(0,80),ancient=sql.includes('UNION')?rows.filter(row=>row.role==='user').slice(-4):[];
+    rows=[...new Map([...recent,...ancient].map(row=>[row.id,row])).values()].sort((a,b)=>b.id-a.id);
+   }
+   return {rows,rowCount:rows.length};
+  }
   if(sql.startsWith('UPDATE lvd_conversations SET ai_generation=')){c.ai_generation=args[1];return {rows:[],rowCount:1};}
   if(sql.startsWith('SELECT * FROM lvd_integrations')||sql.startsWith('SELECT enabled,version FROM lvd_integrations'))return {rows:[provider],rowCount:1};
   if(sql.startsWith('SELECT id,title,body,updated_at'))return {rows:state.rules,rowCount:state.rules.length};
@@ -381,4 +389,39 @@ for(const item of [
   {role:'user',body:'Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục',metadata:{aiConsent:{version:CONSENT_VERSION}}},
  ]});
  await state.run();assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,item.expected);
+});
+
+test('a matter boundary outside the recent message window cannot revive ancient property facts',async t=>{
+ const approved=body=>({role:'user',body,metadata:{aiConsent:{version:CONSENT_VERSION}}});
+ const old='Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục';
+ const chronological=[approved(old),approved(old),approved(old),approved(old),approved('Còn mảnh đất khác ở Đức, tôi muốn mua')];
+ for(let i=0;i<45;i++)chronological.push({role:'assistant',body:'Bạn có thể nói rõ thêm không?',metadata:{kind:'clarify',clarificationKey:'goal'}},approved('Thông tin bổ sung '+i));
+ const previous=chronological.map((row,index)=>({...row,id:index+1})).reverse();
+ const state=fixture(t,{body:'Tôi muốn biết thủ tục sang tên đất',retained:true,previous,windowedHistory:true});
+ state.current.id=1000;
+ await state.run();assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);
+ assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,'property.country','Recollect missing facts rather than reuse the first unrelated property');
+ assert.doesNotMatch(state.historySQL,/UNION/);assert.match(state.historySQL,/ORDER BY id DESC LIMIT 80$/);
+});
+
+test('all facts at the inclusive 80-message boundary remain available in message order',async t=>{
+ const approved=body=>({role:'user',body,metadata:{aiConsent:{version:CONSENT_VERSION}}});
+ const chronological=[approved('Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục'),...Array.from({length:78},(_,i)=>approved('Thông tin bổ sung '+i)),{role:'assistant',body:'Synthetic approved answer.',metadata:{kind:'ai',sources:[]}}];
+ const previous=chronological.map((row,index)=>({...row,id:index+1})).reverse();
+ const state=fixture(t,{body:'Thủ tục sang tên đất cần chuẩn bị thêm gì?',retained:true,previous,windowedHistory:true});state.current.id=1000;
+ await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,1);assert.equal(state.replies[0].metadata.kind,'handoff');
+ assert.match(state.intakePrompts[0].question,/sổ đỏ đứng tên mẹ tôi/);assert.ok(state.intakePrompts[0].question.indexOf('Thông tin bổ sung 0')<state.intakePrompts[0].question.indexOf('Thông tin bổ sung 77'));
+});
+
+test('budgeting three property matters cannot reuse the older matter clarification identity',async t=>{
+ const approved=body=>({role:'user',body,metadata:{aiConsent:{version:CONSENT_VERSION}}}),ask=key=>({role:'assistant',body:'Synthetic factual question?',metadata:{kind:'clarify',clarificationKey:key}});
+ const chronological=[{role:'assistant',body:'Synthetic earlier approved answer.',metadata:{kind:'ai',sources:[]}},
+  approved('Tôi muốn sang tên đất tại Việt Nam, có sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục'),ask('property.goal'),
+  approved('Còn mảnh đất khác tại Đức, tôi muốn mua. '+'Bổ sung '.repeat(400)),ask('property-2.owner'),approved('Cha tôi'),ask('property-2.document'),approved('Có rồi'),ask('property-2.timeline'),approved('Đang chuẩn bị'),ask('property-2.goal'),approved('Muốn biết thủ tục'),
+  approved('Còn một mảnh đất khác nữa tại Việt Nam, tôi muốn sang tên, đang chuẩn bị và muốn biết thủ tục'),ask('property-3.owner'),approved('Mẹ tôi'),ask('property-3.document'),
+ ];
+ for(let i=0;i<20;i++)chronological.push(approved('Thông tin thêm '+i+' '+ 'thông tin '.repeat(90)),ask('property-3.document'));
+ const state=fixture(t,{body:'Chưa rõ',retained:true,previous:chronological.reverse()});
+ await state.run();assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.replies[0].metadata.kind,'clarify');
+ assert.equal(state.replies[0].metadata.clarificationKey,'property-3.document','A skipped intermediate marker must not rename the current case to the previous case');
 });

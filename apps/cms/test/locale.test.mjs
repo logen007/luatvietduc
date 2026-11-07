@@ -37,3 +37,10 @@ test('legacy build uses shared dictionary, translates dynamic counts and switche
 test('both deployment and development prepare the shared legacy locale',()=>{
  for(const file of ['prepare-container.mjs','prepare-frontend.mjs'])assert.match(fs.readFileSync(new URL('../scripts/'+file,import.meta.url),'utf8'),/await writeInterfaceLocale\(pub\)/);
 });
+
+
+test('account rate-limit feedback is translated to German while preserving Vietnamese',()=>{
+ const message='Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.';
+ assert.equal(translate(message,'vi'),message);
+ assert.equal(translate(message,'de'),'Sie führen zu viele Aktionen aus. Bitte versuchen Sie es in einer Minute erneut.');
+});

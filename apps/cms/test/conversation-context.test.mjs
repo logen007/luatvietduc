@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {answerHistory,questionWithHistory,retrievalText,MAX_CONTEXT_BYTES,MAX_RETRIEVAL_BYTES} from '../src/modules/assistant/conversation-context.ts';
 import {sourceScopes} from '../src/modules/assistant/scope.ts';
+import {intakeClarification} from '../src/modules/assistant/clarification.ts';
 const consent='synthetic-consent';
 const user=(body,approved=true)=>({role:'user',body,metadata:approved?{aiConsent:{version:consent}}:{}});
 test('answers retain consented facts across assistant answers, excluding notes/staff/legacy turns',()=>{
@@ -16,6 +17,24 @@ test('long context preserves early facts and recent corrections with bounded UTF
  const rows=Array.from({length:80},(_,i)=>user(i===0?'INITIAL-FACT':i===79?'LATEST-CORRECTION':'Lượt '+i+' '+ 'dữ kiện '.repeat(200))).reverse();
  const context=answerHistory(rows,consent);assert.ok(context.includes('INITIAL-FACT'));assert.ok(context.includes('LATEST-CORRECTION'));assert.ok(Buffer.byteLength(context)<=MAX_CONTEXT_BYTES);
  const full=questionWithHistory('Câu hỏi mới '+ 'đ'.repeat(1800),context),retrieval=retrievalText(full);assert.ok(Buffer.byteLength(retrieval)<=MAX_RETRIEVAL_BYTES);assert.ok(retrieval.includes('INITIAL-FACT'));assert.ok(!retrieval.includes('\uFFFD'));assert.ok(retrieval.endsWith('đ'.repeat(100)));
+});
+
+for(const item of [
+ {old:'Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục',boundary:'Còn một mảnh đất khác tại Đức, tôi muốn mua, đang chuẩn bị và muốn biết thủ tục. ',key:'property-2.owner'},
+ {old:'Ich möchte ein Grundstück in Deutschland übertragen, meine Mutter ist im Grundbuch eingetragen, in Vorbereitung und ich möchte das Verfahren wissen',boundary:'Ich möchte ein anderes Grundstück in Vietnam kaufen, in Vorbereitung und ich möchte das Verfahren wissen. ',key:'property-2.owner'},
+ {old:'Tôi muốn đầu tư thành lập GmbH tại Đức, đang chuẩn bị và muốn biết thủ tục',boundary:'Còn ly hôn thì sao? ',key:'family.country'},
+])test('bounded history retains the matter reset before old facts: '+item.key+' '+item.boundary,()=>{
+ const boundary=item.boundary+'Bổ sung '.repeat(300),later=Array.from({length:25},(_,i)=>'Thông tin trao đổi '+i+' '+ 'thông tin '.repeat(90));
+ for(const earlier of [[item.old,'Tôi muốn biết thêm thủ tục',boundary],[item.old+'\n\n'+boundary]]){
+  const rows=[...earlier,...later].map(body=>user(body)).reverse(),context=answerHistory(rows,consent);
+  assert.ok(Buffer.byteLength(context)<=MAX_CONTEXT_BYTES);assert.ok(context.includes(item.boundary));
+  assert.equal(intakeClarification(context)?.key,item.key,'Old ownership and country cannot fill a newly introduced matter');
+ }
+});
+test('an oversized new-matter turn cannot leave old facts in provider history without the reset',()=>{
+ const old='Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục';
+ const boundary='Còn mảnh đất khác tại Đức, tôi muốn mua '+ 'Thông tin '.repeat(2000);
+ assert.equal(answerHistory([user('Tôi muốn biết thủ tục'),user(boundary),user(old)],consent),'');
 });
 
 test('explicit country corrections exclude the rejected country while comparisons stay open',()=>{

@@ -27,7 +27,9 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   if(!message||String(message.id)!==String(messageId))return null;
   if(conversation.ai_generation&&new Date(conversation.ai_started_at).getTime()>Date.now()-35000)return null;
   await db.query('UPDATE lvd_conversations SET ai_generation=$2,ai_message_id=$3,ai_started_at=now() WHERE id=$1',[id,token,message.id]);
-  const previous=(await db.query("SELECT role,body,metadata FROM ((SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 80) UNION (SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND role='user' AND NOT internal ORDER BY id LIMIT 4)) history ORDER BY id DESC",[id,message.id])).rows;
+  // An ancient opening cannot bridge a missing middle containing a new case or
+  // correction. Recollect facts outside the contiguous recent window instead.
+  const previous=(await db.query("SELECT role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal ORDER BY id DESC LIMIT 80",[id,message.id])).rows;
   const history=clarificationHistory(previous,CONSENT_VERSION);
   return {previousQuestions:previous.filter(row=>row.role==='assistant'&&row.metadata?.kind==='clarify').map(row=>String(row.body)).slice(0,6),retainHistory:Boolean(conversation.retain_history),meaningfulHistory:previous.some(row=>row.role==='user'&&!isVagueIntakeReply(String(row.body))),previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),intakeQuestion:contextualIntakeReply(String(message.body),history.pendingKey),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,localContextConsented:history.context===history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
  });

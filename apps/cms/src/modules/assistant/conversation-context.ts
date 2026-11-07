@@ -1,5 +1,5 @@
 import {eligible,faqBody,faqRevision,type Faq} from './faq';
-import {contextualIntakeHistory,type ClarificationMessage} from './clarification';
+import {contextualIntakeHistory,currentIntakeContext,type ClarificationMessage} from './clarification';
 export const MAX_CONTEXT_BYTES=12000,MAX_RETRIEVAL_BYTES=1800;
 const bytes=(value:string)=>Buffer.byteLength(value,'utf8');
 // Preserve early customer facts and recent corrections, within a fixed request
@@ -8,9 +8,24 @@ export function answerHistory(previous:ClarificationMessage[],consentVersion:str
  const contextual=contextualIntakeHistory(previous);
  const users=previous.filter(row=>row.role==='user'&&row.metadata?.aiConsent?.version===consentVersion&&typeof row.body==='string').reverse();
  const chosen=new Set<number>();let total=0;
- for(let index=0;index<Math.min(2,users.length);index++){const size=bytes(contextual.get(users[index])||String(users[index].body))+2;if(total+size>MAX_CONTEXT_BYTES/3)break;chosen.add(index);total+=size;}
+ const text=(index:number)=>contextual.get(users[index])||String(users[index].body);
+ const active=currentIntakeContext(users.map((_,index)=>text(index)).join('\n'));
+ if(active.topic){
+  // Never keep older facts while dropping the turn that started a new matter.
+  // Reserve its whole turn first, including boundaries inside multiline turns.
+  let remaining=active.text.split('\n').length,boundary=users.length-1;
+  for(let index=users.length-1;index>=0;index--){const count=text(index).split('\n').filter(line=>line.trim()).length;if(remaining<=count){boundary=index;break;}remaining-=count;}
+  const size=bytes(text(boundary))+2;
+  if(size>MAX_CONTEXT_BYTES)return '';
+  chosen.add(boundary);total+=size;
+ }
+ for(let index=0;index<Math.min(2,users.length);index++){if(chosen.has(index))continue;const size=bytes(text(index))+2;if(total+size>MAX_CONTEXT_BYTES/3)break;chosen.add(index);total+=size;}
  for(let index=users.length-1;index>=0;index--){if(chosen.has(index))continue;const size=bytes(contextual.get(users[index])||String(users[index].body))+2;if(total+size>MAX_CONTEXT_BYTES)continue;chosen.add(index);total+=size;}
- return [...chosen].sort((a,b)=>a-b).map(index=>contextual.get(users[index])||String(users[index].body)).join('\n\n');
+ const selected=[...chosen].sort((a,b)=>a-b).map(index=>text(index)).join('\n\n');
+ // Omitting an intermediate same-topic reset can rename property-3 to
+ // property-2 and attach older question/answer keys to the current matter.
+ // Refuse that inherited history rather than reinterpret a scoped identity.
+ return currentIntakeContext(selected).scope===active.scope?selected:'';
 }
 export const questionWithHistory=(question:string,context:string)=>context?'Hội thoại trước:\n'+context+'\nCâu hỏi tiếp: '+question:question;
 // Search embeddings have a smaller input window than the answer selector.
