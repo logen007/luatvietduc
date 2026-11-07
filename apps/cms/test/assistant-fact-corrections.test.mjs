@@ -33,3 +33,16 @@ test('German property uncertainty across a dependent-clause comma reopens only t
   assert.equal(intakeClarification(base+'\n'+unrelated),null,unrelated);
  }
 });
+
+test('Vietnamese property uncertainty across a comma reopens only the explicitly withdrawn fact',()=>{
+ const base='Tôi muốn sang tên đất ở Việt Nam, có sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục';
+ for(const correction of ['Tôi không biết, đất đã có giấy chứng nhận chưa.','Tôi chưa rõ, mảnh đất này có sổ đỏ không?','Toi khong ro, dat co so do chua?']){
+  assert.equal(intakeClarification(base+'\n'+correction)?.key,'property.document',correction);
+  assert.equal(intakeClarification(base+'\n'+correction+'\nĐất có sổ đỏ.'),null);
+ }
+ for(const correction of ['Tôi không rõ, ai đang đứng tên mảnh đất.','Tôi chưa biết, đất đứng tên ai.','Tôi không rõ, ai đang đứng tên trên sổ đỏ.']){
+  assert.equal(intakeClarification(base+'\n'+correction)?.key,'property.owner',correction);
+  assert.equal(intakeClarification(base+'\n'+correction+'\nĐất đang đứng tên mẹ tôi.'),null,'Known document availability is not withdrawn with its owner');
+ }
+ for(const unrelated of ['Tôi không rõ, chi phí làm sổ đỏ là bao nhiêu.','Tôi không biết, ai phải dịch sổ đỏ.','Chi phí chưa rõ, đất có sổ đỏ không?'])assert.equal(intakeClarification(base+'\n'+unrelated),null,unrelated);
+});

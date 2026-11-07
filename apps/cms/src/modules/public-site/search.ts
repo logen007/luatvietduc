@@ -1,5 +1,5 @@
 import type {Group,Topic} from './types';
-export const normalize=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/gi,'d').toLowerCase().trim();
+export const normalize=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/gi,'d').toLowerCase().replace(/\s+/g,' ').trim();
 export function catalogueTopics(groups:Group[],query='',group='',order='source'):Topic[]{
  const tokens=normalize(query).replace(/\bbhxh\b/g,'bao hiem xa hoi').replace(/\bvollmacht\b/g,'uy quyen').replace(/\berbrecht\b/g,'thua ke').split(/\s+/).filter(Boolean);
  const topics=groups.filter(g=>!group||g.id===group).flatMap(g=>g.titles.map((title,index)=>({id:g.id+'-'+String(index+1).padStart(2,'0'),slug:g.slugs[index],title,groupId:g.id,index:index+1,search:normalize(title+' '+g.title+' '+g.titleDe)}))).filter(topic=>tokens.every(token=>topic.search.includes(token))).map(({search,...topic})=>topic);

@@ -6,7 +6,7 @@ import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {publicHref,legacyTarget} from '../src/modules/shared/public-shell.mjs';
 import {publicPages,resolvePublicRoute,redirectTarget,positivePage,legacyKeyword} from '../src/modules/public-site/routes.ts';
-import {catalogueTopics,categoryDestination} from '../src/modules/public-site/search.ts';
+import {catalogueTopics,categoryDestination,normalize} from '../src/modules/public-site/search.ts';
 import {publicMetadata,privatePaths,sitemapIndex,sitemapDocument,sitemapPageSize} from '../src/modules/public-site/seo.ts';
 import {canonicalCopy} from '../src/modules/public-site/Information.tsx';
 import {keepsLegacyCopy} from '../src/modules/public-site/legacy-news.ts';
@@ -139,4 +139,13 @@ test('article categories use supported destinations for custom taxonomies and pr
  assert.equal(categoryDestination('tin-new-topic'),'/tin-tuc?nhom=new-topic');
  const special=new URL(categoryDestination('custom & category',{country:'DE'}),'https://example.invalid');
  assert.equal(special.searchParams.get('linh-vuc'),'custom & category');assert.equal(special.searchParams.size,1);
+});
+
+
+test('retained news search treats pasted whitespace like CMS article search',()=>{
+ const story=content.newsStories.find(story=>story.id==='kindergeld-2026');assert.ok(story);
+ const searchable=normalize(story.title+' '+story.summary);
+ for(const query of ['Kindergeld 2026','  Kindergeld   2026  ','Kindergeld\t2026','Kindergeld\n2026','Kindergeld\u00a02026'])assert.ok(searchable.includes(normalize(query)),query);
+ assert.equal(normalize('  CƯ\tTRÚ  ở Đức '),'cu tru o duc');
+ assert.equal(normalize('Kindergeld 2027').includes(normalize('Kindergeld 2026')),false);
 });

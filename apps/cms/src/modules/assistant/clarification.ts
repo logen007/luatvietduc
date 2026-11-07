@@ -215,13 +215,19 @@ function propertyFacts(value:string){
  let ownerKnown=false,documentKnown=false;
  // German uncertainty governs its dependent clause even across the comma.
  // Splitting "weiß nicht, ob …" would otherwise preserve an older known fact.
- const clauses=value.replace(/\b(wei(?:ss|ß) nicht|keine Ahnung|unklar)\s*,\s*((?:ob|wer|auf wen)\b[^,\n;.!?]*)/giu,(whole,uncertainty,dependent)=>
-  /\beingetragen\b/i.test(dependent)||/\bob\b.*\b(?:grundbuch\w*|urkunde\w*|(?:eigentums)?nachweis\w*)\b.*\b(?:gibt|habe|hat|haben|vorliegt|vorhanden|existiert)\b/i.test(dependent)?uncertainty+' '+dependent:whole);
+ const clauses=value.normalize('NFC').replace(/\b(wei(?:ss|ß) nicht|keine Ahnung|unklar)\s*,\s*((?:ob|wer|auf wen)\b[^,\n;.!?]*)/giu,(whole,uncertainty,dependent)=>
+  /\beingetragen\b/i.test(dependent)||/\bob\b.*\b(?:grundbuch\w*|urkunde\w*|(?:eigentums)?nachweis\w*)\b.*\b(?:gibt|habe|hat|haben|vorliegt|vorhanden|existiert)\b/i.test(dependent)?uncertainty+' '+dependent:whole)
+  .replace(/(^|[\n;.!?]\s*|,\s*)((?:(?:tôi|toi|mình|minh|em|tớ|to) )?(?:không biết|khong biet|chưa biết|chua biet|không rõ|khong ro|chưa rõ|chua ro))\s*,\s*([^,\n;.!?]*)/giu,(whole,prefix,uncertainty,dependent)=>{
+   const text=normalized(dependent);
+   const owner=/^(?:ai\b|(?:dat|manh dat|thua dat)\b).*\bdung ten\b/.test(text);
+   const document=/^(?:(?:dat|manh dat|thua dat)(?: nay| do)? )?(?:(?:da |chua )?co (?:so do|so hong|giay chung nhan)|(?:so do|so hong|giay chung nhan)(?: da)? (?:co|duoc cap))\b/.test(text);
+   return owner||document?prefix+uncertainty+' '+dependent:whole;
+  });
  for(const clause of clauses.split(/[\n,;]|(?<=[.!?？])\s+/)){
   const text=normalized(clause),unclear=/\b(khong biet|chua biet|chua ro|khong ro|weiss nicht|weiß nicht|keine ahnung|unklar)\b/.test(text);
   if(/\b(dung ten|chua dung ten|chua sang ten|dang su dung|dang quan ly|eingetragen|eigentumer\w*)\b/.test(text)&&(unclear||! /\b(ai (?:dang )?dung ten|dung ten ai|auf wen.*eingetragen|wer.*eingetragen)\b/.test(text)))ownerKnown=!unclear;
   const documentMention=/\b(so do|so hong|giay chung nhan|co so|chua co so|chua duoc cap so|grundbuch\w*|urkunde\w*|(?:eigentums)?nachweis\w*)\b/.test(text);
-  const ownershipOnlyUnclear=unclear&&/\beingetragen\b/.test(text)&&!/\b(so do|so hong|giay chung nhan|urkunde\w*|(?:eigentums)?nachweis\w*)\b/.test(text);
+  const ownershipOnlyUnclear=unclear&&(/\beingetragen\b/.test(text)&&!/\b(so do|so hong|giay chung nhan|urkunde\w*|(?:eigentums)?nachweis\w*)\b/.test(text)||/\bdung ten\b/.test(text)&&!/\b(?:co (?:so do|so hong|giay chung nhan)|duoc cap (?:so|giay))\b/.test(text));
   const documentQuestion=/\b(la gi|la sao|nghia la gi|co nghia|was ist|was bedeutet|was heisst|was heißt)\b/.test(text)||/\b(?:so do|so hong|giay chung nhan) (?:chua|khong|nao|gi)\b/.test(text)||/^(?:ban (?:dang )?hoi|y ban|welche\w*|was fur|ob)\b/.test(text)||/^(?:gibt es|habe ich|haben sie|wissen sie)\b/.test(text)&&/[?？]/.test(clause);
   if(documentMention&&!ownershipOnlyUnclear&&(unclear||!documentQuestion))documentKnown=!unclear;
  }

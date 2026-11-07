@@ -87,7 +87,7 @@ hết hạn; job chỉ giữ tham chiếu, không sao chép hội thoại. Tiế
 hoặc câu hỏi mới hủy hiệu lực kết quả AI cũ. Pipeline hiện có vẫn kiểm tra nguồn,
 hạn mức, điều kiện sử dụng, phiên bản và trạng thái hội thoại trước khi ghi phản hồi.
 
-Hội thoại dài giữ các lượt khách đã đồng ý xử lý: dữ kiện đầu và phần gần nhất trong ngân sách 12 KB; tối đa 80 tin gần nhất và 4 lượt khách đầu được đọc. Nội dung chuyên viên/ghi chú nội bộ không đưa vào ngữ cảnh model. Câu hỏi kế tiếp ưu tiên quốc gia vừa được khách xác nhận. Intake giới hạn câu hỏi, không lặp dữ kiện đã có; đổi chủ đề đặt lại các câu hỏi riêng của chủ đề.
+Hội thoại dài chỉ đọc cửa sổ liên tục 80 tin gần nhất, rồi giữ các lượt khách đã đồng ý xử lý trong ngân sách 12 KB. Khi rút gọn, bảo toàn mốc chuyển vụ việc; không ghép các tin đầu quá cũ vào một cửa sổ đã mất phần giữa. Dữ kiện bị bỏ cần hỏi lại. Nội dung chuyên viên/ghi chú nội bộ không đưa vào ngữ cảnh model. Câu hỏi kế tiếp ưu tiên quốc gia vừa được khách xác nhận. Intake giới hạn câu hỏi, không lặp dữ kiện đã có; đổi chủ đề đặt lại các câu hỏi riêng của chủ đề.
 
 Frontend đọc nhanh khi chờ AI, giãn nhịp khi không thay đổi và ngủ khi tab ẩn.
 Gửi/tải tệp/chuyển trạng thái dùng khóa thao tác đồng bộ ở client. Mã gửi được giữ
