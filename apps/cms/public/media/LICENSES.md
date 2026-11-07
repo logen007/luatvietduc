@@ -58,3 +58,15 @@ Six 4.5-second scenes with 0.4-second crossfades, 25 fps, H.264, silent, fast-st
 - Download: https://videos.pexels.com/video-files/37552287/15912044_3840_2160_25fps.mp4
 - License: https://www.pexels.com/license/ (checked 2026-11-07).
 - Illustrative stock footage; no endorsement by depicted people, brands or transit operators is implied.
+
+## Vietnamese residents in Germany (2026-11-07)
+
+`legal-hero-stock-v7.mp4`, `legal-hero-stock-mobile-v7.mp4` and `legal-hero-stock-poster-v7.webp` replace the generic Asian office/executive scenes with three people explicitly identified in the Goethe-Institut Vietnam series **Young Vietnamese in portrait**. Permission to reuse this series was confirmed by the website owner in the project conversation on 2026-11-07. These clips are not claimed to be Pexels stock or covered by a Creative Commons license.
+
+- Series and identities/locations: https://www.goethe.de/ins/vn/en/spr/lad/jvi.html
+- Goethe-Institut Vietnam, **Berufsperspektive Deutschland: Dr. Nguyen Thi Lien Phuong im Portrait**, Hamburg, seconds 70.5–75: https://www.youtube.com/watch?v=L3T_jh-McVs
+- Goethe-Institut Vietnam, **Berufsperspektive Deutschland: Nguyen Thi Thu im Portrait**, Berlin, seconds 263.5–268: https://www.youtube.com/watch?v=Rua_4GWzarE
+- Goethe-Institut Vietnam, **Berufsperspektive Deutschland: Ngo Minh Duc im Portrait**, Bochum, seconds 8.5–13: https://www.youtube.com/watch?v=yQcXcCfjdVI
+- Credit: Goethe-Institut Hanoi / filmmaker Duc Ngo Ngoc, as credited by the series. Retrieved 2026-11-07.
+
+These are illustrative scenes of life in Germany, not our employees, clients or endorsements. Nationality and location are sourced from the publisher, never inferred from appearance. Audio is removed and the bottom subtitle band is cropped for the silent background. No faces are retouched or generated. Remaining document, Berlin bridge and tram scenes retain the Pexels sources and license recorded above. Same six-scene, 0.4-second crossfade, H.264 yuv420p, fast-start encoding as v5 (1920x1080 desktop and 1280x720 mobile). Poster comes from the new opening shot. Raw films/intermediates are kept outside this public repository.

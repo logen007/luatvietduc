@@ -1,5 +1,5 @@
   E.home = () => `<section class="pm-hero" aria-labelledby="pm-title">
-    <video class="pm-hero-video" muted loop playsinline preload="none" poster="/media/legal-hero-stock-poster-v4.webp" aria-hidden="true" tabindex="-1"><source data-src="/media/legal-hero-stock-v5.mp4" type="video/mp4"></video>
+    <video class="pm-hero-video" muted loop playsinline preload="none" poster="/media/legal-hero-stock-poster-v7.webp" aria-hidden="true" tabindex="-1"><source data-src="/media/legal-hero-stock-v7.mp4" type="video/mp4"></video>
     <button class="pm-video-toggle" type="button" aria-label="${l('Tạm dừng video','Video anhalten')}" aria-pressed="false"><svg class="pm-video-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><svg class="pm-video-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button>
     <div class="container pm-hero-inner"><div class="pm-hero-copy">
       <h1 id="pm-title">${l('Giải đáp pháp luật <br>Việt Nam và Đức.','Recht in Vietnam <br>und Deutschland.')}</h1>
