@@ -1,0 +1,28 @@
+# Separate, private, rebuildable semantic index. No public ports, proxy labels or customer text.
+name: luatvietduc-rag
+services:
+  vectors:
+    image: qdrant/qdrant:v1.20.0
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 384m
+    cpus: 0.75
+    pids_limit: 128
+    environment:
+      QDRANT__TELEMETRY_DISABLED: 'true'
+      QDRANT__SERVICE__MAX_WORKERS: '2'
+      QDRANT__STORAGE__PERFORMANCE__MAX_SEARCH_THREADS: '1'
+      QDRANT__STORAGE__OPTIMIZERS__MAX_OPTIMIZATION_THREADS: '1'
+      QDRANT__LOG_LEVEL: WARN
+    volumes: [vectors:/qdrant/storage, snapshots:/qdrant/snapshots]
+    tmpfs: ['/tmp:rw,noexec,nosuid,size=16m']
+    networks:
+      private:
+        aliases: [vectors]
+networks:
+  private: {external: true, name: luatvietduc_private}
+volumes:
+  vectors:
+  snapshots:

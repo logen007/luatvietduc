@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "text": {
+    "Tạo tài khoản": {
+      "vi": "Tạo tài khoản",
+      "de": "Konto erstellen"
+    },
+    "Quên mật khẩu?": {
+      "vi": "Quên mật khẩu?",
+      "de": "Passwort vergessen?"
+    },
+    "Bạn đã có tài khoản?": {
+      "vi": "Bạn đã có tài khoản?",
+      "de": "Sie haben bereits ein Konto?"
+    },
+    "Bạn chưa có tài khoản?": {
+      "vi": "Bạn chưa có tài khoản?",
+      "de": "Neu hier?"
+    },
+    "Mật khẩu": {
+      "vi": "Mật khẩu",
+      "de": "Passwort"
+    },
+    "Mọi trao đổi.": {
+      "vi": "Mọi trao đổi.",
+      "de": "Alle Gespräche."
+    },
+    "Trong một tài khoản.": {
+      "vi": "Trong một tài khoản.",
+      "de": "In einem Konto."
+    },
+    "Lưu câu hỏi, tài liệu và phản hồi để tiếp tục khi cần.": {
+      "vi": "Lưu câu hỏi, tài liệu và phản hồi để tiếp tục khi cần.",
+      "de": "Fragen, Dokumente und Antworten speichern und später daran anknüpfen."
+    },
+    "Hội thoại của tôi": {
+      "vi": "Hội thoại của tôi",
+      "de": "Meine Gespräche"
+    }
+  }
+}

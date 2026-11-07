@@ -1,0 +1,67 @@
+/* The application and public pages share the same navigation scale and palette. */
+.live-header .live-nav { margin-left:auto; margin-right:auto; gap:4px; }
+.live-header .live-nav a { padding:6px 10px; min-height:32px; font:500 14.5px/20px var(--lvd-font); }
+.live-header .live-nav a[aria-current] { text-decoration:none; background:#f5f3ee; }
+.live-header .live-header-actions { gap:24px; }
+.live-header-login { color:#0b0b0b; text-decoration:none; white-space:nowrap; font:400 14px/20px var(--lvd-font); }
+.live-header .live-header-login-button { min-height:40px; padding:9px 16px; border-radius:4px; font:500 14px/20px var(--lvd-font); white-space:nowrap; }
+.live-header .live-header-login-button svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.5; }
+.site-header .live-menu-button { display:none; align-items:center; justify-content:center; flex-shrink:0; box-sizing:border-box; width:48px; min-width:48px; height:48px; padding:8px; border:0; border-radius:4px; background:none; color:#0b0b0b; cursor:pointer; }
+.live-menu-button svg,.live-menu-dialog svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.5; }
+.site-header .live-menu-button svg { display:block; flex-shrink:0; width:32px; height:32px; stroke-width:2; stroke-linecap:round; }
+.site-header .live-menu-button:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+.lvd-redesign.pm-home:not(.pm-scrolled) .site-header .live-menu-button { color:#fff; }
+.lvd-redesign.pm-home:not(.pm-scrolled) .site-header .live-menu-button svg { filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+.live-menu-dialog { width:min(560px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); margin:auto; padding:32px; border:1px solid #dedede; border-radius:4px; background:#fff; color:#0b0b0b; font-family:var(--lvd-font); }
+.live-menu-dialog::backdrop { background:rgba(0,0,0,.4); backdrop-filter:blur(4px); }
+.live-menu-heading { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:32px; }
+.live-menu-heading h2 { margin:0; font:500 28px/1 var(--lvd-display); letter-spacing:-.02em; }
+.live-menu-heading button { display:grid; place-items:center; width:40px; height:40px; flex-shrink:0; padding:8px; border:1px solid #dedede; border-radius:4px; background:#fff; color:#0b0b0b; cursor:pointer; }
+.live-menu-dialog nav { display:grid; }
+.live-menu-dialog nav>:is(a,button) { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; padding:15px 0; border:0; border-bottom:1px solid #e6e6e6; background:transparent; color:#0b0b0b; text-align:left; text-decoration:none; font:500 18px/1.3 var(--lvd-font); cursor:pointer; }
+.live-menu-dialog nav>a[aria-current] { color:#666; }
+.live-menu-dialog nav>:is(a,button) svg { flex-shrink:0; }
+.live-menu-dialog nav>button:disabled { opacity:.6;cursor:wait; }
+@media(max-width:1100px) {
+ .live-header .live-nav { display:none; }
+ .site-header .live-menu-button { display:inline-flex; }
+}
+@media(max-width:760px) {
+ .live-header .live-header-inner { gap:16px; padding-inline:24px; }
+ .live-header .live-header-actions { gap:12px; }
+ .live-header .live-header-login-button { display:inline-flex; }
+ .live-menu-dialog { padding:24px; }
+}
+@media(max-width:480px) {
+ .live-header .live-header-inner { padding-inline:16px; }
+ .live-header .live-brand { max-width:none; }
+ .live-header .brand-name { font-size:25px; }
+ .live-header-login { display:none; }
+}
+
+/* Keep the single login action visible beside the phone menu. */
+@media(max-width:480px) {
+ .lvd-redesign .header-inner,.live-header .live-header-inner { gap:12px; }
+ .lvd-redesign .header-tools,.live-header .live-header-actions { gap:8px; }
+ .lvd-redesign .header-login,.live-header .live-header-login-button { min-height:40px; padding:9px 12px; font-size:14px; }
+ .lvd-redesign .header-login svg,.live-header .live-header-login-button svg { display:none; }
+}
+@media(max-width:359px) {
+ .lvd-redesign .brand-name,.live-header .brand-name { font-size:22px; }
+}
+.lvd-language-switch{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;color:inherit}.lvd-language-switch button{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:6px;min-height:40px;border:0;border-radius:3px;background:transparent;color:inherit;font:500 12px/1 var(--lvd-font);cursor:pointer;opacity:1;white-space:nowrap}.lvd-language-switch button[aria-pressed="true"],.lvd-language-switch button:hover{opacity:1}.lvd-language-switch button:focus-visible{outline:2px solid currentColor;outline-offset:2px}.lvd-language-switch img{display:block;width:20px;height:14px;object-fit:cover;flex-shrink:0}.lvd-language-switch>span{font-size:11px;opacity:.35}@media(max-width:600px){.lvd-language-switch{gap:0}.lvd-language-switch button{flex-direction:column;gap:4px;padding:4px;font-size:10px}.lvd-language-switch img{width:17px;height:11px}.lvd-language-switch>span{display:none}.lvd-redesign .header-inner,.live-header .live-header-inner{gap:8px}.live-header .brand-name{font-size:clamp(19px,5.5vw,25px)}}
+
+@media(max-width:760px){
+ .lvd-redesign .site-header .header-login,.live-header .live-header-login-button{display:none}
+}
+
+/* Compact visual, comfortable hit area on touch screens. */
+.lvd-language-switch button{min-width:44px;min-height:44px}
+
+/* Equal side tracks keep navigation centered independently of account width. */
+@media(min-width:1101px){
+ .live-header .live-header-inner{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+ .live-header .live-brand{justify-self:start}
+ .live-header .live-nav{justify-self:center;margin:0}
+ .live-header .live-header-actions{justify-self:end;margin:0}
+}

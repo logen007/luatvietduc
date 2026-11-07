@@ -1,0 +1,146 @@
+# Verified automatic releases
+
+Operational status: enabled with the owner's explicit approval on2026-11-03. The first automatic release78f8035 succeeded at18:09:33 Vietnam time, and the next timer run completed with no changes. Check the public `/release.json` for the currently deployed commit; later documentation-only commits do not replace the running image.
+
+This is a pull-based release service for the existing isolated Luật Việt Đức application. GitHub receives no VPS credentials. The VPS checks the public repository every 5 seconds and deploys only a successful push run for the exact commit, branch and approved workflow. GitHub API polling backs off while CI is pending. CI errors, rate limits or unknown state leave the running application alone.
+
+The production branch remains `feat/platform-cms-bootstrap`. Nothing is merged into `main`. The server-owned engine, Compose file, Dockerfile and CI policy are frozen during the one-time installation; pushing a changed deployment policy does not silently replace them. Routine changes to public UI or application code can use the automatic path. Schema and migration changes require a separate reviewed release because the automatic service never runs migrations.
+
+## One-time preparation
+
+After the new deployment code has been reviewed and its CI has passed, use the existing authorized VPS session once. Fetch the branch and verify the full commit SHA. Execute that exact commit's installer:
+
+```bash
+cd /opt/luatvietduc
+git fetch origin feat/platform-cms-bootstrap
+approved=<reviewed-40-character-commit-sha>
+git show "$approved:ops/deploy/install-auto-deploy.sh" > /tmp/lvd-install-reviewed.sh
+bash /tmp/lvd-install-reviewed.sh "$approved"
+```
+
+The installer preserves the current production image. It creates a root-owned fixed policy under `/etc/luatvietduc-deploy`, copies the licensed font from its existing server location, installs the release engine, validates Compose and prepares a **disabled** systemd timer. It does not add SSH keys, ports, GitHub tokens or users. It does not expose the database or change Traefik.
+
+Review without activating a release:
+
+```bash
+python3 /usr/local/lib/luatvietduc-deploy/auto-release.py --check
+```
+
+Enabling a persistent repository-to-production release permission requires the owner's explicit confirmation at that point. Once confirmed:
+
+```bash
+systemctl enable --now luatvietduc-release.timer
+systemctl start luatvietduc-release.service
+journalctl -u luatvietduc-release.service -n 100 --no-pager
+```
+
+## Routine edits
+
+Edit on the existing branch, run the checks appropriate to the change and push. The existing foundation/CMS workflow now covers all container build inputs plus the deployment tooling. The VPS pins a full commit SHA, verifies the exact successful push run, builds an immutable image and inserts the server's separately licensed font. It checks a private candidate with migrations disabled and promotes only the web container. It checks both loopback readiness and the public release identity. If promotion fails, it restores the previous image and checks readiness again. A failed commit is held for investigation rather than repeatedly deployed.
+
+The public `/release.json` contains only the deployed commit and build time, so the release can be verified through HTTPS without opening Termius. Production logs and backups remain private. Automatic backups run separately at 03:00 Asia/Ho_Chi_Minh through the encrypted Google Drive backup worker; deployments do not create a backup or wait for one. Manual backup and restore-test jobs remain available in admin.
+
+## Operations
+
+```bash
+# Inspect the current state and last outcome.
+systemctl status luatvietduc-release.timer --no-pager
+journalctl -u luatvietduc-release.service -n 100 --no-pager
+cat /var/lib/luatvietduc-deploy/state.json
+
+# Stop future automatic updates; keep the current website running.
+systemctl disable --now luatvietduc-release.timer
+```
+
+Stopping the timer does not interrupt an in-progress promotion. Let the service finish its checks or rollback before maintenance. The service has its own lock and a deployment timeout. Never use `docker compose down`, database down migrations, `--remove-orphans` or Docker pruning in this release flow. The shared proxy, n8n and other applications are outside its scope.
+
+For a schema change or a change to the approved workflow/Compose/engine policy, disable the timer and review a separate release and policy update. Retain the existing configuration and state for rollback. This service intentionally cannot update its own installed policy from a repository push.
+
+## Presentation lane (01.15)
+
+The same `publish.sh` detects changes automatically. Allowlisted public CSS/JS,
+existing social icon assets and site version take the presentation lane. They use
+short CI syntax/bundle/deployment jobs without waiting for unrelated full checks, then switch a complete public snapshot
+inside the current app container. No Docker build, database migration, application
+restart or manual VPS access is needed for these later updates. React components,
+admin bundled CSS, navigation config and any mixed backend changes use full CI and
+an application build. Unknown/new paths fail closed to the full lane.
+
+Full CI can continue in the background; the server selects the fast path only after checking every changed path against its own allowlist. CI does not query the live site to decide scope.
+
+Both lanes pin the repository, branch, workflow and policy hashes; validate the
+exact commit and successful push run; share the deployment lock; probe localhost
+and public HTTPS; retain the old snapshot during the switch and restore it on
+failure. Full builds additionally require the `cms-checks` job to have succeeded.
+The installed full release image remains the backend anchor; `/release.json` and
+state record the current presentation commit separately. Files are hard linked
+before replacing only the allowlisted paths, avoiding duplicate media storage.
+Only the current successful UI package is retained after validation. A later full
+release can restore that package if it needs to roll back to the previous image.
+
+`install-presentation-lane.py` is a one-time reviewed bootstrap, validated against
+an exact SHA and policy manifest. The previous engine/config are saved privately
+for recovery. No new HTTP deployment endpoint, CI credential, schedule or external
+service is introduced.
+
+Authenticated CI reads use `/etc/luatvietduc-deploy/github-read-token`, owned by
+root with mode 0600. Its fine-grained token is limited to this repository and
+Actions: Read / Contents: Read. The token is sent only to api.github.com, never to
+public asset requests, logs, the repository or deployment configuration responses.
+Anonymous rate-limit backoff remains enabled if no token has been installed.
+
+## Short CI for presentation releases (2026-11-06)
+
+`release-scope` compares the full candidate diff against the revision actually
+served at `/release.json`, using the same conservative presentation allowlist as
+the installed release engine. CSS-only releases run presentation and deployment
+safety checks without starting PostgreSQL, application tests or a Next.js build.
+Unknown live revision, failed fetch, ancestry failure, mixed code changes and
+policy changes retain full validation. The server independently recalculates the
+diff and still requires `cms-checks: success` for application releases.
+
+Same-repository PRs from `feat/platform-*` reuse their exact-source push checks;
+forks and branches outside that push trigger retain full PR checks. No production
+credentials are given to GitHub jobs. Compiler cache contains only `.next/cache`,
+keyed by operating system, Node major, dependency lockfile and source commit.
+Cache misses still build normally; no test or build step depends on a cache hit.
+
+Changing this workflow requires its exact hash to be reviewed and installed once
+through `install-presentation-lane.py`, with a pinned policy manifest
+and a successful full push run. It does not change the engine allowlist, schema
+gate, backup, candidate probes, rollback or deployment locking.
+
+The presentation archive includes the shared article editor CSS referenced by
+`presentation/modules.json`. A deployment test assembles the exact archive in an
+isolated directory without the application tree, so missing source fragments fail
+CI before a snapshot is sent to the server. This also covers admin editor CSS in
+the existing presentation allowlist, without admitting TypeScript or schema files.
+
+## Non-cancelling queue and runtime copy (2026-11-07)
+
+The owner authorized extending the snapshot lane to the seven exact bilingual
+`public/content/*.json` modules and three existing benefit photo paths. Unknown
+paths and executable code still require full validation. The public layout reads
+the snapshot before rendering; it does not replace visible copy after hydration.
+
+GitHub keeps its running heavy CMS job (`cancel-in-progress: false`) and coalesces
+that job’s pending slot. Lightweight checks run independently, without a workflow-wide lock. While the head is pending, the engine may promote the newest fully
+successful ancestor that passes ancestry, exact CI, policy and schema gates. It
+never retries quarantined revisions through this fallback. A completed build may
+finish if the new branch head descends from its SHA; divergence still blocks it.
+
+Install the exact reviewed policy manifest through `install-presentation-lane.py`
+once. Ordinary copy/photo/CSS updates then require no manual VPS access. Backup
+still runs separately at 03:00 Asia/Ho_Chi_Minh, with no per-deployment dump.
+
+## Lightweight checks and compiler reuse (2026-11-07)
+
+The live scope read uses the release-service User-Agent, a 16 KiB metadata limit and the same ancestry/allowlist checks. Any HTTP, size, JSON or Git failure still selects full validation and records only the failure class. CMS job concurrency no longer makes a small snapshot wait for an older Next build.
+
+Docker reuses one locked BuildKit compiler cache with a 768 MiB/50,000-entry boundary budget. GitHub trims its cache with the same helper. Retention excludes `exec.cachemount` records while continuing its existing project-description filter and one-current-image policy. Install the reviewed retention script after the policy upgrade; no shared builder configuration or global prune is changed.
+
+## Polling latency (01.38.05)
+
+The project-only release timer checks every 5 seconds. Pending presentation gates and a not-yet-visible presentation workflow retry after 5 seconds; application builds retain the 30-second pending wait. Actual GitHub rate-limit responses retain their Retry-After/reset cooldown (180 seconds by default when no retry header is supplied). No API calls run while the repository revision is unchanged. The same deployment lock, exact-commit gates, quarantine, candidate checks and rollback remain.
+
+`install-presentation-lane.py` installs the pinned timer together with the reviewed policy. It accepts only the observed legacy timer hash or the exact new contents, validates the unit before promotion, keeps the original timer with the policy backup, and updates the polling configuration after candidate/public health succeeds. The maintenance caller resumes the timer after installation.

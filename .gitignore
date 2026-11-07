@@ -1,0 +1,14 @@
+# No secrets or local server inventory in the public repository
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+node_modules/
+__pycache__/
+*.pyc
+**/backups/
+!apps/cms/src/app/service/backups/
+!apps/cms/src/app/service/backups/**
+**/private-media/
+*.dump

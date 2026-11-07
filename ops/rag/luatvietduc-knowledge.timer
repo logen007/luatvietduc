@@ -1,0 +1,9 @@
+[Unit]
+Description=Luật Việt Đức durable knowledge index cadence
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=15s
+AccuracySec=1s
+Persistent=true
+[Install]
+WantedBy=timers.target

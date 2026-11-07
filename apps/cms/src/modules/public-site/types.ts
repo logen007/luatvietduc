@@ -1,0 +1,10 @@
+export type Group={id:string;title:string;titleDe:string;icon:string;index:number;count:number;titles:string[];slugs:string[]};
+export type GroupSummary=Omit<Group,'titles'|'slugs'>;
+export type Topic={id:string;title:string;groupId:string;index:number;slug:string};
+export type Card={id:number;slug:string;title:string;summary:string;language:'vi'|'de';kind:string;photo:string;published?:string|null;readingMinutes?:number;category?:{name:string;nameDe?:string;href:string};href?:string};
+export type ArticleList={docs:Card[];page:number;totalPages:number;totalDocs:number};
+export type PublicQuery={q:string;group:string;page:number};
+export type TeamMember={name:string;role:string;roleDe:string;field:string;fieldDe:string;url?:string};
+export type Partner={source:string;logo:string};
+export type PublicCopy={vi:string;de:string};
+export type LegacyNews={id:string;title:string;summary:string;category:string;type:string;photo:string;published?:string|null;sourceName:string;sourceUrl:string;paragraphs:string[];points?:string[];secondary?:{name:string;url:string}[];checked?:string;caption?:string};

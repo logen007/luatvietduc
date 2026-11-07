@@ -1,0 +1,108 @@
+/* Black directory footer — the same source geometry as the public reference. */
+.live-footer {
+  background: #000;
+  color: #fff;
+  padding: 80px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.live-footer-inner {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.6fr) repeat(4, minmax(0, 1fr));
+  gap: 30px;
+  max-width: 1600px;
+  margin: auto;
+  padding: 0 80px;
+}
+.live-footer-wordmark {
+  display: block;
+  font: 500 36px/1 var(--lvd-display, Inter, sans-serif);
+  letter-spacing: -0.01em;
+  color: #fff;
+  text-decoration: none;
+  max-width: none;
+  white-space: nowrap;
+}
+.live-footer-identity p {
+  font-size: 13px;
+  line-height: 24px;
+  color: rgba(255, 255, 255, 0.65);
+  max-width: none;
+  text-wrap: pretty;
+  margin: 24px 0 0;
+}
+.live-footer-column h2 {
+  font-family: var(--lvd-display, Inter, sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #fff;
+  letter-spacing: 0;
+  margin: 0 0 14px;
+}
+.live-footer-column ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.live-footer-column a {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+}
+.live-footer-column a:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-color: #fb7a00;
+  text-underline-offset: 4px;
+}
+.live-footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1600px;
+  margin: 80px auto 0;
+  padding: 0 80px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.live-footer-meta small {
+  font-size: 12px;
+}
+.live-footer-meta nav {
+  display: flex;
+  gap: 24px;
+}
+.live-footer-meta a {
+  color: inherit;
+  text-decoration: none;
+}
+.live-footer-meta a:hover {
+  color: #fff;
+}
+.live-footer a:focus-visible {
+  outline: 2px solid #fb7a00;
+  outline-offset: 4px;
+}
+
+/* Shared public/application social links, configured in existing admin socialLinks. */
+.lvd-footer-social { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:20px; }
+.lvd-footer-social .lvd-social-icon { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; flex:0 0 44px; line-height:1; color:#ccc; border:0; border-radius:0; background:transparent; transition:color .15s ease; }
+.lvd-footer-social .lvd-social-icon svg { display:block; width:28px; height:28px; fill:currentColor; stroke:none; stroke-width:0; }
+.lvd-footer-social .lvd-social-icon svg path { stroke:none; stroke-width:0; }
+.lvd-footer-social .lvd-social-icon.is-unset { color:rgba(255,255,255,.45); }
+.lvd-footer-social a.lvd-social-icon:hover { color:#fff; background:transparent; }
+.lvd-footer-social a:focus-visible { outline:2px solid #fff; outline-offset:3px; }
+.lvd-footer-social:empty { display:none; margin:0; }
+
+.live-footer .live-footer-meta{display:block}
+.live-footer-version-row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}
+.live-footer-version-row>small{min-width:0}
+.live-footer .live-footer-meta>nav{margin-top:16px}
+.live-footer-version-row .lvd-language-switch{color:inherit;margin-left:auto}
+.live-footer-version-row .lvd-language-switch button{opacity:1}

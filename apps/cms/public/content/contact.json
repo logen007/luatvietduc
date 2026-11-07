@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "text": {
+    "Bạn cần hỗ trợ điều gì?": {
+      "vi": "Bạn cần hỗ trợ điều gì?",
+      "de": "Wie können wir helfen?"
+    },
+    "Gửi lời nhắn. Chúng tôi sẽ liên hệ qua email.": {
+      "vi": "Gửi lời nhắn. Chúng tôi sẽ liên hệ qua email.",
+      "de": "Schreiben Sie uns. Wir melden uns per E-Mail bei Ihnen."
+    },
+    "Họ và tên": {
+      "vi": "Họ và tên",
+      "de": "Name"
+    },
+    "Tiêu đề": {
+      "vi": "Tiêu đề",
+      "de": "Betreff"
+    },
+    "Lời nhắn": {
+      "vi": "Lời nhắn",
+      "de": "Nachricht"
+    },
+    "Đang gửi…": {
+      "vi": "Đang gửi…",
+      "de": "Wird gesendet…"
+    },
+    "Gửi lời nhắn": {
+      "vi": "Gửi lời nhắn",
+      "de": "Nachricht senden"
+    },
+    "Bạn có câu hỏi pháp luật?": {
+      "vi": "Bạn có câu hỏi pháp luật?",
+      "de": "Eine Rechtsfrage?"
+    },
+    "Gửi câu hỏi và theo dõi phản hồi trong cùng cuộc trò chuyện.": {
+      "vi": "Gửi câu hỏi và theo dõi phản hồi trong cùng cuộc trò chuyện.",
+      "de": "Fragen stellen und Antworten im selben Gespräch verfolgen."
+    },
+    "Mở trò chuyện": {
+      "vi": "Mở trò chuyện",
+      "de": "Gespräch beginnen"
+    },
+    "Thư viện": {
+      "vi": "Thư viện",
+      "de": "Bibliothek"
+    },
+    "Xem thư viện": {
+      "vi": "Xem thư viện",
+      "de": "Bibliothek öffnen"
+    }
+  }
+}

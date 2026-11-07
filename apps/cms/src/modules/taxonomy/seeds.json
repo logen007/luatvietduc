@@ -1,0 +1,104 @@
+{
+  "legal": [
+    {
+      "slug": "hon-nhan-gia-dinh",
+      "name": "Hôn nhân và Gia đình"
+    },
+    {
+      "slug": "quoc-tich",
+      "name": "Quốc tịch"
+    },
+    {
+      "slug": "khai-sinh-ho-tich-giam-ho",
+      "name": "Khai sinh, Hộ tịch và Giám hộ"
+    },
+    {
+      "slug": "giay-to-tuy-than",
+      "name": "Giấy tờ tùy thân"
+    },
+    {
+      "slug": "thua-ke",
+      "name": "Thừa kế"
+    },
+    {
+      "slug": "hop-dong-giao-dich-dan-su",
+      "name": "Hợp đồng và Giao dịch dân sự"
+    },
+    {
+      "slug": "tranh-chap-dan-su",
+      "name": "Tranh chấp dân sự"
+    },
+    {
+      "slug": "lao-dong-viec-lam-bhxh",
+      "name": "Lao động, Việc làm và Bảo hiểm xã hội"
+    },
+    {
+      "slug": "xuat-nhap-canh-cu-tru",
+      "name": "Xuất nhập cảnh và Cư trú"
+    },
+    {
+      "slug": "nha-o-dat-dai",
+      "name": "Nhà ở và Đất đai"
+    },
+    {
+      "slug": "dau-tu-kinh-doanh-thuong-mai",
+      "name": "Đầu tư, Kinh doanh và Thương mại"
+    },
+    {
+      "slug": "tai-chinh-ngan-hang-bao-hiem",
+      "name": "Tài chính, Ngân hàng và Bảo hiểm kinh doanh"
+    },
+    {
+      "slug": "thue",
+      "name": "Thuế"
+    },
+    {
+      "slug": "so-huu-tri-tue",
+      "name": "Sở hữu trí tuệ"
+    },
+    {
+      "slug": "hinh-su",
+      "name": "Hình sự"
+    },
+    {
+      "slug": "to-tung-hanh-chinh",
+      "name": "Tố tụng hành chính"
+    }
+  ],
+  "news": [
+    {
+      "slug": "tin-doi-song",
+      "name": "Đời sống & đi lại"
+    },
+    {
+      "slug": "tin-cu-tru",
+      "name": "Cư trú & giấy tờ"
+    },
+    {
+      "slug": "tin-viec-lam",
+      "name": "Việc làm"
+    },
+    {
+      "slug": "tin-gia-dinh",
+      "name": "Gia đình"
+    },
+    {
+      "slug": "tin-hoc-tap",
+      "name": "Học tập"
+    },
+    {
+      "slug": "tin-cong-dong",
+      "name": "Cộng đồng"
+    }
+  ],
+  "tags": [
+    {
+      "slug": "vietnam",
+      "name": "Vietnam"
+    },
+    {
+      "slug": "germany",
+      "name": "Germany"
+    }
+  ]
+}

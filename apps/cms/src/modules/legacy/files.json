@@ -1,0 +1,217 @@
+[
+  {
+    "url": "/assets/berlin-tv-tower.svg",
+    "name": "berlin-tv-tower.svg",
+    "type": "image"
+  },
+  {
+    "url": "/assets/brandenburg-gate.svg",
+    "name": "brandenburg-gate.svg",
+    "type": "image"
+  },
+  {
+    "url": "/assets/flags/de.svg",
+    "name": "de.svg",
+    "type": "image"
+  },
+  {
+    "url": "/assets/flags/vn.svg",
+    "name": "vn.svg",
+    "type": "image"
+  },
+  {
+    "url": "/assets/germany-shape.svg",
+    "name": "germany-shape.svg",
+    "type": "image"
+  },
+  {
+    "url": "/assets/illustrations/germany-folio.webp",
+    "name": "germany-folio.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/illustrations/hero-bridge-1200.webp",
+    "name": "hero-bridge-1200.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/illustrations/hero-bridge-640.webp",
+    "name": "hero-bridge-640.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/illustrations/vietnam-folio.webp",
+    "name": "vietnam-folio.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/berlin-1200.webp",
+    "name": "berlin-1200.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/berlin-1800.webp",
+    "name": "berlin-1800.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/berlin-600.webp",
+    "name": "berlin-600.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/dong-xuan-1200.webp",
+    "name": "dong-xuan-1200.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/dong-xuan-1800.webp",
+    "name": "dong-xuan-1800.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/dong-xuan-600.webp",
+    "name": "dong-xuan-600.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/family-1200.webp",
+    "name": "family-1200.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/family-1800.webp",
+    "name": "family-1800.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/family-600.webp",
+    "name": "family-600.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/housing-1200.webp",
+    "name": "housing-1200.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/housing-1800.webp",
+    "name": "housing-1800.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/housing-600.webp",
+    "name": "housing-600.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/library-1200.webp",
+    "name": "library-1200.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/library-1800.webp",
+    "name": "library-1800.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/library-600.webp",
+    "name": "library-600.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/train-1200.webp",
+    "name": "train-1200.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/train-1800.webp",
+    "name": "train-1800.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/train-600.webp",
+    "name": "train-600.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/tram-1200.webp",
+    "name": "tram-1200.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/tram-1800.webp",
+    "name": "tram-1800.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/tram-600.webp",
+    "name": "tram-600.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/work-1200.webp",
+    "name": "work-1200.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/work-1800.webp",
+    "name": "work-1800.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/photos/work-600.webp",
+    "name": "work-600.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/team/duong-thanh-tam.webp",
+    "name": "duong-thanh-tam.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/team/nguyen-xuan-phuoc.webp",
+    "name": "nguyen-xuan-phuoc.webp",
+    "type": "image"
+  },
+  {
+    "url": "/assets/team/vo-nguyen-bao-tram.webp",
+    "name": "vo-nguyen-bao-tram.webp",
+    "type": "image"
+  },
+  {
+    "url": "/media/legal-hero-montage-v2.mp4",
+    "name": "legal-hero-montage-v2.mp4",
+    "type": "video"
+  },
+  {
+    "url": "/media/berlin-hero.mp4",
+    "name": "berlin-hero.mp4",
+    "type": "video"
+  },
+  {
+    "url": "/media/legal-hero-montage-v1.mp4",
+    "name": "legal-hero-montage-v1.mp4",
+    "type": "video"
+  },
+  {
+    "url": "/media/berlin-hero-poster.webp",
+    "name": "berlin-hero-poster.webp",
+    "type": "image"
+  },
+  {
+    "url": "/media/legal-hero-montage-poster-v2.webp",
+    "name": "legal-hero-montage-poster-v2.webp",
+    "type": "image"
+  },
+  {
+    "url": "/media/legal-hero-montage-poster-v1.webp",
+    "name": "legal-hero-montage-poster-v1.webp",
+    "type": "image"
+  },
+  {
+    "url": "/media/partner-knockout.svg",
+    "name": "partner-knockout.svg",
+    "type": "image"
+  }
+]
