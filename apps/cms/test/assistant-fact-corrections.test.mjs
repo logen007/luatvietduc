@@ -17,3 +17,19 @@ for(const item of cases)test(item.key+' respects a later withdrawal and a later 
  assert.equal(intakeClarification(item.base+'\n'+item.withdraw+'\n'+item.restore),null);
  assert.equal(intakeClarification(item.base+'\n'+item.unrelated),null);
 });
+
+test('German property uncertainty across a dependent-clause comma reopens only the affected fact',()=>{
+ const base='Ich möchte ein Grundstück in Deutschland übertragen, meine Mutter ist im Grundbuch eingetragen, in Vorbereitung und ich möchte das Verfahren wissen';
+ assert.equal(intakeClarification(base),null);
+ for(const withdrawal of ['Ich weiß nicht, ob es einen Eigentumsnachweis gibt.','Ich weiss nicht, ob es einen Eigentumsnachweis gibt.','Ich habe keine Ahnung, ob es einen Eigentumsnachweis gibt.']){
+  assert.equal(intakeClarification(base+'\n'+withdrawal)?.key,'property.document',withdrawal);
+  assert.equal(intakeClarification(base+'\n'+withdrawal+'\nIch habe den Eigentumsnachweis.'),null);
+ }
+ for(const withdrawal of ['Ich weiß nicht, wer als Eigentümer eingetragen ist.','Ich weiß nicht, auf wen das Grundstück eingetragen ist.','Ich weiß nicht, ob meine Mutter wirklich als Eigentümerin eingetragen ist.','Ich weiß nicht, wer im Grundbuch eingetragen ist.','Ich weiß nicht, ob meine Mutter im Grundbuch eingetragen ist.']){
+  assert.equal(intakeClarification(base+'\n'+withdrawal)?.key,'property.owner',withdrawal);
+  assert.equal(intakeClarification(base+'\n'+withdrawal+'\nMeine Mutter ist als Eigentümerin eingetragen.'),null);
+ }
+ for(const unrelated of ['Ich weiß nicht, welche Kosten der Eigentumsnachweis verursacht.','Ich weiß nicht, wer den Eigentumsnachweis übersetzen soll.']){
+  assert.equal(intakeClarification(base+'\n'+unrelated),null,unrelated);
+ }
+});

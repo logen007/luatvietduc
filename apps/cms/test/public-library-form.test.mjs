@@ -19,3 +19,12 @@ test('the regular library view does not opt into the all-topics view',()=>{
  const html=renderToStaticMarkup(createElement(Library,{...props,query:''}));
  assert.doesNotMatch(html,/name="xem"/);
 });
+
+
+test('a custom article category remains selected and survives library filter submission',()=>{
+ const html=renderToStaticMarkup(createElement(Library,{...props,path:'/phap-luat/duc',country:'DE',query:'linh-vuc=custom-category&trang=2',selectedCategory:{id:'custom-category',title:'Custom category'}}));
+ const form=html.match(/<form\b[^>]*class="catalog-toolbar"[^>]*>([\s\S]*?)<\/form>/)?.[1];
+ assert.ok(form);assert.match(form,/<option value="custom-category" selected="">Custom category<\/option>/);
+ assert.doesNotMatch(form,/name="trang"/);
+ assert.match(html,/action="\/phap-luat\/duc"/);
+});

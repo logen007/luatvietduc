@@ -3,7 +3,7 @@ import path from 'node:path';
 import {notFound,permanentRedirect} from 'next/navigation';
 import {getPresentationVersion} from '../shared/presentation-version.mjs';
 import {resolvePublicRoute,positivePage,legacyKeyword,groupAliases} from './routes';
-import {content,publicArticle,publicArticleList,publicSiteSettings,publicLegacyNews,publicNewsList} from './server';
+import {content,publicArticle,publicArticleList,publicSiteSettings,publicLegacyNews,publicNewsList,publicCategories} from './server';
 import {catalogueTopics} from './search';
 import {publicMetadata} from './seo';
 import {PublicFrame} from './Frame';
@@ -30,6 +30,7 @@ const model=cache(async(pathname:string,queryString:string)=>{
  }
  const newsGroup=query.get('nhom')||'';
  const filter=query.get('linh-vuc')||'',topicGroup=route.group||groupAliases[filter]||filter;
+ const selectedCategory=route.kind==='library'&&filter&&!content.groups.some(group=>group.id===topicGroup)?(await publicCategories()).find(category=>category.slug===filter):undefined;
  const articleList=route.kind==='home'?await publicNewsList({limit:3}):route.kind==='news'?await publicNewsList({page,query:keyword,group:newsGroup}):route.kind==='library'?await publicArticleList({group:topicGroup,country:route.country,query:keyword,order:query.get('sap-xep')||'source',page,limit:12}):null;
  const topics=route.kind==='library'&&route.country!=='DE'?catalogueTopics(content.groups,keyword,topicGroup,query.get('sap-xep')||'source'):[];
  if(['library','news'].includes(route.kind)){
@@ -37,7 +38,7 @@ const model=cache(async(pathname:string,queryString:string)=>{
   const last=Math.max(1,articleList?.totalPages||1,showTopics?Math.ceil(topics.length/20):1);
   if(page>last){query.set('trang',String(last));permanentRedirect(pathname+'?'+query);}
  }
- return {route,settings,group,topic,articleList,topics,page,keyword,story};
+ return {route,settings,group,topic,articleList,topics,page,keyword,story,selectedCategory};
 });
 export async function pageMetadata(pathname:string,query:URLSearchParams){
  const data=await model(pathname,query.toString());
@@ -51,7 +52,7 @@ export async function PublicPage({path:pathname,query}:{path:string;query:URLSea
  const displayQuery=new URLSearchParams(query);if(data.keyword&&!displayQuery.get('q'))displayQuery.set('q',data.keyword);const filter=displayQuery.get('linh-vuc');if(filter&&groupAliases[filter])displayQuery.set('linh-vuc',groupAliases[filter]);
  return <PublicFrame revision={revision} home={route.kind==='home'} articleHero={route.kind==='legacy-news'} section={section}>
   {route.kind==='home'&&articleList&&<Home groups={groups} partners={content.partners} news={articleList}/>}
-  {route.kind==='library'&&articleList&&<Library groups={groups} group={groupView} country={route.country} topics={topics.slice((page-1)*20,page*20)} total={topics.length} page={page} path={pathname} query={displayQuery.toString()} articles={articleList}/>}
+  {route.kind==='library'&&articleList&&<Library selectedCategory={data.selectedCategory?{id:data.selectedCategory.slug,title:data.selectedCategory.name}:undefined} groups={groups} group={groupView} country={route.country} topics={topics.slice((page-1)*20,page*20)} total={topics.length} page={page} path={pathname} query={displayQuery.toString()} articles={articleList}/>}
   {route.kind==='topic'&&groupView&&topic&&<TopicPage group={groupView} topic={topic}/>}
   {route.kind==='news'&&articleList&&<News articles={articleList} query={query.toString()} categories={content.newsCategories}/>}
   {route.kind==='legacy-news'&&data.story&&<LegacyStory story={data.story}/>}

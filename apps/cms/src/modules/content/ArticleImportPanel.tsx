@@ -3,13 +3,13 @@ import {useEffect,useRef,useState} from 'react';
 import {usePublicSession,isPublicSessionCurrent} from '../shared/session-client';
 import {api} from '../shared/client-api';
 import {CSV_COLUMNS,MAX_CSV_BYTES,parseCSV,encodeCSV} from './article-csv';
-type Row={row:number;title:string;slug:string;status:string;action:string;errors:string[]};
+import {importPreview,importReceipt,type ImportPreviewRow as Row,type ImportReceipt} from './article-import-client';
 const labels:Record<string,string>={title:'Tiêu đề',slug:'Permalink',body:'Nội dung',categories:'Danh mục',tags:'Tag',language:'Ngôn ngữ',kind:'Loại bài',status:'Trạng thái',ai_allowed:'AI',source_url:'Nguồn tham khảo',jurisdiction:'Quốc gia'};
 const steps=['Chọn tệp CSV','Ghép cột','Đang nhập','Hoàn tất'];
 export function ArticleImportPanel(){
  const session=usePublicSession(),generation=useRef(0);
  const [dataRevision,setDataRevision]=useState(session.revision),[step,setStep]=useState(0);
- const [csv,setCSV]=useState(''),[mapped,setMapped]=useState(''),[filename,setFilename]=useState(''),[source,setSource]=useState<string[][]>([]),[mapping,setMapping]=useState<string[]>([]),[rows,setRows]=useState<Row[]>([]),[busy,setBusy]=useState(''),[error,setError]=useState(''),[result,setResult]=useState<{created:{id:number;title:string}[];skipped:number}|null>(null);
+ const [csv,setCSV]=useState(''),[mapped,setMapped]=useState(''),[filename,setFilename]=useState(''),[source,setSource]=useState<string[][]>([]),[mapping,setMapping]=useState<string[]>([]),[rows,setRows]=useState<Row[]>([]),[busy,setBusy]=useState(''),[error,setError]=useState(''),[result,setResult]=useState<ImportReceipt|null>(null);
  useEffect(()=>{generation.current++;setCSV('');setMapped('');setFilename('');setSource([]);setMapping([]);setRows([]);setResult(null);setError('');setBusy('');setStep(0);setDataRevision(session.revision);},[session.revision]);
  if(session.status!=='ready'||dataRevision!==session.revision)return <p role="status">Đang kiểm tra phiên…</p>;
  if(!['owner','support'].includes(session.user?.role||''))return <p role="alert">Tài khoản không có quyền nhập bài viết.</p>;
@@ -36,7 +36,7 @@ export function ArticleImportPanel(){
    const indices=mapping.flatMap((name,index)=>name?[index]:[]);content=encodeCSV([indices.map(i=>mapping[i]),...source.slice(1).map(row=>indices.map(i=>row[i]))]);
   }
   if(!content)return;const revision=session.revision,current=generation.current;setBusy(action);setError('');if(action==='import')setStep(2);
-  try{const data=await api<any>('article-import',{action,csv:content});if(current!==generation.current||!isPublicSessionCurrent(revision))return;if(action==='preview'){setMapped(content);setRows(data.rows);setResult(null);}else{setResult(data);setRows([]);setStep(3);}}
+  try{const data=await api<unknown>('article-import',{action,csv:content});if(current!==generation.current||!isPublicSessionCurrent(revision))return;if(action==='preview'){const preview=importPreview(data);setMapped(content);setRows(preview);setResult(null);}else{const receipt=importReceipt(data,rows.length);setResult(receipt);setRows([]);setStep(3);}}
   catch(e){if(current===generation.current&&isPublicSessionCurrent(revision)){setError(e instanceof Error?e.message:'Chưa nhập được bài. Thử lại.');if(action==='import')setStep(1);}}finally{if(current===generation.current)setBusy('');}
  }
  return <section className="lvd-csv-import lvd-csv-wizard">

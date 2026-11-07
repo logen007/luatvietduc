@@ -6,7 +6,7 @@ import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {publicHref,legacyTarget} from '../src/modules/shared/public-shell.mjs';
 import {publicPages,resolvePublicRoute,redirectTarget,positivePage,legacyKeyword} from '../src/modules/public-site/routes.ts';
-import {catalogueTopics} from '../src/modules/public-site/search.ts';
+import {catalogueTopics,categoryDestination} from '../src/modules/public-site/search.ts';
 import {publicMetadata,privatePaths,sitemapIndex,sitemapDocument,sitemapPageSize} from '../src/modules/public-site/seo.ts';
 import {canonicalCopy} from '../src/modules/public-site/Information.tsx';
 import {keepsLegacyCopy} from '../src/modules/public-site/legacy-news.ts';
@@ -125,4 +125,18 @@ test('legacy news fallback is limited to an untouched imported mirror, never a p
  assert.equal(keepsLegacyCopy(mirror,seed),true);
  for(const change of [{body:'PRIVATE edited draft'},{title:'PRIVATE title'},{_status:'published'},{reviewState:'withdrawn'},{reviewedAt:'2026-11-04T00:00:00Z'},{aiAllowed:true}])assert.equal(keepsLegacyCopy({...mirror,...change},seed),false);
  assert.equal(keepsLegacyCopy(undefined,seed),false);assert.equal(keepsLegacyCopy(mirror,undefined),false);
+});
+
+
+test('article categories use supported destinations for custom taxonomies and preserve German jurisdiction',()=>{
+ assert.equal(categoryDestination('quoc-tich',{catalogue:true}),'/chu-de/quoc-tich');
+ assert.equal(categoryDestination('quoc-tich',{catalogue:true,country:'DE'}),'/phap-luat/duc/quoc-tich');
+ for(const [country,branch] of [['VN','viet-nam'],['DE','duc'],['BOTH','viet-nam']]){
+  const url=new URL(categoryDestination('custom-category',{country}),'https://example.invalid');
+  assert.equal(resolvePublicRoute(url.pathname)?.kind,'library');assert.equal(url.pathname,'/phap-luat/'+branch);
+  assert.equal(url.searchParams.get('linh-vuc'),'custom-category');
+ }
+ assert.equal(categoryDestination('tin-new-topic'),'/tin-tuc?nhom=new-topic');
+ const special=new URL(categoryDestination('custom & category',{country:'DE'}),'https://example.invalid');
+ assert.equal(special.searchParams.get('linh-vuc'),'custom & category');assert.equal(special.searchParams.size,1);
 });

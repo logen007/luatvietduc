@@ -7,7 +7,7 @@ import {publicArticles} from '../../access/articles';
 import {publicSettings} from '../settings/view';
 import content from './content.json';
 import originalPosts from '../legacy/posts.json';
-import {photoForArticle,normalize} from './search';
+import {photoForArticle,normalize,categoryDestination} from './search';
 import {keepsLegacyCopy} from './legacy-news';
 import type {ArticleList,LegacyNews,Card} from './types';
 export {content};
@@ -57,10 +57,10 @@ async function publicSearchIds(query:string){
 }
 const readingMinutes=(body:string)=>Math.max(1,Math.ceil(articleText(body).trim().split(/\s+/u).filter(Boolean).length/220));
 const newsCategoryNames:Record<string,[string,string]>={'doi-song':['Đời sống & đi lại','Alltag & Mobilität'],'cu-tru':['Cư trú & giấy tờ','Aufenthalt & Dokumente'],'viec-lam':['Việc làm','Arbeit'],'gia-dinh':['Gia đình','Familie'],'hoc-tap':['Học tập','Bildung'],'cong-dong':['Cộng đồng','Community']};
-function cardCategory(slug:string,name:string){
+function cardCategory(slug:string,name:string,country='VN'){
  const news=slug.startsWith('tin-')?newsCategoryNames[slug.slice(4)]:undefined;
  const group=content.groups.find(group=>group.id===slug);
- return {name:news?.[0]||name,nameDe:news?.[1]||group?.titleDe,href:news?'/tin-tuc?nhom='+encodeURIComponent(slug.slice(4)):'/chu-de/'+encodeURIComponent(slug)};
+ return {name:news?.[0]||name,nameDe:news?.[1]||group?.titleDe,href:categoryDestination(slug,{catalogue:Boolean(group),country})};
 }
 export async function publicNewsList({query='',group='',editorialType='',page=1,limit=12}={}){
  const [cms,archive]=await Promise.all([publicArticleList({kind:'news',query,group:group?'tin-'+group:'',editorialType,page,limit}),publicLegacyNews()]);
@@ -77,7 +77,7 @@ export async function publicArticleList({kind='legal',query='',group='',country=
  if(kind==='news'&&editorialType==='news')where.push({kind:{equals:'news'}});
  if(country)where.push({jurisdiction:{in:[country,'BOTH']}});
  if(group){const category=(await publicCategories()).find(category=>category.slug===group);if(!category)return {docs:[],totalDocs:0,totalPages:1,page};where.push({categories:{in:[category.id]}});}
- const result=await (await publicPayload()).find({collection:'articles',overrideAccess:false,draft:false,where:{and:where},sort:order==='a-z'?['title','id']:['-updatedAt','id'],depth:0,page,limit,select:{id:true,slug:true,title:true,body:true,language:true,kind:true,createdAt:true,categories:true}});
+ const result=await (await publicPayload()).find({collection:'articles',overrideAccess:false,draft:false,where:{and:where},sort:order==='a-z'?['title','id']:['-updatedAt','id'],depth:0,page,limit,select:{id:true,slug:true,title:true,body:true,language:true,kind:true,jurisdiction:true,createdAt:true,categories:true}});
  const categories=await publicCategories();
- return {docs:result.docs.map(article=>{const categoryId=article.categories?.[0],category=categories.find(item=>item.id===(typeof categoryId==='number'?categoryId:categoryId?.id));return {id:article.id,slug:article.slug,title:article.title,summary:articleText(article.body||'').replace(/\s+/g,' ').trim().slice(0,180),kind:article.kind||'article',language:article.language,photo:photoForArticle(article),published:article.createdAt,readingMinutes:readingMinutes(article.body||''),...(category?{category:cardCategory(category.slug,category.name)}:{})};}),page:result.page||page,totalPages:result.totalPages,totalDocs:result.totalDocs};
+ return {docs:result.docs.map(article=>{const categoryId=article.categories?.[0],category=categories.find(item=>item.id===(typeof categoryId==='number'?categoryId:categoryId?.id));return {id:article.id,slug:article.slug,title:article.title,summary:articleText(article.body||'').replace(/\s+/g,' ').trim().slice(0,180),kind:article.kind||'article',language:article.language,photo:photoForArticle(article),published:article.createdAt,readingMinutes:readingMinutes(article.body||''),...(category?{category:cardCategory(category.slug,category.name,country||article.jurisdiction)}:{})};}),page:result.page||page,totalPages:result.totalPages,totalDocs:result.totalDocs};
 }

@@ -10,3 +10,11 @@ export function photoForArticle(article:{slug:string;title:string}){
  if(known[article.slug])return known[article.slug];
  const title=normalize(article.title);return /gia dinh|ket hon|con|thua ke/.test(title)?'family':/nha|dat|thue/.test(title)?'housing':/lao dong|viec lam|luong/.test(title)?'work':'berlin';
 }
+
+// Only retained catalogue groups have their own topic page. Custom CMS
+// categories use the library filter instead of linking to an unknown route.
+export function categoryDestination(slug:string,{catalogue=false,country='VN'}:{catalogue?:boolean;country?:string}={}){
+ if(slug.startsWith('tin-'))return '/tin-tuc?'+new URLSearchParams({nhom:slug.slice(4)});
+ const root='/phap-luat/'+(country==='DE'?'duc':'viet-nam');
+ return catalogue?(country==='DE'?root+'/':'/chu-de/')+encodeURIComponent(slug):root+'?'+new URLSearchParams({'linh-vuc':slug});
+}

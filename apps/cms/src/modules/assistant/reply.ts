@@ -35,7 +35,10 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
  let answer:string|null=null,faq:Faq|null=null,providerVersion:number|undefined,clarificationKey:string|undefined;
  let qualification:Qualification='ready',assessed=false,unqualifiedAssessment=false;
  let ragSources:Faq[]=[],rules:AnswerRule[]=[],rag=false,clarification=false,localClarification=false;
- const followsAnswer=work.consented&&work.previousAnswer&&!work.clarificationCount&&work.context&&isBriefIntakeFollowup(work.question);
+ const followupTopic=currentIntakeContext(work.intakeQuestion).topic;
+ // Substantive follow-ups in the same recognized topic need the established
+ // facts too. Explicit new matters are still reset by currentIntakeContext.
+ const followsAnswer=work.consented&&work.previousAnswer&&!work.clarificationCount&&work.context&&(isBriefIntakeFollowup(work.question)||!isVagueIntakeReply(work.question)&&followupTopic&&followupTopic===currentIntakeContext(work.context).topic);
  const localQuestion=[work.localContext||(followsAnswer?work.context:''),work.intakeQuestion].filter(Boolean).join('\n');
  const intake=currentIntakeContext(localQuestion);
  const initial=intakeClarification(localQuestion,work.clarificationKeys,work.intakeAnswers);

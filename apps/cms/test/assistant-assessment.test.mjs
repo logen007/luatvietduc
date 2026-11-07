@@ -314,3 +314,35 @@ test('repeated timeline fallbacks keep asking the stage instead of restarting th
  const question='Tôi muốn đầu tư tại Đức\nThành lập GmbH',initial=intakeClarification(question),previous=[];
  for(let i=0;i<8;i++){const text=unrepeatedClarification(initial,previous,question);assert.doesNotMatch(text,/tư vấn về việc gì|muốn giải quyết vấn đề/);assert.notEqual(text,previous[0]);previous.unshift(text);}
 });
+
+for(const item of [
+ {base:'Tôi muốn sang tên đất ở Việt Nam, sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục',body:'Mẹ tôi muốn sang tên đất cho hai con, thủ tục có khác không?',fact:'mẹ tôi'},
+ {base:'Ich möchte ein Grundstück in Deutschland übertragen, meine Mutter ist im Grundbuch eingetragen, in Vorbereitung und ich möchte das Verfahren wissen',body:'Welche Unterlagen braucht meine Mutter für die Übertragung des Grundstücks an zwei Kinder?',fact:'Grundbuch'},
+])test('substantive same-property follow-up retains consented facts after an answer: '+item.body,async t=>{
+ const state=fixture(t,{body:item.body,retained:true,previous:[
+  {role:'assistant',body:'Synthetic previous approved answer.',metadata:{kind:'ai',sources:[]}},
+  {role:'user',body:item.base,metadata:{aiConsent:{version:CONSENT_VERSION}}},
+ ]});
+ await state.run();assert.equal(state.assessments,1,'A complete same-case follow-up must reach assessment instead of asking the country again');
+ assert.equal(state.embeddings,1);assert.ok(state.intakePrompts[0].question.includes(item.fact));
+ assert.equal(state.replies[0].metadata.kind,'handoff','No source match hands off only after completeness assessment');
+});
+
+for(const item of [
+ {body:'Tôi muốn hỏi mảnh đất khác',key:'property-2.country'},
+ {body:'Ich möchte ein anderes Grundstück kaufen',key:'property-2.country'},
+ {body:'Còn ly hôn thì sao?',key:'family.country'},
+ {body:'Ich möchte eine Frage zur Scheidung stellen',key:'family.country'},
+ {body:'Tôi muốn hỏi về thuế',key:'tax.country'},
+ {body:'Hay',key:'goal'},
+ {body:'Tôi muốn hỏi thủ tục sang tên đất cho hai con',key:'property.country',consented:false},
+ {body:'Tôi muốn hỏi thủ tục sang tên đất cho hai con',key:'property.country',previousConsented:false},
+ {body:'Tôi muốn sang tên đất, chưa rõ ai đang đứng tên',key:'property.owner'},
+])test('post-answer follow-up cannot borrow unrelated, withdrawn or unconsented facts: '+item.body+' '+String(item.consented)+' '+String(item.previousConsented),async t=>{
+ const state=fixture(t,{body:item.body,retained:true,consented:item.consented,previous:[
+  {role:'assistant',body:'Synthetic previous approved answer.',metadata:{kind:'ai',sources:[]}},
+  {role:'user',body:'Tôi muốn sang tên đất ở Việt Nam, sổ đỏ đứng tên mẹ tôi, đang chuẩn bị và muốn biết thủ tục',metadata:item.previousConsented===false?undefined:{aiConsent:{version:CONSENT_VERSION}}},
+ ]});
+ await state.run();assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);
+ assert.equal(state.replies[0].metadata.kind,'clarify');assert.equal(state.replies[0].metadata.clarificationKey,item.key);assert.equal(state.conversation.ai_enabled,true);
+});

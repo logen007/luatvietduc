@@ -5,7 +5,8 @@ import {canWriteContent} from '../identity/permissions';
 import {HttpError} from '../http/errors';
 import {readJsonRequest} from '../http/request';
 import {payloadTransaction} from '../shared/payload-transaction';
-import {CSV_COLUMNS,MAX_CSV_BYTES,encodeCSV,readArticleCSV} from './article-csv';
+import {MAX_CSV_BYTES,readArticleCSV} from './article-csv';
+import {articleImportSample} from './article-import-sample';
 import {sanitizeArticleBody,articleText,isRichBody} from './article-body';
 type Term={id:number;name:string;slug:string;parent?:number|Term|null};
 async function taxonomy(payload:Payload,req:PayloadRequest){
@@ -49,10 +50,7 @@ export async function articleImportRequest(request:Request,payload:Payload,user:
  allowed(user);
  if(request.method==='GET'){
   const req=await createLocalReq({user:user!},payload),terms=await taxonomy(payload,req);
-  // One draft example per current category, plus every tag and combination.
-  const base=(title:string,category:string,tags:string,language='vi',kind='article')=>[title,'','Nội dung mẫu — thay bằng bài viết của bạn.',category,tags,language,kind,'draft','false','','BOTH'];
-  const rows:unknown[][]=[Array.from(CSV_COLUMNS),...terms.categories.map((term,i)=>base('Bài mẫu: '+term.name,term.slug,i%3===0?'vietnam':i%3===1?'germany':'vietnam|germany','vi',term.slug.startsWith('tin-')?'news':'article')),...terms.tags.map(term=>base('Mẫu tag: '+term.name,'',term.slug)),base('Mẫu nhiều danh mục',terms.categories.slice(0,2).map(t=>t.slug).join('|'),terms.tags.map(t=>t.slug).join('|')),base('Beispiel auf Deutsch','','germany','de'),base('Mẫu câu hỏi và trả lời','','vietnam|germany','vi','question')];
-  return new Response(encodeCSV(rows),{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename="luat-viet-duc-bai-viet-mau.csv"','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
+  return new Response(articleImportSample(terms),{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename="luat-viet-duc-bai-viet-mau.csv"','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
  }
  if(request.method!=='POST')throw new HttpError(405,'Phương thức không hợp lệ.');
  const data=await readJsonRequest(request,MAX_CSV_BYTES*2+1024);

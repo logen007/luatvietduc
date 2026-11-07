@@ -32,8 +32,14 @@ export async function testPublicContent(payload:Payload,owner:User){
   await payload.update({collection:'articles',id:withdrawn.id,overrideAccess:false,user:owner,data:{reviewState:'withdrawn'}});
   assert.equal((await publicArticle(visible.slug))?.id,visible.id);assert.equal(await publicArticle(draft.slug),null);assert.equal(await publicArticle(withdrawn.slug),null);
   const legal=await publicArticleList({query:suffix,group:category.slug});assert.deepEqual(legal.docs.map(doc=>doc.id),[visible.id]);
+  assert.equal(legal.docs[0].category?.href,'/phap-luat/viet-nam?'+new URLSearchParams({'linh-vuc':category.slug}),'Custom category cards must link to the supported filter route');
   assert.deepEqual((await publicArticleList({kind:'news',query:suffix})).docs.map(doc=>doc.id),[news.id]);
   assert.equal((await publicArticleList({query:suffix,country:'DE'})).totalDocs,0);
+  await payload.update({collection:'articles',id:visible.id,overrideAccess:false,user:owner,data:{jurisdiction:'BOTH'}});
+  const germanBoth=await publicArticleList({query:suffix,country:'DE'});
+  assert.deepEqual(germanBoth.docs.map(doc=>doc.id),[visible.id]);
+  assert.equal(germanBoth.docs[0].category?.href,'/phap-luat/duc?'+new URLSearchParams({'linh-vuc':category.slug}),'A BOTH article keeps the selected German library context');
+  await payload.update({collection:'articles',id:visible.id,overrideAccess:false,user:owner,data:{jurisdiction:'VN'}});
   const zebra=await create('zebra-sort',true),alpha=await create('alpha-sort',true);
   const sorted=await publicArticleList({query:suffix,group:category.slug,order:'a-z',limit:1,page:1});
   const next=await publicArticleList({query:suffix,group:category.slug,order:'a-z',limit:1,page:2});
