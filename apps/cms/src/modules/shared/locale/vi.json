@@ -39,5 +39,8 @@
   "You are already signed in.": "Bạn đã đăng nhập.",
   "Email is temporarily unavailable. Please try Google or try again later.": "Email tạm thời chưa khả dụng. Hãy dùng Google hoặc thử lại sau.",
   "Email or password is incorrect, or your email has not been verified.": "Email hoặc mật khẩu chưa đúng, hoặc email chưa được xác nhận.",
-  "Unable to sign in. Please try again.": "Chưa đăng nhập được. Vui lòng thử lại."
+  "Unable to sign in. Please try again.": "Chưa đăng nhập được. Vui lòng thử lại.",
+  "Câu hỏi này cần chuyên viên xem xét thêm. Mình đã chuyển cuộc trò chuyện để chuyên viên tiếp tục hỗ trợ tại đây.": "Mình đã chuyển nội dung cho chuyên viên để xem xét kỹ hơn và phản hồi tại đây.",
+  "Bạn có thể đăng ký để lưu cuộc trò chuyện và được chuyên viên ưu tiên trả lời.": "để lưu trao đổi và được ưu tiên hỗ trợ.",
+  "Nếu tiện, bạn để lại số điện thoại ngay trong cuộc trò chuyện để chuyên viên liên hệ nhé. Không bắt buộc.": "Để lại số điện thoại nếu bạn muốn chuyên viên liên hệ."
 }
