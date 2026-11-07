@@ -49,3 +49,12 @@ New sources retrieved and their Pexels license checked on 2026-11-07:
 The document, executive and skyline sources are credited above. This is an illustrative montage: the office models' nationality and filming location are not established as Vietnamese or Germany. They are not identified as our staff, customers or endorsers. No AI-generated footage is used.
 
 Six 4.5-second scenes with 0.4-second crossfades, 25 fps, H.264, silent, fast-start. Desktop is 1920 × 1080 CRF 22; mobile is 1280 × 720 CRF 26. Mild saturation 1.04 / contrast 1.01. Raw downloads and intermediates are kept outside this public repository.
+
+## Berlin street motion revision (2026-11-07)
+
+`legal-hero-stock-v5.mp4` and `legal-hero-stock-mobile-v5.mp4` retain the first five scenes and encoding settings of v4. The final skyline scene is replaced with seconds 4–8.5 of **Berlin Street Scene with Tram and Tower**, by **Ivan Chumak**, showing a yellow tram, cyclists and pedestrians in Berlin. The v4 poster remains valid because the opening is unchanged.
+
+- Source: https://www.pexels.com/video/berlin-street-scene-with-tram-and-tower-37552287/
+- Download: https://videos.pexels.com/video-files/37552287/15912044_3840_2160_25fps.mp4
+- License: https://www.pexels.com/license/ (checked 2026-11-07).
+- Illustrative stock footage; no endorsement by depicted people, brands or transit operators is implied.

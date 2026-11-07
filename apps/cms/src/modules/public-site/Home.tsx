@@ -10,7 +10,7 @@ function HeroVideo(){
  useEffect(()=>{
   const el=video.current;if(!el)return;let visible=false,ready=document.readyState==='complete',timer:ReturnType<typeof setTimeout>|undefined;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)'),connection=(navigator as Navigator&{connection?:EventTarget&{saveData?:boolean}}).connection;
-  const sync=()=>{if((!ready&&choice.current!=='play')||document.hidden||!visible||choice.current==='pause'||(choice.current!=='play'&&(reduced.matches||connection?.saveData))){el.pause();return;}if(!el.getAttribute('src')){el.src=window.matchMedia('(max-width:760px)').matches?'/media/legal-hero-stock-mobile-v4.mp4':'/media/legal-hero-stock-v4.mp4';el.load();}void el.play().catch(()=>setPaused(true));};
+  const sync=()=>{if((!ready&&choice.current!=='play')||document.hidden||!visible||choice.current==='pause'||(choice.current!=='play'&&(reduced.matches||connection?.saveData))){el.pause();return;}if(!el.getAttribute('src')){el.src=window.matchMedia('(max-width:760px)').matches?'/media/legal-hero-stock-mobile-v5.mp4':'/media/legal-hero-stock-v5.mp4';el.load();}void el.play().catch(()=>setPaused(true));};
   const loaded=()=>{timer=setTimeout(()=>{ready=true;sync();},250);};if(!ready)window.addEventListener('load',loaded,{once:true});
   const onPlay=()=>setPaused(false),onPause=()=>setPaused(true),observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;sync();});
   observer.observe(el);el.addEventListener('play',onPlay);el.addEventListener('pause',onPause);document.addEventListener('visibilitychange',sync);reduced.addEventListener('change',sync);connection?.addEventListener('change',sync);sync();
