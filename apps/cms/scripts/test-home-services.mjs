@@ -9,6 +9,7 @@ export async function testHomeServices(browser,base){
   assert.equal(await section.locator('.lvd-service-play').count(),0);
   const tabs=section.getByRole('tab');await tabs.nth(1).click();
   const selected=await active.innerText();await page.waitForFunction(initial=>document.querySelector('.lvd-service-wheel-row[data-distance="0"]')?.textContent!==initial,selected,{timeout:7000});
+  await active.getByRole('button').click();const clicked=await active.innerText();await page.waitForFunction(initial=>document.querySelector('.lvd-service-wheel-row[data-distance="0"]')?.textContent!==initial,clicked,{timeout:7000});
   const geometry=await section.locator('.lvd-service-tabs').evaluate(el=>{const a=el.getBoundingClientRect(),b=el.closest('header').getBoundingClientRect();return Math.abs(a.x+a.width/2-b.x-b.width/2);});assert.ok(geometry<2,'Tab strip stays horizontally centered');
   await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(100);const still=await active.innerText();await page.waitForTimeout(3300);assert.equal(await active.innerText(),still);
   console.log('Homepage services passed: automatic rotation with pointer/focused tab, centered compact tabs, no resume button and reduced motion respected.');
