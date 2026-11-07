@@ -84,7 +84,9 @@ test('legacy situation searches stay visible and survive news category and pagin
 });
 
 test('question and contact forms keep entered details out of URLs before hydration',()=>{
- const home=renderToStaticMarkup(createElement(AppRouterContext.Provider,{value:{push(){},prefetch(){}}},createElement(Home,{groups:content.groups,partners:[],news:{docs:[],totalDocs:0,totalPages:1,page:1},revision:'synthetic'})));
+ const benefitPhotos=['clarity','specialist','records'].map(name=>'/media/benefits/'+name+'.webp?v=0123456789ab');
+ const home=renderToStaticMarkup(createElement(AppRouterContext.Provider,{value:{push(){},prefetch(){}}},createElement(Home,{groups:content.groups,partners:[],news:{docs:[],totalDocs:0,totalPages:1,page:1},revision:'synthetic',benefitPhotos})));
+ for(const photo of benefitPhotos)assert.ok(home.includes('src="'+photo+'"'));
  const contact=renderToStaticMarkup(createElement(Contact));
  for(const [label,html] of [['home question',home],['contact message',contact]]){
   const form=html.match(/<form\b[^>]*>/)?.[0];assert.ok(form);
