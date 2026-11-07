@@ -1,3 +1,5 @@
+/* Reserve document scrollbar space across public and workspace navigation. */
+html[data-lvd-native="true"]{scrollbar-gutter:stable}
 /* Luật Việt Đức product pages. Sizes, type hierarchy and neutral palette follow
    the verified Papermark source; functional product controls reflow normally. */
 .live-header,
