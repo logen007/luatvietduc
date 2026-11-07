@@ -39,6 +39,7 @@
 - Finish after a successful push with one short Vietnamese status: changes sent, automatic update pending. Never call a pushed change live without observing deployment. Report an observed push failure directly.
 - Batch related edits into one release. Reuse the module map in apps/cms/src/presentation/README.md; avoid re-researching the project or reference sites for small requested edits. Keep security/data/schema work on its existing reviewed path.
 - Do not use Higgsfield; owner explicitly prohibited it on 2026-11-03.
+- Backup policy (2026-11-07): automatic backups run only at 03:00 daily in Asia/Ho_Chi_Minh. Do not start or wait for a backup in an application or schema deployment. Keep candidate probes and image rollback; backup/restore retention and manual admin requests remain separate.
 - Small changes, repeatable tests, documented migrations and separate staging/prod secrets.
 - Do not claim a test/deployment was performed unless its result was observed.
 - Before release, test access isolation, retries/idempotency, reconnects, AI handoff races, knowledge withdrawal and backup restore.

@@ -166,8 +166,7 @@ class Deployment(unittest.TestCase):
         self.assertIn("traefik.enable=false", candidate)
         self.assertIn("127.0.0.1:3050:3000", candidate)
         self.assertEqual(candidate[-len(release.NEXT_START):], release.NEXT_START)
-        backup = next(i for i, event in enumerate(self.events) if event[0] == "bash")
-        self.assertLess(backup, self.events.index(candidate))
+        self.assertFalse(any(event[0] == "bash" for event in self.events), "Releases never start a backup; the daily timer owns backups")
 
     def test_candidate_failure_does_not_activate(self):
         self.engine.probe.side_effect = release.ReleaseError("candidate failed")
@@ -192,15 +191,14 @@ class Deployment(unittest.TestCase):
         self.assertFalse(self.engine.state_path.exists())
         self.assertEqual(self.engine.probe.call_args.kwargs, {"full": False, "require_commit": False})
 
-    def test_backup_failure_prevents_candidate(self):
+    def test_release_does_not_invoke_backup_script(self):
         def command(args, **kwargs):
             if args[0] == "bash":
-                raise release.ReleaseError("backup failed")
+                raise release.ReleaseError("A deployment must not request a backup")
             return self.command(args, **kwargs)
         self.engine.run = command
-        with self.assertRaises(release.ReleaseError):
-            self.engine.activate(NEW, self.current)
-        self.assertFalse(any(event[0] == "compose" and "run" in event for event in self.events))
+        self.engine.activate(NEW, self.current)
+        self.assertTrue(any(event[0] == "compose" and "up" in event for event in self.events))
 
     def test_branch_advance_prevents_activation(self):
         self.engine.head.return_value = "d" * 40

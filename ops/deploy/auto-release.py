@@ -345,7 +345,6 @@ class Engine:
                 version = json.loads((staging/'apps/cms/src/modules/shared/site-version.json').read_text())['version']
                 (public / "release.json").write_text(json.dumps({"commit": sha, "backend_commit":sha,"version":version,"lane":"application", "built_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}))
                 self.run(["docker", "build", "--file", str(staging / "ops/deploy/Dockerfile"), "--tag", IMAGE + sha, str(staging)], env=self.env)
-            self.run(["bash", self.c["backup_script"]], env=dict(self.env, RELEASE=old))
             self.compose(sha, "run", "--detach", "--no-deps", "--pull", "never", "--env", "LVD_WORKERS_DISABLED=1", "--label", "traefik.enable=false", "--label", "lvd.auto-release=true", "--name", CANDIDATE, "--publish", "127.0.0.1:3050:3000", "web", *NEXT_START)
             revision = self.revision(sha)
             self.probe("http://127.0.0.1:3050", sha, revision)

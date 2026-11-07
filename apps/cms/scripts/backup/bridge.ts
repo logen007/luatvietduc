@@ -7,12 +7,18 @@ import {mediaInventorySQL as inventorySQL} from '../../src/modules/storage/inven
 let input='';for await(const chunk of process.stdin){input+=chunk;if(input.length>16000)throw new Error('Too much input');}
 const d=JSON.parse(input||'{}');
 async function main(){
+ if(d.action==='schedule')return transaction(async db=>{
+  // Only the private 03:00 Asia/Ho_Chi_Minh host timer calls this action.
+  // Queue polling and deployments never create automatic backup jobs.
+  await db.query('SELECT pg_advisory_xact_lock(73041105)');
+  if(!(await activeValues('drive')))return false;
+  const result=await db.query("INSERT INTO lvd_backup_jobs(id,kind) SELECT gen_random_uuid(),'backup' WHERE NOT EXISTS(SELECT 1 FROM lvd_backup_jobs WHERE kind='backup' AND requested_by IS NULL AND (created_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date=(now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date) ON CONFLICT DO NOTHING RETURNING id");
+  return Boolean(result.rowCount);
+ });
  if(d.action==='claim')return transaction(async db=>{
   await db.query('UPDATE lvd_backup_runtime SET heartbeat=now() WHERE id=1');
   await db.query("UPDATE lvd_backup_jobs SET state='failed',secret_payload=NULL,message='Tác vụ hết thời gian; cần yêu cầu lại.',finished_at=now() WHERE state IN ('running','queued') AND created_at<now()-interval '45 minutes'");
   const drive=await activeValues('drive');if(!drive)return null;
-  // Once per 24 hours after enable. Failed jobs remain visible; no unbounded retry loop.
-  await db.query("INSERT INTO lvd_backup_jobs(id,kind) SELECT gen_random_uuid(),'backup' WHERE NOT EXISTS(SELECT 1 FROM lvd_backup_jobs WHERE kind='backup' AND created_at>now()-interval '24 hours') ON CONFLICT DO NOTHING");
   const job=(await db.query("SELECT * FROM lvd_backup_jobs WHERE state='queued' ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED")).rows[0];if(!job)return null;
   let identity=null;if(job.secret_payload)identity=unseal('backup-job:'+job.id,job.secret_payload).identity;
   await db.query("UPDATE lvd_backup_jobs SET state='running',started_at=now(),secret_payload=NULL WHERE id=$1",[job.id]);

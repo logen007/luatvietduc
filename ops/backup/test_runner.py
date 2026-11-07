@@ -4,6 +4,19 @@ from unittest.mock import patch,MagicMock
 spec=importlib.util.spec_from_file_location('backup_runner',pathlib.Path(__file__).with_name('runner.py'))
 runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
 class BackupBoundaryTests(unittest.TestCase):
+    def test_fixed_daily_schedule_is_separate_from_queue_polling(self):
+        install=pathlib.Path(__file__).with_name('install.sh').read_text()
+        self.assertIn('OnCalendar=*-*-* 03:00:00 Asia/Ho_Chi_Minh',install)
+        self.assertIn('Persistent=false',install)
+        self.assertIn('runner.py --schedule',install)
+        self.assertIn('OnUnitInactiveSec=60s',install)
+        bridge=pathlib.Path(__file__).resolve().parents[2]/'apps/cms/scripts/backup/bridge.ts'
+        claim=bridge.read_text().split("if(d.action==='claim')",1)[1].split("if(d.action==='lock')",1)[0]
+        self.assertNotIn('INSERT INTO lvd_backup_jobs',claim)
+    def test_private_scheduler_uses_only_the_scheduled_queue_action(self):
+        with patch.object(runner.os,'geteuid',return_value=0),patch.object(runner,'container',return_value='synthetic-web'),patch.object(runner,'bridge',return_value=True) as bridge:
+            self.assertTrue(runner.schedule())
+            bridge.assert_called_once_with('synthetic-web','schedule')
     def archive(self,root,members):
         archive=root/'test.tar.gz'
         with tarfile.open(archive,'w:gz') as tar:

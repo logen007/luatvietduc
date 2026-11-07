@@ -13,7 +13,7 @@ export function BackupPanel(){
  if(!owner)return <p role="alert">Chỉ quản trị viên được quản lý sao lưu. <AppLink href="/admin/login">Đăng nhập lại</AppLink></p>;
  const disabled=busy||active||loading||Boolean(loadError)||!status?.runtime?.ready||!status?.drive?.enabled;
  return <div className="backup-panel">
-  <p>Giữ 7 bản hằng ngày và 1 bản lưu theo tháng trên Google Drive. Bản sao được mã hóa trước khi gửi.</p>
+  <p>Tự động sao lưu lúc 03:00 hằng ngày (giờ Việt Nam). Giữ 7 bản hằng ngày và 1 bản lưu theo tháng trên Google Drive. Bản sao được mã hóa trước khi gửi.</p>
   <IntegrationPanel providers={['drive']}/>
   <section className="lvd-admin-card"><h2>Kết nối tài khoản Drive</h2><p>Thêm redirect URI dưới đây vào OAuth Client dành riêng cho sao lưu:</p><code className="lvd-wrap-code">https://luatvietduc.com/service/backups/google/callback</code><p>Khóa age công khai dùng để mã hóa. Giữ khóa age bí mật ở nơi an toàn ngoài máy chủ; cần khóa này để khôi phục.</p>
    <AppLink className="lvd-admin-action" href="/service/backups/google/start">Kết nối Google Drive</AppLink> <button type="button" disabled={busy} onClick={()=>void reload()}>Làm mới trạng thái</button>

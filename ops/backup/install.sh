@@ -37,5 +37,36 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 UNIT
+cat > /etc/systemd/system/luatvietduc-backup-schedule.service <<'UNIT'
+[Unit]
+Description=Queue Luật Việt Đức daily backup at 03:00 Vietnam time
+After=docker.service
+Requires=docker.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/luatvietduc-backup/runner.py --schedule
+TimeoutStartSec=35min
+UMask=0077
+Nice=15
+IOSchedulingClass=idle
+CPUQuota=100%
+MemoryMax=512M
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/luatvietduc-backup
+UNIT
+cat > /etc/systemd/system/luatvietduc-backup-schedule.timer <<'UNIT'
+[Unit]
+Description=Luật Việt Đức daily backup at 03:00 Asia/Ho_Chi_Minh
+[Timer]
+OnCalendar=*-*-* 03:00:00 Asia/Ho_Chi_Minh
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+[Install]
+WantedBy=timers.target
+UNIT
 systemctl daemon-reload
-systemctl enable --now luatvietduc-backup.timer
+systemctl enable --now luatvietduc-backup.timer luatvietduc-backup-schedule.timer

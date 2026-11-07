@@ -9,7 +9,7 @@ This is a separate, app-only worker. It does not change the existing automatic r
 - Generate an age identity **outside the VPS** using the official [age tool](https://github.com/FiloSottile/age). Keep the private identity offline. Put only the `age1…` public recipient in admin. Losing the identity makes the backup unreadable.
 - Save the client and public recipient, then connect the selected Google account. OAuth requests only `drive.file`, creates a private app folder, and stores the refresh token in the existing encrypted vault. It does not request access to all existing Drive documents.
 - Refresh the page, check the connection, then enable. Saving changed connection settings removes the old app-side token and requires reconnecting. Disconnecting within Google revokes the provider-side authorization.
-- Default: a job once per 24 hours, seven verified daily copies plus one independent monthly copy. Cleanup uses Google Drive Trash. A manual job is available in admin. These defaults are fixed in this release; no misleading schedule controls are shown.
+- Automatic schedule: 03:00 every day in Asia/Ho_Chi_Minh, seven verified daily copies plus one independent monthly copy. Cleanup uses Google Drive Trash. A manual job is available in admin. The daily schedule is independent of the minute queue worker. Deployments and queue polling never enqueue an automatic backup. Missed calendar events do not run at a different time after boot.
 
 ## One-time host installation
 

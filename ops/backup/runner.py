@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Narrow host worker: app-only capture, encrypted Drive upload, isolated restore drill."""
-import configparser, datetime, fcntl, hashlib, json, os, pathlib, re, shutil, subprocess, tarfile, tempfile, time, uuid, threading
+import configparser, datetime, fcntl, hashlib, json, os, pathlib, re, shutil, subprocess, tarfile, tempfile, time, uuid, threading, sys
 from contextlib import contextmanager
 import urllib.error, urllib.parse, urllib.request
 BASE=pathlib.Path('/var/lib/luatvietduc-backup')
@@ -274,6 +274,13 @@ def restore_drill(db,config,root,rc):
         if labels=='true':run(['docker','rm','--force',name],timeout=30)
     return snapshot['id']
 
+def schedule():
+    if os.geteuid()!=0:raise BackupFailure('Privileged app worker required')
+    # Enqueue before the runner lock: if a manual job is already running, the
+    # minute queue worker picks this scheduled job up after it finishes.
+    with stage('application'):web=container('web')
+    with stage('claim'):return bridge(web,'schedule')
+
 def once():
     if os.geteuid()!=0:raise BackupFailure('Privileged app worker required')
     os.umask(0o077);BASE.mkdir(mode=0o700,parents=True,exist_ok=True)
@@ -325,5 +332,8 @@ def once():
             stop.set();monitor.join(timeout=65)
             bridge(container('web'),'finish',**result)
 if __name__=='__main__':
-    try:once()
+    try:
+        if sys.argv[1:]==['--schedule']:schedule()
+        elif sys.argv[1:]:raise BackupFailure('Unsupported worker argument')
+        once()
     except Exception as error:raise SystemExit(failure_message('Chưa khởi động được tác vụ sao lưu.',error)) from None

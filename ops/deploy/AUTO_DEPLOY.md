@@ -36,9 +36,9 @@ journalctl -u luatvietduc-release.service -n 100 --no-pager
 
 ## Routine edits
 
-Edit on the existing branch, run the checks appropriate to the change and push. The existing foundation/CMS workflow now covers all container build inputs plus the deployment tooling. The VPS pins a full commit SHA, verifies the exact successful push run, builds an immutable image and inserts the server's separately licensed font. It creates and validates a database dump, checks a private candidate with migrations disabled and promotes only the web container. It checks both loopback readiness and the public release identity. If promotion fails, it restores the previous image and checks readiness again. A failed commit is held for investigation rather than repeatedly deployed.
+Edit on the existing branch, run the checks appropriate to the change and push. The existing foundation/CMS workflow now covers all container build inputs plus the deployment tooling. The VPS pins a full commit SHA, verifies the exact successful push run, builds an immutable image and inserts the server's separately licensed font. It checks a private candidate with migrations disabled and promotes only the web container. It checks both loopback readiness and the public release identity. If promotion fails, it restores the previous image and checks readiness again. A failed commit is held for investigation rather than repeatedly deployed.
 
-The public `/release.json` contains only the deployed commit and build time, so the release can be verified through HTTPS without opening Termius. Production logs and backups remain private. Backups are still on the same VPS; this change does not claim off-VPS recovery.
+The public `/release.json` contains only the deployed commit and build time, so the release can be verified through HTTPS without opening Termius. Production logs and backups remain private. Automatic backups run separately at 03:00 Asia/Ho_Chi_Minh through the encrypted Google Drive backup worker; deployments do not create a backup or wait for one. Manual backup and restore-test jobs remain available in admin.
 
 ## Operations
 
