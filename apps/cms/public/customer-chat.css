@@ -1164,7 +1164,7 @@ html .lvd-chat .chat-top h1{display:none}
 }
 
 /* Enter once after intake settles. Never transform viewport-owning ancestors. */
-.lvd-chat[data-entry-ready="false"]{opacity:0;visibility:hidden}
+.lvd-chat[data-entry-ready="false"] :is(.chat-sidebar,.chat-top,.chat-compose-wrap,.chat-suggestions){opacity:0;visibility:hidden}
 .lvd-chat[data-entry-ready="true"]{animation:lvd-chat-enter .65s cubic-bezier(.22,1,.36,1)}
 .lvd-chat[data-entry-ready="true"]>.chat-sidebar{animation:lvd-chat-sidebar-enter .7s cubic-bezier(.22,1,.36,1)}
 .lvd-chat[data-entry-ready="true"] .chat-compose-wrap{animation:lvd-chat-content-enter .7s cubic-bezier(.22,1,.36,1)}
