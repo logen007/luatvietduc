@@ -6,25 +6,29 @@
 .lvd-service-tabs{display:inline-flex;gap:4px;padding:5px;border-radius:14px;background:#f5f5f1;white-space:nowrap;max-width:none}
 .lvd-redesign .lvd-service-tabs button{border:0;border-radius:10px;background:transparent;color:#66645f;padding:11px 16px;font:500 16px/1.4 var(--lvd-font);min-height:44px;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s;flex-shrink:0}
 .lvd-redesign .lvd-service-tabs button[aria-selected=true]{background:#fff;color:#1d1c1a;box-shadow:0 1px 4px #1d1c1a0b}
-.lvd-service-panel{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;min-width:0}
-.lvd-service-panel>img{display:block;width:100%;height:390px;object-fit:cover;border-radius:16px}
-.lvd-service-list{min-width:0}
-.lvd-service-item{border-top:1px solid #e6e3df}
-.lvd-service-item:last-child{border-bottom:1px solid #e6e3df}
-.lvd-redesign .lvd-service-item h3{margin:0;font:400 clamp(24px,2.3vw,34px)/1.18 var(--lvd-display);letter-spacing:-.025em}
-.lvd-redesign .lvd-service-item h3 button{display:flex;align-items:center;gap:18px;width:100%;min-height:76px;text-align:left;padding:18px 0;background:transparent;border:0;border-radius:0;color:#77746e;cursor:pointer;font:inherit;letter-spacing:inherit}
-.lvd-redesign .lvd-service-item h3 button[aria-expanded=true]{color:#1d1c1a}
-.lvd-service-item h3 button>span{width:22px;flex:0 0 22px;text-align:center;font:400 32px/1 var(--lvd-font)}
-.lvd-service-detail{display:grid;grid-template-rows:0fr;visibility:hidden;opacity:0;transition:grid-template-rows .3s,opacity .25s,visibility .3s}
-.lvd-service-detail[data-open=true]{grid-template-rows:1fr;visibility:visible;opacity:1}
-.lvd-service-detail>div{overflow:hidden;min-height:0;padding-left:40px}
-.lvd-redesign .lvd-service-detail p{font:400 18px/1.55 var(--lvd-font);color:#69665f;margin:0 0 18px;max-width:48ch}
-.lvd-redesign .lvd-service-detail a{display:inline-flex;align-items:center;gap:12px;color:#1d1c1a;font:500 16px/1.5 var(--lvd-font);margin-bottom:24px;text-decoration:none}
+/* The source carousel advances vertically every 3s, with faded neighbours. */
+.lvd-service-wheel-panel{max-width:850px;margin:auto;--service-pitch:78px}
+.lvd-service-wheel{height:calc(var(--service-pitch)*5);overflow:hidden;mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+.lvd-service-wheel-track{transform:translateY(calc(-1*var(--service-pitch)))}
+.lvd-service-wheel-track.is-moving{animation:lvd-service-advance .6s cubic-bezier(.22,.68,0,1) both}
+.lvd-service-wheel-row{height:var(--service-pitch);display:flex;align-items:center;opacity:.28}
+.lvd-service-wheel-row[data-distance="1"]{opacity:.55}
+.lvd-service-wheel-row[data-distance="0"]{opacity:1;border-top:1px solid #dedbd5;border-bottom:1px solid #dedbd5}
+.lvd-service-wheel-row[data-distance="2"],.lvd-service-wheel-row[data-distance="3"]{pointer-events:none}
+.lvd-redesign .lvd-service-wheel-row button{display:flex;align-items:center;gap:18px;min-height:48px;width:100%;padding:12px 0;background:none;border:0;border-radius:0;text-align:left;color:#66645f;cursor:pointer;font:400 clamp(24px,2.8vw,40px)/1.15 var(--lvd-display);letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvd-redesign .lvd-service-wheel-row[data-distance="0"] button{color:#1d1c1a}
+.lvd-service-wheel-row button>span{flex:0 0 26px;font:400 36px/1 var(--lvd-font)}
+.lvd-service-wheel-copy{padding:20px 44px 0;min-height:140px;animation:lvd-service-copy .3s ease both}
+.lvd-redesign .lvd-service-wheel-copy p{font:400 18px/1.55 var(--lvd-font);color:#69665f;margin:0 0 18px}
+.lvd-redesign .lvd-service-wheel-copy a{display:inline-flex;align-items:center;gap:12px;color:#1d1c1a;font:500 16px/1.5 var(--lvd-font);text-decoration:none}
+.lvd-redesign .lvd-service-play{display:block;margin:18px 0 0 auto;border:0;border-radius:8px;padding:10px 14px;min-height:44px;font:400 14px/1.4 var(--lvd-font);background:#f5f5f1;color:#66645f;cursor:pointer}
+@keyframes lvd-service-advance{from{transform:translateY(0)}to{transform:translateY(calc(-1*var(--service-pitch)))}}
+@keyframes lvd-service-copy{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .lvd-redesign .lvd-home-benefits{padding-top:72px;padding-bottom:80px;color:#1d1c1a}
 .lvd-benefit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .lvd-benefit-card{position:relative;isolation:isolate;display:flex;flex-direction:column;justify-content:space-between;gap:56px;min-height:400px;padding:24px;border:1px solid #e7e3df;border-radius:16px;overflow:hidden;background:linear-gradient(#fffdfd 0%,#fff2e5 100%)}
-.lvd-benefit-card>img{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover}
-.lvd-benefit-card.has-photo:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(#fffdfd00 20.39%,#fff2e5 69.908%)}
+.lvd-benefit-card>img{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.035);transition:opacity .3s ease,transform .6s ease}
+.lvd-benefit-card.has-photo:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(#fffdfd00 20.39%,#fff2e5 69.908%);opacity:0;transition:opacity .3s ease}
 .lvd-benefit-icon{display:grid;place-items:center;width:48px;height:48px;flex-shrink:0;border:1px solid #e7e3df;border-radius:8px;background:#fff;box-shadow:0 2px 5px #1d1c1a14}
 .lvd-benefit-icon svg{width:28px;height:28px;color:#36342f}
 .lvd-redesign .lvd-benefit-copy h2{margin:0 0 12px;font:400 clamp(27px,2.2vw,36px)/1.12 var(--lvd-display);letter-spacing:-.025em;text-wrap:balance}
@@ -33,3 +37,10 @@
 @media(max-width:900px){.lvd-service-panel{gap:32px}.lvd-benefit-grid{grid-template-columns:1fr}.lvd-benefit-card{min-height:320px;gap:52px}.lvd-benefit-copy{max-width:60ch}.lvd-benefit-card.has-photo>img{object-position:center 38%}}
 @media(max-width:600px){.lvd-redesign .lvd-home-services{padding-top:48px;padding-bottom:48px}.lvd-home-services>header{margin-bottom:32px}.lvd-redesign .lvd-home-services h2{font-size:34px;margin-bottom:24px}.lvd-service-tab-scroll{text-align:left}.lvd-redesign .lvd-service-tabs button{font-size:15px;padding:10px 12px}.lvd-service-panel{grid-template-columns:minmax(0,1fr);gap:24px}.lvd-service-panel>img{height:240px}.lvd-redesign .lvd-service-item h3{font-size:27px}.lvd-redesign .lvd-service-item h3 button{min-height:68px;gap:14px}.lvd-service-detail>div{padding-left:36px}.lvd-redesign .lvd-service-detail p{font-size:17px}.lvd-redesign .lvd-home-benefits{padding-top:48px;padding-bottom:48px}.lvd-redesign .lvd-benefit-copy h2{font-size:28px}.lvd-redesign .lvd-benefit-copy p{font-size:18px}}
 @media(prefers-reduced-motion:reduce){.lvd-service-detail,.lvd-service-tabs button{transition:none}}
+
+.lvd-benefit-card:hover>img,.lvd-benefit-card:focus-visible>img,.lvd-benefit-card:focus-within>img{opacity:1;transform:scale(1)}
+.lvd-benefit-card.has-photo:hover:after,.lvd-benefit-card.has-photo:focus-visible:after,.lvd-benefit-card.has-photo:focus-within:after{opacity:1}
+.lvd-benefit-icon{transition:transform .3s ease,box-shadow .3s ease}.lvd-benefit-card:hover .lvd-benefit-icon{transform:translateY(-3px);box-shadow:0 5px 12px #1d1c1a18}
+@media(hover:none){.lvd-benefit-card>img,.lvd-benefit-card.has-photo:after{opacity:1}.lvd-benefit-card>img{transform:none}}
+@media(max-width:600px){.lvd-service-wheel-panel{--service-pitch:62px}.lvd-redesign .lvd-service-wheel-row button{font-size:26px;gap:14px}.lvd-service-wheel-copy{padding:16px 40px 0;min-height:160px}}
+@media(prefers-reduced-motion:reduce){.lvd-service-wheel-track.is-moving,.lvd-service-wheel-copy{animation:none}.lvd-benefit-card>img,.lvd-benefit-card.has-photo:after,.lvd-benefit-icon{transition:none;transform:none}}
