@@ -65,6 +65,7 @@ export const Users: CollectionConfig = {
   },
   fields: [
     { name: "name",label:"Tên hiển thị", type: "text", required: true },
+    {name:'avatar',label:'Ảnh đại diện',type:'relationship',relationTo:'media',admin:{hidden:true},access:{create:()=>false,update:()=>false}},
     {
       name: "role",label:"Vai trò",
       type: "select",

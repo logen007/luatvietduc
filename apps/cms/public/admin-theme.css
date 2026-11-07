@@ -801,6 +801,40 @@ html.lvd-admin .lvd-article-editor .lvd-editor-group select:not([multiple]):not(
 .lvd-article-editor .lvd-editor-html:focus{outline:0;box-shadow:inset 0 0 0 1px #777}
 .lvd-editor-error,.lvd-editor-notice{padding:12px 18px;border-top:1px solid #573e3c;color:#d4a39d;font-size:13px;line-height:1.5}
 @media(max-width:760px){.lvd-editor-toolbar{flex-wrap:nowrap;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}.lvd-editor-group{flex:none}html.lvd-admin .lvd-article-editor .lvd-editor-group select:not([multiple]):not([size]){font-size:calc(16px * var(--lvd-admin-font-scale,1))}.lvd-article-editor .tiptap{min-height:360px;padding:22px 18px;font-size:16px}.lvd-editor-url{grid-template-columns:minmax(0,1fr)}.lvd-editor-panel-actions{grid-column:auto}.lvd-editor-panel{padding:12px}.lvd-editor-top{gap:8px}.lvd-article-editor .lvd-editor-html{min-height:360px;padding:18px;font-size:13px}}
+/* Account UI shares the console's grayscale palette and compact 4px controls. */
+html.lvd-admin .template-default__wrap:has(.lvd-profile-page) .doc-header{display:none}
+html.lvd-admin .lvd-profile-page{padding-block:32px 48px}
+html.lvd-admin .lvd-profile{max-width:880px;margin-inline:auto;color:var(--theme-text,#ccc)}
+html.lvd-admin .lvd-profile-heading{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+html.lvd-admin .lvd-profile h1{font-size:28px;line-height:1.2;font-weight:600;margin:0;color:#ccc}
+html.lvd-admin .lvd-profile h2{font-size:17px;line-height:1.4;font-weight:600;margin:0 0 14px;color:#c7c7c7}
+html.lvd-admin .lvd-profile-role{font-size:13px;line-height:20px;color:#999;border:1px solid #333;border-radius:4px;padding:2px 8px}
+html.lvd-admin .lvd-profile-avatar-section{display:flex;align-items:center;gap:24px;padding:24px;background:#141414;border:1px solid #303030;border-radius:4px;margin-bottom:32px}
+html.lvd-admin .lvd-profile-photo{flex:0 0 88px;width:88px;height:88px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#272727;color:#bdbdbd;font-size:32px;border:1px solid #383838}
+html.lvd-admin .lvd-profile-photo img{width:100%;height:100%;object-fit:cover;display:block}
+html.lvd-admin .lvd-profile-avatar-actions{display:flex;gap:10px;align-items:center;margin-bottom:9px}
+html.lvd-admin .lvd-profile button{border:1px solid #3b3b3b;border-radius:4px;background:#242424;color:#c8c8c8;font:500 14px/20px var(--font-body);padding:9px 14px;cursor:pointer;min-height:40px;transition:background .15s,color .15s}
+html.lvd-admin .lvd-profile button:hover:not(:disabled){background:#303030;color:#ddd}
+html.lvd-admin .lvd-profile button:disabled{opacity:.45;cursor:default}
+html.lvd-admin .lvd-profile button.lvd-profile-quiet{border-color:transparent;background:transparent;color:#aaa}
+html.lvd-admin .lvd-profile button.lvd-profile-primary{background:#c3c3c3;border-color:#c3c3c3;color:#171717}
+html.lvd-admin .lvd-profile button.lvd-profile-primary:hover:not(:disabled){background:#d0d0d0}
+html.lvd-admin .lvd-profile small{font-size:13px;line-height:20px;color:#999;display:block}
+html.lvd-admin .lvd-profile-form{margin:0;padding-bottom:28px}
+html.lvd-admin .lvd-profile-fields{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+html.lvd-admin .lvd-profile-fields label{display:flex;flex-direction:column;gap:9px;font-size:14px;color:#aaa;min-width:0}
+html.lvd-admin .lvd-profile-fields input{display:block;width:100%;box-sizing:border-box;min-height:44px;padding:10px 12px;background:#141414;border:1px solid #383838;border-radius:4px;color:#c9c9c9;font:400 16px/22px var(--font-body);box-shadow:none}
+html.lvd-admin .lvd-profile-fields input[readonly]{color:#929292;background:#101010}
+html.lvd-admin .lvd-profile-form-actions{display:flex;justify-content:flex-end;margin-top:20px}
+html.lvd-admin .lvd-profile-security{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-block:26px;border-top:1px solid #303030}
+html.lvd-admin .lvd-profile-security h2{margin-bottom:5px}
+html.lvd-admin .lvd-profile-security p{font-size:14px;line-height:22px;margin:0;color:#999}
+html.lvd-admin .lvd-profile-feedback{font-size:14px;line-height:22px;color:#b9b9b9;margin:12px 0 0}
+html.lvd-admin .lvd-profile-feedback.is-error{color:#dfa8a8}
+html.lvd-admin .lvd-profile input[type=file][hidden]{display:none}
+@media(max-width:600px){html.lvd-admin .lvd-profile-page{padding-block:24px}html.lvd-admin .lvd-profile-fields{grid-template-columns:1fr;gap:18px}html.lvd-admin .lvd-profile-avatar-section{padding:18px;gap:16px}html.lvd-admin .lvd-profile-photo{flex-basis:72px;width:72px;height:72px}html.lvd-admin .lvd-profile-security{align-items:flex-start;flex-direction:column;gap:14px}html.lvd-admin .lvd-profile-form-actions button{width:100%}html.lvd-admin .lvd-profile-avatar-actions{gap:4px}}
+
+html.lvd-admin .lvd-sidebar-avatar>img,html.lvd-admin .lvd-sidebar-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
 /* Shared native dropdown affordance for public pages and admin tools. */
 :is(.lvd-public-site,.lvd-redesign,.live-shell,.live-page,.lvd-admin) select:not([multiple]):not([size]){
  -webkit-appearance:none!important;

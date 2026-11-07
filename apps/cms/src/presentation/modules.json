@@ -42,6 +42,7 @@
     "../app/(payload)/admin-custom.css",
     "../app/(payload)/admin-dashboard.css",
     "../modules/content/article-editor.css",
+    "../modules/identity/profile.css",
     "form-controls.css"
   ]
 }

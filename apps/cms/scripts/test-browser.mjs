@@ -23,6 +23,7 @@ try{
  }
  assert.ok(ready,'Built CMS server did not become ready');browser=await chromium.launch({headless:true,...(process.env.LVD_TEST_BROWSER_EXECUTABLE?{executablePath:process.env.LVD_TEST_BROWSER_EXECUTABLE}:{})});
  await (await import('./test-loading-stability.mjs')).testLoadingStability(browser,base,payload,pool,owner);
+ await (await import('./test-profile-browser.mjs')).testProfileBrowser(browser,base,payload,owner);
  await (await import('./test-homepage-intake.mjs')).testHomepageIntake(browser,base);
  await (await import('./test-client-navigation.mjs')).testClientNavigation(browser,base);
  await (await import('./test-home-services.mjs')).testHomeServices(browser,base);

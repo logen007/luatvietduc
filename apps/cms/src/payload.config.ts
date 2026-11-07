@@ -28,6 +28,7 @@ export default buildConfig({
     components: {
       afterNavLinks: ["./modules/admin/Navigation#AdminNavigation"],
       views: {
+        account:{Component:'./modules/identity/ProfileView#ProfileView',meta:{title:'Hồ sơ'}},
         importArticles:{Component:'./modules/admin/Views#ArticleImportView',meta:{title:adminPages.importArticles.title},path:'/articles/import',exact:true},
         logout: {Component:'./modules/identity/AdminLogout#AdminLogout',path:'/logout',exact:true},
         dashboard: {Component:"./modules/settings/AdminWelcome#AdminDashboard"},

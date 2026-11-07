@@ -14,6 +14,7 @@ import {testArticleTranslations} from './test-article-translations';
 import {testEmailAccounts} from './test-email-accounts';
 import {testLogout} from './test-logout';
 import {testIdentityFoundation} from './test-identity-foundation';
+import {testProfile} from './test-profile';
 import {testAnswerQueue} from './test-answer-queue';
 import {testPublicContent} from './test-public-content';
 import {testThreeRoles} from './test-three-roles';
@@ -67,6 +68,7 @@ try {
   await testEmailAccounts(payload,owner);
   await testLogout(payload,owner);
   await testIdentityFoundation(payload,owner);
+  await testProfile(payload,owner);
   await testAccountLifecycleRaces(payload,owner);
   await testPasswordLoginAdmission(payload,owner);
   await testThreeRoles(payload,owner);
