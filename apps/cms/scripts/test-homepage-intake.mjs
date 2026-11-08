@@ -34,7 +34,9 @@ export async function testHomepageIntake(browser,base){
     assert.equal(await page.locator('.chat-compose textarea').inputValue(),body);assert.equal(sends,0);assert.equal(creates,0);
    }else{
     await page.goto(base);await page.evaluate(()=>{window.__homepageDocument='intake-navigation';});await page.locator('#home-question').fill(body);
-    await page.locator('link[rel="preload"][href^="/customer-chat.css?v="]').waitFor({state:'attached'});
+    // React and the explicit warm-up may both preload the same stylesheet.
+    // Availability matters here; DOM-node uniqueness is not a submit contract.
+    await page.locator('link[rel="preload"][href^="/customer-chat.css?v="]').first().waitFor({state:'attached'});
     assert.equal(creates,0,'Warming the workspace never creates a conversation');assert.equal(sends,0,'Warming never sends the draft');
     if(mode==='retry')initializationFailed=true;
     if(mode==='button')await page.locator('.pm-ask button[type=submit]').click();else await page.locator('#home-question').press('Enter');
