@@ -16,7 +16,7 @@ export const metadata = {
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const [settings,jar]=await Promise.all([publicSiteSettings(),cookies()]);
   const language=jar.get('lvd-lang')?.value==='de'?'de':'vi';
-  const revision = getPresentationVersion(path.join(process.cwd(), 'public'));
+  const assetVersion=(file:string)=>getPresentationVersion(path.join(process.cwd(),'public'),[file]);
   return (
     <html lang={language} data-lvd-native="true">
       <head>
@@ -25,9 +25,9 @@ export default async function Layout({ children }: { children: React.ReactNode }
         <link rel="preload" href="/fonts/Inter-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/Inter-vietnamese.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/Articulat-web.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="stylesheet" href={`/fonts/inter.css?v=${revision}`} />
-        <link rel="stylesheet" href={`/design-system.css?v=${revision}`} />
-        <link rel="stylesheet" href={`/live.css?v=${revision}`} />
+        <link rel="stylesheet" href={`/fonts/inter.css?v=${assetVersion('fonts/inter.css')}`} />
+        <link rel="stylesheet" href={`/design-system.css?v=${assetVersion('design-system.css')}`} />
+        <link rel="stylesheet" href={`/live.css?v=${assetVersion('live.css')}`} />
       </head>
       <body><LocaleProvider language={language} copy={readPublicCopy()}><PublicSettingsProvider settings={settings}>{children}</PublicSettingsProvider></LocaleProvider></body>
     </html>

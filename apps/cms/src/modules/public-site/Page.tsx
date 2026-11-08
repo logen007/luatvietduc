@@ -61,14 +61,15 @@ function metadataInput(data:Awaited<ReturnType<typeof model>>,pathname:string,qu
 export async function pageMetadata(pathname:string,query:URLSearchParams){return publicMetadata(metadataInput(await model(pathname,query.toString()),pathname,query));}
 export async function PublicPage({path:pathname,query}:{path:string;query:URLSearchParams}){
  const data=await model(pathname,query.toString()),{route,group,topic,articleList,page,topics}=data;
- const revision=getPresentationVersion(path.join(process.cwd(),'public'));
+ const publicDirectory=path.join(process.cwd(),'public');
+ const revision=getPresentationVersion(publicDirectory,['editorial-ui.css']),scriptRevision=getPresentationVersion(publicDirectory,['editorial-ui.js']);
  const section=['library','topic'].includes(route.kind)?'lookup':['news','legacy-news'].includes(route.kind)?'news':route.kind==='about'?'about':'';
  const groups=content.groups.map(({titles,slugs,...group})=>group),groupView=group?groups.find(item=>item.id===group.id):undefined;
  const displayQuery=new URLSearchParams(query);if(data.keyword&&!displayQuery.get('q'))displayQuery.set('q',data.keyword);const filter=displayQuery.get('linh-vuc');if(filter&&groupAliases[filter])displayQuery.set('linh-vuc',groupAliases[filter]);
  const metadata=metadataInput(data,pathname,query);
  const schema=data.story?articleSchema({title:data.story.title,path:metadata.path,description:data.story.summary,image:photo(data.story.photo,1440).src,published:data.story.published,modified:data.story.checked,parent:{href:'/tin-tuc',label:'Tin tức & đời sống'},news:true}):pageSchema({...metadata,home:route.kind==='home'});
- return <><StructuredData value={schema}/><PublicFrame revision={revision} home={route.kind==='home'} articleHero={route.kind==='legacy-news'} section={section}>
-  {route.kind==='home'&&articleList&&<Home banner={data.settings.heroBanner} groups={groups} partners={content.partners} news={articleList} revision={revision} benefitPhotos={homeBenefitPhotos(path.join(process.cwd(),'public'))}/>}
+ return <><StructuredData value={schema}/><PublicFrame revision={revision} scriptRevision={scriptRevision} home={route.kind==='home'} articleHero={route.kind==='legacy-news'} section={section}>
+  {route.kind==='home'&&articleList&&<Home banner={data.settings.heroBanner} groups={groups} partners={content.partners} news={articleList} revision={getPresentationVersion(publicDirectory,['customer-chat.css'])} benefitPhotos={homeBenefitPhotos(path.join(process.cwd(),'public'))}/>}
   {route.kind==='library'&&articleList&&<Library key={pathname+'?'+displayQuery.toString()} selectedCategory={data.selectedCategory?{id:data.selectedCategory.slug,title:data.selectedCategory.name}:undefined} groups={groups} group={groupView} country={route.country} topics={topics.slice((page-1)*20,page*20)} total={topics.length} page={page} path={pathname} query={displayQuery.toString()} articles={articleList}/>}
   {route.kind==='topic'&&groupView&&topic&&<TopicPage group={groupView} topic={topic}/>}
   {route.kind==='news'&&articleList&&<News key={query.toString()} articles={articleList} query={query.toString()} categories={content.newsCategories}/>}

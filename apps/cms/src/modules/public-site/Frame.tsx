@@ -4,7 +4,7 @@ import {Header} from '../shared/Header';
 import {Footer} from '../shared/Footer';
 import {usePublicCopy} from './ui';
 import {useScrollReveal} from './useScrollReveal';
-export function PublicFrame({children,revision,home=false,section='',articleHero=false}:{children:React.ReactNode;revision:string;home?:boolean;section?:string;articleHero?:boolean}){
+export function PublicFrame({children,revision,scriptRevision=revision,home=false,section='',articleHero=false}:{children:React.ReactNode;revision:string;scriptRevision?:string;home?:boolean;section?:string;articleHero?:boolean}){
  const frame=useRef<HTMLDivElement>(null),[scrolled,setScrolled]=useState(false),l=usePublicCopy();
  useScrollReveal(frame,children);
  useEffect(()=>{
@@ -26,6 +26,6 @@ export function PublicFrame({children,revision,home=false,section='',articleHero
   <link rel="stylesheet" href={'/editorial-ui.css?v='+revision} precedence="public"/>
   <a className="skip-link" href="#main">{l('Đi đến nội dung','Zum Inhalt')}</a>
   <Header publicMode activeSection={section}/><main id="main">{children}</main><Footer/>
-  <script src={'/editorial-ui.js?v='+revision} defer/>
+  <script src={'/editorial-ui.js?v='+scriptRevision} defer/>
  </div>;
 }

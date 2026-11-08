@@ -29,3 +29,21 @@ test('an atomic release switch cannot mix two snapshots in one digest',()=>{
  const f=fixture(),old=f.digest('/release/one');f.onRead(()=>f.switchTo('/release/two'));
  assert.equal(f.version('/public'),old);assert.equal(f.version('/public'),f.digest('/release/two'));assert.equal(f.reads,18);
 });
+
+
+test('editing inbox styles leaves the public/font/chat/script versions unchanged',()=>{
+ const f=fixture(),assets=['live.css','editorial-ui.css','editorial-ui.js','customer-chat.css'];
+ const before=assets.map(name=>f.version('/public',[name])),inbox=f.version('/public',['specialist-inbox.css']);
+ const entry=f.files.get('/release/one/specialist-inbox.css');entry.body+=' revised';entry.stamp++;
+ assert.notEqual(f.version('/public',['specialist-inbox.css']),inbox);
+ assert.deepEqual(assets.map(name=>f.version('/public',[name])),before);
+ // Metadata reads do not force unchanged bytes through the hash again.
+ assert.equal(f.reads,6);
+});
+test('scoped assets follow local edits, missing files and snapshot switches',()=>{
+ const f=fixture(),before=f.version('/public',['live.css']),entry=f.files.get('/release/one/live.css');entry.body=entry.body.replace('live','LIVE');entry.stamp++;
+ assert.notEqual(f.version('/public',['live.css']),before);
+ f.switchTo('/release/two');const next=f.version('/public',['live.css']);assert.notEqual(next,before);
+ f.files.delete('/release/two/live.css');assert.throws(()=>f.version('/public',['live.css']),/Missing bundle/);
+ for(const invalid of [[],['../secret'],['/private/data'],['not-registered.css']])assert.throws(()=>f.version('/public',invalid),/Unknown presentation asset/);
+});

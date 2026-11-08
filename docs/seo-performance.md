@@ -102,3 +102,12 @@ sitemap tuyến tính; dùng lại catalog công khai/hash ảnh theo fingerprin
 Thêm tiêu đề riêng cho phân trang và preview lớn chỉ cho trang được index.
 588 unit/domain checks, build, 72 lượt mở mobile/desktop và SEO/thu hồi đều đạt.
 Xem [biên bản và thời gian CI thực](verification/2026-11-08-performance-seo-aio.md).
+
+## Tách phiên bản tài nguyên — 2026-11-08
+
+CSS công khai, CSS admin, font CSS và script có fingerprint riêng. Sửa hộp thư
+không làm đổi URL của giao diện công khai; tải trước CSS Hỏi đáp khớp trang đích.
+590 unit/domain checks, build, 72 trường hợp mobile/desktop, lưu hai editor và
+12 nhóm kiểm tra SEO đạt. Chuyển Trang chủ → Tin tức không yêu cầu tải lại CSS
+dùng chung. Không thay cache dữ liệu riêng tư hoặc rút bỏ kiểm tra triển khai.
+Xem [phạm vi, bằng chứng và giới hạn](verification/2026-11-08-asset-cache.md).

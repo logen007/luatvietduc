@@ -86,3 +86,19 @@ contain only packaged public UI content, never CMS articles, credentials or chat
 Catalog/photo replacements still use the existing snapshot lane without a build.
 The 01.39.19 full CI sample took 182 seconds overall, including a 35-second build;
 see the performance/SEO audit for the exact run and limits of that measurement.
+
+### Independent presentation URLs — 2026-11-08
+
+Native public/admin renderers call `getPresentationVersion(publicDirectory,
+[asset])` for each known CSS/JS resource. Editorial CSS and JS carry separate
+revisions; homepage chat intent preloads use the customer-chat CSS revision.
+The default multi-bundle digest remains compatible with the legacy renderer.
+Each scope follows local edits and atomic snapshots, fails on missing files,
+and retains no previous-root cache. Unchanged bytes retain the same URL across
+releases, so unrelated admin edits no longer invalidate public presentation
+resources. The four-hour production asset cache policy is unchanged.
+
+This support change uses the full build lane once; supported future CSS/copy
+updates still use snapshots. It does not bypass required runtime checks or
+promise an instant full-code deployment. Evidence is in
+`verification/2026-11-08-asset-cache.md`.

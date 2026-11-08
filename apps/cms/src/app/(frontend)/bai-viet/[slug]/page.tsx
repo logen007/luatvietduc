@@ -29,10 +29,10 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params,a=await articleForPage(slug),summary=await publicArticleSummary(slug);
-  const news=a.kind==='news'||content.newsSlugs.includes(a.slug),parent=articleParent(news?'news':a.kind,a.jurisdiction),revision=getPresentationVersion(path.join(process.cwd(),'public'));
+  const news=a.kind==='news'||content.newsSlugs.includes(a.slug),parent=articleParent(news?'news':a.kind,a.jurisdiction),revision=getPresentationVersion(path.join(process.cwd(),'public'),['editorial-ui.css']),scriptRevision=getPresentationVersion(path.join(process.cwd(),'public'),['editorial-ui.js']);
   const pathName='/bai-viet/'+encodeURIComponent(a.slug);
   return (<><StructuredData value={articleSchema({title:a.title,path:pathName,description:summary?.summary||'',image:photo(photoForArticle(a),1440).src,published:a.createdAt,modified:a.updatedAt,language:a.language||'vi',news,parent})}/>
-    <PublicFrame revision={revision} section={news?'news':'lookup'} articleHero>
+    <PublicFrame revision={revision} scriptRevision={scriptRevision} section={news?'news':'lookup'} articleHero>
       <div className="live-reading-page">
         <div className="container">
           <article className="live-reading-article" aria-labelledby="article-title">
