@@ -1,5 +1,6 @@
 import {StructuredData} from '../src/modules/public-site/StructuredData.tsx';
 import {photo} from '../src/modules/public-site/photos.ts';
+import {Photo} from '../src/modules/public-site/Photo.tsx';
 import {articleSchema} from '../src/modules/public-site/seo.ts';
 import {AppLink} from '../src/modules/shared/AppLink.tsx';
 import test from 'node:test';
@@ -22,7 +23,7 @@ async function render(article){
   'next/navigation':{notFound:()=>assert.fail('Synthetic article must exist'),permanentRedirect:()=>assert.fail('No redirect expected')},
   '../../../../modules/content/navigation':{articleParent},
   '../../../../modules/public-site/server':{content:{newsSlugs:[],articleAliases:{}},publicArticle:async()=>article},
-  '../../../../modules/public-site/StructuredData':{StructuredData},'../../../../modules/public-site/photos':{photo},'../../../../modules/public-site/seo':{articleSchema},'../../../../modules/public-site/Frame':{PublicFrame:({children})=>children},
+  '../../../../modules/public-site/StructuredData':{StructuredData},'../../../../modules/public-site/Photo':{Photo},'../../../../modules/public-site/photos':{photo},'../../../../modules/public-site/seo':{articleSchema},'../../../../modules/public-site/Frame':{PublicFrame:({children})=>children},
   '../../../../modules/shared/presentation-version.mjs':{getPresentationVersion:()=> 'synthetic'},'node:path':{default:{join:(...parts)=>parts.join('/')}},
  }[name]||assert.fail(name))});
  return renderToStaticMarkup(await exports.default({params:Promise.resolve({slug:'synthetic'})}));

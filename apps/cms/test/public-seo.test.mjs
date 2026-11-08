@@ -2,10 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createElement} from 'react';
+import {Photo} from '../src/modules/public-site/Photo.tsx';
+import sharp from 'sharp';
+import {readFile,stat} from 'node:fs/promises';
 import {StoryCard} from '../src/modules/public-site/ui.tsx';
 import {StructuredData} from '../src/modules/public-site/StructuredData.tsx';
 import {canonicalPage,filteredPage,publicMetadata,robotsDocument,articleSchema,pageSchema,jsonLd,sitemapDocument,descriptionText} from '../src/modules/public-site/seo.ts';
-import {photo,photoSet} from '../src/modules/public-site/photos.ts';
+import {photo,photoSet,packagedPhotoName} from '../src/modules/public-site/photos.ts';
 test('canonical library aliases converge while pagination keeps a separate canonical',()=>{
  assert.equal(canonicalPage('/thu-vien'),'/phap-luat/viet-nam');
  assert.equal(canonicalPage('/phap-luat/viet-nam/quoc-tich'),'/chu-de/quoc-tich');
@@ -44,4 +47,24 @@ test('list cards request the cropped source while article photos remain complete
  const html=renderToStaticMarkup(createElement(StoryCard,{article:{id:1,slug:'sample',title:'Mẫu',summary:'',language:'vi',kind:'news',photo:'family'},priority:true}));
  assert.match(html,/src="\/assets\/optimized-photos\/family-card-480.webp"/);assert.match(html,/width="480" height="300"/);assert.match(html,/family-card-960.webp 960w/);assert.match(html,/loading="eager"/);assert.match(html,/fetchPriority="high"/i);
  assert.equal(photo('family',960).height,1280);
+});
+
+// Inspect real encoded files: an omitted variant or incorrect crop would break
+// picture selection even if the generated markup looks correct.
+test('every public AVIF variant exists, is smaller and preserves its WebP dimensions',async()=>{
+ for(const name of ['berlin','dong-xuan','family','housing','library','train','tram','work'])for(const width of [480,960,1440])for(const card of [false,true]){
+  const avif=photo(name,width,card,'avif'),webp=photo(name,width,card);
+  const avifPath=new URL('../../../'+avif.src.slice(1),import.meta.url),webpPath=new URL('../../../'+webp.src.slice(1),import.meta.url);
+  const [encoded,original,a,w]=await Promise.all([sharp(await readFile(avifPath)).metadata(),sharp(await readFile(webpPath)).metadata(),stat(avifPath),stat(webpPath)]);
+  assert.equal(encoded.width,original.width,avif.src);assert.equal(encoded.height,original.height,avif.src);assert.ok(a.size<w.size,avif.src);
+ }
+});
+test('high priority picture keeps native format selection without a forced WebP preload',()=>{
+ const html=renderToStaticMarkup(createElement(Photo,{name:'family',card:true,width:480,sizes:'350px',fetchPriority:'high',loading:'eager',alt:''}));
+ assert.match(html,/<source type="image\/avif"/);assert.match(html,/family-card-960.avif 960w/);assert.match(html,/<img[^>]+family-card-480.webp/);assert.ok(!html.includes('rel="preload"'),'Do not download the WebP fallback before picture selects AVIF');
+});
+
+test('media previews only substitute known immutable packaged photos',()=>{
+ assert.equal(packagedPhotoName('/assets/photos/family-1800.webp'),'family');
+ for(const url of ['/assets/photos/unknown-1800.webp','https://r2.example/assets/photos/family-1800.webp','/service/media/1','/assets/photos/family-1800.webp?token=private','/media/family-1800.webp'])assert.equal(packagedPhotoName(url),null);
 });

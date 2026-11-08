@@ -528,7 +528,8 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
   min-height: 680px;
   padding: 52px;
   color: #fff;
-  background: #141414 url("/assets/photos/library-1200.webp") center/cover;
+  background: #141414 url("/assets/optimized-photos/library-960.webp") center/cover;
+  background-image: image-set(url("/assets/optimized-photos/library-960.avif") type("image/avif"), url("/assets/optimized-photos/library-960.webp") type("image/webp"));
 }
 .live-auth-intro:before {
   content: "";

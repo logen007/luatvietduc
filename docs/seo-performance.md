@@ -71,3 +71,16 @@ Tài liệu chính thức:
 - [Phân trang](https://developers.google.com/search/docs/specialty/ecommerce/pagination-and-incremental-page-loading)
 - [Đa ngôn ngữ](https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites)
 - [Video và tốc độ](https://web.dev/learn/performance/video-performance)
+
+## Rà soát tiếp toàn bộ nhóm trang — 2026-11-08
+
+Đã thêm AVIF cùng WebP dự phòng cho ảnh dùng chung, giảm 35,9% tổng dung lượng
+bộ ảnh; nền tài khoản giảm 80,9%. Lưới thư viện dùng preview nhẹ của ảnh đóng
+gói, không thay ảnh gốc hoặc thumbnail R2. Editor được tải riêng khi mở vùng
+soạn thảo, không kéo Tiptap vào login và các trang quản trị không dùng editor.
+
+Xác minh 72 lượt mở trang local trên mobile/desktop, 2 trường hợp chọn định dạng
+ảnh và lưu/reload 2 loại editor. Các chỉ số production trước thay đổi và giới
+hạn phép đo, bao gồm CLS admin còn cao ở một số trang, được ghi đầy đủ tại
+[biên bản kiểm tra](verification/2026-11-08-site-speed.md). Không tuyên bố mức
+cải thiện LCP production từ phép đo localhost.

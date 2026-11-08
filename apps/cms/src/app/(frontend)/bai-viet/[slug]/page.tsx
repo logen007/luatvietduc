@@ -11,6 +11,7 @@ import {getPresentationVersion} from '../../../../modules/shared/presentation-ve
 import path from 'node:path';
 import {StructuredData} from '../../../../modules/public-site/StructuredData';
 import {photo} from '../../../../modules/public-site/photos';
+import {Photo} from '../../../../modules/public-site/Photo';
 export const dynamic = "force-dynamic";
 async function articleForPage(slug:string){
  const article=await publicArticle(slug);if(article)return article;
@@ -29,14 +30,14 @@ export default async function Page({
 }) {
   const { slug } = await params,a=await articleForPage(slug);
   const news=a.kind==='news'||content.newsSlugs.includes(a.slug),parent=articleParent(news?'news':a.kind,a.jurisdiction),revision=getPresentationVersion(path.join(process.cwd(),'public'));
-  const pathName='/bai-viet/'+encodeURIComponent(a.slug),backdrop=photo(photoForArticle(a),480);
+  const pathName='/bai-viet/'+encodeURIComponent(a.slug);
   return (<><StructuredData value={articleSchema({title:a.title,path:pathName,description:articleText(a.body||''),image:photo(photoForArticle(a),1440).src,published:a.createdAt,modified:a.updatedAt,language:a.language||'vi',news,parent})}/>
     <PublicFrame revision={revision} section={news?'news':'lookup'} articleHero>
       <div className="live-reading-page">
         <div className="container">
           <article className="live-reading-article" aria-labelledby="article-title">
             <header className="live-reading-heading live-reading-hero">
-              <img className="live-reading-backdrop" src={backdrop.src} alt="" aria-hidden="true" width={backdrop.width} height={backdrop.height} fetchPriority="high"/>
+              <Photo name={photoForArticle(a)} width={480} responsive={false} className="live-reading-backdrop" alt="" aria-hidden="true" fetchPriority="high"/>
               <div className="live-reading-heading-inner">
               <div className="live-reading-topline">
                 <AppLink className="live-reading-return" href={parent.href}>

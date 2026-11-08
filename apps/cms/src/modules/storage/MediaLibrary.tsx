@@ -1,5 +1,7 @@
 'use client';
 import {AppLink} from '../shared/AppLink';
+import {Photo} from '../public-site/Photo';
+import {packagedPhotoName} from '../public-site/photos';
 import {useRouter} from 'next/navigation';
 import {createContext,useContext,useEffect,useRef,useState} from 'react';
 import {DefaultListView,useAuth,useListDrawerContext,useListQuery,useSelection,useRouteTransition} from '@payloadcms/ui';
@@ -13,10 +15,10 @@ type MediaDoc=MediaItem;
 const ViewContext=createContext<{mode:Mode;setMode:(mode:Mode)=>void;bulk:boolean;setBulk:(value:boolean)=>void;busy:boolean;setBusy:(value:boolean)=>void}>({mode:'grid',setMode:()=>{},bulk:false,setBulk:()=>{},busy:false,setBusy:()=>{}});
 function ViewIcon({grid}:{grid?:boolean}){return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">{grid?<><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></>:<><path d="M9 5h12M9 12h12M9 19h12"/><rect x="3" y="4" width="2" height="2"/><rect x="3" y="11" width="2" height="2"/><rect x="3" y="18" width="2" height="2"/></>}</svg>;}
 function FilePreview({doc}:{doc:MediaDoc}){
- const [failed,setFailed]=useState(false),src=mediaURL(doc.thumbnailURL||doc.sizes?.thumbnail?.url||doc.url),image=doc.mimeType?.startsWith('image/');
+ const [failed,setFailed]=useState(false),src=mediaURL(doc.thumbnailURL||doc.sizes?.thumbnail?.url||doc.url),image=doc.mimeType?.startsWith('image/'),packaged=packagedPhotoName(src);
  useEffect(()=>setFailed(false),[src]);
  return <span className={'lvd-media-preview'+(doc.mimeType==='image/svg+xml'?' is-svg':'')}>
-  {image&&src&&!failed?<img src={src} alt="" loading="lazy" decoding="async" onError={()=>setFailed(true)}/>:<span className="lvd-media-file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden="true"><path d="M6 2h8l5 5v15H5V2h1ZM14 2v6h5M8 13h8M8 17h6"/></svg><small>{doc.mimeType?.split('/')[1]?.replace('svg+xml','SVG').toUpperCase()||'FILE'}</small></span>}
+  {image&&src&&!failed?(packaged?<Photo name={packaged} width={480} responsive={false} alt="" loading="lazy" decoding="async" onError={()=>setFailed(true)}/>:<img src={src} alt="" loading="lazy" decoding="async" onError={()=>setFailed(true)}/>):<span className="lvd-media-file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden="true"><path d="M6 2h8l5 5v15H5V2h1ZM14 2v6h5M8 13h8M8 17h6"/></svg><small>{doc.mimeType?.split('/')[1]?.replace('svg+xml','SVG').toUpperCase()||'FILE'}</small></span>}
  </span>;
 }
 function useMediaSelection(){
