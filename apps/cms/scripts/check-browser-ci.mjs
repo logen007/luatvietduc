@@ -1,5 +1,5 @@
-// Runs inside the existing required CMS build gate, without changing the
-// server-approved workflow. Container builds invoke next directly, not npm build.
+// Optional browser audit, invoked explicitly with CI=true in an isolated test
+// environment. It is no longer an npm postbuild hook or a deployment gate.
 import {spawnSync} from 'node:child_process';
 import {existsSync} from 'node:fs';
 if(process.env.CI!=='true')process.exit(0);

@@ -29,6 +29,7 @@
 - Production database ports stay private. Never use `docker system prune`, `down -v`, blanket upgrades or a new proxy on existing ports without a reviewed plan.
 
 ## Delivery
+- Owner release policy (2026-11-08): browser UI simulations no longer block every deployment. Keep `test:browser` and the isolated browser audit helper available for explicit audits; do not attach them to npm postbuild. Required workflow type checks, unit/domain tests, migrations, database/system authorization checks, actual compilation and server health/rollback remain in place.
 - Parallel review when requested: assign separate owners for public UI, admin/media and chat. Let them work simultaneously in their modules; reserve shared identity/integration files and the test database for one owner. Peer-review before one integrated release; no independent agent pushes.
 - Owner correction (2026-11-05): a specific small fix takes priority over an ongoing broad review. Freeze its scope, edit only the responsible component, publish it independently, and stop. Do not bundle unrelated chat, admin or architecture work into it.
 - For a routine small fix, do not add testing infrastructure, refactor adjacent code, research alternative designs or create new release tooling. Use the existing source map and delivery path. Aim to edit and submit within about one minute; this is not a guarantee that an application build or GitHub queue finishes in one minute.
