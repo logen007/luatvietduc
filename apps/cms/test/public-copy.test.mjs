@@ -56,3 +56,16 @@ test('handoff copy is concise in both languages, with optional registration and 
  state.me={user:{id:'1'}};assert.ok(!render('vi').includes('để lưu trao đổi'));assert.ok(render('vi').includes('Để lại số điện thoại'));
  state.messages[0]={...state.messages[0],role:'staff',body:'Specialist original reply'};assert.ok(render('vi').includes('Specialist original reply'));assert.ok(!render('vi').includes('Mình đã chuyển nội dung'));
 });
+
+test('attachment handoff invites a guest once without requiring an assistant handoff message',()=>{
+ const copy=mergePublicCopy(PUBLIC_COPY_MODULES.map(name=>JSON.parse(fs.readFileSync('public/content/'+name+'.json','utf8'))));
+ const state={messages:[{id:'2',role:'user',body:'Tài liệu của tôi',created_at:'2026-11-08T10:00:00Z',attachments:[{id:'file-1',name:'sample.pdf',size:1000,url:'/service/chat-files/file-1'}]}],conversation:{state:'queued',aiEnabled:false},me:null,selected:'chat-1'};
+ const render=(language='vi')=>renderToStaticMarkup(React.createElement(LocaleProvider,{language,copy},React.createElement(ChatMessages,{state})));
+ assert.equal(render().match(/class="chat-login-message"/g)?.length,1);
+ assert.ok(render('de').includes('Konto erstellen'));
+ assert.ok(render().includes('sample.pdf'));
+ state.me={user:{id:'1'}};assert.ok(!render().includes('class="chat-login-message"'));assert.equal(render().match(/Để lại số điện thoại/g)?.length,1);
+ state.me=null;state.conversation.aiEnabled=true;assert.ok(!render().includes('class="chat-login-message"'));
+ state.conversation.aiEnabled=false;state.conversation.state='human';assert.ok(!render().includes('class="chat-login-message"'));
+ state.conversation.state='queued';state.messages=[];assert.ok(!render().includes('class="chat-login-message"'));
+});

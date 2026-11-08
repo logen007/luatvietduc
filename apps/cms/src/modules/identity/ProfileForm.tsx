@@ -25,7 +25,7 @@ export function ProfileForm({initial,preview=false}:{initial:ProfileData;preview
    if(action==='upload'){
     const form=new FormData();form.set('file',selected!);form.set('updatedAt',profile.updatedAt);body=form;
    }else{headers={'Content-Type':'application/json'};body=JSON.stringify(action==='password'?{}:{updatedAt:profile.updatedAt,...(action==='name'?{name:name.trim()}:{})});}
-   const response=await fetch(action==='password'?'/service/profile/password':'/service/profile',{method:action==='name'?'PATCH':action==='remove'?'DELETE':'POST',headers,body,signal:controller.signal,cache:'no-store'});
+   const response=await fetch(action==='password'?'/service/profile/password':'/service/profile',{method:action==='name'?'PATCH':action==='remove'?'DELETE':'POST',headers,body,signal:AbortSignal.any([controller.signal,AbortSignal.timeout(action==='upload'?60000:20000)]),cache:'no-store'});
    const data=await response.json();if(!response.ok)throw new Error(data.error||'Chưa lưu được hồ sơ.');
    if(!mounted.current)return;
    if(action==='password')setStatus('Đã gửi liên kết đặt lại mật khẩu đến email của bạn.');
@@ -34,7 +34,7 @@ export function ProfileForm({initial,preview=false}:{initial:ProfileData;preview
     apply(data);if(action==='name')setName(data.name);
     setStatus(action==='name'?'Đã lưu hồ sơ.':action==='remove'?'Đã gỡ ảnh đại diện.':'Đã đổi ảnh đại diện.');
    }
-  }catch(error){if(mounted.current&&!controller.signal.aborted)setError(error instanceof Error?error.message:'Chưa lưu được hồ sơ.');}
+  }catch(error){if(mounted.current&&!controller.signal.aborted)setError(error instanceof Error&&error.name==='TimeoutError'?'Chưa xác nhận hồ sơ đã lưu. Tải lại để kiểm tra trước khi thử lại.':error instanceof Error?error.message:'Chưa lưu được hồ sơ.');}
   finally{gate.current=false;if(mounted.current){setBusy('');setImagePreview('');}if(pending.current===controller)pending.current=null;}
  }
  return <div className="lvd-profile">
