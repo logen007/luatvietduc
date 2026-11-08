@@ -102,3 +102,14 @@ This support change uses the full build lane once; supported future CSS/copy
 updates still use snapshots. It does not bypass required runtime checks or
 promise an instant full-code deployment. Evidence is in
 `verification/2026-11-08-asset-cache.md`.
+
+### Public view code boundaries — 2026-11-08
+
+`public-site/views.tsx` holds client-side dynamic boundaries around the existing
+Home, Library, News, Information and Contact exports. `Page.tsx` retains server
+route/data selection; views retain SSR and share the existing shell. Edit each
+feature in its original file. Do not add an `ssr: false` option or move CMS/API
+reads into the wrapper. This reduces unrelated client code on public routes;
+it does not turn runtime source edits into a snapshot-only release. The explicit
+SEO audit also checks content with JavaScript disabled. Measurements and limits:
+`verification/2026-11-08-route-code.md`.

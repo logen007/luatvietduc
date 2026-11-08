@@ -25,6 +25,10 @@ try{
  browser=await chromium.launch({executablePath:process.env.LVD_TEST_BROWSER_EXECUTABLE||undefined,headless:true});const context=await browser.newContext();
  await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
  const page=await context.newPage();
+ // Route code splitting must not turn indexable pages into client-only shells.
+ const htmlContext=await browser.newContext({javaScriptEnabled:false});
+ await htmlContext.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
+ const htmlPage=await htmlContext.newPage();
  await payload.updateGlobal({slug:'site-settings',overrideAccess:true,data:{publicIndexingEnabled:false}});
  assert.equal((await (await fetch(base+'/robots.txt')).text()).includes('Disallow: /\n'),true);
  await payload.updateGlobal({slug:'site-settings',overrideAccess:true,data:{publicIndexingEnabled:true}});
@@ -37,6 +41,12 @@ try{
   assert.ok(await page.locator('meta[property="og:image"]').getAttribute('content'));
   assert.match(await page.locator('meta[name="robots"]').getAttribute('content'),/(?<!no)index/);
   const schemas=await page.locator('script[type="application/ld+json"]').allTextContents();assert.equal(schemas.length,1,path);for(const schema of schemas)assert.ok(JSON.parse(schema)['@graph'].length);
+  assert.equal((await htmlPage.goto(base+path)).status(),200,path+' without JavaScript');
+  assert.equal(await htmlPage.locator('h1').count(),1,path+' server-rendered heading');
+  assert.ok((await htmlPage.locator('h1').innerText()).trim(),path+' heading is readable without hydration');
+  await htmlPage.locator('h1').waitFor({state:'visible'});
+  assert.equal(await htmlPage.locator('link[rel="canonical"]').getAttribute('href'),await page.locator('link[rel="canonical"]').getAttribute('href'));
+  const htmlSchemas=await htmlPage.locator('script[type="application/ld+json"]').allTextContents();assert.equal(htmlSchemas.length,1,path+' server schema');assert.ok(JSON.parse(htmlSchemas[0])['@graph'].length);
  }
  await page.goto(base+'/phap-luat/viet-nam?trang=2');assert.match(await page.title(),/Trang 2/);assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'),base+'/phap-luat/viet-nam?trang=2');
  assert.match(await page.locator('meta[name="robots"]').getAttribute('content'),/max-image-preview:large/);
@@ -48,7 +58,7 @@ try{
  assert.equal((await fetch(base+'/bai-viet/'+first.slug)).status,404);
  assert.ok(!(await(await fetch(base+'/sitemaps/0.xml')).text()).includes(first.slug),'Withdrawal immediately removes sitemap URL');
  await page.goto(base+'/bai-viet/'+second.slug);assert.equal(await page.locator('link[hreflang="vi"]').count(),0,'Withdrawn translation is not advertised');
- console.log('Public SEO passed: 12 real page types, robots switch/cache, metadata, JSON-LD, canonical aliases, real page-two title/canonical, public preview directives, private/search noindex, translations, draft exclusion and immediate withdrawal.');
+ console.log('Public SEO passed: 12 real page types with and without JavaScript, robots switch/cache, metadata, JSON-LD, canonical aliases, real page-two title/canonical, public preview directives, private/search noindex, translations, draft exclusion and immediate withdrawal.');
 }catch(error){console.error(log);throw error;}finally{
  await browser?.close();
  if(server&&server.exitCode===null)await new Promise(resolve=>{const timeout=setTimeout(()=>server.kill('SIGKILL'),5000);server.once('exit',()=>{clearTimeout(timeout);resolve();});server.kill('SIGTERM');});

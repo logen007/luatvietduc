@@ -10,11 +10,7 @@ import {publicMetadata,canonicalPage,filteredPage,pageSchema,articleSchema} from
 import {StructuredData} from './StructuredData';
 import {photo} from './photos';
 import {PublicFrame} from './Frame';
-import {Home} from './Home';
-import {Library,TopicPage} from './Library';
-import {News,LegacyStory} from './News';
-import {About,Policy,Help} from './Information';
-import {Contact} from './Contact';
+import {Home,Library,TopicPage,News,LegacyStory,About,Policy,Help,Contact} from './views';
 const model=cache(async(pathname:string,queryString:string)=>{
  const route=resolvePublicRoute(pathname);if(!route)notFound();
  const query=new URLSearchParams(queryString),page=positivePage(query.get('trang')),keyword=legacyKeyword(query),group=content.groups.find(group=>group.id===route.group);

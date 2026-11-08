@@ -111,3 +111,12 @@ không làm đổi URL của giao diện công khai; tải trước CSS Hỏi đ
 12 nhóm kiểm tra SEO đạt. Chuyển Trang chủ → Tin tức không yêu cầu tải lại CSS
 dùng chung. Không thay cache dữ liệu riêng tư hoặc rút bỏ kiểm tra triển khai.
 Xem [phạm vi, bằng chứng và giới hạn](verification/2026-11-08-asset-cache.md).
+
+## Chỉ tải mã của trang cần dùng — 2026-11-08
+
+Tách mã tương tác Trang chủ, Liên hệ, Tin tức, Thư viện và các trang thông tin.
+Tin tức không tải form Liên hệ hoặc bộ tab Trang chủ nữa. Phép đo build cục bộ
+giảm 24.525 byte JavaScript ở Tin tức, 31.948 byte ở Hỏi đáp; đây không phải mức
+giảm tổng dung lượng hoặc số đo LCP production. Nội dung, canonical và JSON-LD
+vẫn đọc được khi tắt JavaScript. Rà sitemap hiện tại: 109 URL đạt các kiểm tra
+HTTP/metadata cơ bản. Xem [báo cáo và giới hạn](verification/2026-11-08-route-code.md).
