@@ -81,3 +81,10 @@ html.lvd-admin .operator-workspace.is-embedded{margin:0;max-width:none;border:0;
 .operator-transcript .operator-message.from-team{background:#303030;color:#d4d4d4}.operator-composer-shell .operator-composer{box-sizing:border-box;min-height:70px;border-radius:36px;background:#2b2b2b;border-color:#414141;color:#cecece}.operator-composer-shell .operator-composer textarea{box-sizing:border-box;color:#cecece}.operator-composer-shell .operator-composer textarea::placeholder{color:#a0a0a0}.operator-composer-shell :is(.operator-compose-attach,.operator-compose-action){box-sizing:border-box;min-width:44px;max-width:44px;max-height:44px;aspect-ratio:1;color:#ccc}.operator-composer-shell .operator-compose-action{background:#ccc;color:#292929}.operator-composer-shell .operator-compose-attach{background:transparent}
 
 .operator-thread-top .operator-expiry{color:#ef7777;font-size:11px;font-variant-numeric:tabular-nums}.operator-thread-top .operator-saved{color:var(--op-muted);font-size:11px}.operator-thread-top .operator-status{min-width:0}
+
+/* The open mobile thread uses its back button instead of the global menu. */
+.operator-workspace .operator-actions button[aria-label="Thông tin hội thoại"]{display:grid;place-items:center;box-sizing:border-box;flex:0 0 44px;width:44px;min-width:44px;max-width:44px;height:44px;min-height:44px;max-height:44px;aspect-ratio:1;padding:0;border-radius:4px;line-height:1}
+@media(max-width:760px){
+ html.lvd-admin:has(.operator-workspace.is-embedded:is([data-pane=chat],[data-pane=details])) .template-default__nav-toggler-wrapper{display:none}
+ html.lvd-admin .operator-workspace.is-embedded[data-pane=chat] .operator-conversation-header{padding-inline:12px}
+}
