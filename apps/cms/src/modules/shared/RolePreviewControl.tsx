@@ -23,5 +23,10 @@ export function RolePreviewControl({compact=false,renderedRole}:{compact?:boolea
   try{await api('role-preview',{role:next});invalidatePublicSession();window.location.assign(destination);}
   catch{setError('Chưa chuyển được vai trò. Thử lại nhé.');setBusy(false);void refreshPublicProfile().catch(()=>{});}
  }
- return <div className={'lvd-role-preview'+(compact?' is-compact':'')}><button type="button" aria-label={current==='owner'?'Chuyển sang Chuyên viên':'Chuyển sang Admin'} title={current==='owner'?'Chuyển sang Chuyên viên':'Chuyển sang Admin'} disabled={busy} onClick={()=>void change(current==='owner'?'support':'owner')}>{current==='owner'?'Admin':'Chuyên viên'}</button>{error&&<span role="alert">{error}</span>}</div>;
+ const toggleLabel=current==='owner'?'Chuyển sang Chuyên viên':'Chuyển sang Admin';
+ return <div className={'lvd-role-preview'+(compact?' is-compact':'')}>
+  {!compact&&<div className="lvd-role-preview__tabs" role="group" aria-label="Vai trò kiểm tra">{([{value:'owner',label:'Admin'},{value:'support',label:'Chuyên viên'}] as const).map(item=><button key={item.value} type="button" aria-pressed={current===item.value} disabled={busy} onClick={()=>void change(item.value)}>{item.label}</button>)}</div>}
+  <button className="lvd-role-preview__toggle" type="button" aria-label={toggleLabel} title={toggleLabel} disabled={busy} onClick={()=>void change(current==='owner'?'support':'owner')}>{compact?(current==='owner'?'Admin':'Chuyên viên'):<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg>}</button>
+  {error&&<span role="alert">{error}</span>}
+ </div>;
 }
