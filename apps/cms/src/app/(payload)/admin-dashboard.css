@@ -352,3 +352,25 @@ html.lvd-admin .lvd-banner-archive summary{cursor:pointer;font-size:15px;font-we
 html.lvd-admin .lvd-banner-archive-selector{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:16px 0}
 html.lvd-admin .lvd-banner-archive-selector select{width:240px;max-width:100%}
 @media(max-width:600px){html.lvd-admin .lvd-banner-link{grid-template-columns:minmax(0,1fr) 94px;gap:6px}html.lvd-admin .lvd-banner-link>button:first-child{grid-column:1/-1;padding:4px 0;min-height:32px}html.lvd-admin .lvd-banner-archive-selector select{width:100%}}
+
+/* Mobile page titles share the native 56px menu row instead of starting below it. */
+@media(max-width:1024px){
+ html.lvd-admin .template-default__wrap{padding-top:0}
+ html.lvd-admin :is(.lvd-admin-page,.dashboard,.collection-list){padding-top:0}
+ html.lvd-admin .template-default__wrap .lvd-profile-page{padding-top:0}
+ html.lvd-admin :is(.lvd-admin-page-heading,.lvd-admin-welcome__header,.lvd-profile-heading){box-sizing:border-box;min-height:56px;padding-block:6px;padding-inline-start:44px;display:flex;flex-direction:row;align-items:center;margin-top:0;margin-bottom:16px}
+ html.lvd-admin :is(.lvd-admin-page-heading,.lvd-admin-welcome__header,.lvd-profile-heading) h1{margin:0;min-width:0}
+ html.lvd-admin .list-header{padding-top:0}
+ html.lvd-admin .list-header__title-and-actions{box-sizing:border-box;min-height:56px;padding-block:6px;padding-inline-start:44px;align-items:center}
+ html.lvd-admin .lvd-article-list-header{display:block;padding-top:0;padding-bottom:16px}
+ html.lvd-admin .lvd-article-list-header h1{box-sizing:border-box;display:flex;align-items:center;min-height:56px;padding-block:6px;padding-inline-start:44px;margin:0 0 10px}
+ html.lvd-admin .doc-header{padding-top:0;padding-bottom:12px}
+ html.lvd-admin .doc-header__header{box-sizing:border-box;min-height:56px;padding-block:6px;padding-inline-start:44px;align-items:flex-start;justify-content:center}
+ html.lvd-admin .doc-header__header h1{margin:0}
+ html.lvd-admin .template-default__wrap .operator-workspace.is-embedded{height:var(--lvd-chat-vh,100dvh)}
+ html.lvd-admin .operator-workspace.is-embedded .operator-inbox>header{padding-top:0}
+ html.lvd-admin .operator-workspace.is-embedded .operator-inbox h1{box-sizing:border-box;min-height:56px;padding-block:6px;padding-inline-start:44px;margin:0 0 12px}
+ html.lvd-admin .operator-workspace.is-embedded .operator-conversation-header{min-height:56px;padding-block:6px;padding-inline-start:60px}
+ html.lvd-admin .operator-workspace.is-embedded .operator-details{padding-top:0}
+ html.lvd-admin .operator-workspace.is-embedded .operator-details>header{box-sizing:border-box;min-height:56px;padding-block:6px;padding-inline-start:44px}
+}
