@@ -8,6 +8,31 @@ export function ChatComposer({state}:{state:WorkspaceState}){
  const input=useRef<HTMLTextAreaElement>(null),fileInput=useRef<HTMLInputElement>(null),id=useId();
  const disabled=!state.loaded||state.busy||state.uploading||state.conversation?.state==='closed';
  useEffect(()=>{const element=input.current;if(!element)return;element.style.height='auto';element.style.height=Math.min(176,Math.max(52,element.scrollHeight))+'px';},[state.text]);
+ useEffect(()=>{
+  if(disabled)return;
+  const editable='input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"]';
+  const blocked=()=>document.hidden||Boolean(document.querySelector('dialog[open],[aria-modal="true"]'));
+  const focus=()=>{
+   const element=input.current,active=document.activeElement;
+   if(!element||blocked()||active!==element&&active?.closest(editable))return;
+   element.focus({preventScroll:true});
+  };
+  const type=(event:KeyboardEvent)=>{
+   const element=input.current,target=event.target;
+   if(!element||blocked()||event.defaultPrevented||event.isComposing||event.ctrlKey||event.metaKey||event.altKey||event.key.length!==1||target instanceof Element&&target.closest(editable+',button,a,[role="button"],[role="menu"],[role="tablist"]'))return;
+   event.preventDefault();
+   focus();
+   if(document.activeElement!==element)return;
+   const start=element.selectionStart,end=element.selectionEnd;
+   if(element.value.length-(end-start)+event.key.length>element.maxLength)return;
+   element.setRangeText(event.key,start,end,'end');
+   state.setText(element.value);
+  };
+  focus();
+  window.addEventListener('focus',focus);
+  document.addEventListener('keydown',type);
+  return()=>{window.removeEventListener('focus',focus);document.removeEventListener('keydown',type);};
+ },[disabled,state.selected,state.setText]);
  return <div className="chat-compose-wrap" onDragOver={event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();}} onDrop={event=>{if(event.dataTransfer.files.length){event.preventDefault();if(!disabled)void state.attachFiles(Array.from(event.dataTransfer.files));}}}>
   {(state.attachments.length>0||state.uploading)&&<div className="chat-file-tray">{state.attachments.map(file=><div className="chat-file-chip" key={file.id}><span aria-hidden="true">▤</span><span><strong>{file.name}</strong><small>{(file.size/1024).toFixed(0)} KB</small></span><button type="button" aria-label={t('Bỏ tệp {name}',{name:file.name})} onClick={()=>state.removeAttachment(file.id)} disabled={state.busy||state.uploading}>×</button></div>)}{state.uploading&&<div className="chat-file-chip" role="status"><span className="live-spinner"/>{t("Đang tải tệp…")}</div>}</div>}
   <form className="chat-compose" onSubmit={state.send} aria-busy={state.busy}>
