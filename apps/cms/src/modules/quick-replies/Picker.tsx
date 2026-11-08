@@ -28,7 +28,7 @@ export function QuickReplyPicker({disabled,revision,owner,onInsert}:{disabled:bo
  },[open,disabled,revision,key]);
  const ready=result?.revision===revision&&result.key===key;
  return <div className="operator-quick-replies" ref={root} onKeyDown={e=>{if(e.key==='Escape'){setOpen(false);root.current?.querySelector('button')?.focus();}}}>
-  <button type="button" disabled={disabled} aria-expanded={open} aria-controls="operator-quick-reply-panel" onClick={()=>{setOpen(!open);setRetry(v=>v+1);}}>Chèn câu mẫu</button>
+  <button className="operator-compose-action" type="button" disabled={disabled} aria-label="Chèn câu mẫu" title="Chèn câu mẫu" aria-expanded={open} aria-controls="operator-quick-reply-panel" onClick={()=>{setOpen(!open);setRetry(v=>v+1);}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 4h14v13H9l-4 4V4Z M9 8h6M9 12h4"/></svg></button>
   {open&&!disabled&&<section id="operator-quick-reply-panel" className="operator-quick-panel" aria-label="Câu trả lời nhanh">
    <header><strong>Câu trả lời nhanh</strong>{owner&&<AppLink href="/admin/collections/quick-replies">Quản lý mẫu</AppLink>}<button type="button" aria-label="Đóng câu trả lời nhanh" onClick={()=>setOpen(false)}>×</button></header>
    <input type="search" aria-label="Tìm câu trả lời nhanh" placeholder="Tìm mẫu…" value={query} onChange={e=>{setQuery(e.target.value);setPage(1);}} onKeyDown={event=>{if(event.key==='Enter')event.preventDefault();}} autoFocus/>

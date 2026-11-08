@@ -359,34 +359,35 @@ try{
   return route.fulfill(failTranscript?{status:503,json:{error:'Synthetic transcript unavailable'}}:{json:{conversation:thread,messages:[]}});
  });
  await page.setViewportSize({width:390,height:844});await page.goto(base+'/admin/inbox?conversation='+threadId);
- await page.getByRole('heading',{name:'Synthetic customer',exact:true}).waitFor();
+ await page.getByRole('heading',{name:'Synthetic conversation',exact:true}).waitFor();
  // Templates are loaded from the private collection and only edit the draft.
  assert.equal(await page.locator('.operator-compose-tabs').count(),0);
  assert.equal(await page.getByText('KHÔNG GIAN LÀM VIỆC',{exact:true}).count(),0);
  const replyBox=page.getByRole('textbox',{name:'Nội dung trả lời khách',exact:true});
- await replyBox.fill('Bản nháp');
+ await replyBox.fill('');
  let replyRequests=0,templateFailure=true;
  await page.route('**/api/quick-replies?*',route=>route.fulfill(templateFailure?{status:503,json:{errors:[]}}:{json:{docs:[{id:1,title:'Mẫu kiểm tra',body:'Nội dung mẫu.'},{id:2,title:'Mẫu dài',body:'x'.repeat(10000)}],totalPages:1,page:1}}));
  page.on('request',request=>{if(request.url().includes('/service/conversations/'+threadId)&&request.method()==='POST')replyRequests++;});
  await page.getByRole('button',{name:'Chèn câu mẫu',exact:true}).click();
  await page.locator('.operator-quick-panel').getByRole('alert').waitFor();
  templateFailure=false;await page.locator('.operator-quick-panel').getByRole('button',{name:'Thử lại',exact:true}).click();
- const snippetSearch=page.getByRole('searchbox',{name:'Tìm câu trả lời nhanh',exact:true});await snippetSearch.fill('Mẫu');await snippetSearch.press('Enter');await page.waitForTimeout(100);assert.equal(replyRequests,0,'Searching quick replies must never send the existing draft');assert.equal(await replyBox.inputValue(),'Bản nháp');
+ const snippetSearch=page.getByRole('searchbox',{name:'Tìm câu trả lời nhanh',exact:true});await snippetSearch.fill('Mẫu');await snippetSearch.press('Enter');await page.waitForTimeout(100);assert.equal(replyRequests,0,'Searching quick replies must never send the existing draft');assert.equal(await replyBox.inputValue(),'');
  await page.locator('.operator-quick-list').getByRole('button',{name:'Mẫu kiểm tra Nội dung mẫu.'}).click();
- assert.equal(await replyBox.inputValue(),'Bản nháp\nNội dung mẫu.');assert.equal(replyRequests,0,'Inserting a template never sends it');
+ assert.equal(await replyBox.inputValue(),'Nội dung mẫu.');assert.equal(replyRequests,0,'Inserting a template never sends it');
+ await replyBox.fill('');
  await page.getByRole('button',{name:'Chèn câu mẫu',exact:true}).click();
  await page.locator('.operator-quick-list').getByRole('button',{name:/^Mẫu dài/}).click();
  await page.locator('.operator-template-error').waitFor();
- assert.equal(await replyBox.inputValue(),'Bản nháp\nNội dung mẫu.','Oversized template leaves the draft intact');
+ assert.equal(await replyBox.inputValue(),'','Oversized template leaves the draft intact');
  await page.getByRole('button',{name:'Đóng câu trả lời nhanh',exact:true}).click();await fits();
- await page.unroute('**/api/quick-replies?*');
+ await page.unroute('**/api/quick-replies?*');await replyBox.fill('Synthetic retained draft');
  await page.getByRole('button',{name:'✓ Hoàn tất',exact:true}).click();
  await page.locator('.operator-error').waitFor();assert.match(await page.locator('.operator-error').innerText(),/Synthetic transcript unavailable/);
- await page.locator('.operator-conversation-header').getByText('Đã hoàn tất',{exact:false}).waitFor();
+ await page.locator('.operator-conversation-header').getByRole('img',{name:'Đã hoàn tất',exact:true}).waitFor();
  assert.equal(await page.getByRole('button',{name:/Gửi phản hồi/}).isDisabled(),true);
  failTranscript=false;await page.locator('.operator-error').getByRole('button',{name:'Thử lại',exact:true}).click();
  await page.waitForFunction(()=>!document.querySelector('.operator-error'));
- await page.locator('.operator-conversation-header').getByText('Đã hoàn tất',{exact:false}).waitFor();
+ await page.locator('.operator-conversation-header').getByRole('img',{name:'Đã hoàn tất',exact:true}).waitFor();
  // Drafts follow the selected customer conversation and survive explicit account
  // navigation. All endpoints below are synthetic and cannot call a provider.
  await page.setViewportSize({width:1280,height:900});

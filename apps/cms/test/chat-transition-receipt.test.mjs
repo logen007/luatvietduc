@@ -33,6 +33,17 @@ test('owner and customer retain their already authorized content after a handoff
 });
 
 const draftState=conversation=>({conversation,text:'PRIVATE-SYNTHETIC-REPLY',attachments:[{id:'synthetic-file',name:'PRIVATE-SYNTHETIC-FILE',size:12,url:'/service/chat-files/synthetic-file',mimeType:'text/plain'}],me:{user:{id:7,role:'support'}},selected:thread.id,sessionRevision:1,internal:false,busy:false,uploading:false,maxLength:2000,setText(){},setInternal(){}});
+test('empty operator drafts show the template icon and text or attachments switch the same slot to send',()=>{
+ for(const [text,attachments,send] of [['',[],false],['Synthetic reply',[],true],['',draftState(thread).attachments,true]]){
+  const html=renderToStaticMarkup(createElement(Composer,{state:{...draftState(thread),text,attachments},canReply:true,onSent(){}}));
+  assert.equal(html.includes('aria-label="Gửi phản hồi"'),send);assert.equal(html.includes('aria-label="Chèn câu mẫu"'),!send);
+  assert.ok(!html.includes('＋ Tệp'));assert.ok(!html.includes('Ctrl + Enter'));
+ }
+});
+test('queued operator replies are disabled beneath an explicit claim overlay',()=>{
+ const html=renderToStaticMarkup(createElement(Composer,{state:{...draftState({...thread,state:'queued'}),staffAllowed:true,loaded:true,text:'',attachments:[]},canReply:false,onSent(){},onClaim(){}}));
+ assert.ok(html.includes('operator-composer is-locked'));assert.match(html,/<textarea[^>]*disabled/);assert.match(html,/operator-claim-overlay[\s\S]*Nhận xử lý/);
+});
 test('restricted legacy releases and not-yet-authorized claim receipts mask composer data before effects',()=>{
  for(const action of ['release','reopen','claim']){
   const base=action==='claim'?{...thread,state:'queued',restricted:true}:thread;
