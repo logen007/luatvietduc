@@ -114,6 +114,16 @@ test('preserved policy copy has no active markup and links resolve to native pag
  assert.equal(content.team.length,9);assert.equal(content.partners.length,13);
 });
 
+test('all existing partner logos are packaged, bounded files rather than third-party page-load requests',()=>{
+ assert.equal(content.partners.length,13);
+ let total=0;
+ for(const partner of content.partners){
+  assert.match(partner.logo,/^\/assets\/logos\/[a-z0-9-]+\.(svg|webp)$/);
+  const file=new URL('../../..'+partner.logo,import.meta.url);total+=fs.statSync(file).size;
+ }
+ assert.ok(total<100000,'The complete logo strip should stay under 100 KB');
+});
+
 test('public indexing switch controls metadata without opening private areas',()=>{
  for(const enabled of [false,true]){
   const metadata=publicMetadata({title:'Synthetic',path:'/thu-vien',enabled});assert.equal(metadata.robots.index,enabled);assert.equal(metadata.robots.follow,enabled);assert.match(metadata.alternates.canonical,/\/thu-vien$/);

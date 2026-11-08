@@ -18,7 +18,13 @@ export function importPublicContent(){
  if(groups.length!==16||groups.reduce((n,g)=>n+g.count,0)!==303)throw new Error('Catalogue preservation failed');
  const policies=Object.fromEntries(['privacy','terms'].map(kind=>[kind,{vi:window.LVD_LEGAL[kind](),de:window.LVD_LEGAL_DE[kind]()}]));
  for(const policy of Object.values(policies))for(const html of Object.values(policy))if(/<script|\son\w+\s*=|javascript:/i.test(html))throw new Error('Policy snapshot contains active content');
- return {sourceHash:createHash('sha256').update(bytes.join('\0')).update(postSource).digest('hex'),groups,articleAliases:window.LVD_CATALOG.articleAliases,team:window.LVD_FEATURES.team,partners:window.LVD_FEATURES.partnerItems,newsSlugs:window.LVD_NEWS.stories.map(story=>story.id),newsStories:window.LVD_NEWS.stories,newsCategories:window.LVD_NEWS.categories,policies};
+ const partners=window.LVD_FEATURES.partnerItems.map(item=>{
+  const filename=new URL(item.logo).pathname.split('/').at(-1).toLowerCase().replace(/\.(png|jpe?g)$/i,'.webp');
+  const logo='/assets/logos/'+filename;
+  if(!fs.existsSync(new URL('.'+logo,base)))throw new Error('Missing packaged partner logo: '+filename);
+  return {...item,logo};
+ });
+ return {sourceHash:createHash('sha256').update(bytes.join('\0')).update(postSource).digest('hex'),groups,articleAliases:window.LVD_CATALOG.articleAliases,team:window.LVD_FEATURES.team,partners,newsSlugs:window.LVD_NEWS.stories.map(story=>story.id),newsStories:window.LVD_NEWS.stories,newsCategories:window.LVD_NEWS.categories,policies};
 }
 const target=new URL('../src/modules/public-site/content.json',import.meta.url);
 const serialized=JSON.stringify(importPublicContent(),null,2)+'\n';

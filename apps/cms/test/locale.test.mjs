@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 import ts from 'typescript';
 import {translate,LocaleDate,LocaleProvider} from '../src/modules/shared/locale/index.tsx';
 import {createElement} from 'react';
@@ -10,6 +11,20 @@ test('locale preserves original messages and interpolates names',()=>{
  assert.equal(translate('Xin chào, {name}','de',{name:'Nguyễn Văn A'}),'Hallo, Nguyễn Văn A');
  assert.equal(translate('Đăng nhập','vi'),'Đăng nhập');assert.equal(translate('Đăng nhập','de'),'Anmelden');
  assert.equal(translate('Original customer message','de'),'Original customer message');
+});
+
+test('many translated components share one locale cookie write, including after switching language',()=>{
+ let cookie='other=value',writes=0;const effects=[],exports={};
+ const document={documentElement:{lang:'vi'},get cookie(){return cookie;},set cookie(value){writes++;cookie='other=value; '+value.split(';')[0];},dispatchEvent(){}};
+ const source=ts.transpileModule(fs.readFileSync(new URL('../src/modules/shared/locale/index.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+ vm.runInNewContext(source,{exports,document,location:{protocol:'https:'},sessionStorage:{getItem:()=>null,setItem(){}},CustomEvent:class{},require:name=>({
+  react:{createContext:value=>({value}),useContext:context=>context.value,useEffect:fn=>effects.push(fn),useSyncExternalStore:(_subscribe,get)=>get()},
+  'react/jsx-runtime':{},'./de.json':{default:{}},'./vi.json':{default:{}},'./ascii-transition':{withAsciiTransition:update=>update()},
+ }[name]??assert.fail(name))});
+ const render=()=>{for(let i=0;i<50;i++)exports.useLocale();while(effects.length)effects.shift()();};
+ render();assert.equal(writes,1);assert.match(cookie,/other=value; lvd-lang=vi/);
+ render();assert.equal(writes,1,'Mounting more labels must not rewrite the same cookie');
+ exports.setLanguage('de');render();assert.equal(writes,2);assert.equal(document.documentElement.lang,'de');assert.match(cookie,/lvd-lang=de/);
 });
 test('public interface has no Vietnamese text nodes or static labels outside translation calls',()=>{
  const files=['app/(frontend)/tai-khoan/page.tsx','modules/identity/AccountForm.tsx','modules/shared/Header.tsx','modules/shared/Footer.tsx','modules/shared/SocialLinks.tsx','modules/chat/CustomerWorkspace.tsx',...['Composer','History','Messages'].map(n=>'modules/chat/ui/'+n+'.tsx')];

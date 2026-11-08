@@ -889,55 +889,55 @@
   "partners": [
     {
       "source": "G2G Career",
-      "logo": "https://g2gcareer.com/wp-content/uploads/2026/08/p1.svg"
+      "logo": "/assets/logos/p1.svg"
     },
     {
       "source": "G2G Career",
-      "logo": "https://g2gcareer.com/wp-content/uploads/2026/07/doi-tac-02.png"
+      "logo": "/assets/logos/doi-tac-02.webp"
     },
     {
       "source": "G2G Career",
-      "logo": "https://g2gcareer.com/wp-content/uploads/2026/07/doi-tac-03.jpg"
+      "logo": "/assets/logos/doi-tac-03.webp"
     },
     {
       "source": "Bizlawyer",
-      "logo": "https://bizlawyer.vn/wp-content/uploads/masterise.jpg"
+      "logo": "/assets/logos/masterise.webp"
     },
     {
       "source": "Bizlawyer",
-      "logo": "https://bizlawyer.vn/wp-content/uploads/bes.jpg"
+      "logo": "/assets/logos/bes.webp"
     },
     {
       "source": "Bizlawyer",
-      "logo": "https://bizlawyer.vn/wp-content/uploads/SPIC.jpg"
+      "logo": "/assets/logos/spic.webp"
     },
     {
       "source": "Bizlawyer",
-      "logo": "https://bizlawyer.vn/wp-content/uploads/yingje.jpg"
+      "logo": "/assets/logos/yingje.webp"
     },
     {
       "source": "Bizlawyer",
-      "logo": "https://bizlawyer.vn/wp-content/uploads/Aditya.jpg"
+      "logo": "/assets/logos/aditya.webp"
     },
     {
       "source": "Bizlawyer",
-      "logo": "https://bizlawyer.vn/wp-content/uploads/irc.jpg"
+      "logo": "/assets/logos/irc.webp"
     },
     {
       "source": "Bizlawyer",
-      "logo": "https://bizlawyer.vn/wp-content/uploads/vingroup.jpg"
+      "logo": "/assets/logos/vingroup.webp"
     },
     {
       "source": "Bizlawyer",
-      "logo": "https://bizlawyer.vn/wp-content/uploads/knightfrank.jpg"
+      "logo": "/assets/logos/knightfrank.webp"
     },
     {
       "source": "Bizlawyer",
-      "logo": "https://bizlawyer.vn/wp-content/uploads/masan.jpg"
+      "logo": "/assets/logos/masan.webp"
     },
     {
       "source": "Bizlawyer",
-      "logo": "https://bizlawyer.vn/wp-content/uploads/ipcgroup.jpg"
+      "logo": "/assets/logos/ipcgroup.webp"
     }
   ],
   "newsSlugs": [
