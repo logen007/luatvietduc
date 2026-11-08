@@ -7,7 +7,7 @@ import type {InboxResult} from '../contracts';
 import {normalizeInboxQuery} from '../client-operations';
 const empty:InboxResult={rows:[],counts:{},total:0,totalPages:1,page:1};
 export function useInbox(userId:number|undefined,sessionRevision:number){
- const [view,setView]=useState('queue'),[query,setQuery]=useState(''),[debouncedQuery,setDebouncedQuery]=useState(''),[page,setPage]=useState(1);
+ const [view,setView]=useState('all'),[query,setQuery]=useState(''),[debouncedQuery,setDebouncedQuery]=useState(''),[page,setPage]=useState(1);
  const requestQuery=normalizeInboxQuery(query);
  const [saved,setSaved]=useState({owner:'',key:'',data:empty,loading:true,error:''});
  const owner=userId===undefined?'':JSON.stringify([userId,sessionRevision]);
