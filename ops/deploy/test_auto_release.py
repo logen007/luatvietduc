@@ -101,6 +101,33 @@ class Gates(unittest.TestCase):
         with patch.object(release.subprocess, "run", side_effect=[subprocess.CompletedProcess([], 0, fixtures[name]) for name in release.REVISION_FILES]):
             self.assertEqual(engine.revision(NEW), expected)
 
+    def test_probe_accepts_legacy_and_per_file_revisions_but_rejects_stale_assets(self):
+        origin = 'http://isolated'
+        assets = {name: (name + '\nVIỆT ĐỨC\n').encode() * 20 for name in ['editorial-ui.js', 'editorial-ui.css']}
+        fingerprints = {name: release.digest(name.encode() + body)[:12] for name, body in assets.items()}
+        for mode in ['legacy', 'per-file', 'wrong-query', 'wrong-content', 'wrong-commit', 'not-ready']:
+            with self.subTest(mode=mode):
+                engine = release.Engine(configuration(Path('/isolated')))
+                engine.revision = Mock(side_effect=lambda sha, files: fingerprints[files[0]])
+                urls = {name: '/' + name + '?v=' + ('123456789abc' if mode == 'legacy' else '000000000000' if mode == 'wrong-query' else fingerprints[name]) for name in assets}
+                responses = {
+                    origin + '/health/ready': json.dumps({'status': 'waiting' if mode == 'not-ready' else 'ready'}).encode(),
+                    origin + '/release.json': json.dumps({'commit': OLD if mode == 'wrong-commit' else NEW}).encode(),
+                    origin + '/': ''.join('<script src="' + url + '"></script>' for url in urls.values()).encode(),
+                    origin + '/fonts/Articulat-web.woff2': b'licensed-font',
+                    origin + '/tai-khoan': b'account', origin + '/tro-chuyen': b'chat',
+                    **{origin + urls[name]: body + (b'stale' if mode == 'wrong-content' else b'') for name, body in assets.items()},
+                }
+                engine.get = Mock(side_effect=lambda url: responses[url])
+                engine.pause = Mock()
+                with patch.object(release.time, 'monotonic', side_effect=[0, 0, 121]):
+                    if mode in ['legacy', 'per-file']:
+                        engine.probe(origin, NEW, '123456789abc')
+                        engine.get.assert_any_call(origin + '/tro-chuyen')
+                    else:
+                        with self.assertRaises(release.ReleaseError):
+                            engine.probe(origin, NEW, '123456789abc')
+
 
 
     def test_presentation_scope_rejects_backend_schema_policy_and_mixed_edits(self):

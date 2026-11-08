@@ -240,9 +240,9 @@ class Engine:
         env = dict(self.env, RELEASE=release)
         return self.run(["docker", "compose", "--project-name", "luatvietduc", "--env-file", self.c["env_file"], "--file", self.c["compose_file"], *args], env=env)
 
-    def revision(self, sha):
+    def revision(self, sha, files=None):
         result = hashlib.sha256()
-        for name in REVISION_FILES:
+        for name in REVISION_FILES if files is None else files:
             # git output is UTF-8 source. Preserve trailing newlines for the revision hash.
             content = subprocess.run(["git", "--git-dir", str(self.mirror), "show", f"{sha}:apps/cms/public/{name}"], env=self.env, capture_output=True, check=True).stdout
             result.update(name.encode())
@@ -280,8 +280,12 @@ class Engine:
                     home = self.get(origin + "/").decode()
                     for asset in ["editorial-ui.js", "editorial-ui.css"]:
                         match = re.search(r'[\"\'](/' + re.escape(asset) + r'\?v=([a-f0-9]{12}))[\"\']', home)
-                        require(match is not None and match[2] == revision, "Wrong frontend revision")
-                        require(len(self.get(origin + match[1])) > 100, "Missing frontend asset")
+                        asset_revision = self.revision(sha, [asset])
+                        # Both legacy shared revisions and per-file cache keys are valid.
+                        require(match is not None and match[2] in {revision, asset_revision}, "Wrong frontend revision")
+                        body = self.get(origin + match[1])
+                        require(len(body) > 100, "Missing frontend asset")
+                        require(digest(asset.encode() + body)[:12] == asset_revision, "Wrong frontend asset content")
                     require(digest(self.get(origin + "/fonts/Articulat-web.woff2")) == self.c["font_sha256"], "Wrong licensed font")
                     self.get(origin + "/tai-khoan")
                     self.get(origin + "/tro-chuyen")
