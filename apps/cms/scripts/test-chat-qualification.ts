@@ -5,6 +5,7 @@ import {pool,hash} from '../src/modules/shared/db';
 import * as chat from '../src/modules/chat/service';
 import {specialistInbox} from '../src/modules/chat/inbox';
 import {expireLowPriorityConversations} from '../src/modules/chat/qualification';
+import {linkGuestConversations} from '../src/modules/chat/guest-account';
 
 // Synthetic rows only. No provider, object-store, browser or schema operations.
 export async function testChatQualification(owner:User){
@@ -21,6 +22,7 @@ export async function testChatQualification(owner:User){
   await pool.query("UPDATE lvd_conversations SET updated_at=now()-interval '2 minutes' WHERE id=$1",[fresh]);
   assert.equal((await specialistInbox(staff,{view:'queue',query:fresh})).rows.length,0,'Unassessed new requests are not staff work when the worker stalls');
   assert.ok(!(await chat.queue(staff)).some((item:{id:string})=>item.id===fresh),'Legacy queue also excludes fresh unqualified requests');
+  assert.equal((await specialistInbox(staff,{view:'low',query:fresh})).rows.length,1,'New AI intake starts at low priority');
   await low(fresh);
   let row=await read(fresh);assert.equal(row.qualification,'low');assert.equal(row.retain_history,false);
   const remaining=new Date(row.low_priority_expires_at).getTime()-Date.now();assert.ok(remaining>7190000&&remaining<=7201000);
@@ -33,6 +35,37 @@ export async function testChatQualification(owner:User){
   row=await read(historical);assert.equal(row.retain_history,true);assert.equal(row.qualification,'needs_details');assert.equal(row.low_priority_expires_at,null);
   const meaningful=await make();await pool.query("UPDATE lvd_conversations SET qualification='ready' WHERE id=$1",[meaningful]);await low(meaningful,true);
   row=await read(meaningful);assert.equal(row.retain_history,true);assert.equal(row.qualification,'needs_details');assert.equal(row.low_priority_expires_at,null);
+
+  // Intake completeness and saved history do not request specialist work.
+  for(const qualification of ['needs_details','ready']){
+   const aiOnly=await make();await send(aiOnly);
+   await pool.query("UPDATE lvd_conversations SET qualification=$2,updated_at=now()-interval '2 minutes' WHERE id=$1",[aiOnly,qualification]);
+   assert.equal((await specialistInbox(staff,{view:'low',query:aiOnly})).rows[0].qualification,'low');
+   assert.equal((await specialistInbox(staff,{view:'queue',query:aiOnly})).total,0);
+   assert.ok(!(await chat.queue(staff)).some((item:{id:string})=>item.id===aiOnly),'Stalled AI processing alone cannot promote a conversation');
+   await pool.query("INSERT INTO lvd_messages(conversation_id,role,body,actor_key,client_key,metadata) VALUES($1,'assistant','Synthetic completed AI answer','assistant',$2,'{\"kind\":\"ai\"}')",[aiOnly,randomUUID()]);
+   assert.equal((await specialistInbox(staff,{view:'low',query:aiOnly})).total,1,'Completed AI replies remain low priority');
+  }
+  const handoff=await make();await low(handoff);
+  await chat.transition(actor,handoff,{action:'handoff',version:(await read(handoff)).version});
+  assert.equal((await specialistInbox(staff,{view:'low',query:handoff})).total,0);
+  assert.equal((await specialistInbox(staff,{view:'queue',query:handoff})).total,1);
+  assert.ok((await chat.queue(staff)).some((item:{id:string})=>item.id===handoff));
+
+  const account=await chat.createConversation(staff,{consent:true},{assistantEnabled:true});ids.push(account.id);
+  assert.equal((await read(account.id)).retain_history,true,'Account conversations are retained from creation');
+  await low(account.id,true);await expireLowPriorityConversations();assert.ok(await read(account.id));
+  assert.equal((await specialistInbox(staff,{view:'low',query:account.id})).rows[0].expires_at,null);
+  const legacyAccount=await make();await low(legacyAccount,true);
+  await pool.query('UPDATE lvd_conversations SET user_id=$2,guest_hash=NULL WHERE id=$1',[legacyAccount,owner.id]);
+  assert.equal((await read(legacyAccount)).retain_history,false,'Exercise a legacy account row without a retention flag');
+  await expireLowPriorityConversations();assert.ok(await read(legacyAccount),'Account ownership independently blocks automatic deletion');
+  assert.equal((await specialistInbox(staff,{view:'low',query:legacyAccount})).rows[0].expires_at,null);
+  const linkActor:chat.Actor={user:null,guestHash:await hash(randomUUID())},linked=await chat.createConversation(linkActor,{consent:true},{assistantEnabled:true});ids.push(linked.id);
+  await low(linked.id,true);assert.deepEqual(await linkGuestConversations(owner.id,linkActor.guestHash),[linked.id]);
+  row=await read(linked.id);assert.equal(row.retain_history,true);assert.equal(row.low_priority_expires_at,null);
+  await expireLowPriorityConversations();assert.ok(await read(linked.id));
+  assert.equal((await specialistInbox(staff,{view:'low',query:linked.id})).rows[0].registered,true,'Signing in retains AI chats without promoting priority');
 
   // A real new customer message resets the clock; an idempotent retry does not.
   const active=await make();await low(active,true);const key=randomUUID(),saved=await send(active,'Synthetic new activity',key);
@@ -81,6 +114,6 @@ export async function testChatQualification(owner:User){
    await lock.query('COMMIT');open=false;
   }finally{clearTimeout(timer);if(open)await lock.query('ROLLBACK');lock.release();}
   await expireLowPriorityConversations();row=await read(raced);assert.ok(row);assert.ok(new Date(row.low_priority_expires_at).getTime()>Date.now()+7190000);
-  console.log('Chat qualification checks passed: low inbox, immutable retention, two-hour activity, retry clock, SQL cascade, cancelled file, human claim, active lease and skip-locked activity race');
+  console.log('Chat qualification checks passed: AI-only low priority, explicit handoff, account and sign-in retention, immutable history, two-hour activity, retry clock, SQL cascade, cancelled file, human claim, active lease and skip-locked activity race');
  }finally{if(ids.length)await pool.query('DELETE FROM lvd_conversations WHERE id=ANY($1::uuid[])',[ids]);}
 }

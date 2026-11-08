@@ -9,6 +9,7 @@ import {retrieve} from '../src/modules/rag/retrieve';
 import {CONSENT_VERSION,DIMENSIONS} from '../src/modules/rag/core';
 import {replyToMessage} from '../src/modules/assistant/reply';
 import * as chat from '../src/modules/chat/service';
+import {specialistInbox} from '../src/modules/chat/inbox';
 import * as integrations from '../src/modules/integrations/store';
 import {writeKnowledgeArticle} from '../src/modules/knowledge/articles';
 export async function testRagMatrix(payload:Payload,owner:User,support:User){
@@ -71,6 +72,8 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   const connection=(await integrations.activeValues('ai'))!;
   const a=await article('ALPHA',texts.article,'VN'),aSource=await mirror(a.id);assert.ok(aSource);await ready(aSource.id);
   let result=await start('Xin giải thích bộ dữ liệu ALPHA tại Việt Nam?');assert.equal(last(result).body,texts.article);assert.ok(last(result).metadata.sources[0].url?.endsWith('/bai-viet/'+a.slug));
+  assert.equal((await specialistInbox({user:owner,guestHash:''},{view:'low',query:result.id})).total,1,'A sourced AI answer remains low priority until specialist handoff');
+  assert.equal((await specialistInbox({user:owner,guestHash:''},{view:'queue',query:result.id})).total,0);
   result=await turn(result,'Cảm ơn');assert.equal(last(result).metadata.kind,'clarify');
   let qualification=(await pool.query('SELECT qualification,retain_history,low_priority_expires_at FROM lvd_conversations WHERE id=$1',[result.id])).rows[0];
   assert.equal(qualification.retain_history,true);assert.notEqual(qualification.qualification,'low');assert.equal(qualification.low_priority_expires_at,null,'Thanks cannot make a meaningful conversation disposable');

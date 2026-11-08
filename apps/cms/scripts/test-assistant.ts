@@ -100,7 +100,8 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
   assert.equal((await chat.transcript(handed.actor,handed.conversation.id)).messages.length,1,'Explicit human handoff invalidates in-flight AI');
   const claimed=await start(),claiming=await deferred(claimed);
   await pool.query("UPDATE lvd_conversations SET ai_started_at=now()-interval '1 minute' WHERE id=$1",[claimed.conversation.id]);
-  assert.ok(await queued(claimed.conversation.id),'Interrupted unanswered AI can reach the specialist queue');
+  assert.ok(!(await queued(claimed.conversation.id)),'Interrupted AI stays low until explicit specialist handoff or claim');
+  assert.equal((await specialistInbox({user:support,guestHash:''},{view:'low',query:claimed.conversation.id})).total,1);
   await chat.transition({user:support,guestHash:''},claimed.conversation.id,{action:'claim',version:1});claiming.release();await claiming.task;
   assert.equal((await chat.transcript(claimed.actor,claimed.conversation.id)).messages.length,1,'Specialist claim invalidates in-flight AI');
   const disabled=await start(),switchOff=await deferred(disabled);

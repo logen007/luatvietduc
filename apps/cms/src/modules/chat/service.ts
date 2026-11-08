@@ -43,7 +43,7 @@ export async function queue(a: Actor) {
     ["VN", "DE", "BOTH"];
   return (
     await pool.query(
-      "SELECT id,jurisdiction,specialty,state,version,created_at,assigned_to,(user_id IS NOT NULL) AS registered FROM lvd_conversations WHERE jurisdiction=ANY($1) AND ((state='queued' AND qualification NOT IN ('low','needs_details') AND (NOT ai_enabled OR ((qualification='ready' OR retain_history) AND COALESCE(ai_started_at,updated_at)<now()-interval '45 seconds' AND EXISTS(SELECT 1 FROM lvd_messages question WHERE question.id=(SELECT max(id) FROM lvd_messages WHERE conversation_id=lvd_conversations.id AND role='user') AND NOT EXISTS(SELECT 1 FROM lvd_messages reply WHERE reply.conversation_id=lvd_conversations.id AND reply.client_key='assistant:'||question.id::text))))) OR assigned_to=$2 OR state IN ('human','closed')) ORDER BY CASE WHEN assigned_to=$2 AND state='human' THEN 0 WHEN state='queued' AND user_id IS NOT NULL THEN 1 WHEN state='queued' THEN 2 ELSE 3 END,created_at LIMIT 100",
+      "SELECT id,jurisdiction,specialty,state,version,created_at,assigned_to,(user_id IS NOT NULL) AS registered FROM lvd_conversations WHERE jurisdiction=ANY($1) AND ((state='queued' AND NOT ai_enabled) OR assigned_to=$2 OR state IN ('human','closed')) ORDER BY CASE WHEN assigned_to=$2 AND state='human' THEN 0 WHEN state='queued' AND user_id IS NOT NULL THEN 1 WHEN state='queued' THEN 2 ELSE 3 END,created_at LIMIT 100",
       [countries, a.user!.id],
     )
   ).rows;
@@ -57,7 +57,7 @@ export async function createConversation(a: Actor, data: any,options:{assistantE
     );
   const id = randomUUID();
   const result = await pool.query(
-    "INSERT INTO lvd_conversations(id,user_id,guest_hash,jurisdiction,specialty,title,ai_enabled,privacy_notice_version) VALUES($1,$2,$3,$4,$5,'Cuộc trò chuyện mới',$6,$7) RETURNING id,state,version",
+    "INSERT INTO lvd_conversations(id,user_id,guest_hash,jurisdiction,specialty,title,ai_enabled,privacy_notice_version,retain_history) VALUES($1,$2,$3,$4,$5,'Cuộc trò chuyện mới',$6,$7,$8) RETURNING id,state,version",
     [
       id,
       a.user?.id || null,
@@ -66,6 +66,7 @@ export async function createConversation(a: Actor, data: any,options:{assistantE
       String(data.specialty || "general").slice(0, 100),
       Boolean(options.assistantEnabled&&data.mode!=='human'),
       data.privacyNoticeVersion==='chat-v2'?'chat-v2':'checkbox-v1',
+      Boolean(a.user),
     ],
   );
   return result.rows[0];
