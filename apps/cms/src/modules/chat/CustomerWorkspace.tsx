@@ -2,15 +2,17 @@
 import {useLocale} from "../shared/locale";
 import {useEffect,useRef,useState} from 'react';
 import {Header} from '../shared/Header';
-import {api} from '../shared/client-api';
+import type {Card} from '../public-site/types';
+import {AppLink} from '../shared/AppLink';
+import {Photo} from '../public-site/Photo';
 import {useWorkspace} from './useWorkspace';
 import {ChatComposer} from './ui/Composer';
 import {ChatHistory} from './ui/History';
 import {ChatMessages} from './ui/Messages';
 import {ChatIcon} from './ui/Icons';
-export function CustomerWorkspace(){
+export function CustomerWorkspace({articles=[]}:{articles?:Card[]}){
  const {t,language}=useLocale();
- const state=useWorkspace(),dialog=useRef<HTMLDialogElement>(null),[historyOpen,setHistoryOpen]=useState(false),[questions,setQuestions]=useState<{id:number;title:string}[]>([]),[entryReady,setEntryReady]=useState(false);
+ const state=useWorkspace(),dialog=useRef<HTMLDialogElement>(null),[historyOpen,setHistoryOpen]=useState(false),[entryReady,setEntryReady]=useState(false);
  // Re-enter gently when a browser restores this page from its back/forward cache.
  useEffect(()=>{
   const enter=(event:PageTransitionEvent)=>{if(!event.persisted||matchMedia('(prefers-reduced-motion: reduce)').matches)return;state.shell.current?.animate([{opacity:0},{opacity:1}],{duration:650,easing:'cubic-bezier(.22,1,.36,1)'});};
@@ -23,7 +25,6 @@ export function CustomerWorkspace(){
  const empty=!state.selected&&!state.homepageSubmitting,loading=(!state.loaded&&!state.initializationFailed)||state.homepageSubmitting||Boolean(state.selected&&!state.conversation&&!state.connectionError);
  // Reveal the settled entry once, without replaying on polling or new messages.
  useEffect(()=>{if(!loading||state.initializationFailed||state.connectionError)setEntryReady(true);},[loading,state.initializationFailed,state.connectionError]);
- useEffect(()=>{let active=true;setQuestions([]);void api('assistant/questions').then(value=>{if(active)setQuestions(value.questions||[]);}).catch(()=>{});return()=>{active=false;};},[]);
  const human=state.preferHuman||Boolean(state.conversation&&!state.conversation.aiEnabled);
  const mode=state.conversation?.state==='closed'?'Đã hoàn tất':state.conversation?.state==='human'?'Đang trao đổi với chuyên viên':human?'Đang chờ chuyên viên':'';
  return <><Header onAccountNavigate={accountNavigate}/><main ref={state.shell} data-entry-ready={entryReady} className={'chat-shell live-shell live-customer-shell lvd-chat'+(empty&&!loading?' is-empty':'')}>
@@ -35,7 +36,10 @@ export function CustomerWorkspace(){
    <div className="chat-log" ref={state.log} role="log" aria-live="polite" aria-busy={loading}>{loading?<div className="chat-welcome" role="status"><span className="live-spinner" aria-hidden="true"/><p>{t("Đang mở cuộc trò chuyện…")}</p></div>:state.initializationFailed?null:empty?<div className="chat-welcome"><span className="chat-welcome-mark" aria-hidden="true"><ChatIcon name="spark"/></span><h2>{t("Bạn cần giải đáp điều gì?")}</h2></div>:<ChatMessages key={state.sessionRevision+":"+state.selected} state={state}/>}</div>
    {(state.error||state.connectionError)&&<p role="alert" className="chat-error">{t(state.error||state.connectionError)}{(state.initializationFailed||state.connectionError)&&<button type="button" onClick={state.retry} disabled={state.busy||state.uploading}>{t("Thử lại")}</button>}</p>}
    <ChatComposer state={state}/>
-   {empty&&questions.length>0&&<div className="chat-suggestions" aria-label={t("Câu hỏi trong kho kiến thức")}>{questions.slice(0,4).map(question=><button type="button" key={question.id} onClick={()=>state.setText(question.title)}>{question.title}<ChatIcon name="arrow"/></button>)}</div>}
+   {empty&&articles.length>0&&<section className="chat-latest-articles" aria-label={t("Bài viết mới")}>{articles.slice(0,4).map(article=>{
+    const date=article.published?new Date(article.published):null;
+    return <AppLink key={article.id} href={article.href||'/bai-viet/'+encodeURIComponent(article.slug)} className="chat-latest-article"><Photo name={article.photo} width={480} card responsive={false} alt="" loading="lazy" decoding="async"/><span className="chat-latest-article-copy"><strong lang={article.language}>{article.title}</strong>{date&&Number.isFinite(date.getTime())&&<time dateTime={article.published!}>{date.toLocaleDateString(language==='de'?'de-DE':'vi-VN',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'Asia/Ho_Chi_Minh'})}</time>}</span><ChatIcon name="arrow"/></AppLink>;
+   })}</section>}
   </section>
  </main><dialog ref={dialog} className="chat-history-dialog" aria-label={t("Lịch sử hội thoại")} onClose={()=>setHistoryOpen(false)} onClick={event=>{if(event.target===event.currentTarget)close();}}><div className="chat-history-dialog-heading"><strong>{t("Cuộc trò chuyện")}</strong><button type="button" aria-label={t("Đóng lịch sử")} onClick={close}><ChatIcon name="close"/></button></div><ChatHistory state={state} onSelect={choose} onNew={startNew}/></dialog></>;
 }

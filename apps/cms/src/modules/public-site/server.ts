@@ -89,7 +89,7 @@ export async function publicArticleList({kind='legal',query='',group='',country=
  const [result,categories]=await Promise.all([
   publicPayload().then(payload=>payload.find({
    collection:'articles',overrideAccess:false,draft:false,where:{and:where},
-   sort:order==='a-z'?['title','id']:['-updatedAt','id'],depth:0,page,limit,
+   sort:order==='a-z'?['title','id']:order==='newest'?['-createdAt','-id']:['-updatedAt','id'],depth:0,page,limit,
    select:{id:true,slug:true,title:true,body:true,language:true,kind:true,jurisdiction:true,createdAt:true,categories:true},
   })),
   publicCategories(),
