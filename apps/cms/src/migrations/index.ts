@@ -25,6 +25,7 @@ import * as brandDimensions from './20261107_060000_brand_dimensions';
 import * as userAvatar from './20261107_110000_user_avatar';
 import * as heroBanner from './20261107_180000_hero_banner';
 import * as googleMeasurement from './20261108_120000_google_measurement';
+import * as customerContact from './20261108_150000_customer_contact';
 export const migrations = [
   {
     up: migration_20261103_035530.up,
@@ -60,4 +61,5 @@ export const migrations = [
  {up:userAvatar.up,down:userAvatar.down,name:'20261107_110000_user_avatar'},
  {up:heroBanner.up,down:heroBanner.down,name:'20261107_180000_hero_banner'},
  {up:googleMeasurement.up,down:googleMeasurement.down,name:'20261108_120000_google_measurement'},
+ {up:customerContact.up,down:customerContact.down,name:'20261108_150000_customer_contact'},
 ];

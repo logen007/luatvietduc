@@ -6,9 +6,10 @@ import {roleLabel} from './roles';
 import {useUnsavedChanges} from '../shared/unsaved-changes';
 
 export function ProfileForm({initial,preview=false}:{initial:ProfileData;preview?:boolean}){
- const {fetchFullUser}=useAuth(),[profile,setProfile]=useState(initial),[name,setName]=useState(initial.name),[busy,setBusy]=useState(''),[error,setError]=useState(''),[status,setStatus]=useState(''),[imageError,setImageError]=useState(false),[imagePreview,setImagePreview]=useState('');
+ const {fetchFullUser}=useAuth(),[profile,setProfile]=useState(initial),[name,setName]=useState(initial.name),[busy,setBusy]=useState(''),[error,setError]=useState(''),[status,setStatus]=useState(''),[imageError,setImageError]=useState(false),[imagePreview,setImagePreview]=useState(''),[phone,setPhone]=useState(initial.phone||''),[location,setLocation]=useState(initial.location||'');
  const file=useRef<HTMLInputElement>(null),pending=useRef<AbortController|null>(null),gate=useRef(false),mounted=useRef(true);
- useUnsavedChanges(name!==profile.name);
+ const changed=name.trim()!==profile.name||phone.trim()!==(profile.phone||'')||location.trim()!==(profile.location||'');
+ useUnsavedChanges(changed);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;pending.current?.abort();};},[]);
  useEffect(()=>()=>{if(imagePreview)URL.revokeObjectURL(imagePreview);},[imagePreview]);
  const apply=(next:ProfileData)=>{
@@ -24,14 +25,14 @@ export function ProfileForm({initial,preview=false}:{initial:ProfileData;preview
    let body:BodyInit,headers:HeadersInit|undefined;
    if(action==='upload'){
     const form=new FormData();form.set('file',selected!);form.set('updatedAt',profile.updatedAt);body=form;
-   }else{headers={'Content-Type':'application/json'};body=JSON.stringify(action==='password'?{}:{updatedAt:profile.updatedAt,...(action==='name'?{name:name.trim()}:{})});}
+   }else{headers={'Content-Type':'application/json'};body=JSON.stringify(action==='password'?{}:{updatedAt:profile.updatedAt,...(action==='name'?{name:name.trim(),phone:phone.trim(),location:location.trim()}:{})});}
    const response=await fetch(action==='password'?'/service/profile/password':'/service/profile',{method:action==='name'?'PATCH':action==='remove'?'DELETE':'POST',headers,body,signal:AbortSignal.any([controller.signal,AbortSignal.timeout(action==='upload'?60000:20000)]),cache:'no-store'});
    const data=await response.json();if(!response.ok)throw new Error(data.error||'Chưa lưu được hồ sơ.');
    if(!mounted.current)return;
    if(action==='password')setStatus('Đã gửi liên kết đặt lại mật khẩu đến email của bạn.');
    else{
     if(data.id!==profile.id||typeof data.updatedAt!=='string'||typeof data.name!=='string')throw new Error('Chưa xác nhận hồ sơ đã lưu. Hãy tải lại để kiểm tra.');
-    apply(data);if(action==='name')setName(data.name);
+    apply(data);if(action==='name'){setName(data.name);setPhone(data.phone||'');setLocation(data.location||'');}
     setStatus(action==='name'?'Đã lưu hồ sơ.':action==='remove'?'Đã gỡ ảnh đại diện.':'Đã đổi ảnh đại diện.');
    }
   }catch(error){if(mounted.current&&!controller.signal.aborted)setError(error instanceof Error&&error.name==='TimeoutError'?'Chưa xác nhận hồ sơ đã lưu. Tải lại để kiểm tra trước khi thử lại.':error instanceof Error?error.message:'Chưa lưu được hồ sơ.');}
@@ -52,7 +53,7 @@ export function ProfileForm({initial,preview=false}:{initial:ProfileData;preview
    <h2>Thông tin cá nhân</h2><div className="lvd-profile-fields">
     <label><span>Tên hiển thị</span><input name="name" autoComplete="name" value={name} maxLength={100} required disabled={Boolean(busy)||preview} onChange={event=>setName(event.target.value)}/></label>
     <label><span>Email</span><input type="email" autoComplete="email" value={profile.email} readOnly aria-readonly="true"/></label>
-   </div><div className="lvd-profile-form-actions"><button className="lvd-profile-primary" type="submit" disabled={Boolean(busy)||preview||!name.trim()||name.trim()===profile.name}>{busy==='name'?'Đang lưu…':'Lưu thay đổi'}</button></div>
+   <label><span>Số điện thoại</span><input name="phone" type="tel" autoComplete="tel" value={phone} maxLength={40} disabled={Boolean(busy)||preview} onChange={event=>setPhone(event.target.value)}/></label><label><span>Nơi sinh sống</span><input name="location" autoComplete="address-level2" value={location} maxLength={160} disabled={Boolean(busy)||preview} onChange={event=>setLocation(event.target.value)}/></label></div><div className="lvd-profile-form-actions"><button className="lvd-profile-primary" type="submit" disabled={Boolean(busy)||preview||!name.trim()||!changed}>{busy==='name'?'Đang lưu…':'Lưu thay đổi'}</button></div>
   </form>
   <section className="lvd-profile-security" aria-labelledby="profile-security-title"><div><h2 id="profile-security-title">Mật khẩu</h2><p>Nhận liên kết đặt lại mật khẩu qua email.</p></div><button type="button" disabled={Boolean(busy)||preview||!profile.canResetPassword} onClick={()=>void request('password')}>{busy==='password'?'Đang gửi…':'Đổi mật khẩu'}</button></section>
   {preview&&<p className="lvd-profile-feedback" role="status">Trở về Admin để sửa hồ sơ của bạn.</p>}

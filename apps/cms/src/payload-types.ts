@@ -142,6 +142,8 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   name: string;
+  phone?: string | null;
+  location?: string | null;
   avatar?: (number | null) | Media;
   /**
    * Chỉ Admin được thay đổi vai trò.
@@ -465,6 +467,8 @@ export interface PayloadMigration {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  phone?: T;
+  location?: T;
   avatar?: T;
   role?: T;
   jurisdictions?: T;

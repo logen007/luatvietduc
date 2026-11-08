@@ -9,6 +9,7 @@ import { api } from "../../../modules/shared/client-api";
 import { Header } from "../../../modules/shared/Header";
 import { Footer } from "../../../modules/shared/Footer";
 import {AccountForm,type AccountRecoveryLink} from "../../../modules/identity/AccountForm";
+import {CustomerProfile} from '../../../modules/identity/CustomerProfile';
 export default function Page() {
  const {t}=useLocale(),searchParams=useSearchParams();
  // Account entry starts at the form, rather than retaining the chat scroll offset.
@@ -17,6 +18,7 @@ export default function Page() {
   const recoveryLink=useRef<AccountRecoveryLink|null>(null);
   useEffect(()=>{if(data?.user)recoveryLink.current=null;},[data?.user]);
   const [error,setError]=useState('');
+  const [profileOpen,setProfileOpen]=useState(false);
   const [conversation,setConversation]=useState('');
   useEffect(()=>{const id=new URLSearchParams(window.location.search).get('conversation');if(id&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id))setConversation(id);},[]);
   const returnQuery=conversation?'?conversation='+encodeURIComponent(conversation):'',chatHref='/hoi-dap'+returnQuery;
@@ -76,6 +78,7 @@ export default function Page() {
                     </AppLink>
                   )}
                 </div>
+                <details className="live-account-profile" onToggle={event=>setProfileOpen(event.currentTarget.open)}><summary>{t('Thông tin cá nhân')}</summary>{profileOpen&&<CustomerProfile key={session.revision+':'+data.user.id} userId={data.user.id} revision={session.revision}/>}</details>
                 <button
                   className="live-signout"
                   onClick={async () => {

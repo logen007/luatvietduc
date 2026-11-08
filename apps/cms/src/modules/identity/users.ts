@@ -65,6 +65,8 @@ export const Users: CollectionConfig = {
   },
   fields: [
     { name: "name",label:"Tên hiển thị", type: "text", required: true },
+    {name:'phone',label:'Số điện thoại',type:'text',maxLength:40,validate:(value:unknown)=>value==null||value===''||typeof value==='string'&&/^[+\d(). /-]{3,40}$/.test(value.trim())||'Số điện thoại không hợp lệ.'},
+    {name:'location',label:'Nơi sinh sống',type:'text',maxLength:160,validate:(value:unknown)=>value==null||typeof value==='string'&&!/[\x00-\x1f\x7f]/.test(value)||'Nơi sinh sống không hợp lệ.'},
     {name:'avatar',label:'Ảnh đại diện',type:'relationship',relationTo:'media',admin:{hidden:true},access:{create:()=>false,update:()=>false}},
     {
       name: "role",label:"Vai trò",

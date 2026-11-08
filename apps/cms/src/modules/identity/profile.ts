@@ -10,10 +10,10 @@ import {storageReady} from '../storage/collection';
 import {activeValues} from '../integrations/store';
 import {rateLimit} from '../chat/service';
 
-export type ProfileData={id:number;name:string;email:string;role:string;updatedAt:string;avatar:number|null;avatarURL:string;canUpload:boolean;canResetPassword:boolean};
+export type ProfileData={id:number;name:string;email:string;phone:string;location:string;role:string;updatedAt:string;avatar:number|null;avatarURL:string;canUpload:boolean;canResetPassword:boolean};
 export async function profileData(payload:Payload,id:number,req?:PayloadRequest):Promise<ProfileData>{
  const user=await payload.findByID({collection:'users',id,depth:0,overrideAccess:true,req});
- return {id:user.id,name:user.name,email:user.email,role:user.role,updatedAt:user.updatedAt,avatar:typeof user.avatar==='object'?user.avatar?.id||null:user.avatar||null,avatarURL:avatarURL(user),canUpload:await storageReady(),canResetPassword:Boolean(await activeValues('email'))};
+ return {id:user.id,name:user.name,email:user.email,phone:user.phone||'',location:user.location||'',role:user.role,updatedAt:user.updatedAt,avatar:typeof user.avatar==='object'?user.avatar?.id||null:user.avatar||null,avatarURL:avatarURL(user),canUpload:await storageReady(),canResetPassword:Boolean(await activeValues('email'))};
 }
 
 export async function profilePasswordRequest(request:Request,payload:Payload){
@@ -59,11 +59,18 @@ export async function profileRequest(request:Request,payload:Payload){
   await rateLimit('profile:'+user.id,20);
   const input:Record<string,unknown>=request.method==='POST'?await uploadInput(request):await readJsonRequest(request,2048);
   const expected=version(input.updatedAt);
-  if(request.method==='PATCH'&&Object.keys(input).some(key=>!['name','updatedAt'].includes(key)))throw new HttpError(400,'Chỉ thay đổi tên trong hồ sơ cá nhân.');
+  if(request.method==='PATCH'&&Object.keys(input).some(key=>!['name','phone','location','updatedAt'].includes(key)))throw new HttpError(400,'Chỉ thay đổi thông tin hồ sơ cá nhân.');
   if(request.method==='DELETE'&&Object.keys(input).some(key=>key!=='updatedAt'))throw new HttpError(400,'Dữ liệu không hợp lệ.');
   if(request.method==='POST'&&!(await storageReady()))throw new HttpError(503,'Chưa kết nối lưu trữ ảnh.');
   const name=request.method==='PATCH'&&typeof input.name==='string'?input.name.trim():undefined;
   if(request.method==='PATCH'&&(!name||name.length>100||/[\x00-\x1f\x7f]/.test(name)))throw new HttpError(400,'Nhập tên từ 1 đến 100 ký tự.');
+  const contact:Partial<Pick<User,'phone'|'location'>>={};
+  if(request.method==='PATCH')for(const field of ['phone','location'] as const){
+   if(!(field in input))continue;
+   const value=input[field];
+   if(typeof value!=='string'||value.trim().length>(field==='phone'?40:160)||/[\x00-\x1f\x7f]/.test(value)||field==='phone'&&value.trim()!==''&&!/^[+\d(). /-]{3,40}$/.test(value.trim()))throw new HttpError(400,field==='phone'?'Số điện thoại không hợp lệ.':'Nơi sinh sống không hợp lệ.');
+   contact[field]=value.trim();
+  }
   req=await createLocalReq({user,req:{headers:request.headers,signal:request.signal}},payload);await initTransaction(req);
   await lockAccounts(req,[Number(user.id)]);
   const current=await payload.findByID({collection:'users',id:user.id,depth:0,overrideAccess:true,req});
@@ -76,7 +83,7 @@ export async function profileRequest(request:Request,payload:Payload){
    const media=await payload.create({collection:'media',overrideAccess:true,req,data:{title:'Ảnh đại diện',alt:name||current.name,visibility:'public'},file:{data:image,mimetype:'image/webp',name:'avatar-'+randomUUID()+'.webp',size:image.length}});
    createdMedia=media.id;avatar=media.id;
   }else if(request.method==='DELETE')avatar=null;
-  await payload.update({collection:'users',id:user.id,overrideAccess:true,req,data:{...(name?{name}:{}),...(avatar!==undefined?{avatar}:{})}});
+  await payload.update({collection:'users',id:user.id,overrideAccess:true,req,data:{...(name?{name}:{}),...contact,...(avatar!==undefined?{avatar}:{})}});
   const result=await profileData(payload,Number(user.id),req);await commitTransaction(req);req=undefined;
   return json(result);
  }catch(error){

@@ -417,5 +417,19 @@
   "Xóa toàn bộ hội thoại và tệp đính kèm? Không thể hoàn tác.": "Die gesamte Unterhaltung und ihre Anhänge endgültig löschen?",
   "Xóa tin nhắn": "Nachricht löschen",
   "Xóa tin nhắn này?": "Diese Nachricht löschen?",
-  "Xóa": "Löschen"
+  "Xóa": "Löschen",
+  "Tên hiển thị": "Anzeigename",
+  "Email": "E-Mail",
+  "Số điện thoại": "Telefonnummer",
+  "Nơi sinh sống": "Wohnort",
+  "Thông tin cá nhân": "Persönliche Angaben",
+  "Đang tải hồ sơ…": "Profil wird geladen…",
+  "Chưa tải được hồ sơ.": "Das Profil konnte nicht geladen werden.",
+  "Đang lưu…": "Wird gespeichert…",
+  "Lưu thay đổi": "Änderungen speichern",
+  "Đã lưu hồ sơ.": "Profil gespeichert.",
+  "Chưa lưu được hồ sơ.": "Das Profil konnte nicht gespeichert werden.",
+  "Chưa xác nhận hồ sơ đã lưu. Hãy tải lại để kiểm tra.": "Die Speicherung konnte nicht bestätigt werden. Bitte laden Sie die Seite zur Prüfung neu.",
+  "Số điện thoại không hợp lệ.": "Die Telefonnummer ist ungültig.",
+  "Nơi sinh sống không hợp lệ.": "Der Wohnort ist ungültig."
 }

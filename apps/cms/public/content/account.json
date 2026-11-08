@@ -36,6 +36,62 @@
     "Hội thoại của tôi": {
       "vi": "Hội thoại của tôi",
       "de": "Meine Gespräche"
+    },
+    "Tên hiển thị": {
+      "vi": "Tên hiển thị",
+      "de": "Anzeigename"
+    },
+    "Email": {
+      "vi": "Email",
+      "de": "E-Mail"
+    },
+    "Số điện thoại": {
+      "vi": "Số điện thoại",
+      "de": "Telefonnummer"
+    },
+    "Nơi sinh sống": {
+      "vi": "Nơi sinh sống",
+      "de": "Wohnort"
+    },
+    "Thông tin cá nhân": {
+      "vi": "Thông tin cá nhân",
+      "de": "Persönliche Angaben"
+    },
+    "Đang tải hồ sơ…": {
+      "vi": "Đang tải hồ sơ…",
+      "de": "Profil wird geladen…"
+    },
+    "Chưa tải được hồ sơ.": {
+      "vi": "Chưa tải được hồ sơ.",
+      "de": "Das Profil konnte nicht geladen werden."
+    },
+    "Đang lưu…": {
+      "vi": "Đang lưu…",
+      "de": "Wird gespeichert…"
+    },
+    "Lưu thay đổi": {
+      "vi": "Lưu thay đổi",
+      "de": "Änderungen speichern"
+    },
+    "Đã lưu hồ sơ.": {
+      "vi": "Đã lưu hồ sơ.",
+      "de": "Profil gespeichert."
+    },
+    "Chưa lưu được hồ sơ.": {
+      "vi": "Chưa lưu được hồ sơ.",
+      "de": "Das Profil konnte nicht gespeichert werden."
+    },
+    "Chưa xác nhận hồ sơ đã lưu. Hãy tải lại để kiểm tra.": {
+      "vi": "Chưa xác nhận hồ sơ đã lưu. Hãy tải lại để kiểm tra.",
+      "de": "Die Speicherung konnte nicht bestätigt werden. Bitte laden Sie die Seite zur Prüfung neu."
+    },
+    "Số điện thoại không hợp lệ.": {
+      "vi": "Số điện thoại không hợp lệ.",
+      "de": "Die Telefonnummer ist ungültig."
+    },
+    "Nơi sinh sống không hợp lệ.": {
+      "vi": "Nơi sinh sống không hợp lệ.",
+      "de": "Der Wohnort ist ungültig."
     }
   }
 }

@@ -1,4 +1,5 @@
 import {customerMetadata} from '../knowledge/citations';
+import {avatarURL} from '../identity/avatar';
 import { randomUUID } from "node:crypto";
 import { pool, transaction, hash } from "../shared/db";
 import type { User } from "../../payload-types";
@@ -73,7 +74,7 @@ export async function createConversation(a: Actor, data: any,options:{assistantE
 }
 export async function transcript(a: Actor, id: string, after = 0) {
   const { rows } = await pool.query(
-    "SELECT c.*,u.name AS customer_name,u.email AS customer_email,agent.name AS assigned_name FROM lvd_conversations c LEFT JOIN users u ON u.id=c.user_id LEFT JOIN users agent ON agent.id=c.assigned_to WHERE c.id=$1",
+    "SELECT c.*,u.name AS customer_name,u.email AS customer_email,u.phone AS customer_phone,u.location AS customer_location,u.avatar_id AS customer_avatar,u.updated_at AS customer_updated_at,u.created_at AS customer_created_at,agent.name AS assigned_name FROM lvd_conversations c LEFT JOIN users u ON u.id=c.user_id LEFT JOIN users agent ON agent.id=c.assigned_to WHERE c.id=$1",
     [id],
   );
   const c = rows[0];
@@ -115,7 +116,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
       assignedTo: c.assigned_to,
       registered:Boolean(c.user_id),
       createdAt:c.created_at,updatedAt:c.updated_at,assignedName:staff?c.assigned_name:undefined,
-      customer:staff?{name:c.customer_name||"Khách vãng lai",email:c.customer_email||null}:undefined,
+      customer:isStaff(a.user)?{name:c.customer_name||(c.user_id?'Khách':'Khách vãng lai'),email:c.customer_email||null,phone:c.customer_phone||null,location:c.customer_location||null,avatarURL:avatarURL({id:c.user_id,avatar:c.customer_avatar,updatedAt:c.customer_updated_at}),createdAt:c.customer_created_at||null}:undefined,
       aiEnabled:c.ai_enabled,
       aiStartedAt:c.ai_started_at,
       aiMessageId:c.ai_message_id,
