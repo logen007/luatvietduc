@@ -825,6 +825,37 @@ html.lvd-admin .lvd-banner-archive-selector select{width:240px;max-width:100%}
  html.lvd-admin .operator-workspace.is-embedded .operator-details{padding-top:0}
  html.lvd-admin .operator-workspace.is-embedded .operator-details>header{box-sizing:border-box;display:flex;align-items:center;min-height:var(--lvd-admin-header-height);padding-block:8px;padding-inline-start:var(--lvd-admin-title-inset)}
 }
+
+/* Admin usability pass: clear actions, bounded data and comfortable touch targets. */
+html.lvd-admin .lvd-admin-page :is(.integration-card,.lvd-answer-rule){border-radius:4px}
+html.lvd-admin .lvd-admin-page .integration-actions>button:first-child:not(:disabled),html.lvd-admin .lvd-answer-rule footer>button:first-child:not(:disabled){background:var(--admin-accent);color:var(--admin-canvas);border-color:var(--admin-accent)}
+html.lvd-admin .lvd-admin-page .integration-draft{margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--admin-text)}
+html.lvd-admin .lvd-admin-page .integration-check{min-height:20px;line-height:1.6;overflow-wrap:anywhere}
+html.lvd-admin .lvd-admin-page :is(.integration-message,.live-error,.lvd-admin-error,.lvd-answer-rule>[role=alert],.lvd-csv-wizard-panel>[role=alert],.lvd-admin-feedback){box-sizing:border-box;margin-block:12px;padding:12px 14px;border:1px solid var(--admin-line);border-radius:4px;line-height:1.6;overflow-wrap:anywhere}
+html.lvd-admin .lvd-admin-page :is(.live-error,.lvd-admin-error,.lvd-answer-rule>[role=alert],.lvd-csv-wizard-panel>[role=alert]){border-inline-start:3px solid #dba49d}
+html.lvd-admin :is(.lvd-admin-table-scroll,.lvd-csv-table){overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--admin-line) transparent}
+html.lvd-admin :is(.lvd-admin-table-scroll,.lvd-csv-table) th{background:var(--admin-raised);font-weight:600;white-space:nowrap}
+html.lvd-admin :is(.lvd-admin-table-scroll,.lvd-csv-table) tbody tr:hover{background:var(--admin-raised)}
+html.lvd-admin .lvd-csv-table td{overflow-wrap:anywhere;max-width:420px}
+html.lvd-admin .lvd-answer-rule footer{gap:8px}
+html.lvd-admin .lvd-answer-rule :is(button,summary){min-height:44px}
+html.lvd-admin .lvd-answer-rule summary{align-content:center}
+@media(max-width:1024px){
+ html.lvd-admin .lvd-menu-main>a,html.lvd-admin .lvd-menu-children>a{box-sizing:border-box;min-height:44px;display:flex;align-items:center}
+ html.lvd-admin .lvd-menu-main>button{width:44px;height:44px;flex:0 0 44px}
+ html.lvd-admin .lvd-menu-children>a{border-radius:4px}
+}
+@media(max-width:760px){
+ html.lvd-admin .lvd-admin-page :is(input:not([type=checkbox]):not([type=radio]),textarea,select){font-size:max(16px,calc(16px * var(--lvd-admin-font-scale,1)))}
+ html.lvd-admin .lvd-answer-rule header{align-items:flex-start;gap:8px}
+ html.lvd-admin .lvd-answer-rule header h2{flex:1 1 180px;font-size:17px;line-height:1.5}
+ html.lvd-admin .lvd-answer-rule header label{min-height:44px;margin:0;cursor:pointer}
+ html.lvd-admin .lvd-answer-rule footer>button{flex:1 1 150px;border-radius:4px}
+ html.lvd-admin .lvd-csv-toolbar>*{min-height:44px}
+ html.lvd-admin .lvd-csv-steps{gap:4px}
+ html.lvd-admin .lvd-csv-steps li{overflow-wrap:anywhere;line-height:1.5}
+ html.lvd-admin .lvd-admin-settings-grid>section{padding:18px;margin-bottom:0}
+}
 .lvd-article-editor{--editor-surface:#151515;--editor-ink:#c9c9c9;--editor-muted:#939393;--editor-line:#333;min-width:0;margin:0 0 28px;border:1px solid var(--editor-line);border-radius:7px;background:var(--editor-surface);color:var(--editor-ink);overflow:visible}
 .lvd-article-editor.has-error{border-color:#b96660}
 .lvd-article-editor :is(button,input,select,textarea){font:inherit}

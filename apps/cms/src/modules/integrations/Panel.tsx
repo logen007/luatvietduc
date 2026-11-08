@@ -10,7 +10,7 @@ import {createOperationGate} from '../chat/client-operations';
 type Connection={provider:Provider;values:Values;stored:Record<string,boolean>;version:number;enabled:boolean;checkState:string;checkedAt:string|null};
 const labels:Record<string,string>={untested:'Chưa kiểm tra',passed:'Kiểm tra đạt',failed:'Kiểm tra chưa đạt',configured:'Định dạng hợp lệ'};
 function ConnectionForm({initial,revision,pending=false}:{initial:Connection;revision:number;pending?:boolean}){
-  const [connection,setConnection]=useState(initial),[values,setValues]=useState<Values>(initial.values),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[conflict,setConflict]=useState(false);
+  const [connection,setConnection]=useState(initial),[values,setValues]=useState<Values>(initial.values),[busy,setBusy]=useState(false),[actionLabel,setActionLabel]=useState(''),[error,setError]=useState(''),[message,setMessage]=useState(''),[conflict,setConflict]=useState(false);
   const dirty=JSON.stringify(values)!==JSON.stringify(connection.values);
   const gate=useRef(createOperationGate());
   useEffect(()=>()=>gate.current.reset(),[]);
@@ -20,7 +20,7 @@ function ConnectionForm({initial,revision,pending=false}:{initial:Connection;rev
     if(pending||!isPublicSessionCurrent(revision)||conflict||(action!=='save'&&dirty))return;
     const ticket=gate.current.begin();if(!ticket)return;
     const current=()=>isPublicSessionCurrent(revision)&&gate.current.isCurrent(ticket);
-    setBusy(true);setError('');setMessage('');
+    setActionLabel(action==='save'?'Đang lưu cấu hình…':action==='test'?'Đang kiểm tra kết nối…':connection.enabled?'Đang tắt kết nối…':'Đang bật kết nối…');setBusy(true);setError('');setMessage('');
     try{
       const result=await request({action,provider:connection.provider,version:connection.version,...(action==='save'?{values}:action==='toggle'?{enabled:!connection.enabled}:{})});
       if(!current())return;
@@ -32,7 +32,7 @@ function ConnectionForm({initial,revision,pending=false}:{initial:Connection;rev
     if(pending||!isPublicSessionCurrent(revision))return;
     const ticket=gate.current.begin();if(!ticket)return;
     const current=()=>isPublicSessionCurrent(revision)&&gate.current.isCurrent(ticket);
-    setBusy(true);setMessage('');
+    setActionLabel('Đang tải cấu hình mới…');setBusy(true);setMessage('');
     try{
       const result=await request(),fresh:Connection|undefined=result.connections.find((item:Connection)=>item.provider===connection.provider);
       if(!fresh)throw new ConnectionError('Chưa đọc được cấu hình. Vui lòng thử lại.');
@@ -40,7 +40,7 @@ function ConnectionForm({initial,revision,pending=false}:{initial:Connection;rev
       setValues(draft=>mergeConnectionDraft(connection.values,draft,fresh.values,definition.fields));setConnection(fresh);setConflict(false);setError('');setMessage('Đã tải cấu hình mới.');
     }catch(e){if(current())setError((e as Error).message);}finally{if(gate.current.end(ticket)&&isPublicSessionCurrent(revision))setBusy(false);}
   }
-  return <section className="live-card integration-card" inert={pending||undefined} aria-hidden={pending||undefined}>
+  return <section className="live-card integration-card" aria-busy={pending||busy} inert={pending||undefined} aria-hidden={pending||undefined}>
     <div className="integration-title"><h2>{definition.title}</h2><span className={'live-status '+(connection.enabled?'is-ready':'is-pending')}>{pending?'Đang tải…':connection.enabled?'Đang bật':'Đang tắt'}</span></div>
     <p>{definition.help}</p>
     <ConnectionInstructions provider={connection.provider}/>
@@ -57,7 +57,8 @@ function ConnectionForm({initial,revision,pending=false}:{initial:Connection;rev
         <button type="button" className="button secondary" disabled={pending||busy||conflict||dirty||!connection.version||(!connection.enabled&&!['passed','configured'].includes(connection.checkState))} onClick={()=>void act('toggle')}>{connection.enabled?'Tắt kết nối':'Bật sử dụng'}</button>
       </div>
     </form>
-    <p className="integration-check">{busy?'Đang xử lý…':labels[connection.checkState]||'Chưa kiểm tra'}{connection.checkedAt?' · '+new Date(connection.checkedAt).toLocaleString('vi-VN'):''}</p>
+    {dirty&&!busy&&<p className="integration-draft">Có thay đổi chưa lưu. Lưu cấu hình trước khi kiểm tra hoặc bật kết nối.</p>}
+    <p className="integration-check" role="status">{busy?actionLabel:labels[connection.checkState]||'Chưa kiểm tra'}{connection.checkedAt?' · '+new Date(connection.checkedAt).toLocaleString('vi-VN'):''}</p>
     {message&&<p className="integration-message" role="status">{message}</p>}
     {error&&<p className="live-error" role="alert">{error}{conflict&&<> <button type="button" disabled={pending||busy} onClick={()=>void reload()}>Tải lại cấu hình</button></>}</p>}
   </section>;

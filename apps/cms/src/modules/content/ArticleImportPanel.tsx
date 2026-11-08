@@ -1,7 +1,7 @@
 'use client';
 import {AppLink} from '../shared/AppLink';
 import {useEffect,useRef,useState} from 'react';
-import {usePublicSession,isPublicSessionCurrent} from '../shared/session-client';
+import {usePublicSession,isPublicSessionCurrent,loadPublicSession} from '../shared/session-client';
 import {api} from '../shared/client-api';
 import {CSV_COLUMNS,MAX_CSV_BYTES,parseCSV,encodeCSV} from './article-csv';
 import {importPreview,importReceipt,type ImportPreviewRow as Row,type ImportReceipt} from './article-import-client';
@@ -12,6 +12,7 @@ export function ArticleImportPanel(){
  const [dataRevision,setDataRevision]=useState(session.revision),[step,setStep]=useState(0);
  const [csv,setCSV]=useState(''),[mapped,setMapped]=useState(''),[filename,setFilename]=useState(''),[source,setSource]=useState<string[][]>([]),[mapping,setMapping]=useState<string[]>([]),[rows,setRows]=useState<Row[]>([]),[busy,setBusy]=useState(''),[error,setError]=useState(''),[result,setResult]=useState<ImportReceipt|null>(null);
  useEffect(()=>{generation.current++;setCSV('');setMapped('');setFilename('');setSource([]);setMapping([]);setRows([]);setResult(null);setError('');setBusy('');setStep(0);setDataRevision(session.revision);},[session.revision]);
+ if(session.status==='error')return <div className="lvd-admin-feedback" role="alert"><p>Chưa kiểm tra được phiên đăng nhập.</p><button type="button" className="lvd-csv-button" onClick={()=>void loadPublicSession().catch(()=>{})}>Thử lại</button></div>;
  if(session.status!=='ready'||dataRevision!==session.revision)return <p role="status">Đang kiểm tra phiên…</p>;
  if(!['owner','support'].includes(session.user?.role||''))return <p role="alert">Tài khoản không có quyền nhập bài viết.</p>;
  const errors=rows.filter(row=>row.errors.length),newRows=rows.filter(row=>row.action==='create');
