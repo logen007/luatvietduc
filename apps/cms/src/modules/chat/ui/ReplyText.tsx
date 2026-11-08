@@ -9,7 +9,7 @@ export function ReplyText({text,animate}:{text:string;animate:boolean}){
   if(!animate||started.current||motion.matches||typeof Intl.Segmenter!=='function'){setVisible(text.length);return;}
   started.current=true;
   const segments=Array.from(new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(text));
-  const duration=Math.min(6500,Math.max(400,segments.length*18));
+  const duration=Math.min(2800,Math.max(180,segments.length*8));
   const log=root.current?.closest<HTMLElement>('.chat-log');
   const track=()=>{following.current=Boolean(log&&log.scrollHeight-log.scrollTop-log.clientHeight<120);};
   track();log?.addEventListener('scroll',track,{passive:true});
