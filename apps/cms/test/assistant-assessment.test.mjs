@@ -467,3 +467,16 @@ test('a short yes/no reply to an unknown-topic question is interpreted with cons
  const state=fixture(t,{body:'không',assessment:{status:'needs_details',detail:'situation',question},previous:[{role:'assistant',body:'Bạn đã có một mức án cụ thể chưa?',metadata:{kind:'clarify',clarificationKey:'intake.situation'}},{role:'user',body:'về thời gian ở tù',metadata:{aiConsent:{version:CONSENT_VERSION}}}]});
  await state.run();assert.equal(state.assessments,1);assert.equal(state.intakePrompts[0].required,null);assert.ok(state.intakePrompts[0].question.includes('về thời gian ở tù'));assert.equal(state.replies[0].body,question);assert.equal(state.embeddings,0);
 });
+
+test('a semantic title is saved together with intake before legal facts are complete',async t=>{
+ const title='Xin ân xá',question='Bạn đang hỏi về điều kiện hay thủ tục xin ân xá?';
+ const state=fixture(t,{body:'xin ân xá bạn ơi',assessment:{status:'needs_details',detail:'goal',question,title}});await state.run();
+ assert.equal(state.conversation.title,title);assert.equal(state.replies[0].body,question);assert.equal(state.embeddings,0);assert.equal(state.assessments,1);
+});
+test('invalid AI titles are omitted without rejecting a useful intake question',()=>{
+ const question='Bạn muốn tìm hiểu điều kiện hay thủ tục nào?';
+ assert.deepEqual(validateIntakeAssessment({status:'needs_details',detail:'goal',question,title:'Tên 0123456789'}),{status:'needs_details',detail:'goal',question});
+});
+test('a changed provider cannot persist its stale generated title',async t=>{
+ const state=fixture(t,{body:'xin ân xá',assessment:{status:'needs_details',detail:'goal',question:'Bạn muốn biết điều kiện hay thủ tục xin ân xá?',title:'Xin ân xá'},onAssess:state=>state.provider.version++});await state.run();assert.equal(state.conversation.title,undefined);assert.equal(state.conversation.ai_enabled,true);
+});
