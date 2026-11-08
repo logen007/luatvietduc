@@ -12,6 +12,12 @@ export async function testClientNavigation(browser,base){
    await page.goto(base);await page.locator('#home-question').waitFor();
    await page.evaluate(()=>{window.__navigationDocument='same-document';});
    const unchanged=async()=>assert.equal(await page.evaluate(()=>window.__navigationDocument),'same-document','Internal pages must retain the current document');
+   await page.locator('.lvd-benefit-card[data-scroll-reveal="pending"]').first().waitFor({state:'attached'});
+   // Click immediately after the automatic scroll: reveal motion must never
+   // move a link's hit area out from under the pointer.
+   await page.locator('.lvd-benefit-action').first().click();await page.waitForURL(url=>url.pathname==='/hoi-dap');await unchanged();
+   await page.locator('.live-brand').click();await page.waitForURL(base+'/');await page.locator('#home-question').waitFor();await unchanged();
+   assert.equal(await page.locator('.live-footer [data-scroll-reveal]').count(),0,'Footer navigation remains outside content reveal animations');
    const go=async href=>{await page.locator(`a[href="${href}"]:visible`).first().click();await page.waitForURL(url=>url.pathname===href);await unchanged();};
    await go('/tin-tuc');await page.locator('#news-query').fill('Kindergeld');await page.locator('#news-query').press('Enter');await page.waitForURL(url=>url.searchParams.get('q')==='Kindergeld');await unchanged();
    await page.locator('.press-categories a').last().click();await page.waitForURL(url=>Boolean(url.searchParams.get('nhom')));await unchanged();assert.equal(await page.locator('#news-query').inputValue(),'Kindergeld');

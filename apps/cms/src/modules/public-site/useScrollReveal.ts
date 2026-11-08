@@ -8,7 +8,7 @@ const targets = [
   '.lvd-service-wheel-panel', '.lvd-benefit-card', '.pm-fields-grid > a',
   '.pm-story', '.lvd-team-section > h2', '.lvd-expert-card',
   '.catalog-topic', '.catalog-help', '.native-story-image',
-  '.contact-email-heading-image', '.live-footer-identity', '.live-footer-column',
+  '.contact-email-heading-image',
 ].join(',');
 
 export function useScrollReveal(frame:RefObject<HTMLDivElement|null>,content:ReactNode){
