@@ -1,4 +1,6 @@
 "use client";
+import {useSearchParams} from 'next/navigation';
+import {AccountFormPlaceholder} from '../../../modules/identity/AccountFormPlaceholder';
 import {AppLink} from '../../../modules/shared/AppLink';
 import {useLocale} from "../../../modules/shared/locale";
 import {loadPublicSession,usePublicSession} from '../../../modules/shared/session-client';
@@ -8,7 +10,7 @@ import { Header } from "../../../modules/shared/Header";
 import { Footer } from "../../../modules/shared/Footer";
 import {AccountForm,type AccountRecoveryLink} from "../../../modules/identity/AccountForm";
 export default function Page() {
- const {t}=useLocale();
+ const {t}=useLocale(),searchParams=useSearchParams();
  // Account entry starts at the form, rather than retaining the chat scroll offset.
  useLayoutEffect(()=>{window.scrollTo({top:0,left:0,behavior:'instant'});},[]);
   const session=usePublicSession(),data=session.data;
@@ -43,10 +45,7 @@ export default function Page() {
                   <button className="button" onClick={() => {setError('');void loadPublicSession().catch(()=>setError('Không thể kiểm tra phiên đăng nhập.'));}}> {t("Thử lại")} </button>
                 </div>
               ) : (
-                <div className="live-loading" role="status">
-                  <span className="live-spinner"></span>
-                  <p>{t("Đang kiểm tra phiên đăng nhập…")}</p>
-                </div>
+                <AccountFormPlaceholder mode={searchParams.get('mode')}/>
               )
             ) : data.user ? (
               <>

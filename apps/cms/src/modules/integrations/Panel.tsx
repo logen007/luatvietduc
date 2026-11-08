@@ -9,7 +9,7 @@ import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shar
 import {createOperationGate} from '../chat/client-operations';
 type Connection={provider:Provider;values:Values;stored:Record<string,boolean>;version:number;enabled:boolean;checkState:string;checkedAt:string|null};
 const labels:Record<string,string>={untested:'Chưa kiểm tra',passed:'Kiểm tra đạt',failed:'Kiểm tra chưa đạt',configured:'Định dạng hợp lệ · cần thử đăng nhập'};
-function ConnectionForm({initial,revision}:{initial:Connection;revision:number}){
+function ConnectionForm({initial,revision,pending=false}:{initial:Connection;revision:number;pending?:boolean}){
   const [connection,setConnection]=useState(initial),[values,setValues]=useState<Values>(initial.values),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[conflict,setConflict]=useState(false);
   const dirty=JSON.stringify(values)!==JSON.stringify(connection.values);
   const gate=useRef(createOperationGate());
@@ -17,7 +17,7 @@ function ConnectionForm({initial,revision}:{initial:Connection;revision:number})
   useUnsavedChanges(dirty);
   const definition=integrationCatalog[connection.provider];
   async function act(action:'save'|'test'|'toggle'){
-    if(!isPublicSessionCurrent(revision)||conflict||(action!=='save'&&dirty))return;
+    if(pending||!isPublicSessionCurrent(revision)||conflict||(action!=='save'&&dirty))return;
     const ticket=gate.current.begin();if(!ticket)return;
     const current=()=>isPublicSessionCurrent(revision)&&gate.current.isCurrent(ticket);
     setBusy(true);setError('');setMessage('');
@@ -29,7 +29,7 @@ function ConnectionForm({initial,revision}:{initial:Connection;revision:number})
     }catch(e){if(current()){setError((e as Error).message);if(e instanceof ConnectionError&&e.status===409)setConflict(true);}}finally{if(gate.current.end(ticket)&&isPublicSessionCurrent(revision))setBusy(false);}
   }
   async function reload(){
-    if(!isPublicSessionCurrent(revision))return;
+    if(pending||!isPublicSessionCurrent(revision))return;
     const ticket=gate.current.begin();if(!ticket)return;
     const current=()=>isPublicSessionCurrent(revision)&&gate.current.isCurrent(ticket);
     setBusy(true);setMessage('');
@@ -40,8 +40,8 @@ function ConnectionForm({initial,revision}:{initial:Connection;revision:number})
       setValues(draft=>mergeConnectionDraft(connection.values,draft,fresh.values,definition.fields));setConnection(fresh);setConflict(false);setError('');setMessage('Đã tải cấu hình mới.');
     }catch(e){if(current())setError((e as Error).message);}finally{if(gate.current.end(ticket)&&isPublicSessionCurrent(revision))setBusy(false);}
   }
-  return <section className="live-card integration-card">
-    <div className="integration-title"><h2>{definition.title}</h2><span className={'live-status '+(connection.enabled?'is-ready':'is-pending')}>{connection.enabled?'Đang bật':'Đang tắt'}</span></div>
+  return <section className="live-card integration-card" inert={pending||undefined} aria-hidden={pending||undefined}>
+    <div className="integration-title"><h2>{definition.title}</h2><span className={'live-status '+(connection.enabled?'is-ready':'is-pending')}>{pending?'Đang tải…':connection.enabled?'Đang bật':'Đang tắt'}</span></div>
     <p>{definition.help}</p>
     <ConnectionInstructions provider={connection.provider}/>
     {connection.provider==='google'&&<label>Redirect URI để điền trong Google Cloud<input readOnly value="https://luatvietduc.com/auth/google/callback" onFocus={e=>e.target.select()}/></label>}
@@ -49,17 +49,17 @@ function ConnectionForm({initial,revision}:{initial:Connection;revision:number})
       {definition.fields.map(field=><label key={field.key}>{field.label}
         <input type={field.secret?'password':'text'} value={values[field.key]||''} onChange={e=>{setValues({...values,[field.key]:e.target.value});setMessage('');}}
           placeholder={field.secret&&connection.stored[field.key]?'Đã lưu · để trống nếu giữ nguyên':field.placeholder}
-          autoComplete={field.secret?'new-password':'off'} spellCheck={false} maxLength={4096} disabled={busy}/>
+          autoComplete={field.secret?'new-password':'off'} spellCheck={false} maxLength={4096} disabled={pending||busy}/>
       </label>)}
       <div className="integration-actions">
-        <button className="button" disabled={busy||conflict||(!dirty&&connection.version>0)}>Lưu cấu hình</button>
-        <button type="button" className="button secondary" disabled={busy||conflict||dirty||!connection.version} onClick={()=>void act('test')}>{connection.provider==='email'?'Gửi email kiểm tra':'Kiểm tra kết nối'}</button>
-        <button type="button" className="button secondary" disabled={busy||conflict||dirty||!connection.version||(!connection.enabled&&!['passed','configured'].includes(connection.checkState))} onClick={()=>void act('toggle')}>{connection.enabled?'Tắt kết nối':'Bật sử dụng'}</button>
+        <button className="button" disabled={pending||busy||conflict||(!dirty&&connection.version>0)}>Lưu cấu hình</button>
+        <button type="button" className="button secondary" disabled={pending||busy||conflict||dirty||!connection.version} onClick={()=>void act('test')}>{connection.provider==='email'?'Gửi email kiểm tra':'Kiểm tra kết nối'}</button>
+        <button type="button" className="button secondary" disabled={pending||busy||conflict||dirty||!connection.version||(!connection.enabled&&!['passed','configured'].includes(connection.checkState))} onClick={()=>void act('toggle')}>{connection.enabled?'Tắt kết nối':'Bật sử dụng'}</button>
       </div>
     </form>
     <p className="integration-check">{busy?'Đang xử lý…':labels[connection.checkState]||'Chưa kiểm tra'}{connection.checkedAt?' · '+new Date(connection.checkedAt).toLocaleString('vi-VN'):''}</p>
     {message&&<p className="integration-message" role="status">{message}</p>}
-    {error&&<p className="live-error" role="alert">{error}{conflict&&<> <button type="button" disabled={busy} onClick={()=>void reload()}>Tải lại cấu hình</button></>}</p>}
+    {error&&<p className="live-error" role="alert">{error}{conflict&&<> <button type="button" disabled={pending||busy} onClick={()=>void reload()}>Tải lại cấu hình</button></>}</p>}
   </section>;
 }
 export function IntegrationPanel({providers=['google','ai','translation','r2','email']}:{providers?:Provider[]}){
@@ -71,6 +71,7 @@ export function IntegrationPanel({providers=['google','ai','translation','r2','e
   if(session.status==='loading')return <p role="status">Đang kiểm tra phiên đăng nhập…</p>;
   if(!owner)return <p role="alert">Chỉ quản trị viên được quản lý kết nối. <AppLink href="/admin/login">Đăng nhập lại</AppLink></p>;
   if(error)return <div className="live-card"><p className="live-error" role="alert">{error.message}</p>{error.status===401?<AppLink className="button" href="/admin/login">Đăng nhập lại</AppLink>:error.status===403?<AppLink className="button" href="/admin">Về tổng quan</AppLink>:<button type="button" className="button" onClick={()=>setAttempt(value=>value+1)}>Thử lại</button>}</div>;
-  if(revision!==session.revision||!connections)return <p role="status">Đang tải cấu hình…</p>;
-  return <><p className="integration-intro">Lưu cấu hình → Kiểm tra → Bật sử dụng. Để trống ô khóa đã lưu nếu không thay đổi. Lưu bản mới sẽ tạm tắt kết nối đó cho đến khi anh kiểm tra và bật lại.</p><div className="integration-grid">{connections.filter(c=>providers.includes(c.provider)).map(connection=><ConnectionForm key={session.revision+':'+connection.provider} initial={connection} revision={session.revision}/>)}</div></>;
+  const pending=revision!==session.revision||!connections;
+  const visible=pending?providers.map(provider=>({provider,values:{},stored:{},version:0,enabled:false,checkState:'untested',checkedAt:null} satisfies Connection)):connections;
+  return <><p className="integration-intro">Lưu cấu hình → Kiểm tra → Bật sử dụng. Để trống ô khóa đã lưu nếu không thay đổi. Lưu bản mới sẽ tạm tắt kết nối đó cho đến khi anh kiểm tra và bật lại.</p><div className="integration-grid" aria-busy={pending}>{visible.filter(c=>providers.includes(c.provider)).map(connection=><ConnectionForm key={session.revision+':'+connection.provider+':'+pending} initial={connection} revision={session.revision} pending={pending}/>)}</div></>;
 }

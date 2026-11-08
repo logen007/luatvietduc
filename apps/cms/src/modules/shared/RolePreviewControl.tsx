@@ -4,7 +4,7 @@ import {api} from './client-api';
 import {confirmAdminNavigation} from './unsaved-changes';
 import {invalidatePublicSession,usePublicSession,refreshPublicProfile} from './session-client';
 type Role='owner'|'support'|'member';
-export function RolePreviewControl({compact=false,renderedRole}:{compact?:boolean;renderedRole?:string}){
+export function RolePreviewControl({compact=false,renderedRole,reserveSpace=false}:{compact?:boolean;renderedRole?:string;reserveSpace?:boolean}){
  const session=usePublicSession();
  const available=session.status==='ready'&&(session.user?.role==='owner'||Boolean(session.user?.rolePreview));
  const [role,setRole]=useState<Role|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -13,7 +13,9 @@ export function RolePreviewControl({compact=false,renderedRole}:{compact?:boolea
   if(!available)return;refresh();window.addEventListener('focus',refresh);return()=>{active=false;if(timer)clearTimeout(timer);window.removeEventListener('focus',refresh);};
  },[session.revision,available]);
  const current=role||(available?(session.user?.rolePreview||'owner'):null);
- if(!available||!current)return null;
+ // The server may reserve this public layout slot; session verification still
+ // owns every interactive control and every role-changing request.
+ if(!available||!current)return reserveSpace&&session.status==='loading'?<div className={'lvd-role-preview'+(compact?' is-compact':'')} aria-hidden="true" inert><div className="lvd-role-preview__tabs"><button type="button" disabled>Admin</button><button type="button" disabled>Chuyên viên</button></div><button className="lvd-role-preview__toggle" type="button" disabled/></div>:null;
  const restore=current!=='owner'||Boolean(renderedRole&&renderedRole!=='owner');
  async function change(next:Role){
   if(busy||(next===current&&!restore))return;

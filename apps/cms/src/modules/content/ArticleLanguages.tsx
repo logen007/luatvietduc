@@ -62,7 +62,7 @@ export function ArticleLanguages(){
  }
  const controls=<div className="lvd-article-language-actions"><button type="button" className="lvd-article-language-toggle" aria-label={'Chuyển bài viết sang '+names[other]} title={'Chuyển sang '+names[other]} disabled={disabled||(Boolean(id)&&!siblings)} onClick={()=>void select()}><img src={'/assets/flags/'+(language==='vi'?'vn':'de')+'.svg'} width="20" height="14" alt=""/>{language.toUpperCase()}</button><button type="button" className="lvd-article-translate" disabled={disabled||!ready} title={ready?'Dịch sang '+names[language]:'Chưa bật kết nối AI dịch bài viết'} onClick={()=>void translate()}>Dịch bằng AI</button></div>;
  return <div ref={root} className="lvd-article-languages" aria-label="Ngôn ngữ bài viết" aria-busy={Boolean(busy)}>
-  {host?createPortal(<li className="lvd-article-language-slot">{controls}</li>,host):controls}
+  {host&&createPortal(<li className="lvd-article-language-slot">{controls}</li>,host)}
   {busy&&<div className="lvd-translation-loading" role="status"><span>{busy==='translation'?'Đang dịch…':'Đang mở bản '+other.toUpperCase()+'…'}</span><div className="lvd-translation-progress" role="progressbar" aria-label={busy==='translation'?'Đang dịch bài viết':'Đang mở bản ngôn ngữ'}><i/></div></div>}
   {message&&<p role="status">{message}</p>}
   {error&&<div className="lvd-translation-error" role="alert">{error}{!siblings&&<button type="button" onClick={()=>setAttempt(a=>a+1)}>Thử lại</button>}</div>}

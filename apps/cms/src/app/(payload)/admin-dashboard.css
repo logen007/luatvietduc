@@ -230,20 +230,37 @@ html.lvd-admin .payload-settings::before,html.lvd-admin .payload-settings::after
 html.lvd-admin .lvd-admin-welcome :is(.lvd-dashboard-section-title,.lvd-admin-destinations,.lvd-admin-workflow){display:none}
 
 /* Desktop collapse keeps the same navigation as a compact, clickable icon rail. */
+/* Match the native server preference before hydration. */
 @media(min-width:1025px){
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open){grid-template-columns:64px minmax(0,1fr)}
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .nav{display:block;width:64px;opacity:1;pointer-events:auto;transform:none}
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .template-default__wrap{grid-column:2;min-width:0}
- html.lvd-admin:has(.template-default--nav-hydrated:not(.template-default--nav-open)) .template-default__nav-toggler-wrapper{width:64px;justify-content:center}
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .nav__scroll{padding-inline:8px}
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-menu-main{min-height:44px}
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-menu-main>a{justify-content:center;padding:0;min-height:44px}
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-menu-main>a>svg{width:20px;height:20px}
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) :is(.lvd-menu-main>a>span,.lvd-menu-main>button,.lvd-menu-children,.lvd-sidebar-footer){display:none}
+ html.lvd-admin .template-default{grid-template-columns:var(--nav-width) minmax(0,1fr)}
+ html.lvd-admin .template-default .template-default__wrap{grid-column:2;min-width:0}
+}
+@media(min-width:1025px){
+ html.lvd-admin .template-default:not(.template-default--nav-open){grid-template-columns:64px minmax(0,1fr)}
+ html.lvd-admin .template-default:not(.template-default--nav-open) .nav{display:block;width:64px;opacity:1;pointer-events:auto;transform:none}
+ html.lvd-admin .template-default:not(.template-default--nav-open) .template-default__wrap{grid-column:2;min-width:0}
+ html.lvd-admin:has(.template-default:not(.template-default--nav-open)) .template-default__nav-toggler-wrapper{width:64px;justify-content:center}
+ html.lvd-admin .template-default:not(.template-default--nav-open) .nav__scroll{padding-inline:8px}
+ html.lvd-admin .template-default:not(.template-default--nav-open) .lvd-menu-main{min-height:44px}
+ html.lvd-admin .template-default:not(.template-default--nav-open) .lvd-menu-main>a{justify-content:center;padding:0;min-height:44px}
+ html.lvd-admin .template-default:not(.template-default--nav-open) .lvd-menu-main>a>svg{width:20px;height:20px}
+ html.lvd-admin .template-default:not(.template-default--nav-open) :is(.lvd-menu-main>a>span,.lvd-menu-main>button,.lvd-menu-children,.lvd-sidebar-footer){display:none}
+}
+@media(min-width:1025px) and (max-width:1440px){
+ html.lvd-admin .template-default:not(.template-default--nav-animate){grid-template-columns:64px minmax(0,1fr)}
+ html.lvd-admin .template-default:not(.template-default--nav-animate) .nav{display:block;width:64px;opacity:1;pointer-events:auto;transform:none}
+ html.lvd-admin .template-default:not(.template-default--nav-animate) .template-default__wrap{grid-column:2;min-width:0}
+ html.lvd-admin:has(.template-default:not(.template-default--nav-animate)) .template-default__nav-toggler-wrapper{width:64px;justify-content:center}
+ html.lvd-admin .template-default:not(.template-default--nav-animate) .nav__scroll{padding-inline:8px}
+ html.lvd-admin .template-default:not(.template-default--nav-animate) .lvd-menu-main{min-height:44px}
+ html.lvd-admin .template-default:not(.template-default--nav-animate) .lvd-menu-main>a{justify-content:center;padding:0;min-height:44px}
+ html.lvd-admin .template-default:not(.template-default--nav-animate) .lvd-menu-main>a>svg{width:20px;height:20px}
+ html.lvd-admin .template-default:not(.template-default--nav-animate) :is(.lvd-menu-main>a>span,.lvd-menu-main>button,.lvd-menu-children,.lvd-sidebar-footer){display:none}
 }
 
 /* Compact article editor: language controls live beside native save actions. */
-html.lvd-admin .collection-edit--articles .doc-controls__meta:has(.lvd-article-language-slot)>li:not(.lvd-article-language-slot){display:none}
+html.lvd-admin .collection-edit--articles .doc-controls__meta{min-height:38px}
+html.lvd-admin .collection-edit--articles .doc-controls__meta>li:not(.lvd-article-language-slot){display:none}
 html.lvd-admin .lvd-article-language-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 html.lvd-admin .lvd-article-language-actions button,html.lvd-admin .lvd-post-permalink button{min-height:36px;padding:7px 12px;border:1px solid var(--admin-line);border-radius:6px;background:var(--admin-panel);color:var(--admin-text);font:inherit;font-size:calc(12px * var(--lvd-admin-font-scale, 1));cursor:pointer}
 html.lvd-admin .lvd-article-language-actions button:disabled{opacity:.45;cursor:default}
@@ -314,10 +331,15 @@ html.lvd-admin .lvd-role-preview__tabs button{flex:1;min-width:0;padding:8px 6px
 html.lvd-admin .lvd-role-preview__tabs button[aria-pressed=true]{background:var(--admin-line);color:var(--admin-text);font-weight:600}
 html.lvd-admin .lvd-role-preview:not(.is-compact) .lvd-role-preview__toggle{display:none}
 @media(min-width:1025px){
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-role-preview{justify-content:center;margin:8px 0 12px}
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-role-preview__tabs{display:none}
- html.lvd-admin .template-default--nav-hydrated:not(.template-default--nav-open) .lvd-role-preview:not(.is-compact) .lvd-role-preview__toggle{display:grid;place-items:center;width:44px;height:44px;padding:10px;border:1px solid var(--admin-line);border-radius:4px}
+ html.lvd-admin .template-default:not(.template-default--nav-open) .lvd-role-preview{justify-content:center;margin:8px 0 12px}
+ html.lvd-admin .template-default:not(.template-default--nav-open) .lvd-role-preview__tabs{display:none}
+ html.lvd-admin .template-default:not(.template-default--nav-open) .lvd-role-preview:not(.is-compact) .lvd-role-preview__toggle{display:grid;place-items:center;width:44px;height:44px;padding:10px;border:1px solid var(--admin-line);border-radius:4px}
  html.lvd-admin .lvd-role-preview__toggle svg{display:block;flex-shrink:0}
+}
+@media(min-width:1025px) and (max-width:1440px){
+ html.lvd-admin .template-default:not(.template-default--nav-animate) .lvd-role-preview{justify-content:center;margin:8px 0 12px}
+ html.lvd-admin .template-default:not(.template-default--nav-animate) .lvd-role-preview__tabs{display:none}
+ html.lvd-admin .template-default:not(.template-default--nav-animate) .lvd-role-preview:not(.is-compact) .lvd-role-preview__toggle{display:grid;place-items:center;width:44px;height:44px;padding:10px;border:1px solid var(--admin-line);border-radius:4px}
 }
 
 .lvd-csv-import{max-width:1100px}.lvd-csv-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:18px 0}.lvd-csv-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border:1px solid var(--admin-line);border-radius:6px;background:var(--admin-raised);color:var(--admin-text);font:inherit;cursor:pointer}.lvd-csv-button:disabled{opacity:.5;cursor:default}.lvd-csv-button.is-primary{background:#ccc;color:#171717}.lvd-csv-upload{display:block;padding:20px;border:1px dashed var(--admin-line);border-radius:8px}.lvd-csv-upload input{display:block;margin-top:12px;max-width:100%}.lvd-csv-import details{margin:20px 0}.lvd-csv-import li{margin:8px 0}.lvd-csv-import progress{width:100%;height:6px;accent-color:#aaa}.lvd-csv-table{overflow:auto;max-width:100%}.lvd-csv-table table{width:100%;border-collapse:collapse}.lvd-csv-table :is(th,td){padding:12px;text-align:left;border-bottom:1px solid var(--admin-line);vertical-align:top}.lvd-csv-table small{display:block;color:var(--admin-muted);overflow-wrap:anywhere}.lvd-csv-table td:nth-child(2){min-width:200px}.lvd-csv-import [role=alert]{color:#dba49d}

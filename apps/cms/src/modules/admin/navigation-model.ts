@@ -1,6 +1,6 @@
 // Presentation hints only. Payload and each service enforce authorization.
 import {isAdmin,canEnterAdmin,canWriteContent} from '../identity/permissions';
-export type AdminViewer={role?:string;name?:string;jurisdictions?:readonly string[]|null};
+export type AdminViewer={role?:string;rolePreview?:string;name?:string;jurisdictions?:readonly string[]|null};
 export type AdminLink={label:string;href:string};
 export type AdminNavItem=AdminLink&{section?:string;icon:string;children?:AdminLink[]};
 export const adminLinks={

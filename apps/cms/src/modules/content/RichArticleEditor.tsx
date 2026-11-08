@@ -159,7 +159,7 @@ export function ArticleEditor({path, field, readOnly, validate}: TextareaFieldCl
     finally {setMediaBusy(false);}
   }
   const block = editor?.isActive('heading', {level: 2}) ? 'h2' : editor?.isActive('heading', {level: 3}) ? 'h3' : editor?.isActive('heading', {level: 4}) ? 'h4' : 'p';
-  return <div ref={root} className={'field-type textarea lvd-article-editor' + (error ? ' has-error' : '')}>
+  return <div ref={root} data-editor-loading={!editor||undefined} className={'field-type textarea lvd-article-editor' + (error ? ' has-error' : '')}>
     <input type="hidden" id="field-body" value={raw} readOnly aria-hidden="true" tabIndex={-1}/>
     <div className="lvd-editor-top"><div className="lvd-editor-modes" role="group" aria-label="Chế độ soạn thảo"><button type="button" aria-pressed={mode === 'visual'} onClick={() => switchMode('visual')}>Trực quan</button><button type="button" aria-pressed={mode === 'html'} onClick={() => switchMode('html')}>HTML</button></div><button type="button" className="lvd-editor-media" disabled={unavailable} onClick={() => {setLocalError(''); openDrawer();}}><Icon name="image"/>{mediaBusy ? 'Đang chèn…' : 'Thêm tệp'}</button></div>
     {mode === 'visual' && <>

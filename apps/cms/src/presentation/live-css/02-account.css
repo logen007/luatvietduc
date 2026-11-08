@@ -250,3 +250,10 @@
 .live-auth-panel .live-google svg{width:20px;height:20px;fill:currentColor;stroke:none}
 .live-auth-panel .live-google svg path{stroke:none}
 .live-credentials-form input::placeholder{color:#a3a3a3;opacity:1}
+
+/* Match form geometry without showing a second, inactive sign-in form. */
+.live-account-placeholder{visibility:hidden}
+.live-auth-panel .live-auth-placeholder-heading{font-family:var(--lvd-display,Inter,sans-serif);font-size:clamp(32px,3.2vw,48px);line-height:1.12;letter-spacing:-.02em;margin:0 0 32px}
+.live-auth-placeholder-input{box-sizing:border-box;min-height:50px;border:1px solid transparent;padding:12px 14px}
+.live-account-placeholder .live-auth-switch span{font-weight:600}
+@media(max-width:700px){.live-auth-panel .live-auth-placeholder-heading{margin-bottom:28px}}

@@ -84,3 +84,11 @@ Xác minh 72 lượt mở trang local trên mobile/desktop, 2 trường hợp ch
 hạn phép đo, bao gồm CLS admin còn cao ở một số trang, được ghi đầy đủ tại
 [biên bản kiểm tra](verification/2026-11-08-site-speed.md). Không tuyên bố mức
 cải thiện LCP production từ phép đo localhost.
+
+## Ổn định giao diện trong lúc tải — lượt tiếp theo 2026-11-08
+
+Sửa khung menu trước hydration, khoảng trống nút chuyển vai trò, form Drive,
+quy tắc trả lời, tài khoản và editor. Đo local: CLS sao lưu 0,643 → 0, quy tắc
+0,563 → 0, đăng ký mobile 0,260 → 0,0011; không suy ra tốc độ production từ
+các số này. Xem [báo cáo ổn định bố cục](verification/2026-11-08-layout-stability.md).
+Không thay cache/ACL/phiên, schema hoặc lịch sao lưu.

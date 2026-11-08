@@ -57,3 +57,7 @@ html.lvd-admin .lvd-article-editor .lvd-editor-group select:not([multiple]):not(
 .lvd-article-editor .lvd-editor-html:focus{outline:0;box-shadow:inset 0 0 0 1px #777}
 .lvd-editor-error,.lvd-editor-notice{padding:12px 18px;border-top:1px solid #573e3c;color:#d4a39d;font-size:13px;line-height:1.5}
 @media(max-width:760px){.lvd-editor-toolbar{flex-wrap:nowrap;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}.lvd-editor-group{flex:none}html.lvd-admin .lvd-article-editor .lvd-editor-group select:not([multiple]):not([size]){font-size:calc(16px * var(--lvd-admin-font-scale,1))}.lvd-article-editor .tiptap{min-height:360px;padding:22px 18px;font-size:16px}.lvd-editor-url{grid-template-columns:minmax(0,1fr)}.lvd-editor-panel-actions{grid-column:auto}.lvd-editor-panel{padding:12px}.lvd-editor-top{gap:8px}.lvd-article-editor .lvd-editor-html{min-height:360px;padding:18px;font-size:13px}}
+
+/* Reserve the editor body and toolbars while its optional code initializes. */
+.lvd-article-editor[data-editor-loading=true]{min-height:580px}
+@media(max-width:760px){.lvd-article-editor[data-editor-loading=true]{min-height:480px}}
