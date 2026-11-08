@@ -446,3 +446,23 @@ html.lvd-admin .lvd-answer-rule summary{align-content:center}
  html.lvd-admin .lvd-csv-steps li{overflow-wrap:anywhere;line-height:1.5}
  html.lvd-admin .lvd-admin-settings-grid>section{padding:18px;margin-bottom:0}
 }
+
+/* Media and website settings: usable filters and readable long values. */
+html.lvd-admin .lvd-media-reset{white-space:nowrap}
+html.lvd-admin .lvd-social-settings-state{white-space:normal;line-height:1.5;text-align:right}
+html.lvd-admin .lvd-banner-copy-feedback{padding:10px 12px;border:1px solid var(--admin-line);border-inline-start:3px solid #dba49d;border-radius:4px;color:var(--admin-text);line-height:1.6}
+html.lvd-admin .lvd-media-table-wrap{overscroll-behavior-x:contain;scrollbar-width:thin}
+html.lvd-admin .lvd-media-table th{background:var(--admin-raised);white-space:nowrap}
+html.lvd-admin .lvd-media-status{font-variant-numeric:tabular-nums}
+@media(max-width:760px){
+ html.lvd-admin .lvd-media-filters :is(button,select,input){box-sizing:border-box;min-height:44px;height:auto;font-size:16px;border-radius:4px}
+ html.lvd-admin .lvd-media-filters .lvd-media-search{min-height:44px}
+ html.lvd-admin .lvd-media-checkbox{box-sizing:border-box;min-width:44px;min-height:44px;top:4px;left:4px}
+ html.lvd-admin .lvd-media-view-buttons button{min-width:44px}
+ html.lvd-admin .lvd-media-list-actions :is(button,select){min-height:44px;font-size:16px}
+ html.lvd-admin .lvd-banner-link :is(input,button){min-height:44px}
+ html.lvd-admin .lvd-banner-link>button:first-child{min-height:44px}
+ html.lvd-admin .lvd-social-settings-row input{min-height:44px;font-size:16px}
+ html.lvd-admin .lvd-dashboard-stats small{font-size:12px;line-height:1.6}
+ html.lvd-admin .lvd-admin-destination__body>span{font-size:12px!important;line-height:1.6}
+}

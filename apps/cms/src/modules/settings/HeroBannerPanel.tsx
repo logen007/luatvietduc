@@ -9,7 +9,7 @@ const labels=['Máy tính','Điện thoại','Ảnh chờ'];
 const mediaId=(value:unknown)=>typeof value==='object'&&value!==null?'id' in value?Number(value.id):0:Number(value)||0;
 export function HeroBannerPanel(){
  const values=useFormFields(([state])=>state),ids=fields.map(key=>mediaId(values[key]?.value)),key=ids.join(':'),previewBox=useRef<HTMLDivElement>(null);
- const [media,setMedia]=useState<Record<string,unknown>>({}),[loading,setLoading]=useState(true),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[preview,setPreview]=useState<Preview|null>(null),[copied,setCopied]=useState(''),[archivedIndex,setArchivedIndex]=useState(0);
+ const [media,setMedia]=useState<Record<string,unknown>>({}),[loading,setLoading]=useState(true),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[preview,setPreview]=useState<Preview|null>(null),[copied,setCopied]=useState(''),[copyError,setCopyError]=useState(''),[archivedIndex,setArchivedIndex]=useState(0);
  useEffect(()=>{
   const controller=new AbortController();setLoading(true);setError('');setPreview(null);
   Promise.all(fields.map(async(field,index)=>{
@@ -25,7 +25,7 @@ export function HeroBannerPanel(){
  const absolute=(url:string)=>url.startsWith('/')?'https://luatvietduc.com'+url:url;
  function show(item:Preview){setPreview(item);previewBox.current?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'nearest'});}
  function link(url:string,label:string,image=false,poster?:string,context='Lựa chọn hiện tại'){
-  const full=absolute(url),name=context+' · '+label;return <div className="lvd-banner-link" key={label+url}><button type="button" title={'Xem '+name} aria-label={'Xem '+name} onClick={()=>show({url,label:name,image,poster})}>{label}</button><input aria-label={'Link '+name} readOnly value={full} onFocus={e=>e.target.select()}/><button type="button" aria-label={'Sao chép link '+name} onClick={async()=>{try{await navigator.clipboard.writeText(full);setCopied(full);}catch{setCopied('');}}}>{copied===full?'Đã chép':'Sao chép'}</button></div>;
+  const full=absolute(url),name=context+' · '+label;return <div className="lvd-banner-link" key={label+url}><button type="button" title={'Xem '+name} aria-label={'Xem '+name} onClick={()=>show({url,label:name,image,poster})}>{label}</button><input aria-label={'Link '+name} readOnly value={full} onFocus={e=>e.target.select()}/><button type="button" aria-label={'Sao chép link '+name} onClick={async()=>{try{await navigator.clipboard.writeText(full);setCopied(full);setCopyError('');}catch{setCopied('');setCopyError('Chưa sao chép được. Chọn đường dẫn rồi sao chép thủ công.');}}}>{copied===full?'Đã chép':'Sao chép'}</button></div>;
  }
  return <section className="lvd-banner-panel" aria-label="Xem trước banner">
   <div className="lvd-banner-preview-heading"><h3>Xem trước</h3>{preview&&<button type="button" onClick={()=>setPreview(null)}>Lựa chọn hiện tại</button>}</div>
@@ -34,6 +34,7 @@ export function HeroBannerPanel(){
    <p className="lvd-banner-preview-caption">{current.label}</p>
    <div className="lvd-banner-links">{link(banner.video,labels[0],false,banner.poster)}{link(banner.mobileVideo,labels[1],false,banner.poster)}{link(banner.poster,labels[2],true)}</div>
   </>}
+  {copyError&&<p className="lvd-banner-copy-feedback" role="alert">{copyError}</p>}
   <p className="lvd-banner-save-note">Chọn tệp bên dưới, bấm Lưu để áp dụng. Điện thoại để trống sẽ dùng video chính.</p>
   <details className="lvd-banner-archive"><summary>Video trước đây</summary><div className="lvd-banner-archive-selector"><select aria-label="Chọn bản video cũ" value={archivedIndex} onChange={e=>setArchivedIndex(Number(e.target.value))}>{archive.map((item,index)=><option key={item.label} value={index}>{item.label}</option>)}</select><span>Xem trước không thay đổi banner đang dùng.</span></div>{archived.video&&link(archived.video,'Máy tính',false,archived.poster,archived.label)}{archived.mobileVideo&&link(archived.mobileVideo,'Điện thoại',false,archived.poster,archived.label)}{archived.poster&&link(archived.poster,'Ảnh chờ',true,undefined,archived.label)}</details>
  </section>;
