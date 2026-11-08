@@ -74,3 +74,15 @@ Admin → Cài đặt → Website & giao diện → Banner trang chủ owns `her
 `settings/hero-banner.ts` projects only public, correctly typed media and versions URLs by the media revision. `public-site/HeroVideo.tsx` renders the same server-selected poster on first paint, lazily starts the selected source, respects reduced motion/save-data and swaps sources on viewport changes. Settings use the existing no-store endpoint, refresh on homepage entry and window focus, and retain the last good value if a request fails. An already open background tab receives the saved selection when revisited; no application build, repository push, deployment backup or process restart is involved. Selecting a private file or wrong media type is rejected server-side. The owner-only settings ACL stays in force.
 
 The initial additive migration requires the reviewed exact-commit helper `release-reviewed-hero-banner.py`; it leaves older application rollback compatible. Subsequent media/configuration edits use the native CMS save path.
+
+
+### Public snapshot reads — 2026-11-08
+
+`readPublicCopy` reuses one validated immutable plain-object catalog while its
+resolved snapshot path and file metadata match. Failed/missing catalogs do not
+reuse stale text. `homeBenefitPhotos` similarly reuses image hashes until file
+metadata or snapshot changes; unchanged bytes retain the same URL. These caches
+contain only packaged public UI content, never CMS articles, credentials or chat.
+Catalog/photo replacements still use the existing snapshot lane without a build.
+The 01.39.19 full CI sample took 182 seconds overall, including a 35-second build;
+see the performance/SEO audit for the exact run and limits of that measurement.

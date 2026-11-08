@@ -1,10 +1,10 @@
 import {AppLink} from '../../../../modules/shared/AppLink';
 import {photoForArticle} from '../../../../modules/public-site/search';
-import {articleHTML,articleText} from '../../../../modules/content/article-body';
+import {articleHTML} from '../../../../modules/content/article-body';
 import {LocaleText,LocaleDate} from "../../../../modules/shared/locale";
 import {notFound,permanentRedirect} from "next/navigation";
 import {articleParent} from '../../../../modules/content/navigation';
-import {content,publicArticle,publicSiteSettings,publicArticleTranslations} from '../../../../modules/public-site/server';
+import {content,publicArticle,publicSiteSettings,publicArticleTranslations,publicArticleSummary} from '../../../../modules/public-site/server';
 import {publicMetadata,articleSchema} from '../../../../modules/public-site/seo';
 import {PublicFrame} from '../../../../modules/public-site/Frame';
 import {getPresentationVersion} from '../../../../modules/shared/presentation-version.mjs';
@@ -20,18 +20,18 @@ async function articleForPage(slug:string){
 }
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}){
  const slug=(await params).slug,a=await articleForPage(slug);
- const [settings,translated]=await Promise.all([publicSiteSettings(),publicArticleTranslations(a.translationGroup)]);
- return publicMetadata({title:a.title,path:'/bai-viet/'+encodeURIComponent(a.slug),description:articleText(a.body||'').replace(/\s+/g,' ').slice(0,180),enabled:settings.publicIndexingEnabled===true,indexable:Boolean(articleText(a.body).trim()),image:photo(photoForArticle(a),1440).src,language:a.language||'vi',article:{published:a.createdAt,modified:a.updatedAt},...(translated.length>1?{translations:Object.fromEntries(translated.map(item=>[item.language||'vi','/bai-viet/'+encodeURIComponent(item.slug)]))}:{})});
+ const [settings,translated,summary]=await Promise.all([publicSiteSettings(),publicArticleTranslations(a.translationGroup),publicArticleSummary(slug)]);
+ return publicMetadata({title:a.title,path:'/bai-viet/'+encodeURIComponent(a.slug),description:summary?.summary||'',enabled:settings.publicIndexingEnabled===true,indexable:Boolean(summary?.text),image:photo(photoForArticle(a),1440).src,language:a.language||'vi',article:{published:a.createdAt,modified:a.updatedAt},...(translated.length>1?{translations:Object.fromEntries(translated.map(item=>[item.language||'vi','/bai-viet/'+encodeURIComponent(item.slug)]))}:{})});
 }
 export default async function Page({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params,a=await articleForPage(slug);
+  const { slug } = await params,a=await articleForPage(slug),summary=await publicArticleSummary(slug);
   const news=a.kind==='news'||content.newsSlugs.includes(a.slug),parent=articleParent(news?'news':a.kind,a.jurisdiction),revision=getPresentationVersion(path.join(process.cwd(),'public'));
   const pathName='/bai-viet/'+encodeURIComponent(a.slug);
-  return (<><StructuredData value={articleSchema({title:a.title,path:pathName,description:articleText(a.body||''),image:photo(photoForArticle(a),1440).src,published:a.createdAt,modified:a.updatedAt,language:a.language||'vi',news,parent})}/>
+  return (<><StructuredData value={articleSchema({title:a.title,path:pathName,description:summary?.summary||'',image:photo(photoForArticle(a),1440).src,published:a.createdAt,modified:a.updatedAt,language:a.language||'vi',news,parent})}/>
     <PublicFrame revision={revision} section={news?'news':'lookup'} articleHero>
       <div className="live-reading-page">
         <div className="container">

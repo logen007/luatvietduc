@@ -5,6 +5,8 @@ import {createElement} from 'react';
 import {Photo} from '../src/modules/public-site/Photo.tsx';
 import sharp from 'sharp';
 import {readFile,stat} from 'node:fs/promises';
+import {articleSummary} from '../src/modules/public-site/article-summary.ts';
+import {articleText} from '../src/modules/content/article-body.ts';
 import {StoryCard} from '../src/modules/public-site/ui.tsx';
 import {StructuredData} from '../src/modules/public-site/StructuredData.tsx';
 import {canonicalPage,filteredPage,publicMetadata,robotsDocument,articleSchema,pageSchema,jsonLd,sitemapDocument,descriptionText} from '../src/modules/public-site/seo.ts';
@@ -67,4 +69,24 @@ test('high priority picture keeps native format selection without a forced WebP 
 test('media previews only substitute known immutable packaged photos',()=>{
  assert.equal(packagedPhotoName('/assets/photos/family-1800.webp'),'family');
  for(const url of ['/assets/photos/unknown-1800.webp','https://r2.example/assets/photos/family-1800.webp','/service/media/1','/assets/photos/family-1800.webp?token=private','/media/family-1800.webp'])assert.equal(packagedPhotoName(url),null);
+});
+
+
+test('one safe text projection preserves summaries and reading time for legacy and rich articles',()=>{
+ for(const body of [null,'','Legacy <b>literal</b> text','Nội dung '.repeat(600),'<div data-lvd-richtext="1"><h2>Tiêu đề</h2><p>Nội dung &amp; thông tin.</p><script>never expose</script><img src="/image.webp" alt="hidden description"/></div>']){
+  const expected=articleText(body).trim(),actual=articleSummary(body);
+  assert.equal(actual.text,expected);assert.equal(actual.summary,expected.replace(/\s+/g,' ').slice(0,180));assert.equal(actual.readingMinutes,Math.max(1,Math.ceil(expected.split(/\s+/u).filter(Boolean).length/220)));
+ }
+});
+test('sitemap keeps first occurrence, ordering, valid dates and XML escaping at page scale',()=>{
+ const rows=Array.from({length:1000},(_,i)=>({path:'/bai-viet/'+i}));
+ const xml=sitemapDocument([{path:'/first?x=1&y=2',updatedAt:'2026-11-08'},...rows,{path:'/bai-viet/0',updatedAt:'invalid'}]);
+ assert.equal((xml.match(/<url>/g)||[]).length,1001);assert.match(xml,/first\?x=1&amp;y=2/);assert.match(xml,/<lastmod>2026-11-08T00:00:00.000Z<\/lastmod>/);assert.ok(xml.indexOf('/bai-viet/0<')<xml.indexOf('/bai-viet/999<'));assert.ok(!xml.includes('invalid'));
+});
+test('pagination metadata distinguishes page two and preview permission is public-only',()=>{
+ const second=publicMetadata({title:'Tin tức',path:'/tin-tuc?trang=2',enabled:true});
+ assert.equal(second.title,'Tin tức · Trang 2 — Luật Việt Đức');assert.equal(second.alternates.canonical,'https://luatvietduc.com/tin-tuc?trang=2');assert.equal(second.robots['max-image-preview'],'large');
+ assert.equal(publicMetadata({title:'Nachrichten',path:'/tin-tuc?trang=3',enabled:true,language:'de'}).title,'Nachrichten · Seite 3 — Luật Việt Đức');
+ assert.equal(publicMetadata({title:'Tin tức',path:'/tin-tuc?trang=1',enabled:true}).title,'Tin tức — Luật Việt Đức');
+ for(const options of [{enabled:false},{enabled:true,indexable:false}])assert.equal(publicMetadata({title:'Hidden',path:'/test',...options}).robots['max-image-preview'],undefined);
 });

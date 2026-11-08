@@ -92,3 +92,13 @@ quy tắc trả lời, tài khoản và editor. Đo local: CLS sao lưu 0,643 �
 0,563 → 0, đăng ký mobile 0,260 → 0,0011; không suy ra tốc độ production từ
 các số này. Xem [báo cáo ổn định bố cục](verification/2026-11-08-layout-stability.md).
 Không thay cache/ACL/phiên, schema hoặc lịch sao lưu.
+
+
+## Lượt rà tốc độ, SEO/AIO và cập nhật tiếp theo — 2026-11-08
+
+Rà 109 URL production trong sitemap, tất cả trả 200 và có title/description/H1/
+JSON-LD. Loại bỏ chuyển rich text lặp, đọc danh mục độc lập đồng thời, khử trùng
+sitemap tuyến tính; dùng lại catalog công khai/hash ảnh theo fingerprint snapshot.
+Thêm tiêu đề riêng cho phân trang và preview lớn chỉ cho trang được index.
+588 unit/domain checks, build, 72 lượt mở mobile/desktop và SEO/thu hồi đều đạt.
+Xem [biên bản và thời gian CI thực](verification/2026-11-08-performance-seo-aio.md).

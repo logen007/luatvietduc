@@ -14,6 +14,9 @@ test('photo URLs change only when their bytes change, including an atomic snapsh
   }
   const current=path.join(root,'public');symlinkSync(path.join(root,'old'),current);
   const before=homeBenefitPhotos(current);assert.deepEqual(homeBenefitPhotos(current),before);
+  const mutable=homeBenefitPhotos(current);mutable[0]='corrupted';assert.equal(homeBenefitPhotos(current)[0],before[0]);
+  writeFileSync(path.join(root,'old/media/benefits/clarity.webp'),'local-edit');
+  const edited=homeBenefitPhotos(current);assert.notEqual(edited[0],before[0]);assert.equal(edited[1],before[1]);
   unlinkSync(current);symlinkSync(path.join(root,'new'),current);
   const after=homeBenefitPhotos(current);
   assert.equal(after[0],before[0]);assert.notEqual(after[1],before[1]);assert.equal(after[2],before[2]);

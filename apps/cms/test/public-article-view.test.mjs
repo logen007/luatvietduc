@@ -1,3 +1,4 @@
+import {articleSummary} from '../src/modules/public-site/article-summary.ts';
 import {StructuredData} from '../src/modules/public-site/StructuredData.tsx';
 import {photo} from '../src/modules/public-site/photos.ts';
 import {Photo} from '../src/modules/public-site/Photo.tsx';
@@ -22,7 +23,7 @@ async function render(article){
   '../../../../modules/shared/locale':{LocaleText:({text})=>text,LocaleDate:({value})=>value},
   'next/navigation':{notFound:()=>assert.fail('Synthetic article must exist'),permanentRedirect:()=>assert.fail('No redirect expected')},
   '../../../../modules/content/navigation':{articleParent},
-  '../../../../modules/public-site/server':{content:{newsSlugs:[],articleAliases:{}},publicArticle:async()=>article},
+  '../../../../modules/public-site/server':{content:{newsSlugs:[],articleAliases:{}},publicArticle:async()=>article,publicArticleSummary:async()=>articleSummary(article.body)},
   '../../../../modules/public-site/StructuredData':{StructuredData},'../../../../modules/public-site/Photo':{Photo},'../../../../modules/public-site/photos':{photo},'../../../../modules/public-site/seo':{articleSchema},'../../../../modules/public-site/Frame':{PublicFrame:({children})=>children},
   '../../../../modules/shared/presentation-version.mjs':{getPresentationVersion:()=> 'synthetic'},'node:path':{default:{join:(...parts)=>parts.join('/')}},
  }[name]||assert.fail(name))});

@@ -1,4 +1,4 @@
-import {articleText} from '../content/article-body';
+import {articleSummary} from './article-summary';
 import {pool} from '../shared/db';
 import {cache} from 'react';
 import {getPayload,type Where} from 'payload';
@@ -17,6 +17,10 @@ export const publicSiteSettings=cache(async()=>publicSettings(await (await publi
 export const publicArticle=cache(async(slug:string)=>{
  const result=await (await publicPayload()).find({collection:'articles',overrideAccess:false,draft:false,where:{and:[publicArticles,{slug:{equals:slug}}]},limit:1,depth:1});
  return result.docs[0]||null;
+});
+// Request-local only: a withdrawal or edit is checked again on the next request.
+export const publicArticleSummary=cache(async(slug:string)=>{
+ const article=await publicArticle(slug);return article?articleSummary(article.body):null;
 });
 export const publicArticleTranslations=cache(async(group?:string|null)=>{
  if(!group)return [];
@@ -61,7 +65,6 @@ async function publicSearchIds(query:string){
   ]);
  return result.rows.map(row=>row.id);
 }
-const readingMinutes=(body:string)=>Math.max(1,Math.ceil(articleText(body).trim().split(/\s+/u).filter(Boolean).length/220));
 const newsCategoryNames:Record<string,[string,string]>={'doi-song':['Đời sống & đi lại','Alltag & Mobilität'],'cu-tru':['Cư trú & giấy tờ','Aufenthalt & Dokumente'],'viec-lam':['Việc làm','Arbeit'],'gia-dinh':['Gia đình','Familie'],'hoc-tap':['Học tập','Bildung'],'cong-dong':['Cộng đồng','Community']};
 function cardCategory(slug:string,name:string,country='VN'){
  const news=slug.startsWith('tin-')?newsCategoryNames[slug.slice(4)]:undefined;
@@ -71,7 +74,7 @@ function cardCategory(slug:string,name:string,country='VN'){
 export async function publicNewsList({query='',group='',editorialType='',page=1,limit=12}={}){
  const [cms,archive]=await Promise.all([publicArticleList({kind:'news',query,group:group?'tin-'+group:'',editorialType,page,limit}),publicLegacyNews()]);
  const legacy=archive.filter(story=>(!group||story.category===group)&&(!editorialType||story.type===editorialType)&&(!query||normalize(story.title+' '+story.summary).includes(normalize(query))));
- const offset=Math.max(0,(page-1)*limit-cms.totalDocs),fallback:Card[]=legacy.slice(offset,offset+Math.max(0,limit-cms.docs.length)).map((story,index)=>({id:-1-offset-index,slug:story.id,title:story.title,summary:story.summary,photo:story.photo,published:story.published,readingMinutes:readingMinutes([...story.paragraphs,...(story.points||[])].join(' ')),category:cardCategory('tin-'+story.category,newsCategoryNames[story.category]?.[0]||story.category),kind:story.type,language:'vi',href:'/tin/'+story.id}));
+ const offset=Math.max(0,(page-1)*limit-cms.totalDocs),fallback:Card[]=legacy.slice(offset,offset+Math.max(0,limit-cms.docs.length)).map((story,index)=>({id:-1-offset-index,slug:story.id,title:story.title,summary:story.summary,photo:story.photo,published:story.published,readingMinutes:articleSummary([...story.paragraphs,...(story.points||[])].join(' ')).readingMinutes,category:cardCategory('tin-'+story.category,newsCategoryNames[story.category]?.[0]||story.category),kind:story.type,language:'vi',href:'/tin/'+story.id}));
  const totalDocs=cms.totalDocs+legacy.length;
  return {...cms,docs:[...cms.docs,...fallback],totalDocs,totalPages:Math.max(1,Math.ceil(totalDocs/limit))};
 }
@@ -83,7 +86,25 @@ export async function publicArticleList({kind='legal',query='',group='',country=
  if(kind==='news'&&editorialType==='news')where.push({kind:{equals:'news'}});
  if(country)where.push({jurisdiction:{in:[country,'BOTH']}});
  if(group){const category=(await publicCategories()).find(category=>category.slug===group);if(!category)return {docs:[],totalDocs:0,totalPages:1,page};where.push({categories:{in:[category.id]}});}
- const result=await (await publicPayload()).find({collection:'articles',overrideAccess:false,draft:false,where:{and:where},sort:order==='a-z'?['title','id']:['-updatedAt','id'],depth:0,page,limit,select:{id:true,slug:true,title:true,body:true,language:true,kind:true,jurisdiction:true,createdAt:true,categories:true}});
- const categories=await publicCategories();
- return {docs:result.docs.map(article=>{const categoryId=article.categories?.[0],category=categories.find(item=>item.id===(typeof categoryId==='number'?categoryId:categoryId?.id));return {id:article.id,slug:article.slug,title:article.title,summary:articleText(article.body||'').replace(/\s+/g,' ').trim().slice(0,180),kind:article.kind||'article',language:article.language,photo:photoForArticle(article),published:article.createdAt,readingMinutes:readingMinutes(article.body||''),...(category?{category:cardCategory(category.slug,category.name,country||article.jurisdiction)}:{})};}),page:result.page||page,totalPages:result.totalPages,totalDocs:result.totalDocs};
+ const [result,categories]=await Promise.all([
+  publicPayload().then(payload=>payload.find({
+   collection:'articles',overrideAccess:false,draft:false,where:{and:where},
+   sort:order==='a-z'?['title','id']:['-updatedAt','id'],depth:0,page,limit,
+   select:{id:true,slug:true,title:true,body:true,language:true,kind:true,jurisdiction:true,createdAt:true,categories:true},
+  })),
+  publicCategories(),
+ ]);
+ const categoriesById=new Map(categories.map(category=>[category.id,category]));
+ const docs=result.docs.map(article=>{
+  const categoryId=article.categories?.[0];
+  const category=categoryId?categoriesById.get(typeof categoryId==='number'?categoryId:categoryId.id):undefined;
+  const summary=articleSummary(article.body);
+  return {
+   id:article.id,slug:article.slug,title:article.title,summary:summary.summary,
+   kind:article.kind||'article',language:article.language,photo:photoForArticle(article),
+   published:article.createdAt,readingMinutes:summary.readingMinutes,
+   ...(category?{category:cardCategory(category.slug,category.name,country||article.jurisdiction)}:{}),
+  };
+ });
+ return {docs,page:result.page||page,totalPages:result.totalPages,totalDocs:result.totalDocs};
 }

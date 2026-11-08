@@ -13,8 +13,10 @@ const before=await payload.findGlobal({slug:'site-settings',overrideAccess:true}
 let server,browser,owner,log='';
 try{
  owner=await payload.create({collection:'users',overrideAccess:true,context:{bootstrapOwner:true},data:{name:'Synthetic SEO owner',email:`seo-${suffix}@example.invalid`,password:crypto.randomUUID(),role:'owner'}});
- const create=async(language,status)=>{const article=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic SEO '+language+' '+suffix,slug:'seo-'+language+'-'+status+'-'+suffix,body:'Nội dung kiểm thử giả, không phải tư vấn.',jurisdiction:'BOTH',language,_status:status,reviewState:status==='published'?'approved':'draft'}});ids.push(article.id);return article;};
+ const create=async(language,status)=>{const article=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic SEO '+language+' '+suffix,slug:'seo-'+language+'-'+status+'-'+ids.length+'-'+suffix,body:'Nội dung kiểm thử giả, không phải tư vấn.',jurisdiction:'BOTH',language,_status:status,reviewState:status==='published'?'approved':'draft'}});ids.push(article.id);return article;};
  const first=await create('vi','published'),draft=await create('vi','draft');
+ // More than one real page catches accidental canonical/title collapse.
+ for(let i=0;i<12;i++)await create('vi','published');
  const req=await createLocalReq({user:owner},payload);setTranslationGroup(req,first.translationGroup);
  const second=await payload.create({collection:'articles',req,overrideAccess:false,data:{title:'Synthetischer SEO Test '+suffix,slug:'seo-de-'+suffix,body:'Synthetischer Testinhalt.',jurisdiction:'BOTH',language:'de',_status:'published',reviewState:'approved'}});ids.push(second.id);
  server=spawn(process.execPath,['node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port','3048'],{stdio:['ignore','pipe','pipe'],env:process.env});
@@ -36,6 +38,8 @@ try{
   assert.match(await page.locator('meta[name="robots"]').getAttribute('content'),/(?<!no)index/);
   const schemas=await page.locator('script[type="application/ld+json"]').allTextContents();assert.equal(schemas.length,1,path);for(const schema of schemas)assert.ok(JSON.parse(schema)['@graph'].length);
  }
+ await page.goto(base+'/phap-luat/viet-nam?trang=2');assert.match(await page.title(),/Trang 2/);assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'),base+'/phap-luat/viet-nam?trang=2');
+ assert.match(await page.locator('meta[name="robots"]').getAttribute('content'),/max-image-preview:large/);
  await page.goto(base+'/tin-tuc?q=synthetic');assert.match(await page.locator('meta[name="robots"]').getAttribute('content'),/noindex/);
  for(const path of ['/tai-khoan','/hoi-dap']){await page.goto(base+path);assert.match(await page.locator('meta[name="robots"]').getAttribute('content'),/noindex/);}
  await page.goto(base+'/bai-viet/'+first.slug);assert.equal(await page.locator('link[hreflang="de"]').getAttribute('href'),base+'/bai-viet/'+second.slug);
@@ -44,13 +48,13 @@ try{
  assert.equal((await fetch(base+'/bai-viet/'+first.slug)).status,404);
  assert.ok(!(await(await fetch(base+'/sitemaps/0.xml')).text()).includes(first.slug),'Withdrawal immediately removes sitemap URL');
  await page.goto(base+'/bai-viet/'+second.slug);assert.equal(await page.locator('link[hreflang="vi"]').count(),0,'Withdrawn translation is not advertised');
- console.log('Public SEO passed: 12 real page types, robots switch/cache, metadata, JSON-LD, canonical aliases, private/search noindex, translations, draft exclusion and immediate withdrawal.');
+ console.log('Public SEO passed: 12 real page types, robots switch/cache, metadata, JSON-LD, canonical aliases, real page-two title/canonical, public preview directives, private/search noindex, translations, draft exclusion and immediate withdrawal.');
 }catch(error){console.error(log);throw error;}finally{
  await browser?.close();
  if(server&&server.exitCode===null)await new Promise(resolve=>{const timeout=setTimeout(()=>server.kill('SIGKILL'),5000);server.once('exit',()=>{clearTimeout(timeout);resolve();});server.kill('SIGTERM');});
  await payload.updateGlobal({slug:'site-settings',overrideAccess:true,data:{publicIndexingEnabled:before.publicIndexingEnabled===true}});
  for(const id of ids.reverse())await payload.delete({collection:'articles',id,user:owner,overrideAccess:false});
  if(owner)await payload.delete({collection:'users',id:owner.id,overrideAccess:true});
- await payload.destroy();await pool.end();
+ await Promise.race([Promise.all([payload.destroy(),pool.end()]),pause(1500)]);
 }
 process.exit(0);

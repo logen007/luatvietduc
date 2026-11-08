@@ -69,3 +69,22 @@ test('attachment handoff invites a guest once without requiring an assistant han
  state.conversation.aiEnabled=false;state.conversation.state='human';assert.ok(!render().includes('class="chat-login-message"'));
  state.conversation.state='queued';state.messages=[];assert.ok(!render().includes('class="chat-login-message"'));
 });
+
+
+test('public copy reuses only unchanged validated snapshots and follows release switches immediately',()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'lvd-copy-cache-'));
+ try{
+  for(const version of ['old','new']){
+   fs.mkdirSync(path.join(root,version,'content'),{recursive:true});fs.writeFileSync(path.join(root,version,'release.json'),JSON.stringify({version}));
+   for(const name of PUBLIC_COPY_MODULES)fs.writeFileSync(path.join(root,version,'content',name+'.json'),JSON.stringify({version:1,text:name==='home'?{Hello:{vi:version,de:version}}:{}}));
+  }
+  const current=path.join(root,'public');fs.symlinkSync(path.join(root,'old'),current);
+  const first=readPublicCopy(current);assert.equal(first.Hello.vi,'old');assert.equal(readPublicCopy(current),first);
+  assert.throws(()=>{first.Hello.vi='changed by a consumer';});
+  fs.unlinkSync(current);fs.symlinkSync(path.join(root,'new'),current);
+  const next=readPublicCopy(current);assert.equal(next.Hello.vi,'new');assert.notEqual(next,first);
+  fs.writeFileSync(path.join(root,'new/content/home.json'),'invalid');assert.deepEqual(readPublicCopy(current),{});
+  fs.writeFileSync(path.join(root,'new/content/home.json'),JSON.stringify({version:1,text:{Hello:{vi:'fixed',de:'repariert'}}}));assert.equal(readPublicCopy(current).Hello.vi,'fixed');
+  fs.unlinkSync(path.join(root,'new/content/common.json'));assert.deepEqual(readPublicCopy(current),{});
+ }finally{fs.rmSync(root,{recursive:true});}
+});
