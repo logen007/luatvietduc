@@ -51,3 +51,14 @@ html.lvd-admin .operator-workspace.is-embedded{margin:0;max-width:none;border:0;
 @media(max-width:760px){.operator-inbox h1{margin-bottom:14px}.operator-thread-top{font-size:calc(11px * var(--lvd-admin-font-scale,1))}.operator-workspace .operator-thread{min-height:84px;padding:14px 16px}.operator-thread-bottom{top:15px}}
 
 .operator-workspace .operator-delete-conversation{display:inline-flex;align-items:center;justify-content:center;min-width:44px;padding:8px;border-radius:4px}
+
+/* Keep the scroll viewport inset, so scrolling cannot pull tabs across the page gutter. */
+@media(max-width:760px){
+ .operator-workspace.is-embedded .operator-inbox{min-width:0}
+ .operator-workspace.is-embedded .operator-inbox h1>span{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;line-height:20px;flex-shrink:0}
+ .operator-workspace.is-embedded .operator-inbox>nav{box-sizing:border-box;width:calc(100% - 32px);min-width:0;margin:0 16px 12px;padding:0;border:0;gap:4px;scrollbar-width:none}
+ .operator-workspace.is-embedded .operator-inbox>nav::-webkit-scrollbar{display:none}
+ .operator-workspace.is-embedded .operator-inbox>nav button{padding:8px;gap:6px}
+ .operator-workspace.is-embedded .operator-inbox>nav button>span{min-width:0;padding:0}
+ .operator-workspace.is-embedded .operator-threads{border-top:1px solid var(--op-line)}
+}

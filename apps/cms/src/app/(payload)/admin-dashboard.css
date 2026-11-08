@@ -356,7 +356,7 @@ html.lvd-admin .lvd-banner-archive-selector select{width:240px;max-width:100%}
 /* A single mobile header grid keeps the menu and every page title on one axis. */
 @media(max-width:1024px){
  html.lvd-admin{--lvd-admin-header-height:64px;--lvd-admin-title-inset:56px;--gutter-h:16px}
- html.lvd-admin .template-default__nav-toggler-wrapper{width:64px;justify-content:center}
+ html.lvd-admin .template-default__nav-toggler-wrapper{width:76px;justify-content:center}
  html.lvd-admin .template-default__nav-toggler-container{height:var(--lvd-admin-header-height);padding:0;align-items:center}
  html.lvd-admin .template-default__wrap{padding-top:0}
  html.lvd-admin :is(.lvd-admin-page,.dashboard,.collection-list){padding-top:0}
