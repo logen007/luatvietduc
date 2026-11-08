@@ -51,7 +51,7 @@ export default buildConfig({
     push: false,
   }),
   collections: [Users, Articles, Categories, Tags, Knowledge, Media, Audit, QuickReplies].map(withAdminPresentation),
-  globals: [SiteSettings],
+  globals: [SiteSettings].map(withAdminPresentation),
   plugins: [runtimeStorage()],
   email: runtimeEmail,
   upload: { limits: { fileSize: MAX_MEDIA_VIDEO_BYTES } },

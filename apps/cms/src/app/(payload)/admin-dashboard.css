@@ -332,3 +332,23 @@ html.lvd-admin .collection-list:has(.lvd-article-list-header) .list-header__titl
 .lvd-answer-rule summary{cursor:pointer;font-weight:600}
 .lvd-answer-rule li{line-height:1.6;margin-top:12px}
 @media(max-width:600px){.lvd-answer-rule{padding:16px}.lvd-answer-rule textarea{font-size:16px}}
+
+/* Banner controls share the existing console typography, grayscale and 4px corners. */
+html.lvd-admin .lvd-banner-panel{margin:0 0 28px;max-width:960px;color:var(--admin-text,#ccc)}
+html.lvd-admin .lvd-banner-preview-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+html.lvd-admin .lvd-banner-preview-heading h3{font-size:18px;font-weight:600;margin:0;color:inherit}
+html.lvd-admin .lvd-banner-panel button{font:500 14px/20px var(--lvd-font);min-height:40px;padding:8px 12px;background:var(--admin-raised,#242424);color:var(--admin-text,#ccc);border:1px solid var(--admin-line,#333);border-radius:4px;cursor:pointer;white-space:nowrap}
+html.lvd-admin .lvd-banner-panel button:hover{background:#303030;color:#ddd}
+html.lvd-admin .lvd-banner-preview{max-width:720px;aspect-ratio:16/9;background:#171717;overflow:hidden;border:1px solid var(--admin-line,#333);border-radius:4px;scroll-margin-top:20px}
+html.lvd-admin .lvd-banner-preview :is(video,img){display:block;width:100%;height:100%;object-fit:contain}
+html.lvd-admin .lvd-banner-panel :is(p,span){color:var(--admin-muted,#999);font-size:14px;line-height:1.5}
+html.lvd-admin .lvd-banner-preview-caption{margin:8px 0 16px}
+html.lvd-admin .lvd-banner-link{display:grid;grid-template-columns:104px minmax(0,1fr) 94px;gap:8px;align-items:center;margin:8px 0}
+html.lvd-admin .lvd-banner-link>button:first-child{text-align:left;background:transparent;border-color:transparent}
+html.lvd-admin .lvd-banner-panel :is(input,select){min-width:0;width:100%;height:40px;margin:0;padding:8px 10px;font:400 16px/22px var(--lvd-font);color:var(--admin-text,#ccc);background:var(--admin-panel,#141414);border:1px solid var(--admin-line,#333);border-radius:4px}
+html.lvd-admin .lvd-banner-save-note{margin:14px 0 20px}
+html.lvd-admin .lvd-banner-archive{border-top:1px solid var(--admin-line,#333);border-bottom:1px solid var(--admin-line,#333);padding:14px 0}
+html.lvd-admin .lvd-banner-archive summary{cursor:pointer;font-size:15px;font-weight:600;min-height:24px}
+html.lvd-admin .lvd-banner-archive-selector{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:16px 0}
+html.lvd-admin .lvd-banner-archive-selector select{width:240px;max-width:100%}
+@media(max-width:600px){html.lvd-admin .lvd-banner-link{grid-template-columns:minmax(0,1fr) 94px;gap:6px}html.lvd-admin .lvd-banner-link>button:first-child{grid-column:1/-1;padding:4px 0;min-height:32px}html.lvd-admin .lvd-banner-archive-selector select{width:100%}}

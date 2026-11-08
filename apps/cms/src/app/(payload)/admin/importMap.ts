@@ -12,6 +12,7 @@ import { KnowledgeStatusCell as KnowledgeStatusCell_be2b77c824143248d8b14bc6a90c
 import { MediaImageTools as MediaImageTools_ad55e69361eed082914184cc1975b8e8 } from '../../../modules/storage/MediaImageTools'
 import { MediaLibrary as MediaLibrary_6d3f0492a365f15c11305d4fe54e8552 } from '../../../modules/storage/MediaLibrary'
 import { AuditActionCell as AuditActionCell_f9a0fbb33e4503825a2cda9ae5cd6d45 } from '../../../modules/admin/AuditActionCell'
+import { HeroBannerPanel as HeroBannerPanel_1d0227b6585138344335fe0bfc7fcdc6 } from '../../../modules/settings/HeroBannerPanel'
 import { SocialLinksField as SocialLinksField_0c80e06e3c46794c6a3551d2651c781c } from '../../../modules/settings/SocialLinksField'
 import { AdminNavigation as AdminNavigation_d194ed008eff6dd40a335f677eb3ea54 } from '../../../modules/admin/Navigation'
 import { GoogleLogin as GoogleLogin_434d19f5a159509b02e65df12eae47e1 } from '../../../modules/settings/AdminWelcome'
@@ -43,6 +44,7 @@ export const importMap = {
   "./modules/storage/MediaImageTools#MediaImageTools": MediaImageTools_ad55e69361eed082914184cc1975b8e8,
   "./modules/storage/MediaLibrary#MediaLibrary": MediaLibrary_6d3f0492a365f15c11305d4fe54e8552,
   "./modules/admin/AuditActionCell#AuditActionCell": AuditActionCell_f9a0fbb33e4503825a2cda9ae5cd6d45,
+  "./modules/settings/HeroBannerPanel#HeroBannerPanel": HeroBannerPanel_1d0227b6585138344335fe0bfc7fcdc6,
   "./modules/settings/SocialLinksField#SocialLinksField": SocialLinksField_0c80e06e3c46794c6a3551d2651c781c,
   "./modules/admin/Navigation#AdminNavigation": AdminNavigation_d194ed008eff6dd40a335f677eb3ea54,
   "./modules/settings/AdminWelcome#GoogleLogin": GoogleLogin_434d19f5a159509b02e65df12eae47e1,
