@@ -42,9 +42,13 @@ export async function testProfile(payload:Payload,owner:User){
    const uploaded=await profileRequest(makeRequest(token,'POST',form),payload);assert.equal(uploaded.status,200,JSON.stringify(await uploaded.clone().json()));state=await uploaded.json();mediaIds.push(state.avatar);
    assert.match(state.avatarURL,new RegExp('^/service/profile/avatar/'+user.id));
    const customer:chat.Actor={user,guestHash:''},conversation=await chat.createConversation(customer,{consent:true},{assistantEnabled:true});conversationIds.push(conversation.id);
+   const key=crypto.randomUUID(),sent=await chat.message(customer,conversation.id,{key,body:'SĐT: 0901234567',browserContext:{timeZone:'Europe/Berlin',language:'vi-VN',country:'VN'}},2000,{country:'DE'});
+   await chat.message(customer,conversation.id,{key,body:'SĐT: 0901234567',browserContext:{timeZone:'Asia/Saigon'}},2000);
    const detail=(await chat.transcript({user:owner,guestHash:''},conversation.id)).conversation.customer;
    assert.equal(detail?.name,state.name);assert.equal(detail?.email,user.email);assert.equal(detail?.phone,state.phone);assert.equal(detail?.location,state.location);assert.match(detail?.avatarURL||'',new RegExp('^/service/profile/avatar/'+user.id));
    assert.equal((await chat.transcript(customer,conversation.id)).conversation.customer?.name,user.role==='support'?state.name:undefined,'Staff viewing their own conversation receive profile details; regular customer responses do not expose operator details');
+   const incremental=await chat.transcript({user:owner,guestHash:''},conversation.id,Number(sent.id));assert.equal(incremental.messages.length,0);assert.equal(incremental.conversation.info?.browser?.country,'DE');assert.equal(incremental.conversation.info?.browser?.timeZone,'Europe/Berlin','Send retries cannot replace the original browser hint');assert.equal(incremental.conversation.info?.facts.find(f=>f.field==='phone')?.value,'0901234567','Facts survive incremental message cursors');
+   if(user.role==='member')assert.equal((await chat.transcript(customer,conversation.id)).conversation.info,undefined,'Staff-only summaries stay off the customer response');
    await assert.rejects(()=>chat.transcript({user:null,guestHash:crypto.randomUUID()},conversation.id),{status:403});
    const media=await payload.findByID({collection:'media',id:state.avatar,overrideAccess:true,depth:0});assert.equal(media.visibility,'public');assert.equal(media.uploadedBy,user.id);assert.equal(media.mimeType,'image/webp');assert.equal(media.width,384);assert.equal(media.height,384);assert.ok(media.filesize!<image.length);
    assert.equal((await profileAvatarResponse(payload,String(user.id))).status,307);

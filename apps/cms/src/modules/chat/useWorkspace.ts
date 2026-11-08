@@ -1,5 +1,6 @@
 "use client";
 import {useRouter} from 'next/navigation';
+import {currentBrowserContext} from './browser-context';
 import {useEffect,useRef,useState} from "react";
 import {api,ClientApiError} from "../shared/client-api";
 import {isAdmin,canEnterAdmin} from '../identity/permissions';
@@ -43,7 +44,7 @@ export function useWorkspace(staff=false,manageList=true){
   const lifecycle=useRef({key:effectKey,status:session.status,ownerKey,failureStatus:session.failureStatus});lifecycle.current={key:effectKey,status:session.status,ownerKey,failureStatus:session.failureStatus};
   const retainedOwner=useRef<{key:string;scope:string;id:number|null}|null>(null),recoveringSession=useRef(false),continuity=useRef(0);
   const activeDraft=useRef({selected,text,attachments});activeDraft.current={selected,text,attachments};
-  const outbox=useRef(createMessageOutbox((id,draft)=>api<MessageReceipt>(`conversations/${id}/messages`,{...draft,...(!mode.current?{aiConsentVersion:'gemini-rag-v1'}:{})}))),
+  const outbox=useRef(createMessageOutbox((id,draft)=>api<MessageReceipt>(`conversations/${id}/messages`,{...draft,...(!mode.current?{aiConsentVersion:'gemini-rag-v1',browserContext:currentBrowserContext()}:{})}))),
     log = useRef<HTMLDivElement>(null),
     shell = useRef<HTMLElement>(null);
   // visualViewport tracks the remaining visible area when mobile keyboards open.

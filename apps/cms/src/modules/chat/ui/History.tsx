@@ -2,11 +2,12 @@
 import {useLocale} from "../../shared/locale";
 import {useId,useState} from 'react';
 import type {WorkspaceState} from '../useWorkspace';
+import {conversationDisplayTitle} from '../display';
 import {ChatIcon} from './Icons';
 export function ChatHistory({state,onSelect,onNew}:{state:WorkspaceState;onSelect:(id:string)=>void;onNew:()=>void}){
  const {t}=useLocale();
  const [search,setSearch]=useState(''),id=useId();
- const rows=state.rows.map(row=>({...row,displayTitle:!row.title||row.title==='Cuộc trò chuyện mới'||/^(hi|hello|hallo|chào|xin chào)[.!?\s]*$/i.test(row.title)||row.title.trim().length<4?t('Cuộc trò chuyện mới'):row.title})).filter(row=>row.displayTitle.toLocaleLowerCase('vi').includes(search.trim().toLocaleLowerCase('vi')));
+ const rows=state.rows.map(row=>({...row,displayTitle:conversationDisplayTitle(row.id,row.title)})).filter(row=>row.displayTitle.toLocaleLowerCase('vi').includes(search.trim().toLocaleLowerCase('vi')));
  return <>
   <button type="button" className="chat-create" onClick={onNew} disabled={state.busy||state.uploading||!state.loaded}><ChatIcon name="new"/>{t("Cuộc trò chuyện mới")}</button>
   <label htmlFor={id} className="sr-only">{t("Tìm cuộc trò chuyện")}</label><input id={id} className="chat-history-search" value={search} onChange={e=>setSearch(e.target.value)} type="search" placeholder={t("Tìm cuộc trò chuyện")}/>

@@ -1,5 +1,7 @@
 import {customerMetadata} from '../knowledge/citations';
 import {avatarURL} from '../identity/avatar';
+import {normalizeBrowserContext} from './browser-context';
+import {customerConversationInfo} from './customer-facts';
 import { randomUUID } from "node:crypto";
 import { pool, transaction, hash } from "../shared/db";
 import type { User } from "../../payload-types";
@@ -100,6 +102,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
     deny();
   }
   const staff = isStaff(a.user) && !isCustomer(a, c);
+  const info=isStaff(a.user)?customerConversationInfo((await pool.query("SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND NOT internal AND COALESCE(metadata->>'kind','')<>'deleted' ORDER BY id DESC LIMIT 200",[id])).rows.reverse()):undefined;
   const messages = await pool.query(
     "SELECT id,role,body,internal,created_at,client_key,metadata,CASE WHEN role='staff' THEN (SELECT name FROM users WHERE 'staff:'||users.id::text=lvd_messages.actor_key) END AS author_name,COALESCE((SELECT json_agg(json_build_object('id',f.id,'name',f.name,'size',f.size,'mimeType',f.mime_type,'url','/service/chat-files/'||f.id)) FROM lvd_chat_files f WHERE f.message_id=lvd_messages.id AND f.ready=true),'[]'::json) AS attachments FROM lvd_messages WHERE conversation_id=$1 AND id>$2 AND COALESCE(metadata->>'kind','')<>'deleted' " +
       (staff ? "" : "AND internal=false ") +
@@ -117,6 +120,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
       registered:Boolean(c.user_id),
       createdAt:c.created_at,updatedAt:c.updated_at,assignedName:staff?c.assigned_name:undefined,
       customer:isStaff(a.user)?{name:c.customer_name||(c.user_id?'Khách':'Khách vãng lai'),email:c.customer_email||null,phone:c.customer_phone||null,location:c.customer_location||null,avatarURL:avatarURL({id:c.user_id,avatar:c.customer_avatar,updatedAt:c.customer_updated_at}),createdAt:c.customer_created_at||null}:undefined,
+      info,
       aiEnabled:c.ai_enabled,
       aiStartedAt:c.ai_started_at,
       aiMessageId:c.ai_message_id,
@@ -129,6 +133,7 @@ export async function message(
   id: string,
   data: any,
   maxLength: number,
+  context:{country?:unknown}={},
 ) {
   const fileIds = Array.isArray(data.fileIds)?data.fileIds:[];
   if(fileIds.length>4||new Set(fileIds).size!==fileIds.length||fileIds.some((v:unknown)=>typeof v!=="string"||!/^[a-f0-9-]{36}$/i.test(v)))throw new HttpError(400,"Tệp đính kèm không hợp lệ.");
@@ -178,7 +183,8 @@ export async function message(
       const files=await db.query("SELECT id FROM lvd_chat_files WHERE id=ANY($1::uuid[]) AND conversation_id=$2 AND actor_key=$3 AND message_id IS NULL AND ready=true FOR UPDATE",[fileIds,id,actorKey]);
       if(files.rowCount!==fileIds.length)throw new HttpError(403,"Không thể gửi tệp này trong hội thoại.");
     }
-    const metadata:any={...(own&&!fileIds.length&&data.aiConsentVersion==='gemini-rag-v1'?{aiConsent:{version:'gemini-rag-v1',provider:'google-gemini',at:new Date().toISOString()}}:{}),...(fileIds.length?{fileIds}:{})};
+    const browserContext=own?normalizeBrowserContext(data.browserContext,context.country):undefined;
+    const metadata:any={...(browserContext?{browserContext}:{}),...(own&&!fileIds.length&&data.aiConsentVersion==='gemini-rag-v1'?{aiConsent:{version:'gemini-rag-v1',provider:'google-gemini',at:new Date().toISOString()}}:{}),...(fileIds.length?{fileIds}:{})};
     const result = await db.query(
       "INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",
       [id, own ? "user" : "staff", body, internal, actorKey, key, Object.keys(metadata).length?JSON.stringify(metadata):null],

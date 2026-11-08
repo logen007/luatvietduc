@@ -119,6 +119,7 @@ async function route(
           id,
           data,
           (await settings()).maxMessageLength || 2000,
+          {country:req.headers.get('cf-ipcountry')},
         );
         result=sent;
       } else if(segments.length===3&&segments[2]==='delete'&&method==='POST'){
