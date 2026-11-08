@@ -5,16 +5,19 @@ import {publicSiteSettings} from '../../modules/public-site/server';
 import {PublicSettingsProvider} from '../../modules/settings/client';
 import {LocaleProvider} from '../../modules/shared/locale';
 import path from 'node:path';
+import {googleMeasurement} from '../../modules/measurement/server';
+import {Measurement} from '../../modules/measurement/Measurement';
 import { getPresentationVersion } from '../../modules/shared/presentation-version.mjs';
 // Public CSS snapshots change independently from the application image.
 export const dynamic = "force-dynamic";
-export const metadata = {
+export async function generateMetadata(){const {verification}=await googleMeasurement();return {
   ...brandMetadata,
   title: "Luật Việt Đức",
   robots: { index: false, follow: false },
-};
+  ...(verification?{verification:{google:verification}}:{}),
+};}
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  const [settings,jar]=await Promise.all([publicSiteSettings(),cookies()]);
+  const [settings,jar,measurement]=await Promise.all([publicSiteSettings(),cookies(),googleMeasurement()]);
   const language=jar.get('lvd-lang')?.value==='de'?'de':'vi';
   const assetVersion=(file:string)=>getPresentationVersion(path.join(process.cwd(),'public'),[file]);
   return (
@@ -29,7 +32,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
         <link rel="stylesheet" href={`/design-system.css?v=${assetVersion('design-system.css')}`} />
         <link rel="stylesheet" href={`/live.css?v=${assetVersion('live.css')}`} />
       </head>
-      <body><LocaleProvider language={language} copy={readPublicCopy()}><PublicSettingsProvider settings={settings}>{children}</PublicSettingsProvider></LocaleProvider></body>
+      <body><LocaleProvider language={language} copy={readPublicCopy()}><PublicSettingsProvider settings={settings}>{children}<Measurement config={{gtmId:measurement.gtmId,gaId:measurement.gaId}}/></PublicSettingsProvider></LocaleProvider></body>
     </html>
   );
 }

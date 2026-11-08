@@ -1,4 +1,13 @@
 export const integrationCatalog = {
+  gtm: { title: 'Google Tag Manager', help: 'Nhập Container ID của Web container. Khi bật GTM, Analytics trực tiếp sẽ tạm ngừng để tránh ghi nhận trùng. Chỉ tải thẻ sau khi khách đồng ý thống kê.', fields: [
+    {key:'containerId',label:'Container ID',secret:false,placeholder:'GTM-XXXXXXX'},
+  ] },
+  analytics: { title: 'Google Analytics 4', help: 'Nhập Measurement ID của luồng Web. Dùng mục này khi không bật Tag Manager; chỉ đo lượt xem trang công khai sau khi khách đồng ý.', fields: [
+    {key:'measurementId',label:'Measurement ID',secret:false,placeholder:'G-XXXXXXXXXX'},
+  ] },
+  searchConsole: { title: 'Google Search Console', help: 'Xác minh website bằng thẻ HTML. Chỉ nhập mã trong content, không dán cả đoạn HTML. Sau khi bật, quay lại Google để bấm Xác minh.', fields: [
+    {key:'verification',label:'Mã xác minh Google',secret:false,placeholder:'Mã trong content của google-site-verification'},
+  ] },
   drive: { title: 'Google Drive · Sao lưu', help: 'Dùng OAuth riêng cho sao lưu, khóa age công khai và thư mục riêng của Luật Việt Đức. Lưu thay đổi ở đây sẽ yêu cầu kết nối lại tài khoản Drive.', fields: [
     {key:'clientId',label:'OAuth Client ID cho sao lưu',secret:false,placeholder:'…apps.googleusercontent.com'},
     {key:'clientSecret',label:'OAuth Client Secret',secret:true,placeholder:''},

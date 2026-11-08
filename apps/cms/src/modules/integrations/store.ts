@@ -8,6 +8,9 @@ import type {PoolClient} from 'pg';
 type Row = { provider: Provider; encrypted_values: string; enabled: boolean; version: number; check_state: string; checked_at: string | null; updated_at: string };
 const envValues = (p: Provider): Values => {
   const e = process.env;
+  if (p === 'gtm') return {containerId:''};
+  if (p === 'analytics') return {measurementId:''};
+  if (p === 'searchConsole') return {verification:''};
   if (p === 'drive') return {clientId:'',clientSecret:'',ageRecipient:''};
   if (p === 'google') return { clientId: e.GOOGLE_CLIENT_ID || '', clientSecret: e.GOOGLE_CLIENT_SECRET || '' };
   if (p === 'ai') return { apiKey: e.GEMINI_API_KEY || '', model: e.GEMINI_MODEL || '' };

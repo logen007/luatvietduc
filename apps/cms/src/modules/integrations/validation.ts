@@ -26,6 +26,9 @@ export function mergeValues(provider: Provider, previous: Values, input: unknown
 export function validateValues(provider: Provider, v: Values) {
   const invalid = (message: string): never => { throw new IntegrationError(400, message); };
   for (const field of integrationCatalog[provider].fields) if (!v[field.key] && !('optional' in field && field.optional)) invalid('Vui lòng điền ' + field.label + '.');
+  if (provider === 'gtm' && !/^GTM-[A-Z0-9]{4,32}$/.test(v.containerId)) invalid('Container ID phải có dạng GTM-XXXXXXX.');
+  if (provider === 'analytics' && !/^G-[A-Z0-9]{6,32}$/.test(v.measurementId)) invalid('Measurement ID GA4 phải có dạng G-XXXXXXXXXX.');
+  if (provider === 'searchConsole' && !/^[A-Za-z0-9_-]{16,256}$/.test(v.verification)) invalid('Chỉ nhập mã xác minh trong content, không dán thẻ HTML hoặc URL.');
   if (['google','drive'].includes(provider) && !/^[\w.-]+\.apps\.googleusercontent\.com$/.test(v.clientId)) invalid('Client ID Google không đúng định dạng.');
   if (provider === 'drive' && !/^age1[0-9a-z]{58}$/.test(v.ageRecipient)) invalid('Nhập khóa age công khai hợp lệ; không nhập khóa khôi phục bí mật ở đây.');
   if (provider === 'ai' && !/^[a-zA-Z0-9][a-zA-Z0-9.-]{0,99}$/.test(v.model)) invalid('Tên model không hợp lệ; chỉ nhập tên, không nhập URL.');

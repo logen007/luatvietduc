@@ -9,6 +9,7 @@ export function r2Client(v: Values) {
 }
 export async function checkConnection(provider: Provider, v: Values, email: string) {
   validateValues(provider, v);
+  if (['gtm','analytics','searchConsole'].includes(provider)) return {state:'configured',message:provider==='searchConsole'?'Mã đúng định dạng. Bật rồi bấm Xác minh trong Search Console; đây chưa phải xác nhận quyền sở hữu từ Google.':'Mã đúng định dạng. Bật rồi xác nhận dữ liệu tại Tag Assistant hoặc Analytics Realtime sau khi đồng ý thống kê. Chưa xác nhận mã thuộc tài khoản Google của anh.'};
   if (provider === 'drive') {
     const {driveAccess} = await import('../backup/google');
     if(!v.refreshToken||!v.folderId)return {state:'failed',message:'Hãy kết nối tài khoản Google Drive trước khi kiểm tra.'};

@@ -8,7 +8,7 @@ import {useUnsavedChanges} from '../shared/unsaved-changes';
 import {isPublicSessionCurrent,usePublicSession,loadPublicSession} from '../shared/session-client';
 import {createOperationGate} from '../chat/client-operations';
 type Connection={provider:Provider;values:Values;stored:Record<string,boolean>;version:number;enabled:boolean;checkState:string;checkedAt:string|null};
-const labels:Record<string,string>={untested:'Chưa kiểm tra',passed:'Kiểm tra đạt',failed:'Kiểm tra chưa đạt',configured:'Định dạng hợp lệ · cần thử đăng nhập'};
+const labels:Record<string,string>={untested:'Chưa kiểm tra',passed:'Kiểm tra đạt',failed:'Kiểm tra chưa đạt',configured:'Định dạng hợp lệ'};
 function ConnectionForm({initial,revision,pending=false}:{initial:Connection;revision:number;pending?:boolean}){
   const [connection,setConnection]=useState(initial),[values,setValues]=useState<Values>(initial.values),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[conflict,setConflict]=useState(false);
   const dirty=JSON.stringify(values)!==JSON.stringify(connection.values);
@@ -62,7 +62,7 @@ function ConnectionForm({initial,revision,pending=false}:{initial:Connection;rev
     {error&&<p className="live-error" role="alert">{error}{conflict&&<> <button type="button" disabled={pending||busy} onClick={()=>void reload()}>Tải lại cấu hình</button></>}</p>}
   </section>;
 }
-export function IntegrationPanel({providers=['google','ai','translation','r2','email']}:{providers?:Provider[]}){
+export function IntegrationPanel({providers=['google','ai','translation','r2','email','gtm','analytics','searchConsole']}:{providers?:Provider[]}){
   const session=usePublicSession(),owner=session.status==='ready'&&session.user?.role==='owner';
   const [revision,setRevision]=useState(-1);
   const [connections,setConnections]=useState<Connection[]|null>(null),[error,setError]=useState<ConnectionError|null>(null),[attempt,setAttempt]=useState(0);

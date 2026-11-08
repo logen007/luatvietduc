@@ -76,6 +76,19 @@ try {
   await testThreeRoles(payload,owner);
   await testPublicContent(payload,owner);
   // Vault tests run only in the isolated CI database; no provider request is made.
+  // New Google IDs use the same encrypted, versioned owner-only connection lifecycle.
+  for(const [provider,values] of [['gtm',{containerId:'GTM-TEST1234'}],['analytics',{measurementId:'G-TEST123456'}],['searchConsole',{verification:'synthetic-verification-123456'}]] as const){
+    assert.equal(await integrations.activeValues(provider),null);
+    await integrations.saveConnection(provider,values,0,owner.id);
+    await assert.rejects(()=>integrations.setEnabled(provider,1,true,owner.id),/Kiểm tra/);
+    await integrations.markCheck(provider,1,'configured',owner.id);
+    await integrations.setEnabled(provider,1,true,owner.id);
+    assert.deepEqual(await integrations.activeValues(provider),values);
+    await integrations.saveConnection(provider,values,2,owner.id);
+    assert.equal(await integrations.activeValues(provider),null);
+    await pool.query('DELETE FROM lvd_integration_events WHERE provider=$1',[provider]);
+    await pool.query('DELETE FROM lvd_integrations WHERE provider=$1',[provider]);
+  }
   await integrations.saveConnection('ai', {apiKey:'synthetic-secret-not-a-real-key',model:'test-model'}, 0, owner.id);
   const safe = await integrations.safeConnection('ai');
   assert.equal(safe.values.apiKey, undefined);
