@@ -44,7 +44,6 @@ export async function AdminWelcome({ user }: WelcomeProps) {
       <header className="lvd-admin-welcome__header">
         <div>
           <h1 id="lvd-admin-welcome-title">Tổng quan</h1>
-          <p className="lvd-admin-welcome__intro">{user?.name ? `Chào ${user.name}. ` : ""}Theo dõi công việc và mở nhanh mục cần xử lý.</p>
         </div>
       </header>
       <div className="lvd-dashboard-stats">{stats.map(stat=><AppLink href={stat.href} key={stat.label}><span>{stat.label}</span><strong>{stat.value===undefined?'—':stat.value.toLocaleString('vi-VN')}</strong><small>{stat.note}</small></AppLink>)}</div>
