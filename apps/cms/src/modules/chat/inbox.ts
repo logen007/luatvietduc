@@ -10,7 +10,7 @@ export async function specialistInbox(actor:Actor,options:{view?:string;query?:s
  // AI stays low until handoff; account-owned history never displays an expiry.
  const result=await pool.query(`WITH accessible AS (
  SELECT c.*,CASE WHEN c.state='queued' AND c.ai_enabled THEN 'low' ELSE 'ready' END AS inbox_qualification,
- CASE WHEN c.user_id IS NULL AND NOT c.retain_history AND c.state='queued' AND c.ai_enabled THEN c.low_priority_expires_at ELSE NULL END AS inbox_expires_at,
+ CASE WHEN c.user_id IS NULL AND c.guest_expiry_enabled AND c.state='queued' AND c.ai_enabled THEN c.low_priority_expires_at ELSE NULL END AS inbox_expires_at,
  CASE WHEN c.assigned_to=$2 OR $3 THEN c.title ELSE NULL END AS safe_title
  FROM lvd_conversations c WHERE c.jurisdiction=ANY($1) AND (
  c.state='queued'

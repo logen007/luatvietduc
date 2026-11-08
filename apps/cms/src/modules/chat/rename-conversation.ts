@@ -10,7 +10,7 @@ export async function renameCustomerConversation(actor:Actor,id:string,data:{tit
   if(c.version!==data.version||new Date(c.updated_at).getTime()!==Date.parse(data.updatedAt as string))throw new HttpError(409,'Hội thoại có cập nhật mới. Tải lại trước khi đổi tên.');
   // Naming is metadata, so it does not invalidate an answer already in progress.
   // The event protects this title from subsequent automatic AI naming.
-  const row=(await db.query("UPDATE lvd_conversations SET title=$2,updated_at=clock_timestamp(),low_priority_expires_at=CASE WHEN qualification='low' AND NOT retain_history AND user_id IS NULL THEN clock_timestamp()+interval '2 hours' ELSE low_priority_expires_at END WHERE id=$1 RETURNING id,title,version,updated_at",[id,title])).rows[0];
+  const row=(await db.query("UPDATE lvd_conversations SET title=$2,updated_at=clock_timestamp(),low_priority_expires_at=CASE WHEN guest_expiry_enabled AND user_id IS NULL THEN clock_timestamp()+interval '2 hours' ELSE low_priority_expires_at END WHERE id=$1 RETURNING id,title,version,updated_at",[id,title])).rows[0];
   await db.query("INSERT INTO lvd_chat_events(conversation_id,action,actor_id,version) VALUES($1,'customer.rename',$2,$3)",[id,actor.user?.id||null,c.version]);
   return {id:row.id,title:row.title,customTitle:true,version:row.version,updatedAt:row.updated_at};
  });

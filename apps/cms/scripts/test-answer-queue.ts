@@ -28,8 +28,8 @@ export async function testAnswerQueue(owner:User){
  assert.equal((await pool.query('SELECT status FROM lvd_answer_jobs WHERE message_id=$1',[first.sent.id])).rows[0].status,'done','Expired worker lease is recovered');
  const transcript=await chat.transcript(guest,first.c.id);
  assert.equal(transcript.messages.length,2);assert.equal(transcript.messages[1].metadata.kind,'clarify','An unassessed unknown question asks for context when AI is unavailable');
- const retained=(await pool.query('SELECT qualification,retain_history,low_priority_expires_at,ai_enabled FROM lvd_conversations WHERE id=$1',[first.c.id])).rows[0];
- assert.equal(retained.qualification,'needs_details');assert.equal(retained.retain_history,true);assert.equal(retained.low_priority_expires_at,null);assert.equal(retained.ai_enabled,true);
+ const retained=(await pool.query('SELECT qualification,retain_history,guest_expiry_enabled,low_priority_expires_at,ai_enabled FROM lvd_conversations WHERE id=$1',[first.c.id])).rows[0];
+ assert.equal(retained.qualification,'needs_details');assert.equal(retained.retain_history,false);assert.equal(retained.guest_expiry_enabled,true);assert.ok(retained.low_priority_expires_at);assert.equal(retained.ai_enabled,true);
  const claimed=await make();
  await chat.transition({user:owner,guestHash:''},claimed.c.id,{action:'claim',version:1});
  let invoked=false;await processNextAnswer(async()=>{invoked=true;});

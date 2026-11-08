@@ -1,3 +1,4 @@
+import {testGuestExpiryMigration} from './test-guest-expiry-migration';
 import {testHeroBanner} from './test-hero-banner';
 import {testArticleImport} from './test-article-import';
 import {testRolePreview} from './test-role-preview';
@@ -246,6 +247,7 @@ try {
   await testAnswerQueue(owner);
   await testGuestPriority(owner,staff);
   await testChatAccountRetry(owner,staff);
+  await testGuestExpiryMigration();
   await testChatQualification(owner);
   await testCustomerHistory(owner);
   await testSpecialistInbox(owner,staff,other,foreign);

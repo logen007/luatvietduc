@@ -76,7 +76,7 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
   assert.equal((await specialistInbox({user:owner,guestHash:''},{view:'queue',query:result.id})).total,0);
   result=await turn(result,'Cảm ơn');assert.equal(last(result).metadata.kind,'clarify');
   let qualification=(await pool.query('SELECT qualification,retain_history,low_priority_expires_at FROM lvd_conversations WHERE id=$1',[result.id])).rows[0];
-  assert.equal(qualification.retain_history,true);assert.notEqual(qualification.qualification,'low');assert.equal(qualification.low_priority_expires_at,null,'Thanks cannot make a meaningful conversation disposable');
+  assert.equal(qualification.retain_history,true);assert.notEqual(qualification.qualification,'low');assert.ok(qualification.low_priority_expires_at,'An AI-only guest still has an inactivity deadline after a sourced answer and thanks');
   const k=await writeKnowledgeArticle(payload,support,{title:synthetic+' BETA',body:texts.private,publish:true});knowledge.push(k.id);await ready(k.id);
   result=await start('Xin giải thích bộ dữ liệu BETA?');assert.equal(last(result).body,texts.private);assert.equal(last(result).metadata.sources[0].url,undefined,'Private knowledge cannot publish its admin/source URL');
   result=await turn(result,'Chi phí?');assert.equal(last(result).metadata.kind,'ai');assert.equal(last(result).body,texts.private);assert.ok(prompts.at(-1).question.includes('bộ dữ liệu BETA'));assert.ok(prompts.at(-1).question.endsWith('Câu hỏi tiếp: Chi phí?'),'A short follow-up reuses only consented customer context and retrieves fresh evidence');
@@ -86,8 +86,8 @@ export async function testRagMatrix(payload:Payload,owner:User,support:User){
    assert.equal(prompts.length,selectionCount,'Unqualified intake cannot reach sourced answer selection');
    qualification=(await pool.query('SELECT qualification,retain_history,low_priority_expires_at FROM lvd_conversations WHERE id=$1',[assessed.id])).rows[0];
    assert.equal(qualification.qualification,status==='low'?'low':'needs_details',status);
-   assert.equal(qualification.retain_history,status!=='low',status);
-   assert.equal(Boolean(qualification.low_priority_expires_at),status==='low',status);
+   assert.equal(qualification.retain_history,false,status);
+   assert.equal(Boolean(qualification.low_priority_expires_at),true,status);
   }
   intakeMode.status='ready';
   const german=await article('GAMMA',texts.german,'DE'),gSource=await mirror(german.id);await ready(gSource.id);result=await start('Bitte erläutern Sie den GAMMA-Datensatz in Deutschland?');assert.equal(last(result).body,texts.german);

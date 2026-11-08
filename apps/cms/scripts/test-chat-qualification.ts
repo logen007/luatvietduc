@@ -18,7 +18,7 @@ export async function testChatQualification(owner:User){
  const send=(id:string,body='Synthetic expiry follow-up',key=randomUUID())=>chat.message(actor,id,{body,key},2000);
  try{
   const fresh=await make(),initial=await read(fresh);
-  assert.equal(initial.qualification,'unassessed');assert.equal(initial.retain_history,false);assert.equal(initial.low_priority_expires_at,null);
+  assert.equal(initial.qualification,'unassessed');assert.equal(initial.retain_history,false);assert.ok(initial.low_priority_expires_at);assert.equal(initial.guest_expiry_enabled,true);
   await pool.query("UPDATE lvd_conversations SET updated_at=now()-interval '2 minutes' WHERE id=$1",[fresh]);
   assert.equal((await specialistInbox(staff,{view:'queue',query:fresh})).rows.length,0,'Unassessed new requests are not staff work when the worker stalls');
   assert.ok(!(await chat.queue(staff)).some((item:{id:string})=>item.id===fresh),'Legacy queue also excludes fresh unqualified requests');
@@ -29,22 +29,24 @@ export async function testChatQualification(owner:User){
   const inbox=await specialistInbox(staff,{view:'low',query:fresh});assert.equal(inbox.rows.length,1);assert.equal(inbox.rows[0].qualification,'low');assert.ok(inbox.rows[0].expires_at);
   assert.equal((await specialistInbox(staff,{view:'queue',query:fresh})).rows.length,0,'Disposable intake is outside the ordinary queue');
 
-  // Historical/meaningful conversations cannot become disposable again.
-  const historical=await make();await pool.query("UPDATE lvd_conversations SET retain_history=true,created_at=now()-interval '1 year' WHERE id=$1",[historical]);
+  // Explicitly protected archives remain durable; AI qualification alone does not protect a guest.
+  const archive=await chat.createConversation(staff,{consent:true},{assistantEnabled:true}),historical=archive.id;ids.push(historical);
+  await pool.query("UPDATE lvd_conversations SET user_id=NULL,guest_hash=$2,retain_history=true,created_at=now()-interval '1 year' WHERE id=$1",[historical,actor.guestHash]);
   await pool.query("UPDATE lvd_conversations SET retain_history=false,qualification='low',low_priority_expires_at=now()-interval '1 minute' WHERE id=$1",[historical]);
-  row=await read(historical);assert.equal(row.retain_history,true);assert.equal(row.qualification,'needs_details');assert.equal(row.low_priority_expires_at,null);
-  const meaningful=await make();await pool.query("UPDATE lvd_conversations SET qualification='ready' WHERE id=$1",[meaningful]);await low(meaningful,true);
-  row=await read(meaningful);assert.equal(row.retain_history,true);assert.equal(row.qualification,'needs_details');assert.equal(row.low_priority_expires_at,null);
+  row=await read(historical);assert.equal(row.retain_history,true);assert.equal(row.qualification,'low');assert.equal(row.low_priority_expires_at,null);
+  const meaningful=await make();await pool.query("UPDATE lvd_conversations SET qualification='ready',retain_history=true WHERE id=$1",[meaningful]);await low(meaningful,true);
+  row=await read(meaningful);assert.equal(row.retain_history,true);assert.equal(row.guest_expiry_enabled,true);assert.equal(row.qualification,'low');assert.ok(row.low_priority_expires_at,'Legacy automatic retention must not hide the expiry');
 
   // Intake completeness and saved history do not request specialist work.
   for(const qualification of ['needs_details','ready']){
    const aiOnly=await make();await send(aiOnly);
    await pool.query("UPDATE lvd_conversations SET qualification=$2,updated_at=now()-interval '2 minutes' WHERE id=$1",[aiOnly,qualification]);
-   assert.equal((await specialistInbox(staff,{view:'low',query:aiOnly})).rows[0].qualification,'low');
+   assert.equal((await specialistInbox(staff,{view:'low',query:aiOnly})).rows[0].qualification,'low');assert.ok((await specialistInbox(staff,{view:'low',query:aiOnly})).rows[0].expires_at,'All unsaved guest AI requests expose their deadline');
    assert.equal((await specialistInbox(staff,{view:'queue',query:aiOnly})).total,0);
    assert.ok(!(await chat.queue(staff)).some((item:{id:string})=>item.id===aiOnly),'Stalled AI processing alone cannot promote a conversation');
    await pool.query("INSERT INTO lvd_messages(conversation_id,role,body,actor_key,client_key,metadata) VALUES($1,'assistant','Synthetic completed AI answer','assistant',$2,'{\"kind\":\"ai\"}')",[aiOnly,randomUUID()]);
    assert.equal((await specialistInbox(staff,{view:'low',query:aiOnly})).total,1,'Completed AI replies remain low priority');
+   assert.ok((await specialistInbox(staff,{view:'low',query:aiOnly})).rows[0].expires_at);await pool.query("UPDATE lvd_conversations SET low_priority_expires_at=now()-interval '1 minute' WHERE id=$1",[aiOnly]);await expireLowPriorityConversations();assert.equal(await read(aiOnly),undefined,'Answered AI-only guests still expire');
   }
   const handoff=await make();await low(handoff);
   await chat.transition(actor,handoff,{action:'handoff',version:(await read(handoff)).version});
@@ -58,7 +60,7 @@ export async function testChatQualification(owner:User){
   assert.equal((await specialistInbox(staff,{view:'low',query:account.id})).rows[0].expires_at,null);
   const legacyAccount=await make();await low(legacyAccount,true);
   await pool.query('UPDATE lvd_conversations SET user_id=$2,guest_hash=NULL WHERE id=$1',[legacyAccount,owner.id]);
-  assert.equal((await read(legacyAccount)).retain_history,false,'Exercise a legacy account row without a retention flag');
+  assert.equal((await read(legacyAccount)).retain_history,true,'Account linking marks history durable even through the legacy entry point');assert.equal((await read(legacyAccount)).guest_expiry_enabled,false);
   await expireLowPriorityConversations();assert.ok(await read(legacyAccount),'Account ownership independently blocks automatic deletion');
   assert.equal((await specialistInbox(staff,{view:'low',query:legacyAccount})).rows[0].expires_at,null);
   const linkActor:chat.Actor={user:null,guestHash:await hash(randomUUID())},linked=await chat.createConversation(linkActor,{consent:true},{assistantEnabled:true});ids.push(linked.id);
@@ -83,12 +85,12 @@ export async function testChatQualification(owner:User){
   assert.equal((await pool.query('SELECT count(*)::int AS n FROM lvd_answer_jobs WHERE message_id=$1',[question.id])).rows[0].n,1);
   await expireLowPriorityConversations();assert.equal(await read(expired),undefined);
   for(const table of ['lvd_messages','lvd_chat_events','lvd_answer_jobs'])assert.equal((await pool.query(`SELECT count(*)::int AS n FROM ${table} WHERE conversation_id=$1`,[expired])).rows[0].n,0,table+' must cascade');
-  assert.ok(await read(historical));assert.ok(await read(meaningful));assert.ok(await read(active));
+  assert.ok(await read(historical));assert.equal(await read(meaningful),undefined);assert.ok(await read(active));
 
   // Beginning a file upload protects history even if that upload is cancelled.
   const fileThread=await make(),fileId=randomUUID();await low(fileThread,true);
   await pool.query("INSERT INTO lvd_chat_files(id,conversation_id,actor_key,object_key,name,mime_type,size,ready) VALUES($1,$2,$3,$4,'synthetic.txt','text/plain',12,false)",[fileId,fileThread,'guest:'+actor.guestHash,'synthetic-qualification/'+fileId]);
-  row=await read(fileThread);assert.equal(row.retain_history,true);assert.equal(row.qualification,'needs_details');assert.equal(row.low_priority_expires_at,null);
+  row=await read(fileThread);assert.equal(row.retain_history,true);assert.equal(row.guest_expiry_enabled,false);assert.equal(row.qualification,'needs_details');assert.equal(row.low_priority_expires_at,null);
   await pool.query('DELETE FROM lvd_chat_files WHERE id=$1',[fileId]);await low(fileThread,true);await expireLowPriorityConversations();assert.ok(await read(fileThread));
 
   // Explicit specialist ownership remains durable and cancels expiry.

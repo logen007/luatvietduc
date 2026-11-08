@@ -12,6 +12,6 @@ export const fixedAnswerSafeguards=[
  'Không bịa căn cứ pháp luật; câu trả lời pháp lý phải qua kiểm tra nguồn, điều kiện và ngoại lệ.',
  'Không gửi hồ sơ, tệp riêng tư hoặc ghi chú nội bộ cho nhà cung cấp AI; giữ kiểm tra quyền và phạm vi xử lý dữ liệu.',
  'Chuyên viên tiếp nhận thì dừng trả lời tự động. Kết quả cũ không được ghi đè tin nhắn mới.',
- 'Hội thoại chưa thành yêu cầu có nghĩa được xếp thấp; chỉ tự xóa sau 2 giờ im lặng khi chưa có tệp, chuyên viên hoặc lịch sử cần giữ.',
+ 'Hội thoại khách vãng lai chưa lưu vào tài khoản được tự xóa sau 2 giờ không hoạt động, kể cả AI đã hỏi thêm hoặc trả lời xong. Tài khoản, tệp, chuyên viên và lịch sử đã được bảo vệ thì không tự xóa.',
  'Câu hỏi bắt buộc theo từng nhóm và các kiểm tra an toàn vẫn được hệ thống thực thi, kể cả khi sửa quy tắc diễn đạt.',
 ];

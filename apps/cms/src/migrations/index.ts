@@ -1,3 +1,4 @@
+import * as guestChatExpiry from './20261109_010000_guest_chat_expiry';
 import * as chatQualification from './20261106_210000_chat_qualification';
 import * as mediaFamilies from './20261105_210000_media_families';
 import * as knowledgeTaxonomies from './20261106_160000_knowledge_taxonomies';
@@ -62,4 +63,5 @@ export const migrations = [
  {up:heroBanner.up,down:heroBanner.down,name:'20261107_180000_hero_banner'},
  {up:googleMeasurement.up,down:googleMeasurement.down,name:'20261108_120000_google_measurement'},
  {up:customerContact.up,down:customerContact.down,name:'20261108_150000_customer_contact'},
+ {up:guestChatExpiry.up,down:guestChatExpiry.down,name:'20261109_010000_guest_chat_expiry'},
 ];
