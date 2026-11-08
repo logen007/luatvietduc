@@ -3,8 +3,10 @@ import {useEffect,useRef,useState} from 'react';
 import {Header} from '../shared/Header';
 import {Footer} from '../shared/Footer';
 import {usePublicCopy} from './ui';
+import {useScrollReveal} from './useScrollReveal';
 export function PublicFrame({children,revision,home=false,section='',articleHero=false}:{children:React.ReactNode;revision:string;home?:boolean;section?:string;articleHero?:boolean}){
  const frame=useRef<HTMLDivElement>(null),[scrolled,setScrolled]=useState(false),l=usePublicCopy();
+ useScrollReveal(frame,children);
  useEffect(()=>{
   if(!home&&!articleHero){setScrolled(false);return;}
   const root=frame.current,hero=root?.querySelector(home?'.pm-hero':'.live-reading-hero'),header=root?.querySelector('.site-header');
