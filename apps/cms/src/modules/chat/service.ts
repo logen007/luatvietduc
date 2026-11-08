@@ -105,7 +105,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
   const staff = isStaff(a.user) && !isCustomer(a, c);
   const info=isStaff(a.user)?customerConversationInfo((await pool.query("SELECT id,role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND NOT internal AND COALESCE(metadata->>'kind','')<>'deleted' ORDER BY id DESC LIMIT 200",[id])).rows.reverse()):undefined;
   const messages = await pool.query(
-    "SELECT id,role,body,internal,created_at,client_key,metadata,CASE WHEN role='staff' THEN (SELECT name FROM users WHERE 'staff:'||users.id::text=lvd_messages.actor_key) END AS author_name,COALESCE((SELECT json_agg(json_build_object('id',f.id,'name',f.name,'size',f.size,'mimeType',f.mime_type,'url','/service/chat-files/'||f.id)) FROM lvd_chat_files f WHERE f.message_id=lvd_messages.id AND f.ready=true),'[]'::json) AS attachments FROM lvd_messages WHERE conversation_id=$1 AND id>$2 AND COALESCE(metadata->>'kind','')<>'deleted' " +
+    "SELECT id,role,body,internal,created_at,client_key,metadata,CASE WHEN role='staff' THEN (SELECT json_build_object('name',name,'id',id,'avatar',avatar_id,'updatedAt',updated_at) FROM users WHERE 'staff:'||users.id::text=lvd_messages.actor_key) END AS author_profile,COALESCE((SELECT json_agg(json_build_object('id',f.id,'name',f.name,'size',f.size,'mimeType',f.mime_type,'url','/service/chat-files/'||f.id)) FROM lvd_chat_files f WHERE f.message_id=lvd_messages.id AND f.ready=true),'[]'::json) AS attachments FROM lvd_messages WHERE conversation_id=$1 AND id>$2 AND COALESCE(metadata->>'kind','')<>'deleted' " +
       (staff ? "" : "AND internal=false ") +
       "ORDER BY id LIMIT 200",
     [id, after],
@@ -127,7 +127,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
       aiStartedAt:c.ai_started_at,
       aiMessageId:c.ai_message_id,
     },
-    messages: messages.rows.map(row=>({...row,metadata:staff?row.metadata:customerMetadata(row.metadata)})),
+    messages: messages.rows.map(({author_profile,...row})=>({...row,author_name:author_profile?.name||undefined,author_avatar_url:avatarURL(author_profile),metadata:staff?row.metadata:customerMetadata(row.metadata)})),
   };
 }
 export async function message(

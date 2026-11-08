@@ -4,10 +4,9 @@ import {useLayoutEffect,useRef,useState} from 'react';
 import {ReplyText} from './ReplyText';
 import type {WorkspaceState} from '../useWorkspace';
 import {ChatIcon} from './Icons';
-function CopyAnswer({text}:{text:string}){
- const {t,language}=useLocale();
- const [copied,setCopied]=useState(false);
- return <button type="button" className="chat-copy" aria-label={t(copied?'Đã sao chép':'Sao chép câu trả lời')} onClick={async()=>{try{await navigator.clipboard.writeText(text);setCopied(true);}catch{setCopied(false);}}}><ChatIcon name={copied?'check':'copy'}/>{copied&&<span>{t("Đã sao chép")}</span>}</button>;
+function StaffAvatar({src,name}:{src?:string;name:string}){
+ const [failed,setFailed]=useState('');
+ return <span className="chat-staff-avatar" aria-hidden="true">{src&&failed!==src?<img src={src} alt="" decoding="async" onError={()=>setFailed(src)}/>:name.trim().slice(0,1).toLocaleUpperCase('vi')}</span>;
 }
 function MessageTime({value,language}:{value:string;language:string}){
  const date=new Date(value);if(!Number.isFinite(date.getTime()))return null;
@@ -32,10 +31,10 @@ export function ChatMessages({state}:{state:WorkspaceState}){
  return <div className="chat-transcript">
   {state.messages.map(message=><article className={'chat-message '+(message.role==='user'?'user':'assistant')} key={message.id}>
    {message.role==='assistant'&&<div className="chat-answer-label"><ChatIcon name="spark"/><MessageTime value={message.created_at} language={language}/></div>}
+   {message.role==='staff'&&<div className="chat-answer-label"><StaffAvatar src={message.author_avatar_url} name={message.author_name||t('Chuyên viên')}/><strong>{message.author_name||t('Chuyên viên')}</strong><MessageTime value={message.created_at} language={language}/></div>}
    {Boolean(message.attachments?.length)&&<div className="chat-message-files">{(message.attachments||[]).map(file=><a className="chat-file-chip" key={file.id} href={file.url} download><span aria-hidden="true">▤</span><span><strong>{file.name}</strong><small>{Math.ceil(file.size/1024)} KB</small></span><span aria-hidden="true">↓</span></a>)}</div>}
    <div className="chat-answer-text"><ReplyText animate={message.role!=='user'&&newReplies.has(String(message.id))} text={message.role==='assistant'&&message.metadata?.kind==='handoff'?t("Câu hỏi này cần chuyên viên xem xét thêm. Mình đã chuyển cuộc trò chuyện để chuyên viên tiếp tục hỗ trợ tại đây."):String(message.body)}/>{message.id===handoff?.id&&invitation}</div>
    {Boolean(message.metadata?.sources?.length)&&<div className="chat-sources">{(message.metadata?.sources||[]).map(source=>{const href=sourceHref(source.url||'');return href?<a key={source.id} href={href} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><ChatIcon name="arrow"/>{source.title}</a>:<span key={source.id}>{source.title}</span>;})}</div>}
-   {(message.role==='staff'||message.metadata?.kind==='ai')&&<CopyAnswer text={message.body}/>}
   </article>)}
   {/* Attachments transfer directly to staff without an assistant handoff record. */}
   {!handoff&&awaitingSpecialist&&state.messages.some(message=>message.role==='user')&&<article className="chat-message assistant"><div className="chat-answer-text">{invitation}</div></article>}
