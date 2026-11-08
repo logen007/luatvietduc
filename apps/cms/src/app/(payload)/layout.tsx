@@ -1,3 +1,4 @@
+import {ReleaseNotice} from '../../modules/shared/ReleaseNotice';
 import {brandMetadata} from '../../modules/shared/brand-metadata';
 export const metadata={...brandMetadata,robots:{index:false,follow:false}};
 import config from "@payload-config";
@@ -26,6 +27,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <link rel="stylesheet" precedence="admin" href={'/specialist-inbox.css?v='+getPresentationVersion(path.join(process.cwd(),'public'),['specialist-inbox.css'])}/>
       <link rel="stylesheet" precedence="admin" href={'/admin-theme.css?v='+getPresentationVersion(path.join(process.cwd(),'public'),['admin-theme.css'])}/>
       {children}
+      <ReleaseNotice/>
     </RootLayout>
   );
 }

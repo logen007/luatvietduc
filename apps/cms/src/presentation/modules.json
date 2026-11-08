@@ -23,7 +23,8 @@
     "live-css/05-responsive.css",
     "editorial-ui-css/06-application-menu.css",
     "live-css/09-public-shell.css",
-    "form-controls.css"
+    "form-controls.css",
+    "release-notice.css"
   ],
   "editorial-ui.js": [
     "editorial-ui-js/00-native-routing.js"
@@ -44,6 +45,7 @@
     "../app/(payload)/admin-dashboard.css",
     "../modules/content/article-editor.css",
     "admin-profile.css",
-    "form-controls.css"
+    "form-controls.css",
+    "release-notice.css"
   ]
 }

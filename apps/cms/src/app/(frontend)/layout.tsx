@@ -1,3 +1,4 @@
+import {ReleaseNotice} from '../../modules/shared/ReleaseNotice';
 import {readPublicCopy} from '../../modules/shared/public-copy.server';
 import {brandMetadata} from '../../modules/shared/brand-metadata';
 import {cookies} from 'next/headers';
@@ -32,7 +33,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
         <link rel="stylesheet" href={`/design-system.css?v=${assetVersion('design-system.css')}`} />
         <link rel="stylesheet" href={`/live.css?v=${assetVersion('live.css')}`} />
       </head>
-      <body><LocaleProvider language={language} copy={readPublicCopy()}><PublicSettingsProvider settings={settings}>{children}<Measurement config={{gtmId:measurement.gtmId,gaId:measurement.gaId}}/></PublicSettingsProvider></LocaleProvider></body>
+      <body><LocaleProvider language={language} copy={readPublicCopy()}><PublicSettingsProvider settings={settings}>{children}<ReleaseNotice/><Measurement config={{gtmId:measurement.gtmId,gaId:measurement.gaId}}/></PublicSettingsProvider></LocaleProvider></body>
     </html>
   );
 }
