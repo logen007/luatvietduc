@@ -49,3 +49,5 @@ html.lvd-admin .operator-workspace.is-embedded{margin:0;max-width:none;border:0;
 .operator-inbox nav button:hover{background:var(--op-bg);color:var(--op-text)}
 .operator-inbox nav button[aria-pressed=true]>span{color:var(--op-text);font-weight:600}
 @media(max-width:760px){.operator-inbox h1{margin-bottom:14px}.operator-thread-top{font-size:calc(11px * var(--lvd-admin-font-scale,1))}.operator-workspace .operator-thread{min-height:84px;padding:14px 16px}.operator-thread-bottom{top:15px}}
+
+.operator-workspace .operator-delete-conversation{display:inline-flex;align-items:center;justify-content:center;min-width:44px;padding:8px;border-radius:4px}
