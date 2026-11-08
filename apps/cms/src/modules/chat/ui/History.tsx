@@ -1,14 +1,25 @@
 "use client";
 import {useLocale} from "../../shared/locale";
-import {useEffect,useId,useRef,useState} from 'react';
+import {useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
 import type {WorkspaceState} from '../useWorkspace';
 import {conversationDisplayTitle} from '../display';
 import {ChatIcon} from './Icons';
 export function ChatHistory({state,onSelect,onNew}:{state:WorkspaceState;onSelect:(id:string)=>void;onNew:()=>void}){
  const {t}=useLocale();
  const [search,setSearch]=useState(''),id=useId();
- const [menu,setMenu]=useState(''),[renaming,setRenaming]=useState(''),[name,setName]=useState(''),menuRoot=useRef<HTMLDivElement>(null),renameDialog=useRef<HTMLDialogElement>(null),nameInput=useRef<HTMLInputElement>(null),trigger=useRef<HTMLButtonElement|null>(null);
+ const [menu,setMenu]=useState(''),[renaming,setRenaming]=useState(''),[name,setName]=useState(''),menuRoot=useRef<HTMLDivElement>(null),actions=useRef<HTMLDivElement>(null),renameDialog=useRef<HTMLDialogElement>(null),nameInput=useRef<HTMLInputElement>(null),trigger=useRef<HTMLButtonElement|null>(null);
  useEffect(()=>{setMenu('');setRenaming('');renameDialog.current?.close();},[state.sessionRevision]);
+ useLayoutEffect(()=>{
+  const panel=actions.current,button=trigger.current;if(!menu||!panel||!button)return;
+  panel.showPopover();
+  const place=()=>{
+   const anchor=button.getBoundingClientRect(),width=panel.offsetWidth,height=panel.offsetHeight,viewport=document.documentElement;
+   panel.style.left=Math.max(8,Math.min(anchor.right-width,viewport.clientWidth-width-8))+'px';
+   panel.style.top=Math.max(8,anchor.bottom+6+height<=viewport.clientHeight-8?anchor.bottom+6:anchor.top-height-6)+'px';
+  };
+  place();window.addEventListener('resize',place);document.addEventListener('scroll',place,true);
+  return()=>{window.removeEventListener('resize',place);document.removeEventListener('scroll',place,true);if(panel.matches(':popover-open'))panel.hidePopover();};
+ },[menu]);
  useEffect(()=>{
   if(!menu)return;
   const dismiss=(event:PointerEvent)=>{if(!menuRoot.current?.contains(event.target as Node))setMenu('');};
@@ -25,7 +36,7 @@ export function ChatHistory({state,onSelect,onNew}:{state:WorkspaceState;onSelec
    {state.initializationFailed?<p className="chat-history-error" role="alert">{t("Chưa tải được lịch sử hội thoại.")} <button type="button" onClick={state.retry} disabled={state.busy||state.uploading}>{t("Thử lại")}</button></p>:!state.loaded?<p role="status">{t("Đang tải…")}</p>:rows.length?rows.map(row=><div key={row.id} ref={menu===row.id?menuRoot:undefined} className={'chat-history-row'+(state.selected===row.id?' is-selected':'')+(menu===row.id?' is-menu-open':'')}>
     <button className="chat-history-select" type="button" aria-current={state.selected===row.id?'page':undefined} disabled={state.busy||state.uploading||!state.loaded} onClick={()=>{setMenu('');onSelect(row.id);}}><span title={row.displayTitle}>{row.displayTitle}</span></button>
     <button className="chat-history-more" type="button" aria-label={t('Tùy chọn hội thoại')} aria-haspopup="menu" aria-expanded={menu===row.id} disabled={state.busy||state.uploading||!state.loaded} onClick={event=>{trigger.current=event.currentTarget;setMenu(menu===row.id?'':row.id);}}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
-    {menu===row.id&&<div className="chat-history-actions" role="menu" aria-label={t('Tùy chọn hội thoại')} onKeyDown={event=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;event.preventDefault();const items=Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')),index=items.indexOf(document.activeElement as HTMLButtonElement),next=event.key==='Home'?0:event.key==='End'?items.length-1:(index+(event.key==='ArrowDown'?1:-1)+items.length)%items.length;items[next]?.focus();}}><button type="button" role="menuitem" onClick={()=>{setMenu('');state.setError('');setRenaming(row.id);setName(row.displayTitle);renameDialog.current?.showModal();requestAnimationFrame(()=>nameInput.current?.select());}}>{t('Đổi tên')}</button><button type="button" role="menuitem" className="is-danger" onClick={()=>{setMenu('');void state.deleteCustomerConversation(row.id,()=>window.confirm(t('Xóa hội thoại này cùng toàn bộ tin nhắn và tệp đính kèm? Không thể hoàn tác.')));}}>{t('Xóa')}</button></div>}
+    {menu===row.id&&<div ref={actions} popover="manual" className="chat-history-actions" role="menu" aria-label={t('Tùy chọn hội thoại')} onKeyDown={event=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;event.preventDefault();const items=Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')),index=items.indexOf(document.activeElement as HTMLButtonElement),next=event.key==='Home'?0:event.key==='End'?items.length-1:(index+(event.key==='ArrowDown'?1:-1)+items.length)%items.length;items[next]?.focus();}}><button type="button" role="menuitem" onClick={()=>{setMenu('');state.setError('');setRenaming(row.id);setName(row.displayTitle);renameDialog.current?.showModal();requestAnimationFrame(()=>nameInput.current?.select());}}><ChatIcon name="edit"/>{t('Đổi tên')}</button><button type="button" role="menuitem" className="is-danger" onClick={()=>{setMenu('');void state.deleteCustomerConversation(row.id,()=>window.confirm(t('Xóa hội thoại này cùng toàn bộ tin nhắn và tệp đính kèm? Không thể hoàn tác.')));}}><ChatIcon name="trash"/>{t('Xóa')}</button></div>}
    </div>):<p>{t(search?'Chưa tìm thấy hội thoại.':'Hội thoại của bạn sẽ ở đây.')}</p>}
   </div>
   <dialog ref={renameDialog} className="chat-rename-dialog" aria-labelledby={id+'-rename-title'} onClose={()=>setRenaming('')} onCancel={event=>{if(state.busy)event.preventDefault();}}>
