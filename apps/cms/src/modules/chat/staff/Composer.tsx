@@ -8,7 +8,7 @@ export function Composer({state,canReply,onSent,onClaim}:{state:WorkspaceState;c
  const [templateError,setTemplateError]=useState('');
  const picker=useRef<HTMLInputElement>(null),input=useRef<HTMLTextAreaElement>(null),loadedDraft=useRef(''),draftKey=`lvd-staff-draft:${state.me?.user?.id}:${state.selected}:reply`,restricted=Boolean(state.conversation?.restricted);
  const disabled=!canReply||state.internal||state.busy||state.uploading,hasContent=!restricted&&Boolean(state.text.trim()||state.attachments.length);
- useEffect(()=>{const element=input.current;if(element){element.style.height='auto';element.style.height=Math.min(176,Math.max(52,element.scrollHeight))+'px';}},[state.text]);
+ useEffect(()=>{const element=input.current;if(element){element.style.overflowY='hidden';element.style.height='auto';const height=Math.max(52,element.scrollHeight+2);element.style.height=Math.min(176,height)+'px';element.style.overflowY=height>176?'auto':'hidden';}},[state.text,canReply]);
  useEffect(()=>{if(canReply&&!state.busy&&!state.uploading)input.current?.focus({preventScroll:true});},[canReply,state.busy,state.uploading]);
  useEffect(()=>{if(restricted){loadedDraft.current='';try{sessionStorage.removeItem(draftKey);}catch{}return;}if(state.internal){state.setText('');state.setInternal(false);}if(!canReply||loadedDraft.current===draftKey)return;loadedDraft.current=draftKey;if(state.text)return;try{state.setText(sessionStorage.getItem(draftKey)||'');}catch{}},[draftKey,canReply,state.sessionRevision,state.internal,restricted]);
  function edit(value:string){setTemplateError('');state.setText(value);try{if(value)sessionStorage.setItem(draftKey,value);else sessionStorage.removeItem(draftKey);}catch{}}
