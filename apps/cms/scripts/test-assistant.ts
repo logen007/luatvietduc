@@ -84,7 +84,8 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
   let transcript=await chat.transcript(answered.actor,answered.conversation.id);assert.equal(calls,1);assert.equal(transcript.messages.length,2);assert.equal(transcript.messages[1].metadata.kind,'ai');assert.equal(transcript.messages[1].metadata.sources[0].id,source.id);assert.ok(transcript.messages[1].body.includes('Synthetic mandatory condition.'));
   await pool.query("UPDATE lvd_conversations SET updated_at=now()-interval '1 minute' WHERE id=$1",[answered.conversation.id]);
   assert.ok(!(await queued(answered.conversation.id)),'Answered AI conversations do not become specialist requests when idle');
-  await assert.rejects(()=>chat.transition({user:support,guestHash:''},answered.conversation.id,{action:'claim',version:1}),/chưa yêu cầu/);
+  await chat.transition({user:support,guestHash:''},answered.conversation.id,{action:'claim',version:1});
+  assert.equal((await chat.transcript(answered.actor,answered.conversation.id)).conversation.aiEnabled,false,'Staff can take over a conversation already answered by AI');
   await assert.rejects(()=>replyToMessage({user:null,guestHash:'unrelated'},answered.conversation.id,answered.message.id,policy,formatter),/quyền/);
   const missing=await start('Synthetic uncovered question');await replyToMessage(missing.actor,missing.conversation.id,missing.message.id,policy,formatter);transcript=await chat.transcript(missing.actor,missing.conversation.id);assert.equal(transcript.conversation.aiEnabled,false);assert.equal(transcript.messages[1].metadata.kind,'handoff');assert.equal(calls,1);
   assert.ok(await queued(missing.conversation.id));
@@ -99,11 +100,11 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
   await chat.transition(handed.actor,handed.conversation.id,{action:'handoff',version:1});handoff.release();await handoff.task;
   assert.equal((await chat.transcript(handed.actor,handed.conversation.id)).messages.length,1,'Explicit human handoff invalidates in-flight AI');
   const claimed=await start(),claiming=await deferred(claimed);
-  await pool.query("UPDATE lvd_conversations SET ai_started_at=now()-interval '1 minute' WHERE id=$1",[claimed.conversation.id]);
   assert.ok(!(await queued(claimed.conversation.id)),'Interrupted AI stays low until explicit specialist handoff or claim');
   assert.equal((await specialistInbox({user:support,guestHash:''},{view:'low',query:claimed.conversation.id})).total,1);
   await chat.transition({user:support,guestHash:''},claimed.conversation.id,{action:'claim',version:1});claiming.release();await claiming.task;
   assert.equal((await chat.transcript(claimed.actor,claimed.conversation.id)).messages.length,1,'Specialist claim invalidates in-flight AI');
+  const stopped=(await pool.query('SELECT state,assigned_to,ai_enabled,ai_generation,ai_started_at,ai_message_id FROM lvd_conversations WHERE id=$1',[claimed.conversation.id])).rows[0];assert.equal(stopped.state,'human');assert.equal(stopped.assigned_to,support.id);assert.equal(stopped.ai_enabled,false);for(const key of ['ai_generation','ai_started_at','ai_message_id'])assert.equal(stopped[key],null);
   const disabled=await start(),switchOff=await deferred(disabled);
   await integrations.setEnabled('ai',2,false,owner.id);switchOff.release();await switchOff.task;
   assert.equal((await chat.transcript(disabled.actor,disabled.conversation.id)).messages[1].metadata.kind,'handoff','Disabling provider cancels pending answer');await integrations.setEnabled('ai',3,true,owner.id);

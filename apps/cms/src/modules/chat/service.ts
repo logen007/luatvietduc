@@ -219,11 +219,8 @@ export async function transition(a: Actor, id: string, data: any) {
       if (!staff) deny();
       if (c.state !== "queued")
         throw new HttpError(409, "Hội thoại đã được nhận.");
-      if(c.ai_enabled&&new Date(c.ai_started_at||c.updated_at).getTime()>Date.now()-45000)throw new HttpError(409,'Trợ lý đang xử lý. Yêu cầu sẽ chuyển chuyên viên nếu cần.');
-      if(c.ai_enabled){
-        const pending=(await db.query("SELECT 1 FROM lvd_messages question WHERE question.id=(SELECT max(id) FROM lvd_messages WHERE conversation_id=$1 AND role='user') AND NOT EXISTS(SELECT 1 FROM lvd_messages reply WHERE reply.conversation_id=$1 AND reply.client_key='assistant:'||question.id::text)",[id])).rowCount;
-        if(!pending)throw new HttpError(409,'Hội thoại chưa yêu cầu chuyên viên tiếp nhận.');
-      }
+      // An explicit staff claim always overrides AI, including an active answer.
+      // The same locked update below revokes its generation and advances version.
       state = "human";
       assigned = a.user!.id;
     } else if(data.action==='release'){

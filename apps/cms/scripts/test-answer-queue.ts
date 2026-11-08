@@ -31,7 +31,6 @@ export async function testAnswerQueue(owner:User){
  const retained=(await pool.query('SELECT qualification,retain_history,low_priority_expires_at,ai_enabled FROM lvd_conversations WHERE id=$1',[first.c.id])).rows[0];
  assert.equal(retained.qualification,'needs_details');assert.equal(retained.retain_history,true);assert.equal(retained.low_priority_expires_at,null);assert.equal(retained.ai_enabled,true);
  const claimed=await make();
- await pool.query("UPDATE lvd_conversations SET updated_at=now()-interval '1 minute' WHERE id=$1",[claimed.c.id]);
  await chat.transition({user:owner,guestHash:''},claimed.c.id,{action:'claim',version:1});
  let invoked=false;await processNextAnswer(async()=>{invoked=true;});
  assert.equal(invoked,false,'Human claim cancels queued AI work');

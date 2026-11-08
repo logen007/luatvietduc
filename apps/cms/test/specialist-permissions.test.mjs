@@ -34,7 +34,7 @@ test('specialists read and reply across countries and assignments while customer
  });
 });
 
-test('cross-assignment management keeps version conflicts, explicit claims and AI admission guards',async()=>{
+test('cross-assignment management keeps version conflicts and permits immediate explicit AI takeover',async()=>{
  const c=conversation(),changes=[];
  await withQueries(async(sql,args)=>{
   if(sql.startsWith('SELECT * FROM lvd_conversations'))return {rows:[c]};
@@ -46,7 +46,8 @@ test('cross-assignment management keeps version conflicts, explicit claims and A
   await assert.rejects(()=>transition(actor,c.id,{action:'claim',version:3}),{status:409},'Claim cannot silently take over an active assignment');
   for(const change of changes)assert.match(change.sql,/ai_generation=NULL.*version=version\+1/);
   c.state='queued';c.ai_enabled=true;c.updated_at=new Date().toISOString();
-  await assert.rejects(()=>transition(actor,c.id,{action:'claim',version:3}),{status:409});
+  await transition(actor,c.id,{action:'claim',version:3});assert.equal(changes.at(-1).args[2],7,'A fresh AI conversation can be claimed immediately');assert.match(changes.at(-1).sql,/ai_enabled=false,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL/);
+  await assert.rejects(()=>transition({user:{id:25,role:'member'},guestHash:''},c.id,{action:'claim',version:3}),{status:403},'Customer ownership cannot grant staff takeover');
   c.ai_enabled=false;await transition(actor,c.id,{action:'claim',version:3});assert.equal(changes.at(-1).args[2],7,'An explicit eligible claim still assigns the actor');
  });
 });
