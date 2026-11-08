@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validateIntakeAssessment} from '../src/modules/rag/provider.ts';
-import {clarificationText,intakeClarification,isVagueIntakeReply,unrepeatedClarification} from '../src/modules/assistant/clarification.ts';
+import {clarificationText,intakeClarification,isVagueIntakeReply,unrepeatedClarification,intakeUnavailableText,isOpeningClarification} from '../src/modules/assistant/clarification.ts';
 import {replyToMessage} from '../src/modules/assistant/reply.ts';
 import {pool} from '../src/modules/shared/db.ts';
 import {seal} from '../src/modules/integrations/crypto.ts';
@@ -77,8 +77,6 @@ function fixture(t,options={}){
 
 for(const [name,options,qualification] of [
  ['fresh filler',{body:'Hay'},'low'],
- ['meaningful unknown insurance',{body:'Tôi muốn mua bảo hiểm'},'needs_details'],
- ['meaningful unknown debt',{body:'Tôi muốn đòi nợ'},'needs_details'],
  ['thanks after retained history',{body:'Cảm ơn',retained:true},'needs_details'],
  ['rapid thanks after unanswered meaningful turn',{body:'Hay',previous:[{role:'user',body:'Tôi muốn đòi nợ'}]},'needs_details'],
 ])test(name+' preserves the correct retention class without provider calls',async t=>{
@@ -87,14 +85,14 @@ for(const [name,options,qualification] of [
 
 for(const [name,options,qualification] of [
  ['AI low',{assessment:{status:'low'}},'low'],
- ['AI needs country',{assessment:{status:'needs_details',detail:'country'}},'needs_details'],
+ ['AI needs country',{assessment:{status:'needs_details',detail:'country',question:'Vấn đề bạn vừa nêu liên quan đến Việt Nam hay Đức?'}},'needs_details'],
  ['AI low on retained history',{retained:true,assessment:{status:'low'}},'needs_details'],
  ['unknown assessment outage',{unavailable:true},'needs_details'],
  ['unknown malformed assessment',{assessment:{status:['low']}},'needs_details'],
  ['unknown disabled provider',{connected:false},'needs_details'],
  ['unknown disabled budget',{budget:0},'needs_details'],
 ])test(name+' uses fixed questions without retrieval or normal staff promotion',async t=>{
- const state=fixture(t,options);await state.run();assert.equal(state.conversation.qualification,qualification);assert.equal(state.conversation.ai_enabled,true);assert.equal(state.conversation.expires,qualification==='low');assert.equal(state.admissions,0);assert.equal(state.embeddings,0);assert.equal(state.replies[0].metadata.kind,'clarify');assert.deepEqual(state.replies[0].metadata.sources,[]);assert.equal(state.replies[0].body,clarificationText(options.assessment?.detail||'goal',state.current.body));
+ const state=fixture(t,options);await state.run();assert.equal(state.conversation.qualification,qualification);assert.equal(state.conversation.ai_enabled,true);assert.equal(state.conversation.expires,qualification==='low');assert.equal(state.admissions,0);assert.equal(state.embeddings,0);assert.equal(state.replies[0].metadata.kind,'clarify');assert.deepEqual(state.replies[0].metadata.sources,[]);assert.equal(state.replies[0].body,options.assessment?.question||(options.assessment?.status==='low'?clarificationText('goal',state.current.body):intakeUnavailableText(state.current.body)));
 });
 
 test('successful ready assessment preserves history before retrieval and retains existing no-source handoff',async t=>{
@@ -424,4 +422,48 @@ test('budgeting three property matters cannot reuse the older matter clarificati
  const state=fixture(t,{body:'Chưa rõ',retained:true,previous:chronological.reverse()});
  await state.run();assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.replies[0].metadata.kind,'clarify');
  assert.equal(state.replies[0].metadata.clarificationKey,'property-3.document','A skipped intermediate marker must not rename the current case to the previous case');
+});
+
+for(const [body,question] of [
+ ['về thời gian ở tù','Bạn đang hỏi về cách tính thời gian chấp hành án hay một mức án cụ thể?'],
+ ['Tôi muốn mua bảo hiểm','Bạn muốn tìm hiểu bảo hiểm sức khỏe hay bảo hiểm cho loại rủi ro nào?'],
+ ['Tôi muốn đòi nợ','Bạn muốn tìm hiểu thủ tục đòi nợ hay đang vướng ở bước nào?'],
+ ['Ich möchte wissen, wie lange eine Haft dauert','Geht es um die Berechnung der Haftdauer oder eine bereits ausgesprochene Strafe?'],
+])test('unknown topic is assessed from the first meaningful turn: '+body,async t=>{
+ const state=fixture(t,{body,assessment:{status:'needs_details',detail:'situation',question}});await state.run();
+ assert.equal(state.assessments,1);assert.equal(state.intakePrompts[0].required,null);assert.equal(state.intakePrompts[0].requiredQuestion,null);assert.equal(state.replies[0].body,question);assert.equal(state.embeddings,0);assert.equal(state.conversation.ai_enabled,true);assert.equal(state.replies[0].metadata.clarificationKey,'intake.situation');
+});
+test('the prison-duration dialogue retains all consented turns without forcing a generic goal',async t=>{
+ const previous=[],questions=['Bạn đang hỏi về cách tính thời gian chấp hành án hay một mức án cụ thể?','Bạn nói “20 năm” là mức án đã tuyên hay thời gian bạn đang muốn tìm hiểu?','Bạn đang muốn hỏi quy định về bản án 20 năm, hay câu vừa rồi mang ý khác?'];
+ const state=fixture(t,{previous,assessment:{status:'needs_details',detail:'situation',question:questions[0]}});
+ for(const [index,body] of ['về thời gian ở tù','tôi cần 20 năm','giúp tôi có 20 năm ở tù'].entries()){
+  state.current.id=index+1;state.current.body=body;
+  // The fixture receives a new proposed question each time, but the production
+  // orchestration must supply context and must not replace it with a fixed goal.
+  const proposed={status:'needs_details',detail:'situation',question:questions[index]};
+  t.mock.method(globalThis,'fetch',async(_url,init)=>{
+   const prompt=JSON.parse(JSON.parse(init.body).contents[0].parts[0].text);assert.equal(prompt.phase,'intake');assert.equal(prompt.required,null);assert.ok(prompt.question.includes('về thời gian ở tù'));
+   if(index)assert.ok(prompt.question.includes('20 năm'));return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(proposed)}]}}]});
+  });
+  await state.run();const reply=state.replies.at(-1);assert.equal(reply.body,questions[index]);assert.equal(reply.metadata.kind,'clarify');assert.equal(isOpeningClarification(reply.body),false);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);
+  previous.unshift({role:'assistant',body:reply.body,metadata:reply.metadata},{role:'user',body,metadata:state.current.metadata});
+ }
+});
+for(const assessment of [{status:'needs_details',detail:'goal'},{status:'needs_details',detail:'goal',question:'Bạn đang cần tư vấn về việc gì và muốn giải quyết vấn đề nào?'}])test('an unknown request cannot be hidden behind a generic model question: '+JSON.stringify(assessment),async t=>{
+ const state=fixture(t,{body:'về thời gian ở tù',assessment});await state.run();assert.equal(state.assessments,1);assert.equal(state.replies[0].body,intakeUnavailableText(state.current.body));assert.equal(state.replies[0].metadata.clarificationKey,'intake.unavailable');assert.equal(state.embeddings,0);assert.equal(state.conversation.ai_enabled,true);
+});
+test('unknown-topic outages report processing failure rather than repeatedly asking the opening question',async t=>{
+ const state=fixture(t,{body:'về thời gian ở tù',unavailable:true});await state.run();assert.equal(state.replies[0].body,intakeUnavailableText(state.current.body));assert.equal(state.replies[0].metadata.clarificationKey,'intake.unavailable');assert.equal(state.embeddings,0);assert.equal(state.conversation.ai_enabled,true);
+});
+test('unconsented unknown topics stay local and private',async t=>{
+ const state=fixture(t,{body:'về thời gian ở tù',consented:false});await state.run();assert.equal(state.assessments,0);assert.equal(state.embeddings,0);assert.equal(state.replies[0].metadata.kind,'clarify');
+});
+
+test('a retained unknown topic cannot skip contextual intake when its provider is unavailable',async t=>{
+ const state=fixture(t,{body:'Xin giải thích chung về thời gian chấp hành án?',retained:true,unavailable:true});await state.run();assert.equal(state.assessments,1);assert.equal(state.embeddings,0);assert.equal(state.admissions,0);assert.equal(state.replies[0].metadata.clarificationKey,'intake.unavailable');assert.equal(state.conversation.ai_enabled,true);
+});
+test('a short yes/no reply to an unknown-topic question is interpreted with consented context',async t=>{
+ const question='Bạn muốn tìm hiểu cách tính thời gian chấp hành án hay ý nào khác?';
+ const state=fixture(t,{body:'không',assessment:{status:'needs_details',detail:'situation',question},previous:[{role:'assistant',body:'Bạn đã có một mức án cụ thể chưa?',metadata:{kind:'clarify',clarificationKey:'intake.situation'}},{role:'user',body:'về thời gian ở tù',metadata:{aiConsent:{version:CONSENT_VERSION}}}]});
+ await state.run();assert.equal(state.assessments,1);assert.equal(state.intakePrompts[0].required,null);assert.ok(state.intakePrompts[0].question.includes('về thời gian ở tù'));assert.equal(state.replies[0].body,question);assert.equal(state.embeddings,0);
 });

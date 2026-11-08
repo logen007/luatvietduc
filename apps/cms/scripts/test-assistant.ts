@@ -78,6 +78,28 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
    const human=await chat.message(investment.actor,investment.conversation.id,{body:'tôi muốn gặp chuyên viên',key:crypto.randomUUID(),aiConsentVersion:CONSENT_VERSION},2000);await replyToMessage(investment.actor,investment.conversation.id,human.id,policy,formatter);
    assert.equal((await chat.transcript(investment.actor,investment.conversation.id)).messages.at(-1)?.metadata.kind,'handoff','Explicit human request still overrides topic intake');assert.equal(intakeProviderCalls,beforeHandoffCalls);
   }finally{globalThis.fetch=originalFetch;}
+  // Persist the reported unknown-topic dialogue through the real SQL/service
+  // path. The provider is scripted; no customer record or live model is used.
+  {
+   const originalFetch=globalThis.fetch,questions=['Bạn đang hỏi về cách tính thời gian chấp hành án hay một mức án cụ thể?','Bạn nói “20 năm” là mức án đã tuyên hay thời gian bạn đang muốn tìm hiểu?','Bạn đang muốn hỏi quy định về bản án 20 năm, hay câu vừa rồi mang ý khác?'];let turn=0;
+   globalThis.fetch=async(_input,init)=>{
+    const request=JSON.parse(String(init?.body)),prompt=JSON.parse(request.contents[0].parts[0].text);
+    assert.equal(prompt.phase,'intake');assert.equal(prompt.required,null);assert.equal(prompt.requiredQuestion,null);assert.ok(prompt.question.includes('về thời gian ở tù'));
+    if(turn)assert.ok(prompt.question.includes('20 năm'));
+    return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({status:'needs_details',detail:'situation',question:questions[turn]})}]}}]});
+   };
+   try{
+    const scenario=await start('về thời gian ở tù','BOTH',CONSENT_VERSION);
+    for(const body of ['về thời gian ở tù','tôi cần 20 năm','giúp tôi có 20 năm ở tù']){
+     const message=turn?await chat.message(scenario.actor,scenario.conversation.id,{body,key:crypto.randomUUID(),aiConsentVersion:CONSENT_VERSION},2000):scenario.message;
+     await replyToMessage(scenario.actor,scenario.conversation.id,message.id,policy,formatter);
+     const saved=await chat.transcript(scenario.actor,scenario.conversation.id),reply=saved.messages.at(-1)!;
+     assert.equal(reply.body,questions[turn]);assert.equal(reply.metadata.kind,'clarify');assert.equal(reply.metadata.clarificationKey,'intake.situation');assert.deepEqual(reply.metadata.sources,[]);assert.equal(saved.conversation.aiEnabled,true);assert.ok(!(await queued(scenario.conversation.id)));turn++;
+    }
+    assert.equal(turn,3);
+   }finally{globalThis.fetch=originalFetch;}
+   console.log('Unknown-topic dialogue passed: first-turn assessment, retained context, specific intent clarification and no invented legal answer or premature handoff (scripted provider).');
+  }
   const answered=await start(alias.toUpperCase());
   assert.ok(!(await queued(answered.conversation.id)),'Fresh AI work is not a specialist request');
   await Promise.all([replyToMessage(answered.actor,answered.conversation.id,answered.message.id,policy,formatter),replyToMessage(answered.actor,answered.conversation.id,answered.message.id,policy,formatter)]);

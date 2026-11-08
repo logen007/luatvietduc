@@ -308,4 +308,7 @@ export function unrepeatedClarification(initial:Clarification,previous:readonly 
  return candidates.find(value=>!recent.includes(normalized(value)))||candidates.find(value=>normalized(value)!==normalized(last))||initial.text;
 }
 
+export const isOpeningClarification=(question:string)=>[...texts.goal,...texts.situation].some(value=>normalized(value)===normalized(question));
+export const intakeUnavailableText=(question:string)=>german(question)?'Ich kann Ihre Frage gerade nicht verarbeiten. Bitte versuchen Sie es erneut oder bitten Sie um Unterstützung durch eine Fachkraft.':'Mình chưa xử lý được câu hỏi này lúc này. Bạn có thể thử lại hoặc yêu cầu chuyên viên hỗ trợ.';
+
 export const isRepeatedClarification=(question:string,previous:readonly string[])=>previous.some(value=>normalized(value)===normalized(question));
