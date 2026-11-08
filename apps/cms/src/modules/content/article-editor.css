@@ -61,3 +61,11 @@ html.lvd-admin .lvd-article-editor .lvd-editor-group select:not([multiple]):not(
 /* Reserve the editor body and toolbars while its optional code initializes. */
 .lvd-article-editor[data-editor-loading=true]{min-height:580px}
 @media(max-width:760px){.lvd-article-editor[data-editor-loading=true]{min-height:480px}}
+
+.lvd-editor-loading-message{margin:0;padding:24px;color:var(--editor-muted,#939393);font-size:14px;line-height:1.6}
+@media(max-width:760px){
+ .lvd-article-editor .lvd-editor-tool{box-sizing:border-box;min-width:44px;width:44px;min-height:44px}
+ .lvd-article-editor .lvd-editor-top button,.lvd-article-editor .lvd-editor-panel button{min-height:44px}
+ .lvd-article-editor .lvd-editor-panel input{font-size:16px;min-height:44px}
+ .lvd-editor-toolbar{scroll-padding-inline:8px}
+}

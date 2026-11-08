@@ -876,6 +876,22 @@ html.lvd-admin .lvd-media-status{font-variant-numeric:tabular-nums}
  html.lvd-admin .lvd-dashboard-stats small{font-size:12px;line-height:1.6}
  html.lvd-admin .lvd-admin-destination__body>span{font-size:12px!important;line-height:1.6}
 }
+
+/* File dialogs expose progress and keep primary navigation usable on phones. */
+html.lvd-admin .lvd-media-detail-actions a[aria-disabled=true]{opacity:.45;cursor:not-allowed;text-decoration:none}
+html.lvd-admin .lvd-media-detail-state{font-variant-numeric:tabular-nums}
+html.lvd-admin .lvd-media-delete-confirm{border-inline-start:3px solid #dba49d;border-radius:4px}
+html.lvd-admin .lvd-media-delete-confirm button:first-of-type{color:#efaaaa}
+@media(max-width:760px){
+ html.lvd-admin .lvd-media-details>header{box-sizing:border-box;height:auto;min-height:64px;padding:10px 12px;gap:8px}
+ html.lvd-admin .lvd-media-details>header h2{min-width:0;font-size:16px;line-height:1.5}
+ html.lvd-admin .lvd-media-details>header button{box-sizing:border-box;display:grid;place-items:center;min-width:44px;width:44px;min-height:44px;height:44px;padding:0;border-radius:4px}
+ html.lvd-admin .lvd-media-details__body{height:calc(100% - 64px)}
+ html.lvd-admin .lvd-media-detail-actions{gap:8px}
+ html.lvd-admin .lvd-media-detail-actions :is(a,button){display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:44px;padding:8px 12px;border:1px solid var(--admin-line);border-radius:4px;line-height:1.5}
+ html.lvd-admin .lvd-media-details .lvd-media-delete-confirm button,html.lvd-admin .lvd-media-upload button{min-height:44px}
+ html.lvd-admin .lvd-media-detail-fields :is(input,textarea,select){font-size:16px}
+}
 .lvd-article-editor{--editor-surface:#151515;--editor-ink:#c9c9c9;--editor-muted:#939393;--editor-line:#333;min-width:0;margin:0 0 28px;border:1px solid var(--editor-line);border-radius:7px;background:var(--editor-surface);color:var(--editor-ink);overflow:visible}
 .lvd-article-editor.has-error{border-color:#b96660}
 .lvd-article-editor :is(button,input,select,textarea){font:inherit}
@@ -939,6 +955,14 @@ html.lvd-admin .lvd-article-editor .lvd-editor-group select:not([multiple]):not(
 /* Reserve the editor body and toolbars while its optional code initializes. */
 .lvd-article-editor[data-editor-loading=true]{min-height:580px}
 @media(max-width:760px){.lvd-article-editor[data-editor-loading=true]{min-height:480px}}
+
+.lvd-editor-loading-message{margin:0;padding:24px;color:var(--editor-muted,#939393);font-size:14px;line-height:1.6}
+@media(max-width:760px){
+ .lvd-article-editor .lvd-editor-tool{box-sizing:border-box;min-width:44px;width:44px;min-height:44px}
+ .lvd-article-editor .lvd-editor-top button,.lvd-article-editor .lvd-editor-panel button{min-height:44px}
+ .lvd-article-editor .lvd-editor-panel input{font-size:16px;min-height:44px}
+ .lvd-editor-toolbar{scroll-padding-inline:8px}
+}
 /* Account UI shares the console's grayscale palette and compact 4px controls. */
 html.lvd-admin .template-default__wrap:has(.lvd-profile-page) .doc-header{display:none}
 html.lvd-admin .lvd-profile-page{padding-block:32px 48px}
