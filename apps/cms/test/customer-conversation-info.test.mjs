@@ -27,6 +27,7 @@ test('browser hints are bounded and do not conflate estimated location with the 
 });
 test('untitled and greeting-only conversations display a short identifier while named cases retain their title',()=>{
  const id='2778e971-ec9c-4733-b7b4-78ba9c3cc875';for(const title of [null,'','Cuộc trò chuyện mới','Hey','Hi','xin chào'])assert.equal(conversationDisplayTitle(id,title),'#2778e971');assert.equal(shortConversationId(id),'#2778e971');assert.equal(conversationDisplayTitle(id,'Thừa kế tại Việt Nam'),'Thừa kế tại Việt Nam');
+ assert.equal(conversationDisplayTitle(id,'Hi',undefined,true),'Hi');assert.equal(conversationDisplayTitle(id,'A','Cuộc hội thoại mới',true),'A');
 });
 test('operator incoming messages include the customer name, avatar and timestamp while details omit redundant login status',()=>{
  const id='2778e971-ec9c-4733-b7b4-78ba9c3cc875',state={messages:[{id:1,role:'user',body:'Synthetic message',created_at:'2026-11-08T00:00:00Z'},{id:2,role:'assistant',body:'Synthetic reply',created_at:'2026-11-08T00:01:00Z'}],conversation:{id,registered:true,state:'queued',customer:{name:'Synthetic customer',email:'synthetic@example.invalid',avatarURL:'/service/profile/avatar/1?v=synthetic'},info:{facts:[{field:'phone',value:'0901234567',messageId:'1',quote:'SĐT: 0901234567'}],browser:{timeZone:'Europe/Berlin'}}},staffAllowed:true};

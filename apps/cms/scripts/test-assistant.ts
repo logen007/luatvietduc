@@ -7,6 +7,7 @@ import * as chat from '../src/modules/chat/service';
 import {specialistInbox} from '../src/modules/chat/inbox';
 import * as integrations from '../src/modules/integrations/store';
 import {replyToMessage} from '../src/modules/assistant/reply';
+import {renameCustomerConversation} from '../src/modules/chat/rename-conversation';
 import {publicFaq,clearFaqCatalog,type Faq} from '../src/modules/assistant/faq';
 import {validateOutline} from '../src/modules/assistant/format';
 import {MAX_CLARIFICATIONS} from '../src/modules/assistant/clarification';
@@ -87,6 +88,9 @@ export async function testAssistant(payload:Payload,owner:User,support:User){
   await chat.transition({user:support,guestHash:''},answered.conversation.id,{action:'claim',version:1});
   assert.equal((await chat.transcript(answered.actor,answered.conversation.id)).conversation.aiEnabled,false,'Staff can take over a conversation already answered by AI');
   await assert.rejects(()=>replyToMessage({user:null,guestHash:'unrelated'},answered.conversation.id,answered.message.id,policy,formatter),/quyền/);
+  const retitled=await start(),naming=await deferred(retitled),namingSnapshot=(await chat.transcript(retitled.actor,retitled.conversation.id)).conversation;
+  await renameCustomerConversation(retitled.actor,retitled.conversation.id,{title:'A',version:namingSnapshot.version,updatedAt:new Date(namingSnapshot.updatedAt!).toISOString()});naming.release();await naming.task;
+  const namedTranscript=await chat.transcript(retitled.actor,retitled.conversation.id);assert.equal(namedTranscript.conversation.title,'A');assert.equal(namedTranscript.conversation.customTitle,true);assert.equal(namedTranscript.messages.length,2,'Renaming metadata neither loses an in-flight AI answer nor lets AI replace the custom name');
   const missing=await start('Synthetic uncovered question');await replyToMessage(missing.actor,missing.conversation.id,missing.message.id,policy,formatter);transcript=await chat.transcript(missing.actor,missing.conversation.id);assert.equal(transcript.conversation.aiEnabled,false);assert.equal(transcript.messages[1].metadata.kind,'handoff');assert.equal(calls,1);
   assert.ok(await queued(missing.conversation.id));
   const wrongCountry=await start(title,'DE');await replyToMessage(wrongCountry.actor,wrongCountry.conversation.id,wrongCountry.message.id,policy,formatter);assert.equal((await chat.transcript(wrongCountry.actor,wrongCountry.conversation.id)).messages[1].metadata.kind,'handoff');assert.equal(calls,1);

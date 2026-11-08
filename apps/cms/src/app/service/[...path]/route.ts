@@ -1,4 +1,5 @@
-import {deleteInboxConversation} from '../../../modules/chat/delete-conversation';
+import {deleteInboxConversation,deleteCustomerConversation} from '../../../modules/chat/delete-conversation';
+import {renameCustomerConversation} from '../../../modules/chat/rename-conversation';
 import {articleImportRequest} from '../../../modules/content/article-import';
 import {rolePreviewRequest} from '../../../modules/identity/role-preview';
 import {knowledgeRequest} from '../../../modules/knowledge/http';
@@ -124,6 +125,10 @@ async function route(
         result=sent;
       } else if(segments.length===3&&segments[2]==='delete'&&method==='POST'){
         result=await deleteInboxConversation(actor,id,data.version,data.updatedAt);
+      } else if(segments.length===3&&segments[2]==='customer-delete'&&method==='POST'){
+        result=await deleteCustomerConversation(actor,id,data.version,data.updatedAt);
+      } else if(segments.length===3&&segments[2]==='title'&&method==='POST'){
+        result=await renameCustomerConversation(actor,id,data);
       } else if(segments[2]==='answer'&&method==='POST'){
         if((await settings()).chatEnabled===false)throw new chat.HttpError(503,'Tiếp nhận chat đang tạm dừng.');
         if(typeof data.messageId!=='string'||!/^\d{1,19}$/.test(data.messageId))throw new chat.HttpError(400,'Tin nhắn không hợp lệ.');

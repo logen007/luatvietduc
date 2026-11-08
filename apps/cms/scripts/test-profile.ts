@@ -8,6 +8,7 @@ import {seal} from '../src/modules/integrations/crypto';
 import {profileRequest,profileAvatarResponse,profilePasswordRequest} from '../src/modules/identity/profile';
 import {profileImage,PROFILE_IMAGE_LIMIT} from '../src/modules/identity/profile-image';
 import * as chat from '../src/modules/chat/service';
+import {syncGoogleAvatar} from '../src/modules/identity/google-avatar';
 
 export async function testProfile(payload:Payload,owner:User){
  const database=new URL(process.env.DATABASE_URL||'');if(database.pathname!=='/lvd_test'||!['localhost','127.0.0.1'].includes(database.hostname))throw new Error('Isolated profile checks only');
@@ -52,12 +53,16 @@ export async function testProfile(payload:Payload,owner:User){
    await assert.rejects(()=>chat.transcript({user:null,guestHash:crypto.randomUUID()},conversation.id),{status:403});
    const media=await payload.findByID({collection:'media',id:state.avatar,overrideAccess:true,depth:0});assert.equal(media.visibility,'public');assert.equal(media.uploadedBy,user.id);assert.equal(media.mimeType,'image/webp');assert.equal(media.width,384);assert.equal(media.height,384);assert.ok(media.filesize!<image.length);
    assert.equal((await profileAvatarResponse(payload,String(user.id))).status,307);
+   let googleFetches=0;const googleImage:typeof fetch=async(_url,options)=>{googleFetches++;assert.equal(options?.redirect,'error');return new Response(new Uint8Array(image),{headers:{'Content-Type':'image/jpeg'}});};
+   assert.equal(await syncGoogleAvatar(payload,user.id,'https://lh3.googleusercontent.com/synthetic-avatar',googleImage),false);assert.equal(googleFetches,0,'Google sign-in never replaces an existing uploaded avatar');
    const bad=new FormData();bad.set('file',new File(['<svg/>'],'bad.svg',{type:'image/svg+xml'}));bad.set('updatedAt',state.updatedAt);assert.equal((await profileRequest(makeRequest(token,'POST',bad),payload)).status,400);
    const failure=new FormData();failure.set('file',new File([new Uint8Array(image)],'portrait.jpg'));failure.set('updatedAt',state.updatedAt);
    const beforeCount=await payload.count({collection:'media',overrideAccess:true});failSave=true;
    assert.equal((await profileRequest(makeRequest(token,'POST',failure),payload)).status,503);failSave=false;
    assert.equal((await payload.count({collection:'media',overrideAccess:true})).totalDocs,beforeCount.totalDocs,'Failed user save rolls back the new media row');assert.equal((await payload.findByID({collection:'users',id:user.id,overrideAccess:true,depth:0})).avatar,state.avatar,'Previous avatar survives failed save');
    const removed=await profileRequest(makeRequest(token,'DELETE',{updatedAt:state.updatedAt}),payload);assert.equal(removed.status,200);state=await removed.json();assert.equal(state.avatarURL,'');assert.equal((await profileAvatarResponse(payload,String(user.id))).status,404);
+   assert.equal(await syncGoogleAvatar(payload,user.id,'https://lh3.googleusercontent.com/synthetic-avatar',googleImage),true);state=await(await profileRequest(makeRequest(token),payload)).json();mediaIds.push(state.avatar);assert.ok(state.avatarURL);assert.equal((await profileAvatarResponse(payload,String(user.id))).status,307);assert.equal((await payload.findByID({collection:'media',id:state.avatar,overrideAccess:true})).visibility,'public');
+   assert.equal((await profileRequest(makeRequest(token,'DELETE',{updatedAt:state.updatedAt}),payload)).status,200);
    assert.equal((await payload.findByID({collection:'users',id:user.id,overrideAccess:true})).role,user.role,'Profile never changes role');
   }
   assert.equal((await profilePasswordRequest(makeRequest(undefined,'POST',{}),payload)).status,401);

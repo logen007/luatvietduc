@@ -4,6 +4,7 @@ import {testRolePreview} from './test-role-preview';
 import {testStorageAdmission} from './test-storage-admission';
 import {testChatAccountRetry} from './test-chat-account-retry';
 import {testChatQualification} from './test-chat-qualification';
+import {testCustomerHistory} from './test-customer-history';
 import {testAccountLifecycleRaces} from './test-account-lifecycle-races';
 import {testPasswordLoginAdmission} from './test-password-login-admission';
 import {testQuickReplies} from './test-quick-replies';
@@ -246,6 +247,7 @@ try {
   await testGuestPriority(owner,staff);
   await testChatAccountRetry(owner,staff);
   await testChatQualification(owner);
+  await testCustomerHistory(owner);
   await testSpecialistInbox(owner,staff,other,foreign);
   await testSpecialistPermissions(payload,owner);
   await testChatFiles(owner);

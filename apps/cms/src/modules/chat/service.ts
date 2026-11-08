@@ -33,7 +33,7 @@ export function allowed(a: Actor, c: any) {
 }
 export async function chatList(a: Actor) {
   const result = await pool.query(
-      "SELECT id,title,jurisdiction,state,version,ai_enabled,created_at,updated_at FROM lvd_conversations WHERE " +
+      "SELECT id,title,jurisdiction,state,version,ai_enabled,created_at,updated_at,id IN (SELECT conversation_id FROM lvd_chat_events WHERE action='customer.rename') AS \"customTitle\" FROM lvd_conversations WHERE " +
       (a.user ? "user_id=$1" : "user_id IS NULL AND guest_hash=$1") +
       " ORDER BY updated_at DESC LIMIT 100",
     [a.user?.id ?? a.guestHash],
@@ -76,7 +76,7 @@ export async function createConversation(a: Actor, data: any,options:{assistantE
 }
 export async function transcript(a: Actor, id: string, after = 0) {
   const { rows } = await pool.query(
-    "SELECT c.*,u.name AS customer_name,u.email AS customer_email,u.phone AS customer_phone,u.location AS customer_location,u.avatar_id AS customer_avatar,u.updated_at AS customer_updated_at,u.created_at AS customer_created_at,agent.name AS assigned_name FROM lvd_conversations c LEFT JOIN users u ON u.id=c.user_id LEFT JOIN users agent ON agent.id=c.assigned_to WHERE c.id=$1",
+    "SELECT c.*,c.id IN (SELECT conversation_id FROM lvd_chat_events WHERE action='customer.rename') AS custom_title,u.name AS customer_name,u.email AS customer_email,u.phone AS customer_phone,u.location AS customer_location,u.avatar_id AS customer_avatar,u.updated_at AS customer_updated_at,u.created_at AS customer_created_at,agent.name AS assigned_name FROM lvd_conversations c LEFT JOIN users u ON u.id=c.user_id LEFT JOIN users agent ON agent.id=c.assigned_to WHERE c.id=$1",
     [id],
   );
   const c = rows[0];
@@ -113,6 +113,7 @@ export async function transcript(a: Actor, id: string, after = 0) {
     conversation: {
       id: c.id,
       title: c.title,
+      customTitle:Boolean(c.custom_title),
       jurisdiction: c.jurisdiction,
       state: c.state,
       version: c.version,

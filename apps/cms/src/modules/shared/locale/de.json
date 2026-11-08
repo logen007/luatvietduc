@@ -432,5 +432,16 @@
   "Chưa xác nhận hồ sơ đã lưu. Hãy tải lại để kiểm tra.": "Die Speicherung konnte nicht bestätigt werden. Bitte laden Sie die Seite zur Prüfung neu.",
   "Số điện thoại không hợp lệ.": "Die Telefonnummer ist ungültig.",
   "Nơi sinh sống không hợp lệ.": "Der Wohnort ist ungültig.",
-  "Cuộc hội thoại mới": "Neues Gespräch"
+  "Cuộc hội thoại mới": "Neues Gespräch",
+  "Tùy chọn hội thoại": "Gesprächsoptionen",
+  "Đổi tên": "Umbenennen",
+  "Đổi tên hội thoại": "Gespräch umbenennen",
+  "Tên hội thoại": "Gesprächsname",
+  "Lưu": "Speichern",
+  "Xóa hội thoại này cùng toàn bộ tin nhắn và tệp đính kèm? Không thể hoàn tác.": "Dieses Gespräch mit allen Nachrichten und Anhängen löschen? Das kann nicht rückgängig gemacht werden.",
+  "Nhập tên hội thoại từ 1 đến 100 ký tự.": "Geben Sie einen Gesprächsnamen mit 1 bis 100 Zeichen ein.",
+  "Bạn không có quyền đổi tên hội thoại này.": "Sie dürfen dieses Gespräch nicht umbenennen.",
+  "Bạn không có quyền xóa hội thoại này.": "Sie dürfen dieses Gespräch nicht löschen.",
+  "Hội thoại có cập nhật mới. Tải lại trước khi đổi tên.": "Das Gespräch wurde aktualisiert. Laden Sie es vor dem Umbenennen erneut.",
+  "Chưa xác nhận được cập nhật hội thoại. Tải lại để kiểm tra.": "Die Änderung konnte nicht bestätigt werden. Bitte laden Sie die Seite zur Prüfung neu."
 }

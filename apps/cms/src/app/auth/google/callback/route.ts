@@ -10,6 +10,7 @@ import { pool, hash } from "../../../../modules/shared/db";
 import {createAppSession} from '../../../../modules/identity/app-sessions';
 import {revokeBrowserSessions} from '../../../../modules/identity/logout';
 import {setGoogleSession} from '../../../../modules/identity/session-cookies';
+import {syncGoogleAvatar} from '../../../../modules/identity/google-avatar';
 const keys = createRemoteJWKSet(
   new URL("https://www.googleapis.com/oauth2/v3/certs"),
 );
@@ -100,6 +101,7 @@ export async function GET(req: Request) {
       );
       userId = linked.rows[0].user_id;
     }
+    try{await syncGoogleAvatar(payload,Number(userId),identity.picture);}catch{console.info('Google avatar synchronization unavailable');}
     await revokeBrowserSessions(req,payload);
     const token=await createAppSession(Number(userId));
     const guest = jar.get("lvd-guest")?.value;

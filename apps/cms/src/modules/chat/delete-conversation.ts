@@ -3,16 +3,23 @@ import {transaction} from '../shared/db';
 import {isAdmin} from '../identity/permissions';
 import {activeValues} from '../integrations/store';
 import {r2Client} from '../integrations/check';
-import {HttpError,type Actor} from './service';
+import {HttpError,isCustomer,type Actor} from './service';
 
 export async function deleteInboxConversation(actor:Actor,id:string,version:unknown,updatedAt:unknown){
  if(!isAdmin(actor.user))throw new HttpError(403,'Chỉ Admin được xóa hội thoại.');
+ return deleteConversation(actor,id,version,updatedAt,false);
+}
+export async function deleteCustomerConversation(actor:Actor,id:string,version:unknown,updatedAt:unknown){
+ return deleteConversation(actor,id,version,updatedAt,true);
+}
+async function deleteConversation(actor:Actor,id:string,version:unknown,updatedAt:unknown,customerOnly:boolean){
  if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)||!Number.isSafeInteger(version)||typeof updatedAt!=='string'||!Number.isFinite(Date.parse(updatedAt)))throw new HttpError(400,'Hội thoại không hợp lệ.');
  return transaction(async db=>{
   // Match upload/backup lock order; the conversation lock also fences replies and AI delivery.
   await db.query('SELECT pg_advisory_xact_lock_shared(73041104)');
   const c=(await db.query('SELECT * FROM lvd_conversations WHERE id=$1 FOR UPDATE',[id])).rows[0];
   if(!c)return {id,deleted:true};
+  if(customerOnly&&!isCustomer(actor,c))throw new HttpError(403,'Bạn không có quyền xóa hội thoại này.');
   if(c.version!==version||new Date(c.updated_at).getTime()!==Date.parse(updatedAt))throw new HttpError(409,'Hội thoại có cập nhật mới. Kiểm tra lại trước khi xóa.');
   const files=(await db.query('SELECT id,object_key,ready FROM lvd_chat_files WHERE conversation_id=$1 FOR UPDATE',[id])).rows;
   if(files.some(file=>!file.ready))throw new HttpError(409,'Có tệp đang tải lên. Vui lòng thử lại sau.');
