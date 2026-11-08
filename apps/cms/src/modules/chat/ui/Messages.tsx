@@ -36,7 +36,6 @@ export function ChatMessages({state}:{state:WorkspaceState}){
    <div className="chat-answer-text"><ReplyText animate={message.role!=='user'&&newReplies.has(String(message.id))} text={message.role==='assistant'&&message.metadata?.kind==='handoff'?t("Câu hỏi này cần chuyên viên xem xét thêm. Mình đã chuyển cuộc trò chuyện để chuyên viên tiếp tục hỗ trợ tại đây."):String(message.body)}/>{message.id===handoff?.id&&invitation}</div>
    {Boolean(message.metadata?.sources?.length)&&<div className="chat-sources">{(message.metadata?.sources||[]).map(source=>{const href=sourceHref(source.url||'');return href?<a key={source.id} href={href} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><ChatIcon name="arrow"/>{source.title}</a>:<span key={source.id}>{source.title}</span>;})}</div>}
    {(message.role==='staff'||message.metadata?.kind==='ai')&&<CopyAnswer text={message.body}/>}
-   {message.role==='user'&&<MessageTime value={message.created_at} language={language}/>}
   </article>)}
   {/* Attachments transfer directly to staff without an assistant handoff record. */}
   {!handoff&&awaitingSpecialist&&state.messages.some(message=>message.role==='user')&&<article className="chat-message assistant"><div className="chat-answer-text">{invitation}</div></article>}

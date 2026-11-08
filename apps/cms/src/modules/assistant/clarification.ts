@@ -71,7 +71,7 @@ function orderedFact(pattern:RegExp,subject:string){
 type Topic={id:string;match:RegExp;bare:RegExp;slots:Slot[]};
 const topics:Topic[]=[
  {id:'investment',match:/\b(dau tu|gop von|investier\w*|investition\w*)\b/,bare:/^(?:dau tu|gop von|investieren|investition\w*)$/,slots:[
-  {...country,text:['Bạn dự định đầu tư ở quốc gia và địa phương nào?','In welchem Land und Ort möchten Sie investieren?']},
+  {...country,text:['Bạn dự định đầu tư ở quốc gia nào?','In welchem Land möchten Sie investieren?']},
   {key:'investment.form',text:['Bạn đang cân nhắc thành lập doanh nghiệp, góp vốn, mua phần vốn hay hình thức đầu tư khác?','Planen Sie eine Unternehmensgründung, eine Beteiligung, einen Anteilskauf oder eine andere Investitionsform?'],known:orderedFact(/\b(thanh lap|mo cong ty|doanh nghiep|gop von|mua (?:phan von|co phan)|bat dong san|co phieu|quy dau tu|gmbh|grundung|unternehmen|beteiligung|anteil|immobilien|aktien|fonds)\b/,'hinh thuc(?: dau tu)?|phuong an(?: dau tu)?|loai hinh|investitionsform|rechtsform|anlageform')},
   timeline,{key:'investment.goal',text:['Bạn muốn làm rõ điều kiện, thủ tục, chi phí hay mục tiêu nào khác của kế hoạch đầu tư?','Möchten Sie Voraussetzungen, Verfahren, Kosten oder ein anderes Ziel Ihrer Investitionsplanung klären?'],known:goalKnown},
  ]},
@@ -92,7 +92,7 @@ const topics:Topic[]=[
   {key:'exam.goal',text:['Bạn muốn làm rõ quyền phúc khảo, khiếu nại kết quả hay vấn đề nào khác sau kỳ thi?','Geht es um Einsicht, eine Überprüfung des Ergebnisses, einen Widerspruch oder ein anderes Anliegen?'],retry:['Bạn muốn được hỗ trợ điều gì về kết quả thi?','Was möchten Sie hinsichtlich des Prüfungsergebnisses klären?'],known:/\b(phuc khao|khieu nai|quyen|thu tuc|xem lai ket qua|widerspruch|einsicht|uberprufung|rechte|verfahren)\b/},timeline,
  ]},
  {id:'property',match:/\b(the chap|sang ten dat|chuyen nhuong dat|tang cho dat|nha dat|dat dai|manh dat|thua dat|ve dat|dat (?:cua|o|tai)|so do|so hong|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)\b|^dat$/,bare:/^(?:the chap(?: tai san)?|nha dat|dat|dat dai|manh dat|thua dat|bat dong san|mua nha|thue nha|immobilien|grundstuck\w*|miet\w*|hypothek)$/,slots:[
-  {...country,text:['Nhà hoặc mảnh đất bạn hỏi nằm ở tỉnh/thành phố nào, thuộc Việt Nam, Đức hay nước khác?','In welcher Stadt oder Region liegt das Haus oder Grundstück, und in welchem Land?'],retry:['Bạn cho biết nhà hoặc mảnh đất ở Việt Nam, Đức hay nước khác nhé?','Liegt das Haus oder Grundstück in Vietnam, Deutschland oder einem anderen Land?']},
+  {...country,text:['Nhà hoặc mảnh đất bạn hỏi nằm ở Việt Nam, Đức hay nước khác?','In welchem Land liegt das Haus oder Grundstück?'],retry:['Bạn cho biết nhà hoặc mảnh đất ở Việt Nam, Đức hay nước khác nhé?','Liegt das Haus oder Grundstück in Vietnam, Deutschland oder einem anderen Land?']},
   {key:'property.transaction',text:['Bạn muốn hỏi về mua bán, sang tên, thế chấp hay vướng mắc nào của nhà đất?','Geht es um Kauf, Verkauf, Eigentumsübertragung, Miete, Besicherung oder ein anderes Anliegen?'],retry:['Cụ thể bạn muốn làm gì với nhà đất, hoặc đang gặp trở ngại gì?','Was möchten Sie mit der Immobilie konkret tun, oder welches Problem ist aufgetreten?'],known:orderedFact(/\b(mua|ban|thue|the chap|tang cho|sang ten|chuyen nhuong|tranh chap|cap so|tach thua|thu hoi|boi thuong|(?:kauf|verkauf|miet)(?:e|en|t|te|ten)?|hypothek|(?:eigentums)?ubertrag\w*|schenk\w*|streit)\b/,'giao dich|mua ban|sang ten|the chap|vorhaben|geschaft|(?:eigentums)?ubertragung')},
   {key:'property.ownership',text:['Mảnh đất hiện đứng tên ai và đã có giấy chứng nhận chưa? Bạn chỉ cần nói quan hệ, không cần gửi tên hoặc số giấy tờ.','Auf wen ist das Grundstück eingetragen und gibt es einen Eigentumsnachweis? Die Beziehung genügt; Namen oder Dokumentnummern sind nicht nötig.'],retry:['Bạn đang đứng tên trên giấy chứng nhận hay đất vẫn đứng tên người khác? Nếu chưa rõ, cứ nói phần bạn biết nhé.','Sind Sie selbst als Eigentümer eingetragen oder eine andere Person? Wenn Sie unsicher sind, nennen Sie nur die bekannten Angaben.'],known:value=>propertyFacts(value).complete},timeline,
   {key:'property.goal',text:['Bạn muốn làm rõ điều kiện, giấy tờ, thủ tục hay vướng mắc nào của giao dịch?','Welche Voraussetzungen, Unterlagen, Verfahren oder Schwierigkeiten des Geschäfts möchten Sie klären?'],known:goalKnown}]},
@@ -132,9 +132,15 @@ function intakeState(question:string){
  return {topic,text,scope:topic?topic.id+(visits[topic.id]>1?'-'+visits[topic.id]:''):'',segment,countryText:samePlace&&countryState(priorCountry).known?priorCountry+'\n'+text:text};
 }
 export function currentIntakeContext(question:string){const state=intakeState(question);return {text:state.text,topic:state.topic?.id||null,scope:state.scope,countryKnown:countryState(state.countryText).known};}
+// Definitions and general explanations have no personal case location to collect.
+// A request to apply rules, compare countries or complete a procedure still needs context.
+export function isGeneralExplanation(question:string){
+ const text=normalized(currentIntakeContext(question).text);
+ return /\b(la gi|co nghia la gi|khai niem|dinh nghia|giai thich khai niem|was (?:ist|sind|bedeutet)|definition|begriff)\b/.test(text)&&!/\b(truong hop (?:cua )?toi|cua toi|toi (?:dang|da|muon)|thu tuc|giay to|thoi han|dieu kien|o dau|quoc gia|viet nam|vietnam|duc|deutschland|mein\w*|ich|verfahren|frist\w*|voraussetzung\w*)\b/.test(text);
+}
 export function clarificationText(kind:DetailKind|'country',question:string){return (kind==='country'?country.text:texts[kind])[german(question)?1:0];}
 export function nextClarification(question:string,asked:readonly string[]=[],detail?:DetailKind|'country'):Clarification|null{
- if(asked.length>=MAX_CLARIFICATIONS)return null;
+ if(asked.length>=MAX_CLARIFICATIONS||isGeneralExplanation(question))return null;
  const state=intakeState(question),topic=state.topic,text=normalized(state.text),lastRaw=state.text.split('\n').at(-1)||question,last=normalized(lastRaw);
  const opening=vague.test(last)||Boolean(topic&&(topic.bare.test(stripPrefix(last))||asked.length||topicIntent.test(text)&&!goalKnown.test(text)||!goalKnown.test(text)&&!/[?？]/.test(lastRaw)&&last.split(' ').length<=10));
  if(!opening&&!detail)return null;
@@ -248,6 +254,7 @@ export function acknowledgementText(text:string){
 export const isBriefIntakeFollowup=(text:string)=>/^(?:(?:con|the con|vay con|und(?: die| das| der)?|was ist mit) )?(?:chi phi|thu tuc|giay to|thoi han|bao lau|kosten|verfahren|unterlagen|fristen?|dauer)(?: (?:thi sao|nhu the nao|bao nhieu|ra sao|la gi|genau))?$/.test(normalized(text).replace(/^(?:cam on(?: ban)?|danke(?: schon| sehr)?|vielen dank|vang|ok|okay|verstanden|alles klar)[,;.! ]+/,''));
 const usableReply=(text:string)=>!isVagueIntakeReply(text)&&/[\p{L}\p{N}]/u.test(normalized(text));
 export function intakeClarification(question:string,asked:readonly string[]=[],answers:Record<string,string>={}):Clarification|null{
+ if(isGeneralExplanation(question))return null;
  const state=intakeState(question),text=normalized(state.text),last=state.text.split('\n').at(-1)||question;
  const prompt=(key:string,pair:Pair):Clarification=>({key,text:pair[german(state.text)?1:0]});
  if(state.topic){

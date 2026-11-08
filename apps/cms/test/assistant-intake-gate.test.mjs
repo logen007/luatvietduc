@@ -125,3 +125,8 @@ test('later explicit timing uncertainty supersedes old timing but unrelated unce
 test('the latest explicit language takes precedence over a previous German topic',()=>{
  const context='Ich möchte in Deutschland investieren\nỞ Việt Nam';assert.ok(!/Land|Planen|Möchten/.test(intakeClarification(context).text));
 });
+
+test('general explanations do not require personal country, locality, dates or parties',()=>{
+ for(const question of ['Ly hôn là gì?', 'Hợp đồng có nghĩa là gì?', 'Khái niệm thừa kế', 'Was ist eine Scheidung?', 'Was bedeutet ein Vertrag?'])assert.equal(intakeClarification(question),null,question);
+ assert.equal(intakeClarification('Tôi muốn ly hôn, cần biết thủ tục')?.key,'family.country');
+});

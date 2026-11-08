@@ -18,7 +18,7 @@ test('investment intake follows topic, place, form, stage and goal without repea
   turns.push(message);const next=nextClarification(turns.join('\n'),asked);assert.equal(next?.key,key,message);assert.ok(next.text.endsWith('?'));asked.push(next.key);
  }
  turns.push('muốn biết thủ tục và chi phí');assert.equal(nextClarification(turns.join('\n'),asked),null,'Complete intake proceeds to existing approved-source selection');assert.equal(new Set(asked).size,asked.length);
- const german=nextClarification('Ich möchte\nüber Investitionen');assert.equal(german.key,'investment.country');assert.match(german.text,/Land und Ort/);
+ const german=nextClarification('Ich möchte\nüber Investitionen');assert.equal(german.key,'investment.country');assert.match(german.text,/Land/);
 });
 
 test('known facts are skipped and common topics ask relevant context rather than a legal answer',()=>{

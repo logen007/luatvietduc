@@ -1,9 +1,9 @@
-import {clarificationLanguage,currentIntakeContext,intakeClarification} from '../assistant/clarification';
+import {clarificationLanguage,currentIntakeContext} from '../assistant/clarification';
 import {sourceScopes} from '../assistant/scope';
 
-// Name a qualified active matter without copying personal details or greetings.
-export function conversationTitle(context:string,ready:boolean):string|null{
- if(!ready||intakeClarification(context))return null;
+// Name a recognizable topic without waiting for legal intake or copying personal details.
+export function conversationTitle(context:string,enabled=true):string|null{
+ if(!enabled)return null;
  const active=currentIntakeContext(context),de=clarificationLanguage(active.text)==='de';
  const labels:Record<string,readonly [string,string]>={
   investment:['Đầu tư','Investition'],residence:['Cư trú và quốc tịch','Aufenthalt und Staatsangehörigkeit'],

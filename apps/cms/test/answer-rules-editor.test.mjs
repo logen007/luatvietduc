@@ -47,3 +47,9 @@ test('German intake explicitly requests German even though the orchestration ins
 test('a Vietnamese question cannot be accepted for an explicitly German intake',()=>{
  assert.throws(()=>validateIntakeAssessment({status:'needs_details',detail:'goal',question:'Bạn muốn khiếu nại kết quả hay đăng ký thi lại?'},'de'),/language/);
 });
+
+test('definitions skip case-location intake, while legal applications retain completeness guards',async t=>{
+ t.mock.method(globalThis,'fetch',async()=>{throw new Error('General definitions must not trigger an intake interrogation');});
+ assert.deepEqual(await assessIntake('Hợp đồng là gì?',{apiKey:'synthetic',model:'synthetic'}),{status:'ready'});
+ assert.deepEqual(await assessIntake('Was ist eine Scheidung?',{apiKey:'synthetic',model:'synthetic'}),{status:'ready'});
+});

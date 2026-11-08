@@ -1,3 +1,4 @@
+import {conversationTitle} from './conversation-title';
 import {customerMetadata} from '../knowledge/citations';
 import {avatarURL} from '../identity/avatar';
 import {normalizeBrowserContext} from './browser-context';
@@ -190,9 +191,12 @@ export async function message(
       "INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",
       [id, own ? "user" : "staff", body, internal, actorKey, key, Object.keys(metadata).length?JSON.stringify(metadata):null],
     );
+    // Local topic labels are available immediately, including conversations claimed by staff.
+    // Manual names take precedence; retries return above without changing the title.
+    const titleContext=own?(await db.query("SELECT body FROM lvd_messages WHERE conversation_id=$1 AND role='user' AND NOT internal AND COALESCE(metadata->>'kind','')<>'deleted' ORDER BY id DESC LIMIT 80",[id])).rows.reverse().map(row=>String(row.body)).join('\n'):'';
     await db.query(
-      "UPDATE lvd_conversations SET updated_at=clock_timestamp(),ai_generation=CASE WHEN $2 THEN NULL ELSE ai_generation END,ai_started_at=CASE WHEN $2 THEN NULL ELSE ai_started_at END,ai_message_id=CASE WHEN $2 THEN NULL ELSE ai_message_id END WHERE id=$1",
-      [id,own],
+      "UPDATE lvd_conversations SET title=CASE WHEN EXISTS(SELECT 1 FROM lvd_chat_events WHERE conversation_id=$1 AND action='customer.rename') THEN title ELSE COALESCE($3,title) END,updated_at=clock_timestamp(),ai_generation=CASE WHEN $2 THEN NULL ELSE ai_generation END,ai_started_at=CASE WHEN $2 THEN NULL ELSE ai_started_at END,ai_message_id=CASE WHEN $2 THEN NULL ELSE ai_message_id END WHERE id=$1",
+      [id,own,own?conversationTitle(titleContext):null],
     );
     if(fileIds.length){
       await db.query("UPDATE lvd_chat_files SET message_id=$1,internal=$2 WHERE id=ANY($3::uuid[])",[result.rows[0].id,internal,fileIds]);
