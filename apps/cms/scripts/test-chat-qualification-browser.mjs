@@ -7,7 +7,7 @@ export async function testChatQualificationBrowser(context,base){
  try{
   await page.goto(base+'/admin/inbox');
   await page.locator('.operator-inbox').waitFor();
-  await page.getByRole('navigation',{name:'Lọc hội thoại'}).getByRole('button',{name:/Ưu tiên thấp/}).click();
+  await page.getByRole('combobox',{name:'Lọc hội thoại'}).selectOption('low');
   const timer=page.locator('.operator-expiry');await timer.waitFor();
   const before=await timer.textContent();assert.match(before,/^00:(?:00:\d{2}|01:00)$/);
   await page.waitForTimeout(1200);assert.notEqual(await timer.textContent(),before,'Countdown updates on the existing row');
