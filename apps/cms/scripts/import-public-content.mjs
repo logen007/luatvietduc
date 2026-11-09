@@ -13,6 +13,8 @@ export function importPublicContent(){
   vm.runInContext(source,context,{filename:sources[index],timeout:1000});
  });
  const source=window.LVD_CATALOG_SOURCE;
+ // Current verified profiles have a canonical source separate from the retained prototype.
+ const teamSource=fs.readFileSync(new URL('apps/cms/src/modules/public-site/team.json',base),'utf8'),team=JSON.parse(teamSource);
  const postSource=fs.readFileSync(new URL('apps/cms/src/modules/legacy/posts.json',base),'utf8'),posts=JSON.parse(postSource);
  const groups=source.groups.map((g,index)=>({id:g.id,title:g.title,titleDe:window.LVD_I18N.groupTitle(g.title,'de'),icon:g.icon,index:index+1,count:g.titles.length,titles:g.titles,slugs:g.titles.map((title,i)=>posts.find(post=>post.category===g.id&&post.title===title)?.slug||g.id+'-'+String(i+1).padStart(2,'0'))}));
  if(groups.length!==16||groups.reduce((n,g)=>n+g.count,0)!==303)throw new Error('Catalogue preservation failed');
@@ -24,7 +26,7 @@ export function importPublicContent(){
   if(!fs.existsSync(new URL('.'+logo,base)))throw new Error('Missing packaged partner logo: '+filename);
   return {...item,logo};
  });
- return {sourceHash:createHash('sha256').update(bytes.join('\0')).update(postSource).digest('hex'),groups,articleAliases:window.LVD_CATALOG.articleAliases,team:window.LVD_FEATURES.team,partners,newsSlugs:window.LVD_NEWS.stories.map(story=>story.id),newsStories:window.LVD_NEWS.stories,newsCategories:window.LVD_NEWS.categories,policies};
+ return {sourceHash:createHash('sha256').update(bytes.join('\0')).update(postSource).update(teamSource).digest('hex'),groups,articleAliases:window.LVD_CATALOG.articleAliases,team,partners,newsSlugs:window.LVD_NEWS.stories.map(story=>story.id),newsStories:window.LVD_NEWS.stories,newsCategories:window.LVD_NEWS.categories,policies};
 }
 const target=new URL('../src/modules/public-site/content.json',import.meta.url);
 const serialized=JSON.stringify(importPublicContent(),null,2)+'\n';
