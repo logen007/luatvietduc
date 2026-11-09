@@ -1,7 +1,7 @@
 // Public release metadata only. No customer session, provider key or deployment control.
 const branch='feat/platform-cms-bootstrap',repository='logen007/luatvietduc';
 const versionPattern=/^\d{2}\.\d{2}\.\d{2}$/;
-export type ReleaseState={status:'idle'|'updating'|'unknown'};
+export type ReleaseState={status:'idle'|'unknown'}|{status:'updating';version:string};
 type PendingRelease={version:string;status:string;conclusion:string|null;updatedAt:number}|null;
 export function updateState(active:unknown,pending:PendingRelease,now=Date.now()):ReleaseState{
  const current=(active as {version?:unknown})?.version;
@@ -13,8 +13,8 @@ export function updateState(active:unknown,pending:PendingRelease,now=Date.now()
  if(pending.status==='completed'&&pending.conclusion!=='success')return {status:'idle'};
  // A successful check is preparation, not proof of activation. Stop the spinner
  // if that evidence goes stale rather than reporting an endless active update.
- if(!Number.isFinite(pending.updatedAt)||now-pending.updatedAt>45*60_000||pending.updatedAt>now+60_000)return {status:'unknown'};
- return {status:'updating'};
+ if(!Number.isFinite(pending.updatedAt)||now-pending.updatedAt>(pending.status==='completed'?5:15)*60_000||pending.updatedAt>now+60_000)return {status:'unknown'};
+ return {status:'updating',version:pending.version};
 }
 async function publicJSON(url:string,request:typeof fetch){
  const response=await request(url,{cache:'no-store',credentials:'omit',redirect:'error',headers:{Accept:'application/json','User-Agent':'LuatVietDuc-release-notice'},signal:AbortSignal.timeout(3000)});
