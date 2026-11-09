@@ -1,3 +1,4 @@
+import {DOCUMENT_CONSENT_VERSION,validDocumentBatch} from './document-consent';
 import {conversationTitle,recoveredConversationTitle,unnamedTitleContextSQL} from './conversation-title';
 import {customerMetadata} from '../knowledge/citations';
 import {avatarURL} from '../identity/avatar';
@@ -169,7 +170,7 @@ export async function message(
       if (
         prior.actor_key !== actorKey ||
         prior.body !== body ||
-        prior.internal !== internal || JSON.stringify(prior.metadata?.fileIds||[])!==JSON.stringify(fileIds)
+        prior.internal !== internal || (prior.metadata?.documentConsent?.version||'')!==(own&&fileIds.length&&data.documentConsentVersion===DOCUMENT_CONSENT_VERSION?DOCUMENT_CONSENT_VERSION:'') || JSON.stringify(prior.metadata?.fileIds||[])!==JSON.stringify(fileIds)
       )
         throw new HttpError(409, "Mã gửi đã dùng cho nội dung khác.");
       return { id: prior.id, duplicate: true,role:prior.role };
@@ -181,12 +182,16 @@ export async function message(
       c.state !== "human"
     )
       throw new HttpError(409, "Cần nhận xử lý hội thoại trước khi trả lời.");
+    const documentConsent=own&&fileIds.length>0&&data.documentConsentVersion===DOCUMENT_CONSENT_VERSION;
+    if(documentConsent&&data.aiConsentVersion!=='gemini-rag-v1')throw new HttpError(400,'Cần đồng ý cho AI xử lý tài liệu.');
+    if(data.documentConsentVersion!==undefined&&!documentConsent)throw new HttpError(400,'Đồng ý xử lý tài liệu không hợp lệ.');
     if(fileIds.length){
-      const files=await db.query("SELECT id FROM lvd_chat_files WHERE id=ANY($1::uuid[]) AND conversation_id=$2 AND actor_key=$3 AND message_id IS NULL AND ready=true FOR UPDATE",[fileIds,id,actorKey]);
+      const files=await db.query("SELECT id,mime_type,size FROM lvd_chat_files WHERE id=ANY($1::uuid[]) AND conversation_id=$2 AND actor_key=$3 AND message_id IS NULL AND ready=true FOR UPDATE",[fileIds,id,actorKey]);
       if(files.rowCount!==fileIds.length)throw new HttpError(403,"Không thể gửi tệp này trong hội thoại.");
+      if(documentConsent&&!validDocumentBatch(files.rows.map(f=>({mimeType:f.mime_type,size:Number(f.size)}))))throw new HttpError(400,'AI đọc tối đa 4 ảnh/PDF, tổng dung lượng 12 MB.');
     }
     const browserContext=own?normalizeBrowserContext(data.browserContext,context.country):undefined;
-    const metadata:any={...(browserContext?{browserContext}:{}),...(own&&!fileIds.length&&data.aiConsentVersion==='gemini-rag-v1'?{aiConsent:{version:'gemini-rag-v1',provider:'google-gemini',at:new Date().toISOString()}}:{}),...(fileIds.length?{fileIds}:{})};
+    const metadata:any={...(browserContext?{browserContext}:{}),...(own&&(!fileIds.length||documentConsent)&&data.aiConsentVersion==='gemini-rag-v1'?{aiConsent:{version:'gemini-rag-v1',provider:'google-gemini',at:new Date().toISOString()}}:{}),...(documentConsent?{documentConsent:{version:DOCUMENT_CONSENT_VERSION,provider:'google-gemini',at:new Date().toISOString(),fileIds}}:{}),...(fileIds.length?{fileIds}:{})};
     const result = await db.query(
       "INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",
       [id, own ? "user" : "staff", body, internal, actorKey, key, Object.keys(metadata).length?JSON.stringify(metadata):null],
@@ -200,9 +205,9 @@ export async function message(
     );
     if(fileIds.length){
       await db.query("UPDATE lvd_chat_files SET message_id=$1,internal=$2 WHERE id=ANY($3::uuid[])",[result.rows[0].id,internal,fileIds]);
-      if(own)await db.query("UPDATE lvd_conversations SET ai_enabled=false,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,state=CASE WHEN state='human' THEN state ELSE 'queued' END,version=version+1 WHERE id=$1",[id]);
+      if(own&&!documentConsent)await db.query("UPDATE lvd_conversations SET ai_enabled=false,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,state=CASE WHEN state='human' THEN state ELSE 'queued' END,version=version+1 WHERE id=$1",[id]);
     }
-    if(own&&!fileIds.length&&c.state==='queued'&&c.ai_enabled)await db.query('INSERT INTO lvd_answer_jobs(message_id,conversation_id) VALUES($1,$2) ON CONFLICT(message_id) DO NOTHING',[result.rows[0].id,id]);
+    if(own&&(!fileIds.length||documentConsent)&&c.state==='queued'&&c.ai_enabled)await db.query('INSERT INTO lvd_answer_jobs(message_id,conversation_id) VALUES($1,$2) ON CONFLICT(message_id) DO NOTHING',[result.rows[0].id,id]);
     return {...result.rows[0],role:own?'user':'staff'};
   });
 }

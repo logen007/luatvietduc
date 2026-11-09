@@ -1,0 +1,13 @@
+# Customer image/PDF reading
+
+Customer attachments stay private in the existing chat storage. Uploading a file alone does not authorize AI processing. The send dialog lists the exact selected files, identifies Google Gemini and the conversation context, and offers consent, specialist-only delivery, or return without sending. Existing attachments without this consent are never sent retroactively.
+
+`gemini-documents-v1` is recorded server-side on the customer's message with provider, timestamp and exact file IDs. The existing message transaction verifies file ownership, readiness, conversation, supported MIME and sizes, binds attachments, and creates the durable answer job. No schema change is required. Document consent is part of retry identity, including explicit guest-to-account navigation; restored retry state alone never submits a request.
+
+Limits: four JPG/PNG/WebP/PDF files, 10 MiB per file and 12 MiB total per bundle. Other files can still be sent to a specialist. The worker uses fixed private object coordinates, checks actual bytes and signatures, and sends bounded inline data to the configured Gemini model. It never publishes files or follows document URLs, links, QR codes or commands. Only consented customer context is supplied; internal notes are excluded. Document content is not embedded, indexed or turned into knowledge. Follow-up questions in the same conversation may use the latest explicitly consented attachment bundle. A later attachment message without consent cannot inherit earlier file consent.
+
+AI is permitted to read, summarize and explain document language, with uncertainty about unreadable sections and references to file/page where available. Documents are customer evidence, not approved legal authority. A substantive legal conclusion or explicit request for a person can hand off. Missing pages, unreadable files, provider failures and bounded processing limits give a recoverable response and keep AI enabled. Human claim, a newer customer message, account ownership, provider/rule changes and runtime shutdown are checked through the existing generation/delivery boundary.
+
+No live customer document or paid provider request was used in local verification. The existing isolated DB system suite exercises consent/ownership, one durable job on retries, follow-ups, no-consent specialist delivery, unsupported input, provider truncation, missing storage records and a human claim during provider processing with mocked storage/Gemini. Unit checks cover limits, output validation and consent identity across login. Production model quality on actual scans remains dependent on image quality and the configured Gemini model.
+
+Provider protocol reference: https://ai.google.dev/gemini-api/docs/document-processing

@@ -34,7 +34,7 @@ export function createDeliveryGuard(){
  };
 }
 
-type Draft={body:string;internal:boolean;fileIds:string[]};
+type Draft={body:string;internal:boolean;fileIds:string[];documentConsentVersion?:string};
 export type MessageReceipt={id:string|number;role:'user'|'staff';duplicate?:boolean};
 type Delivery={receipt:MessageReceipt;key:string};
 type Attempt={conversation:string;draft:Draft;key:string;task:Promise<Delivery>|null};
@@ -46,7 +46,7 @@ export function createMessageOutbox(
  newKey=()=>crypto.randomUUID() as string,
 ){
  const pending=new Map<string,Attempt>();let lastConversation='',lastSignature='';
- const signatureFor=(conversation:string,draft:Draft)=>JSON.stringify([conversation,draft.body,draft.internal,draft.fileIds]);
+ const signatureFor=(conversation:string,draft:Draft)=>JSON.stringify([conversation,draft.body,draft.internal,draft.fileIds,draft.documentConsentVersion||'']);
  function send(conversation:string,draft:Draft):Promise<Delivery>{
   const signature=signatureFor(conversation,draft);
   let attempt=pending.get(signature);lastConversation=conversation;lastSignature=signature;

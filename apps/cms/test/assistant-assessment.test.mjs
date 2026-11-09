@@ -32,6 +32,7 @@ function fixture(t,options={}){
  const query=async(sql,args=[])=>{
   if(['BEGIN','COMMIT','ROLLBACK'].includes(sql)||sql.startsWith('SELECT pg_advisory_xact_lock_shared'))return {rows:[],rowCount:0};
   if(sql.startsWith('SELECT * FROM lvd_conversations'))return {rows:[{...c}],rowCount:1};
+  if(sql.startsWith('SELECT id,metadata FROM lvd_messages'))return {rows:[],rowCount:0};
   if(sql.startsWith('SELECT 1 FROM lvd_messages'))return {rows:[],rowCount:0};
   if(sql.startsWith('SELECT id,body,metadata FROM lvd_messages'))return {rows:[current],rowCount:1};
   if(sql.startsWith('SELECT role,body,metadata FROM ')){

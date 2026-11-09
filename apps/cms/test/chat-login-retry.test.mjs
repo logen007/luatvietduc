@@ -21,7 +21,7 @@ function nativeSendFixture(t,withFile){
   if(['BEGIN','COMMIT','ROLLBACK'].includes(sql))return {rows:[]};
   if(sql.startsWith('SELECT * FROM lvd_conversations'))return {rows:args[0]===thread?[conversation]:[]};
   if(sql.startsWith('SELECT * FROM lvd_messages'))return {rows:messages.filter(row=>row.conversation_id===args[0]&&row.client_key===args[1])};
-  if(sql.startsWith('SELECT id FROM lvd_chat_files')){const rows=files.filter(row=>args[0].includes(row.id)&&row.conversation_id===args[1]&&row.actor_key===args[2]&&row.message_id==null&&row.ready);return {rows,rowCount:rows.length};}
+  if(sql.startsWith('SELECT id,mime_type,size FROM lvd_chat_files')){const rows=files.filter(row=>args[0].includes(row.id)&&row.conversation_id===args[1]&&row.actor_key===args[2]&&row.message_id==null&&row.ready);return {rows,rowCount:rows.length};}
   if(sql.startsWith('INSERT INTO lvd_messages')){const [conversation_id,role,body,internal,actor_key,client_key,metadata]=args;const id=String(messages.length+1);messages.push({id,conversation_id,role,body,internal,actor_key,client_key,metadata:metadata?JSON.parse(metadata):null});return {rows:[{id}]};}
   if(sql.startsWith('SELECT body FROM lvd_messages'))return {rows:messages.filter(row=>row.conversation_id===args[0]&&row.role==='user'&&!row.internal&&row.metadata?.kind!=='deleted').slice(-80).reverse().map(row=>({body:row.body}))};
   if(sql.startsWith('UPDATE lvd_conversations SET title='))return {rows:[],rowCount:1};

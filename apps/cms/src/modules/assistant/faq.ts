@@ -27,6 +27,7 @@ function requestsPerson(question:string){
  }
  return requested;
 }
+export function explicitlyRequestsHuman(text:string){return requestsPerson(text.split('\n').map(normalizeQuestion).join('\n'));}
 export function requiresHuman(text:string){
  const question=normalizeQuestion(text);
  return /[\w.+-]+@[\w.-]+\.[a-z]{2,}|\d{8,}/i.test(text)

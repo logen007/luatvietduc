@@ -1,3 +1,4 @@
+import {testDocumentChat} from './test-document-chat';
 import {testGuestExpiryMigration} from './test-guest-expiry-migration';
 import {testHeroBanner} from './test-hero-banner';
 import {testArticleImport} from './test-article-import';
@@ -253,6 +254,7 @@ try {
   await testSpecialistInbox(owner,staff,other,foreign);
   await testSpecialistPermissions(payload,owner);
   await testChatFiles(owner);
+  await testDocumentChat(owner);
   await testEditorial(payload,owner,staff);
   await testAssistant(payload,owner,staff);
   await testRolePreview(payload,owner);

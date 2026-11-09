@@ -1,6 +1,7 @@
+import {DOCUMENT_CONSENT_VERSION} from './document-consent';
 import type {Attachment} from './contracts';
 export type ChatDraft={text:string;attachments:Attachment[]};
-type HandoffRetry={key:string;body:string;internal:false;fileIds:string[]};
+type HandoffRetry={key:string;body:string;internal:false;fileIds:string[];documentConsentVersion?:string};
 type HandoffDraft=ChatDraft&{retry?:HandoffRetry};
 export function draftOwnerKey(user:{id:number|string;role?:string;jurisdictions?:string[]}|null|undefined){return user?JSON.stringify([String(user.id),user.role||'',...(user.jurisdictions||[]).slice().sort()]):'guest';}
 export function draftMatchesDelivery(draft:ChatDraft,body:string,fileIds:string[]){return draft.text.trim()===body&&draft.attachments.length===fileIds.length&&draft.attachments.every((file,index)=>file.id===fileIds[index]);}
@@ -22,9 +23,9 @@ export function createDraftBook(){
 type Storage=Pick<globalThis.Storage,'getItem'|'setItem'|'removeItem'>;
 // Explicit, tab-local account navigation only. Consumption requires the current
 // server-owned conversation list; a URL or stored user ID alone proves nothing.
-export function saveDraftHandoff(storage:Storage,userId:number|null,conversation:string,draft:ChatDraft,now=Date.now(),retryKey?:string){
+export function saveDraftHandoff(storage:Storage,userId:number|null,conversation:string,draft:ChatDraft,now=Date.now(),retryKey?:string,documentConsentVersion?:string){
  if(!uuid.test(conversation))throw new Error('Chưa xác định được cuộc trò chuyện.');
- const retry=retryKey&&/^[\w-]{16,80}$/.test(retryKey)?{key:retryKey,body:draft.text.trim(),internal:false,fileIds:draft.attachments.map(file=>file.id)}:undefined;
+ const retry=retryKey&&/^[\w-]{16,80}$/.test(retryKey)?{key:retryKey,body:draft.text.trim(),internal:false,fileIds:draft.attachments.map(file=>file.id),...(documentConsentVersion===DOCUMENT_CONSENT_VERSION?{documentConsentVersion}:{})}:undefined;
  storage.setItem(handoffKey,JSON.stringify({version:1,userId,conversation,expires:now+lifetime,draft,...(retry?{retry}:{})}));
 }
 export function takeDraftHandoff(storage:Storage,userId:number|null,ownedIds:string[],requested:string|null,now=Date.now()):HandoffDraft|null{
@@ -40,7 +41,7 @@ export function takeDraftHandoff(storage:Storage,userId:number|null,ownedIds:str
    files.push({id:file.id,name:file.name,size:file.size,mimeType:file.mimeType,url:'/service/chat-files/'+file.id});
   }
   const retry=item.retry;
-  const validRetry=retry&&typeof retry.key==='string'&&/^[\w-]{16,80}$/.test(retry.key)&&retry.body===draft.text.trim()&&retry.internal===false&&Array.isArray(retry.fileIds)&&retry.fileIds.length===files.length&&retry.fileIds.every((id:unknown,index:number)=>id===files[index].id);
-  return {text:draft.text,attachments:files,...(validRetry?{retry:{key:retry.key,body:retry.body,internal:false as const,fileIds:files.map(file=>file.id)}}:{})};
+  const validRetry=retry&&typeof retry.key==='string'&&/^[\w-]{16,80}$/.test(retry.key)&&retry.body===draft.text.trim()&&retry.internal===false&&(retry.documentConsentVersion===undefined||retry.documentConsentVersion===DOCUMENT_CONSENT_VERSION)&&Array.isArray(retry.fileIds)&&retry.fileIds.length===files.length&&retry.fileIds.every((id:unknown,index:number)=>id===files[index].id);
+  return {text:draft.text,attachments:files,...(validRetry?{retry:{key:retry.key,body:retry.body,internal:false as const,fileIds:files.map(file=>file.id),...(retry.documentConsentVersion?{documentConsentVersion:retry.documentConsentVersion}:{})}}:{})};
  }catch{return null;}
 }
