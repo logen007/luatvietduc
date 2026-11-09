@@ -112,3 +112,5 @@ html.lvd-admin .operator-workspace.is-embedded{margin:0;max-width:none;border:0;
  .operator-workspace[data-pane=details] .operator-details-footer{padding:10px 20px max(10px,env(safe-area-inset-bottom))}
  .operator-workspace[data-pane=details] .operator-details-footer .operator-delete-conversation{min-height:44px;font-size:14px}
 }
+
+.operator-conversation-header>div:first-of-type>p{display:flex;align-items:center;gap:6px}

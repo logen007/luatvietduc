@@ -5,7 +5,7 @@ import type {InboxState} from './useInbox';
 export const labels:Record<string,string>={queue:'Hàng chờ',active:'Đang xử lý',done:'Hoàn tất',all:'Tất cả',low:'Ưu tiên thấp',queued:'Chờ tiếp nhận',human:'Đang xử lý',closed:'Đã hoàn tất'};
 export const date=(value?:string)=>value?new Date(value).toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
 const expiryTime=(value?:string|null)=>{const time=typeof value==='string'&&value?Date.parse(value):NaN;return Number.isFinite(time)?time:null;};
-const countdown=(expires:number,now:number)=>Math.max(0,Math.ceil((expires-now)/1000))+' giây';
+const countdown=(expires:number,now:number)=>Math.max(0,Math.ceil((expires-now)/1000))+'s';
 export function InboxList({inbox,selected,onSelect,workspaceError}:{inbox:InboxState;selected:string;onSelect:(id:string)=>void;workspaceError?:{message:string;retry:()=>void;busy:boolean}}){
  const error=workspaceError?.message||inbox.error;
  const [now,setNow]=useState(()=>Date.now()),refreshed=useRef(new Set<string>()),refresh=useRef(inbox.refresh);refresh.current=inbox.refresh;
