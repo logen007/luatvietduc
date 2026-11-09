@@ -1,3 +1,4 @@
+import {ResourcePanel} from './ResourcePanel';
 import {AppLink} from '../shared/AppLink';
 import React from "react";
 import {Gutter,SetStepNav} from "@payloadcms/ui";
@@ -47,6 +48,7 @@ export async function AdminWelcome({ user }: WelcomeProps) {
         </div>
       </header>
       <div className="lvd-dashboard-stats">{stats.map(stat=><AppLink href={stat.href} key={stat.label}><span>{stat.label}</span><strong>{stat.value===undefined?'—':stat.value.toLocaleString('vi-VN')}</strong><small>{stat.note}</small></AppLink>)}</div>
+      {can.owner&&<ResourcePanel/>}
       <div className="lvd-dashboard-section-title"><h2>Thao tác nhanh</h2></div>
       {destinations.length > 0 && <nav className="lvd-admin-destinations" aria-label="Khu vực làm việc">
         {destinations.map((item) => <AppLink href={item.href} key={item.href} className="lvd-admin-destination">
