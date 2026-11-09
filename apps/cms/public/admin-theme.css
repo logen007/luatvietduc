@@ -408,6 +408,8 @@ html.lvd-admin .lvd-knowledge-retry{margin-top:16px;padding:8px 0;border:0;backg
 
 /* Specialist access is global; the legacy country-scope control is obsolete. */
 html.lvd-admin #field-jurisdictions{display:none}
+/* Publication actions own the workflow; omit the redundant review-state select. */
+html.lvd-admin #field-reviewState{display:none}
 /* Admin design system. Owns the final visual layer; public pages are unaffected. */
 html.lvd-admin[data-theme='dark']{
  --admin-canvas:#0a0a0a;--admin-sidebar:#0d0d0d;--admin-panel:#141414;--admin-raised:#1c1c1c;--admin-line:#303030;--admin-text:#c7c7c7;--admin-muted:#949494;--admin-accent:#d4d4d4;--admin-selected:#242424;

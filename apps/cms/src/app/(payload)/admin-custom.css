@@ -408,3 +408,5 @@ html.lvd-admin .lvd-knowledge-retry{margin-top:16px;padding:8px 0;border:0;backg
 
 /* Specialist access is global; the legacy country-scope control is obsolete. */
 html.lvd-admin #field-jurisdictions{display:none}
+/* Publication actions own the workflow; omit the redundant review-state select. */
+html.lvd-admin #field-reviewState{display:none}
