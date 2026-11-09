@@ -488,3 +488,33 @@ html.lvd-admin .template-default__nav-toggler-container:has(.lvd-admin-back) .te
 html.lvd-admin .lvd-admin-back{display:grid;place-items:center;box-sizing:border-box;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:0;border:1px solid var(--admin-line);border-radius:4px;background:var(--admin-sidebar);color:var(--admin-text);text-decoration:none}
 html.lvd-admin .lvd-admin-back svg{width:24px;height:24px}
 html.lvd-admin .lvd-admin-back:hover{background:var(--admin-raised);border-color:var(--admin-muted)}
+
+/* Mobile article editing: compact context above the actual title and content. */
+@media(max-width:760px){
+ html.lvd-admin .collection-edit--articles .doc-header{padding-bottom:8px}
+ html.lvd-admin .collection-edit--articles .doc-header__header{gap:6px;align-items:center}
+ html.lvd-admin .collection-edit--articles .doc-header__header h1{font-size:18px;line-height:1.4;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ html.lvd-admin .collection-edit--articles .doc-tabs{width:100%;min-width:0;margin:0}
+ html.lvd-admin .collection-edit--articles .doc-tabs__tabs-container{max-width:100%;overflow-x:auto;scrollbar-width:thin}
+ html.lvd-admin .collection-edit--articles .doc-tabs__tabs{display:flex;flex-wrap:nowrap;gap:4px}
+ html.lvd-admin .collection-edit--articles .doc-tabs a{white-space:nowrap;min-height:40px;padding:8px 10px;font-size:13px}
+ html.lvd-admin .collection-edit--articles .doc-controls__wrapper{height:auto;min-height:0;gap:8px;padding-block:8px}
+ html.lvd-admin .collection-edit--articles .doc-controls__content{gap:8px;padding-block:0;align-items:center}
+ html.lvd-admin .collection-edit--articles .doc-controls__meta{min-height:44px;flex:1 1 100%;width:100%;margin:0;padding:0}
+ html.lvd-admin .collection-edit--articles .lvd-article-language-actions{gap:6px;flex-wrap:nowrap}
+ html.lvd-admin .collection-edit--articles .lvd-article-language-actions button{min-height:40px;padding:7px 10px;border-radius:4px;font-size:13px}
+ html.lvd-admin .collection-edit--articles .doc-controls__controls-wrapper{gap:6px;min-width:0}
+ html.lvd-admin .collection-edit--articles .doc-controls__controls{gap:6px;flex-wrap:wrap}
+ html.lvd-admin .collection-edit--articles .doc-controls__controls .btn{margin:0;min-height:44px;padding:10px 12px;border-radius:4px;font-size:13px}
+ html.lvd-admin .collection-edit--articles .lvd-post-permalink{margin-bottom:16px}
+ html.lvd-admin .collection-edit--articles .lvd-post-permalink__row{flex-wrap:nowrap;gap:8px}
+ html.lvd-admin .collection-edit--articles .lvd-post-permalink__url{flex:1;min-width:0;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+ html.lvd-admin .collection-edit--articles .lvd-post-permalink__row>button{flex:0 0 auto;min-height:40px;padding:6px 10px;border-radius:4px}
+ html.lvd-admin .collection-edit--articles .lvd-article-editor{margin-top:0;border-radius:4px}
+ html.lvd-admin .collection-edit--articles .lvd-editor-top{padding:8px;gap:8px}
+ html.lvd-admin .collection-edit--articles .lvd-editor-top button{font-size:13px;padding:8px 10px}
+ html.lvd-admin .collection-edit--articles .lvd-editor-toolbar{padding:6px;gap:4px}
+ html.lvd-admin .collection-edit--articles .lvd-editor-group select{max-width:150px}
+ html.lvd-admin .collection-edit--articles .lvd-article-editor .tiptap{padding:18px 16px}
+ html.lvd-admin .collection-edit--articles .lvd-article-editor .tiptap h2{font-size:24px;line-height:1.4}
+}
