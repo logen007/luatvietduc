@@ -134,3 +134,13 @@ html.lvd-admin .operator-workspace.is-embedded{margin:0;max-width:none;border:0;
  .operator-workspace[data-keyboard-open="true"] .operator-composer-shell{flex:0 0 auto;margin: auto 12px 8px}
  .operator-workspace[data-keyboard-open="true"] .operator-error{flex-shrink:0}
 }
+/* Keep inbox width stable while the details track opens and closes. */
+@media(min-width:1201px){
+ .operator-workspace{grid-template-columns:310px minmax(0,1fr) 0;transition:grid-template-columns .24s cubic-bezier(.22,1,.36,1)}
+ .operator-workspace.has-details{grid-template-columns:310px minmax(0,1fr) 275px}
+ .operator-workspace>.operator-details{min-width:0;overflow:hidden}
+}
+@media(min-width:1600px){.operator-workspace.has-details{grid-template-columns:310px minmax(0,1fr) 300px}}
+.operator-workspace.has-details>.operator-details{animation:operator-details-enter .24s cubic-bezier(.22,1,.36,1) both}
+@keyframes operator-details-enter{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+@media(prefers-reduced-motion:reduce){.operator-workspace{transition:none}.operator-workspace.has-details>.operator-details{animation:none}}
