@@ -4,6 +4,7 @@ import {useLayoutEffect,useRef,useState} from 'react';
 import {ReplyText} from './ReplyText';
 import type {WorkspaceState} from '../useWorkspace';
 import {ChatIcon} from './Icons';
+import {AttachmentDetails} from './AttachmentDetails';
 function StaffAvatar({src,name}:{src?:string;name:string}){
  const [failed,setFailed]=useState('');
  return <span className="chat-staff-avatar" aria-hidden="true">{src&&failed!==src?<img src={src} alt="" decoding="async" onError={()=>setFailed(src)}/>:name.trim().slice(0,1).toLocaleUpperCase('vi')}</span>;
@@ -29,11 +30,11 @@ export function ChatMessages({state}:{state:WorkspaceState}){
  const inviteLogin=!state.me?.user&&awaitingSpecialist;
  const invitation=<>{inviteLogin&&<p className="chat-login-message"><a href={'/tai-khoan?conversation='+encodeURIComponent(state.selected)} aria-disabled={state.busy||state.uploading} onClick={event=>{if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();void state.openAccount();}}>{t("Đăng ký")} <span aria-hidden="true">↗</span></a> {t("Bạn có thể đăng ký để lưu cuộc trò chuyện và được chuyên viên ưu tiên trả lời.")} {t("Nếu tiện, bạn để lại số điện thoại ngay trong cuộc trò chuyện để chuyên viên liên hệ nhé. Không bắt buộc.")}</p>}{awaitingSpecialist&&!inviteLogin&&<p>{t("Nếu tiện, bạn để lại số điện thoại ngay trong cuộc trò chuyện để chuyên viên liên hệ nhé. Không bắt buộc.")}</p>}</>;
  return <div className="chat-transcript">
-  {state.messages.map(message=><article className={'chat-message '+(message.role==='user'?'user':'assistant')} key={message.id}>
+  {state.messages.map(message=><article className={'chat-message '+(message.role==='user'?'user':'assistant')+(message.attachments?.length?' has-files':'')} key={message.id}>
    {message.role==='assistant'&&<div className="chat-answer-label"><ChatIcon name="spark"/><MessageTime value={message.created_at} language={language}/></div>}
    {message.role==='staff'&&<div className="chat-answer-label"><StaffAvatar src={message.author_avatar_url} name={message.author_name||t('Chuyên viên')}/><strong>{message.author_name||t('Chuyên viên')}</strong><MessageTime value={message.created_at} language={language}/></div>}
-   {Boolean(message.attachments?.length)&&<div className="chat-message-files">{(message.attachments||[]).map(file=><a className="chat-file-chip" key={file.id} href={file.url} download><span aria-hidden="true">▤</span><span><strong>{file.name}</strong><small>{Math.ceil(file.size/1024)} KB</small></span><span aria-hidden="true">↓</span></a>)}</div>}
-   <div className="chat-answer-text"><ReplyText animate={message.role!=='user'&&newReplies.has(String(message.id))} text={message.role==='assistant'&&message.metadata?.kind==='handoff'?t("Câu hỏi này cần chuyên viên xem xét thêm. Mình đã chuyển cuộc trò chuyện để chuyên viên tiếp tục hỗ trợ tại đây."):String(message.body)}/>{message.id===handoff?.id&&invitation}</div>
+   {Boolean(message.attachments?.length)&&<div className="chat-message-files">{(message.attachments||[]).map(file=><a className="chat-file-chip" key={file.id} href={file.url} download><AttachmentDetails name={file.name} size={file.size}/><svg className="chat-file-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M5 19h14"/></svg></a>)}</div>}
+   {(Boolean(String(message.body||'').trim())||message.id===handoff?.id)&&<div className="chat-answer-text"><ReplyText animate={message.role!=='user'&&newReplies.has(String(message.id))} text={message.role==='assistant'&&message.metadata?.kind==='handoff'?t("Câu hỏi này cần chuyên viên xem xét thêm. Mình đã chuyển cuộc trò chuyện để chuyên viên tiếp tục hỗ trợ tại đây."):String(message.body)}/>{message.id===handoff?.id&&invitation}</div>}
    {Boolean(message.metadata?.sources?.length)&&<div className="chat-sources">{(message.metadata?.sources||[]).map(source=>{const href=sourceHref(source.url||'');return href?<a key={source.id} href={href} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><ChatIcon name="arrow"/>{source.title}</a>:<span key={source.id}>{source.title}</span>;})}</div>}
   </article>)}
   {/* Attachments transfer directly to staff without an assistant handoff record. */}

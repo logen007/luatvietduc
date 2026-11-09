@@ -230,3 +230,23 @@ body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-history-search{mar
  .live-shell.chat-shell.lvd-chat[data-keyboard-open="true"] .chat-log{flex:1 1 0;min-height:0;overflow-y:auto}
  .live-shell.chat-shell.lvd-chat[data-keyboard-open="true"] .chat-compose-wrap{flex:0 0 auto;margin: auto auto 0;padding:8px 0 0}
 }
+
+/* Compact attachments use one surface, separate from the customer's text bubble. */
+.lvd-chat .chat-message.user.has-files{padding:0;background:transparent;max-width:88%}
+.lvd-chat .chat-message.user.has-files>.chat-answer-text{width:fit-content;max-width:100%;box-sizing:border-box;margin:8px 0 0 auto;padding:12px 18px;border-radius:22px;background:#303030}
+.lvd-chat .chat-message-files{margin:0;justify-content:flex-end}
+.lvd-chat .chat-file-chip{box-sizing:border-box;gap:12px;width:312px;max-width:100%;min-height:72px;padding:12px;border-radius:14px;background:#272727;border-color:#444;color:#dedede;transition:background .16s,border-color .16s}
+.lvd-chat a.chat-file-chip:hover{background:#303030;border-color:#626262}
+.lvd-chat a.chat-file-chip:focus-visible{outline:2px solid #aaa;outline-offset:3px}
+.lvd-chat .chat-file-icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:44px;border-radius:8px;background:#414141;color:#eee}
+.lvd-chat .chat-file-icon.is-pdf{background:#673c3b;color:#ffd0cb}
+.lvd-chat .chat-file-icon.is-image{background:#464268;color:#e1d9ff}
+.lvd-chat .chat-file-icon svg{width:23px;height:23px}
+.lvd-chat .chat-file-details{flex:1;min-width:0}
+.lvd-chat .chat-file-chip strong{max-width:none;font-size:14px;line-height:20px;font-weight:500}
+.lvd-chat .chat-file-chip small{margin-top:3px;font-size:12px;line-height:18px;color:#aaa;opacity:1}
+.lvd-chat .chat-file-download{width:18px;height:18px;flex:none;color:#aaa}
+.lvd-chat .chat-file-tray .chat-file-chip{width:280px}
+.lvd-chat .chat-file-chip button{display:grid;place-items:center;flex:none;min-width:32px;min-height:40px;border-radius:8px}
+.lvd-chat .chat-file-chip button:hover:not(:disabled){background:#444}
+@media(prefers-reduced-motion:reduce){.lvd-chat .chat-file-chip{transition:none}}

@@ -3,6 +3,7 @@ import {useLocale} from "../../shared/locale";
 import {useEffect,useId,useRef} from 'react';
 import type {WorkspaceState} from '../useWorkspace';
 import {ChatIcon} from './Icons';
+import {AttachmentDetails} from './AttachmentDetails';
 export function ChatComposer({state}:{state:WorkspaceState}){
  const {t}=useLocale();
  const input=useRef<HTMLTextAreaElement>(null),fileInput=useRef<HTMLInputElement>(null),id=useId();
@@ -34,7 +35,7 @@ export function ChatComposer({state}:{state:WorkspaceState}){
   return()=>{window.removeEventListener('focus',focus);document.removeEventListener('keydown',type);};
  },[disabled,state.selected,state.setText]);
  return <div className="chat-compose-wrap" onDragOver={event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();}} onDrop={event=>{if(event.dataTransfer.files.length){event.preventDefault();if(!disabled)void state.attachFiles(Array.from(event.dataTransfer.files));}}}>
-  {(state.attachments.length>0||state.uploading)&&<div className="chat-file-tray">{state.attachments.map(file=><div className="chat-file-chip" key={file.id}><span aria-hidden="true">▤</span><span><strong>{file.name}</strong><small>{(file.size/1024).toFixed(0)} KB</small></span><button type="button" aria-label={t('Bỏ tệp {name}',{name:file.name})} onClick={()=>state.removeAttachment(file.id)} disabled={state.busy||state.uploading}>×</button></div>)}{state.uploading&&<div className="chat-file-chip" role="status"><span className="live-spinner"/>{t("Đang tải tệp…")}</div>}</div>}
+  {(state.attachments.length>0||state.uploading)&&<div className="chat-file-tray">{state.attachments.map(file=><div className="chat-file-chip" key={file.id}><AttachmentDetails name={file.name} size={file.size}/><button type="button" aria-label={t('Bỏ tệp {name}',{name:file.name})} onClick={()=>state.removeAttachment(file.id)} disabled={state.busy||state.uploading}>×</button></div>)}{state.uploading&&<div className="chat-file-chip" role="status"><span className="live-spinner"/>{t("Đang tải tệp…")}</div>}</div>}
   <form className="chat-compose" onSubmit={state.send} aria-busy={state.busy}>
    <label className="sr-only" htmlFor={id}>{t("Câu hỏi của bạn")}</label>
    <textarea ref={input} id={id} rows={1} maxLength={state.maxLength} value={state.text} onChange={e=>state.setText(e.target.value)} disabled={disabled} onPaste={event=>{const files=Array.from(event.clipboardData.files);if(files.length){event.preventDefault();void state.attachFiles(files);}}} placeholder={t(state.conversation?.state==='closed'?'Mở lại hội thoại để tiếp tục.':'Nhập câu hỏi của bạn…')} required={!state.attachments.length} onKeyDown={event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent.isComposing&&!disabled){event.preventDefault();event.currentTarget.form?.requestSubmit();}}}/>
