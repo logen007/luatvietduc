@@ -100,6 +100,114 @@
     "Sau": {
       "vi": "Sau",
       "de": "Weiter"
+    },
+    "Hiểu rõ pháp luật. Chủ động bước tiếp.": {
+      "vi": "Hiểu rõ pháp luật. Chủ động bước tiếp.",
+      "de": "Recht verstehen. Klar weitergehen."
+    },
+    "Cùng bạn tìm lời giải cho những câu hỏi về cuộc sống, công việc và gia đình giữa Việt Nam và Đức.": {
+      "vi": "Cùng bạn tìm lời giải cho những câu hỏi về cuộc sống, công việc và gia đình giữa Việt Nam và Đức.",
+      "de": "Wir helfen Ihnen, rechtliche Fragen zu Alltag, Arbeit und Familie zwischen Vietnam und Deutschland einzuordnen."
+    },
+    "Mở trò chuyện": {
+      "vi": "Mở trò chuyện",
+      "de": "Chat öffnen"
+    },
+    "Khám phá thư viện": {
+      "vi": "Khám phá thư viện",
+      "de": "Bibliothek entdecken"
+    },
+    "Một câu hỏi. Một hướng đi rõ hơn.": {
+      "vi": "Một câu hỏi. Một hướng đi rõ hơn.",
+      "de": "Eine Frage. Mehr Klarheit für Ihren Weg."
+    },
+    "Pháp luật Việt Nam và Đức": {
+      "vi": "Pháp luật Việt Nam và Đức",
+      "de": "Recht in Vietnam und Deutschland"
+    },
+    "Dễ tiếp cận": {
+      "vi": "Dễ tiếp cận",
+      "de": "Verständlich"
+    },
+    "Bắt đầu từ vấn đề thực tế": {
+      "vi": "Bắt đầu từ vấn đề thực tế",
+      "de": "Ausgehend von Ihrem Anliegen"
+    },
+    "Cùng trao đổi": {
+      "vi": "Cùng trao đổi",
+      "de": "Im Gespräch"
+    },
+    "AI và chuyên viên khi cần": {
+      "vi": "AI và chuyên viên khi cần",
+      "de": "KI und bei Bedarf das Fachteam"
+    },
+    "Cách chúng tôi hỗ trợ": {
+      "vi": "Cách chúng tôi hỗ trợ",
+      "de": "So unterstützen wir Sie"
+    },
+    "Từ băn khoăn đến hướng giải quyết.": {
+      "vi": "Từ băn khoăn đến hướng giải quyết.",
+      "de": "Von der Frage zum nächsten Schritt."
+    },
+    "Điều chúng tôi hướng tới": {
+      "vi": "Điều chúng tôi hướng tới",
+      "de": "Unser Anliegen"
+    },
+    "Pháp luật gần hơn với cuộc sống.": {
+      "vi": "Pháp luật gần hơn với cuộc sống.",
+      "de": "Recht, das zum Alltag gehört."
+    },
+    "Giấy tờ, quyền lợi và nghĩa vụ thường gắn với những quyết định rất riêng. Chúng tôi muốn việc tìm hiểu pháp luật bắt đầu bằng thông tin dễ hiểu và một cuộc trao đổi có ích.": {
+      "vi": "Giấy tờ, quyền lợi và nghĩa vụ thường gắn với những quyết định rất riêng. Chúng tôi muốn việc tìm hiểu pháp luật bắt đầu bằng thông tin dễ hiểu và một cuộc trao đổi có ích.",
+      "de": "Dokumente, Rechte und Pflichten hängen oft mit sehr persönlichen Entscheidungen zusammen. Wir möchten den Zugang zum Recht durch verständliche Informationen und hilfreiche Gespräche erleichtern."
+    },
+    "Bạn có thể tự tra cứu, hỏi tiếp theo ngữ cảnh hoặc gửi tài liệu để làm rõ. Những vấn đề cần đánh giá riêng sẽ được chuyển tới chuyên viên.": {
+      "vi": "Bạn có thể tự tra cứu, hỏi tiếp theo ngữ cảnh hoặc gửi tài liệu để làm rõ. Những vấn đề cần đánh giá riêng sẽ được chuyển tới chuyên viên.",
+      "de": "Sie können selbst nachlesen, im Gespräch nachfragen oder Dokumente zur Erläuterung senden. Anliegen, die eine individuelle Beurteilung erfordern, werden an das Fachteam weitergegeben."
+    },
+    "Bắt đầu câu hỏi của bạn": {
+      "vi": "Bắt đầu câu hỏi của bạn",
+      "de": "Stellen Sie Ihre Frage"
+    },
+    "Con người phía sau": {
+      "vi": "Con người phía sau",
+      "de": "Die Menschen dahinter"
+    },
+    "Bắt đầu tại đây": {
+      "vi": "Bắt đầu tại đây",
+      "de": "Hier beginnt Ihr Weg"
+    },
+    "Bạn đang cần làm rõ điều gì?": {
+      "vi": "Bạn đang cần làm rõ điều gì?",
+      "de": "Was möchten Sie klären?"
+    },
+    "Đặt câu hỏi và tiếp tục trao đổi theo vấn đề của bạn.": {
+      "vi": "Đặt câu hỏi và tiếp tục trao đổi theo vấn đề của bạn.",
+      "de": "Stellen Sie Ihre Frage und bleiben Sie zu Ihrem Anliegen im Gespräch."
+    },
+    "Bắt đầu từ câu hỏi của bạn": {
+      "vi": "Bắt đầu từ câu hỏi của bạn",
+      "de": "Ihre Frage ist der Anfang"
+    },
+    "Kể về điều bạn đang vướng mắc, bằng cách diễn đạt của bạn.": {
+      "vi": "Kể về điều bạn đang vướng mắc, bằng cách diễn đạt của bạn.",
+      "de": "Beschreiben Sie mit eigenen Worten, was Sie beschäftigt."
+    },
+    "Hiểu rõ thông tin liên quan": {
+      "vi": "Hiểu rõ thông tin liên quan",
+      "de": "Relevante Informationen verstehen"
+    },
+    "Tra cứu theo chủ đề hoặc trao đổi với AI để làm rõ vấn đề và nội dung giấy tờ.": {
+      "vi": "Tra cứu theo chủ đề hoặc trao đổi với AI để làm rõ vấn đề và nội dung giấy tờ.",
+      "de": "Lesen Sie nach Themen oder klären Sie Ihr Anliegen und Dokumente im Gespräch mit der KI."
+    },
+    "Tiếp tục cùng chuyên viên": {
+      "vi": "Tiếp tục cùng chuyên viên",
+      "de": "Mit dem Fachteam weitergehen"
+    },
+    "Khi cần xem xét cụ thể, chuyên viên tiếp nhận ngay trong cuộc trò chuyện.": {
+      "vi": "Khi cần xem xét cụ thể, chuyên viên tiếp nhận ngay trong cuộc trò chuyện.",
+      "de": "Wenn eine individuelle Prüfung nötig ist, übernimmt das Fachteam im selben Gespräch."
     }
   }
 }
