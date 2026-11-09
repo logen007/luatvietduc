@@ -1,3 +1,4 @@
+import {featuredArticleImage} from './article-image';
 import {articleSummary} from './article-summary';
 import {pool} from '../shared/db';
 import {cache} from 'react';
@@ -89,8 +90,8 @@ export async function publicArticleList({kind='legal',query='',group='',country=
  const [result,categories]=await Promise.all([
   publicPayload().then(payload=>payload.find({
    collection:'articles',overrideAccess:false,draft:false,where:{and:where},
-   sort:order==='a-z'?['title','id']:order==='newest'?['-createdAt','-id']:['-updatedAt','id'],depth:0,page,limit,
-   select:{id:true,slug:true,title:true,body:true,language:true,kind:true,jurisdiction:true,createdAt:true,categories:true},
+   sort:order==='a-z'?['title','id']:order==='newest'?['-createdAt','-id']:['-updatedAt','id'],depth:1,page,limit,
+   select:{id:true,slug:true,title:true,body:true,language:true,kind:true,jurisdiction:true,createdAt:true,categories:true,featuredImage:true},
   })),
   publicCategories(),
  ]);
@@ -101,7 +102,7 @@ export async function publicArticleList({kind='legal',query='',group='',country=
   const summary=articleSummary(article.body);
   return {
    id:article.id,slug:article.slug,title:article.title,summary:summary.summary,
-   kind:article.kind||'article',language:article.language,photo:photoForArticle(article),
+   kind:article.kind||'article',language:article.language,photo:photoForArticle(article),image:featuredArticleImage(article.featuredImage),
    published:article.createdAt,readingMinutes:summary.readingMinutes,
    ...(category?{category:cardCategory(category.slug,category.name,country||article.jurisdiction)}:{}),
   };

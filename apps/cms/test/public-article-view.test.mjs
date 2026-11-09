@@ -1,3 +1,5 @@
+import {ArticlePhoto} from '../src/modules/public-site/ArticlePhoto.tsx';
+import {featuredArticleImage} from '../src/modules/public-site/article-image.ts';
 import {articleSummary} from '../src/modules/public-site/article-summary.ts';
 import {StructuredData} from '../src/modules/public-site/StructuredData.tsx';
 import {photo} from '../src/modules/public-site/photos.ts';
@@ -18,7 +20,7 @@ const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.
 async function render(article){
  const exports={};
  vm.runInNewContext(compiled,{exports,process:{cwd:()=>'/synthetic'},require:name=>({
-  'react/jsx-runtime':jsxRuntime,'../../../../modules/shared/AppLink':{AppLink},'../../../../modules/public-site/search':{photoForArticle:()=> 'berlin'},
+  '../../../../modules/public-site/ArticlePhoto':{ArticlePhoto},'../../../../modules/public-site/article-image':{featuredArticleImage},'react/jsx-runtime':jsxRuntime,'../../../../modules/shared/AppLink':{AppLink},'../../../../modules/public-site/search':{photoForArticle:()=> 'berlin'},
   '../../../../modules/content/article-body':{articleHTML:body=>body,articleText:body=>body},
   '../../../../modules/shared/locale':{LocaleText:({text})=>text,LocaleDate:({value})=>value},
   'next/navigation':{notFound:()=>assert.fail('Synthetic article must exist'),permanentRedirect:()=>assert.fail('No redirect expected')},
@@ -41,4 +43,11 @@ test('article heading and body retain their actual content language independentl
   assert.ok(html.includes('<h1 id="article-title" lang="'+language+'">'));
   assert.ok(html.includes('class="live-body" lang="'+language+'"'));
  }
+});
+
+test('selected public cover appears at the start of the article, while private media is omitted',async()=>{
+ const base={slug:'synthetic',title:'Synthetic cover',body:'<p>Body</p>',updatedAt:'2026-11-09',kind:'article',jurisdiction:'VN',language:'vi'};
+ const featuredImage={visibility:'public',mimeType:'image/webp',url:'/api/media/file/cover.webp',width:1200,height:800,alt:'Selected cover'};
+ const html=await render({...base,featuredImage});assert.ok(html.includes('class="live-reading-cover"'));assert.ok(html.includes('src="/api/media/file/cover.webp"'));assert.ok(html.includes('alt="Selected cover"'));
+ const hidden=await render({...base,featuredImage:{...featuredImage,visibility:'private'}});assert.ok(!hidden.includes('class="live-reading-cover"'));assert.ok(!hidden.includes('/api/media/file/cover.webp'));
 });

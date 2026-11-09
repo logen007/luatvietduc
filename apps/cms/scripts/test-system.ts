@@ -1,3 +1,4 @@
+import {testArticleCover} from './test-article-cover';
 import {testDocumentChat} from './test-document-chat';
 import {testGuestExpiryMigration} from './test-guest-expiry-migration';
 import {testHeroBanner} from './test-hero-banner';
@@ -69,6 +70,7 @@ try {
   await testMediaLibrary(payload,owner);
   await testMediaFamilies(payload,owner);
   await testMediaImageEdit(payload,owner);
+  await testArticleCover(payload,owner);
   await testArticleTranslations(payload,owner);
   await testEmailAccounts(payload,owner);
   await testLogout(payload,owner);

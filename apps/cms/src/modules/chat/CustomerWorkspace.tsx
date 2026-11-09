@@ -4,7 +4,7 @@ import {useEffect,useRef,useState} from 'react';
 import {Header} from '../shared/Header';
 import type {Card} from '../public-site/types';
 import {AppLink} from '../shared/AppLink';
-import {Photo} from '../public-site/Photo';
+import {ArticlePhoto} from '../public-site/ArticlePhoto';
 import {useWorkspace} from './useWorkspace';
 import {ChatComposer} from './ui/Composer';
 import {ChatHistory} from './ui/History';
@@ -38,7 +38,7 @@ export function CustomerWorkspace({articles=[]}:{articles?:Card[]}){
    <ChatComposer state={state}/>
    {empty&&articles.length>0&&<section className="chat-latest-articles" aria-label={t("Bài viết mới")}>{articles.slice(0,4).map(article=>{
     const date=article.published?new Date(article.published):null;
-    return <AppLink key={article.id} href={article.href||'/bai-viet/'+encodeURIComponent(article.slug)} className="chat-latest-article"><Photo name={article.photo} width={480} card responsive={false} alt="" loading="lazy" decoding="async"/><span className="chat-latest-article-copy"><strong lang={article.language}>{article.title}</strong>{date&&Number.isFinite(date.getTime())&&<time dateTime={article.published!}>{date.toLocaleDateString(language==='de'?'de-DE':'vi-VN',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'Asia/Ho_Chi_Minh'})}</time>}</span><ChatIcon name="arrow"/></AppLink>;
+    return <AppLink key={article.id} href={article.href||'/bai-viet/'+encodeURIComponent(article.slug)} className="chat-latest-article"><ArticlePhoto image={article.image} name={article.photo} width={480} card responsive={false} alt="" loading="lazy" decoding="async"/><span className="chat-latest-article-copy"><strong lang={article.language}>{article.title}</strong>{date&&Number.isFinite(date.getTime())&&<time dateTime={article.published!}>{date.toLocaleDateString(language==='de'?'de-DE':'vi-VN',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'Asia/Ho_Chi_Minh'})}</time>}</span><ChatIcon name="arrow"/></AppLink>;
    })}</section>}
   </section>
  </main><dialog ref={dialog} className="chat-history-dialog" aria-label={t("Lịch sử hội thoại")} onClose={()=>setHistoryOpen(false)} onClick={event=>{if(event.target===event.currentTarget)close();}}><div className="chat-history-dialog-heading"><strong>{t("Cuộc trò chuyện")}</strong><button type="button" aria-label={t("Đóng lịch sử")} onClick={close}><ChatIcon name="close"/></button></div><ChatHistory state={state} onSelect={choose} onNew={startNew}/></dialog></>;

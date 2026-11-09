@@ -1369,6 +1369,8 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 .live-reading-page .live-reading-hero .breadcrumb a{color:inherit}
 .live-reading-page .live-reading-hero .live-reading-intro{margin:24px 0 0;max-width:60ch;color:#b5b5b5;font:400 18px/1.6 var(--lvd-font)}
 @media(max-width:600px){.live-reading-page .live-reading-hero .live-reading-intro{font-size:16px}}
+
+.live-reading-cover{margin:0 0 28px}.live-reading-cover img{display:block;width:100%;height:auto;max-height:680px;object-fit:contain;border-radius:4px}
 /* Reference breakpoint: navigation collapses at 980px; real UI never scales. */
 @media (max-width: 1200px) {
   .live-header .live-header-inner {

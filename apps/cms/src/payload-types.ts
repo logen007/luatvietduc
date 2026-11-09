@@ -248,6 +248,10 @@ export interface Article {
   slug: string;
   body: string;
   categories?: (number | Category)[] | null;
+  /**
+   * Chọn ảnh dùng trên thẻ bài viết và phần đầu bài.
+   */
+  featuredImage?: (number | null) | Media;
   tags?: (number | Tag)[] | null;
   kind?: ('article' | 'news' | 'question') | null;
   legalField?: string | null;
@@ -502,6 +506,7 @@ export interface ArticlesSelect<T extends boolean = true> {
   slug?: T;
   body?: T;
   categories?: T;
+  featuredImage?: T;
   tags?: T;
   kind?: T;
   legalField?: T;

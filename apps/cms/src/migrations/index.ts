@@ -1,3 +1,4 @@
+import * as articleFeaturedImage from './20261109_120000_article_featured_image';
 import * as guestAttachmentExpiry from './20261109_110000_guest_attachment_expiry';
 import * as articleAutosave from './20261109_100000_article_autosave';
 import * as guestChatExpiry from './20261109_010000_guest_chat_expiry';
@@ -68,4 +69,5 @@ export const migrations = [
  {up:guestChatExpiry.up,down:guestChatExpiry.down,name:'20261109_010000_guest_chat_expiry'},
  {up:articleAutosave.up,down:articleAutosave.down,name:'20261109_100000_article_autosave'},
  {up:guestAttachmentExpiry.up,down:guestAttachmentExpiry.down,name:'20261109_110000_guest_attachment_expiry'},
+ {up:articleFeaturedImage.up,down:articleFeaturedImage.down,name:'20261109_120000_article_featured_image'},
 ];
