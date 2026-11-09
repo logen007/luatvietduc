@@ -3,6 +3,7 @@ import {randomUUID} from 'node:crypto';
 import {drizzle} from 'drizzle-orm/node-postgres';
 import type {MigrateUpArgs,MigrateDownArgs} from '@payloadcms/db-postgres';
 import {pool} from '../src/modules/shared/db';
+import {up as attachmentUp} from '../src/migrations/20261109_110000_guest_attachment_expiry';
 import {up,down} from '../src/migrations/20261109_010000_guest_chat_expiry';
 // Exercise the actual migration over legacy-shaped fixtures in a transaction-
 // local schema. Rollback removes the schema and all fixtures, not app records.
@@ -30,7 +31,13 @@ export async function testGuestExpiryMigration(){
   const remaining=new Date(temporary.low_priority_expires_at).getTime()-Date.now();assert.ok(remaining>7190000&&remaining<=7201000,'Old eligible guests receive a full grace period, not an immediately expired deadline');
   for(const id of ids.slice(1)){const row=rows.find(row=>row.id===id);assert.equal(row.guest_expiry_enabled,false);assert.equal(row.low_priority_expires_at,null);}
   const fresh=randomUUID();await client.query("INSERT INTO lvd_conversations(id,retain_history,qualification) VALUES($1,false,'unassessed')",[fresh]);const created=(await client.query('SELECT * FROM lvd_conversations WHERE id=$1',[fresh])).rows[0];assert.equal(created.guest_expiry_enabled,true);assert.ok(created.low_priority_expires_at);
+  await attachmentUp({db:drizzle(client)} as unknown as MigrateUpArgs);
+  const after=(await client.query('SELECT * FROM lvd_conversations')).rows;
+  const file=after.find(row=>row.id===ids[3]);assert.equal(file.guest_expiry_enabled,true);assert.ok(new Date(file.low_priority_expires_at).getTime()>Date.now()+7190000);
+  for(const id of [ids[1],ids[2],ids[4],ids[5],ids[6]])assert.equal(after.find(row=>row.id===id).guest_expiry_enabled,false,'Archives, accounts and human work remain protected');
+  await attachmentUp({db:drizzle(client)} as unknown as MigrateUpArgs);
+  assert.equal(new Date((await client.query('SELECT low_priority_expires_at FROM lvd_conversations WHERE id=$1',[ids[3]])).rows[0].low_priority_expires_at).getTime(),new Date(file.low_priority_expires_at).getTime(),'Migration retry cannot extend an admitted deadline');
   await assert.rejects(()=>down({} as MigrateDownArgs),/Preserve/);
-  console.log('Guest expiry migration passed: actual legacy backfill, full grace, account/archive/file/human protection, old-writer insert compatibility and non-destructive rollback.');
+  console.log('Guest expiry migration passed: actual legacy backfill, full grace, account/archive/human protection, attachment re-admission, idempotent grace, old-writer insert compatibility and non-destructive rollback.');
  }finally{await client.query('ROLLBACK');client.release();}
 }

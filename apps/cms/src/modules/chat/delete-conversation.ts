@@ -1,3 +1,4 @@
+import type {PoolClient} from 'pg';
 import {DeleteObjectCommand} from '@aws-sdk/client-s3';
 import {transaction} from '../shared/db';
 import {isAdmin} from '../identity/permissions';
@@ -21,6 +22,16 @@ async function deleteConversation(actor:Actor,id:string,version:unknown,updatedA
   if(!c)return {id,deleted:true};
   if(customerOnly&&!isCustomer(actor,c))throw new HttpError(403,'Bạn không có quyền xóa hội thoại này.');
   if(c.version!==version||new Date(c.updated_at).getTime()!==Date.parse(updatedAt))throw new HttpError(409,'Hội thoại có cập nhật mới. Kiểm tra lại trước khi xóa.');
+  await deleteConversationFiles(db,id);
+  // Foreign keys remove messages, pending answer jobs, events and attachment records together.
+  // Keep the records if object storage fails, so the exact same deletion can be retried.
+  await db.query('DELETE FROM lvd_conversations WHERE id=$1',[id]);
+  return {id,deleted:true};
+ });
+}
+
+// Caller holds the backup advisory lock and conversation row lock.
+export async function deleteConversationFiles(db:PoolClient,id:string){
   const files=(await db.query('SELECT id,object_key,ready FROM lvd_chat_files WHERE conversation_id=$1 FOR UPDATE',[id])).rows;
   if(files.some(file=>!file.ready))throw new HttpError(409,'Có tệp đang tải lên. Vui lòng thử lại sau.');
   if(files.length){
@@ -37,9 +48,4 @@ async function deleteConversation(actor:Actor,id:string,version:unknown,updatedA
    }catch{throw new HttpError(503,'Chưa xóa hết tệp đính kèm. Vui lòng thử lại.');}
    finally{client.destroy();}
   }
-  // Foreign keys remove messages, pending answer jobs, events and attachment records together.
-  // Keep the records if object storage fails, so the exact same deletion can be retried.
-  await db.query('DELETE FROM lvd_conversations WHERE id=$1',[id]);
-  return {id,deleted:true};
- });
 }

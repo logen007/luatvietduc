@@ -1,3 +1,5 @@
+import {S3Client} from '@aws-sdk/client-s3';
+import {seal} from '../src/modules/integrations/crypto';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import type {User} from '../src/payload-types';
@@ -87,11 +89,26 @@ export async function testChatQualification(owner:User){
   for(const table of ['lvd_messages','lvd_chat_events','lvd_answer_jobs'])assert.equal((await pool.query(`SELECT count(*)::int AS n FROM ${table} WHERE conversation_id=$1`,[expired])).rows[0].n,0,table+' must cascade');
   assert.ok(await read(historical));assert.equal(await read(meaningful),undefined);assert.ok(await read(active));
 
-  // Beginning a file upload protects history even if that upload is cancelled.
+  // Attachments keep their countdown; storage failures must retain retryable rows.
   const fileThread=await make(),fileId=randomUUID();await low(fileThread,true);
-  await pool.query("INSERT INTO lvd_chat_files(id,conversation_id,actor_key,object_key,name,mime_type,size,ready) VALUES($1,$2,$3,$4,'synthetic.txt','text/plain',12,false)",[fileId,fileThread,'guest:'+actor.guestHash,'synthetic-qualification/'+fileId]);
-  row=await read(fileThread);assert.equal(row.retain_history,true);assert.equal(row.guest_expiry_enabled,false);assert.equal(row.qualification,'needs_details');assert.equal(row.low_priority_expires_at,null);
-  await pool.query('DELETE FROM lvd_chat_files WHERE id=$1',[fileId]);await low(fileThread,true);await expireLowPriorityConversations();assert.ok(await read(fileThread));
+  await pool.query("INSERT INTO lvd_chat_files(id,conversation_id,actor_key,object_key,name,mime_type,size,ready) VALUES($1,$2,$3,$4,'synthetic.txt','text/plain',12,false)",[fileId,fileThread,'guest:'+actor.guestHash,'private-chat/'+fileThread+'/'+fileId]);
+  row=await read(fileThread);assert.equal(row.guest_expiry_enabled,true);assert.equal(row.qualification,'needs_details');assert.ok(row.low_priority_expires_at);
+  assert.ok((await specialistInbox(staff,{view:'low',query:fileThread})).rows[0].expires_at);
+  await low(fileThread,true);await expireLowPriorityConversations();assert.ok(await read(fileThread),'An unfinished upload blocks deletion');
+  await pool.query('UPDATE lvd_chat_files SET ready=true WHERE id=$1',[fileId]);
+  const stored=(await pool.query("SELECT * FROM lvd_integrations WHERE provider='r2'")).rows[0],originalSend=S3Client.prototype.send;
+  let fail=true,deletes=0;
+  try{
+   await pool.query("INSERT INTO lvd_integrations(provider,encrypted_values,enabled,check_state) VALUES('r2',$1,true,'passed') ON CONFLICT(provider) DO UPDATE SET encrypted_values=$1,enabled=true,check_state='passed'",[seal('r2',{endpoint:'https://'+'a'.repeat(32)+'.r2.cloudflarestorage.com',bucket:'synthetic',accessKeyId:'synthetic',secretAccessKey:'synthetic'})]);
+   (S3Client.prototype as any).send=async function(command:any){assert.equal(command.constructor.name,'DeleteObjectCommand');assert.equal(command.input.Key,'private-chat/'+fileThread+'/'+fileId);deletes++;if(fail)throw Error('Synthetic storage outage');return {};};
+   await expireLowPriorityConversations();assert.ok(await read(fileThread));assert.equal((await pool.query('SELECT count(*)::int n FROM lvd_chat_files WHERE id=$1',[fileId])).rows[0].n,1,'Failed cleanup retains the object key for retry');
+   fail=false;await expireLowPriorityConversations();assert.equal(await read(fileThread),undefined);assert.equal(deletes,2);
+   assert.equal((await pool.query('SELECT count(*)::int n FROM lvd_chat_files WHERE id=$1',[fileId])).rows[0].n,0);
+  }finally{
+   S3Client.prototype.send=originalSend;
+   if(stored)await pool.query("UPDATE lvd_integrations SET encrypted_values=$1,enabled=$2,check_state=$3 WHERE provider='r2'",[stored.encrypted_values,stored.enabled,stored.check_state]);
+   else await pool.query("DELETE FROM lvd_integrations WHERE provider='r2'");
+  }
 
   // Explicit specialist ownership remains durable and cancels expiry.
   const claimed=await make();await send(claimed);await low(claimed,true);await pool.query("UPDATE lvd_conversations SET updated_at=now()-interval '1 minute' WHERE id=$1",[claimed]);
@@ -116,6 +133,6 @@ export async function testChatQualification(owner:User){
    await lock.query('COMMIT');open=false;
   }finally{clearTimeout(timer);if(open)await lock.query('ROLLBACK');lock.release();}
   await expireLowPriorityConversations();row=await read(raced);assert.ok(row);assert.ok(new Date(row.low_priority_expires_at).getTime()>Date.now()+7190000);
-  console.log('Chat qualification checks passed: AI-only low priority, explicit handoff, account and sign-in retention, immutable history, two-hour activity, retry clock, SQL cascade, cancelled file, human claim, active lease and skip-locked activity race');
+  console.log('Chat qualification checks passed: AI-only low priority, explicit handoff, account and sign-in retention, immutable history, two-hour activity, retry clock, SQL cascade, attachment countdown, unfinished upload, storage failure/retry cleanup, human claim, active lease and skip-locked activity race');
  }finally{if(ids.length)await pool.query('DELETE FROM lvd_conversations WHERE id=ANY($1::uuid[])',[ids]);}
 }
