@@ -1,3 +1,4 @@
+import * as articleAutosave from './20261109_100000_article_autosave';
 import * as guestChatExpiry from './20261109_010000_guest_chat_expiry';
 import * as chatQualification from './20261106_210000_chat_qualification';
 import * as mediaFamilies from './20261105_210000_media_families';
@@ -64,4 +65,5 @@ export const migrations = [
  {up:googleMeasurement.up,down:googleMeasurement.down,name:'20261108_120000_google_measurement'},
  {up:customerContact.up,down:customerContact.down,name:'20261108_150000_customer_contact'},
  {up:guestChatExpiry.up,down:guestChatExpiry.down,name:'20261109_010000_guest_chat_expiry'},
+ {up:articleAutosave.up,down:articleAutosave.down,name:'20261109_100000_article_autosave'},
 ];

@@ -931,6 +931,28 @@ html.lvd-admin .lvd-admin-back:hover{background:var(--admin-raised);border-color
 
 /* Admin document screens go straight to editing; omit technical tab chrome. */
 html.lvd-admin .doc-header .doc-tabs{display:none}
+
+/* One article action row: language, translation, preview and publishing. */
+html.lvd-admin .collection-edit--articles .doc-controls__controls{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+html.lvd-admin .collection-edit--articles .doc-controls__controls>.lvd-article-language-slot{order:-1;flex:0 0 auto}
+html.lvd-admin .collection-edit--articles .doc-controls__meta:empty{display:none}
+html.lvd-admin .collection-edit--articles .doc-controls__controls-wrapper{flex:1;min-width:0;justify-content:flex-end}
+html.lvd-admin .collection-edit--articles #preview-button{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:44px;width:44px;min-height:44px;height:44px;margin:0;padding:0;border:1px solid var(--admin-line);border-radius:4px;background:var(--admin-panel);color:var(--admin-text)}
+@media(max-width:760px){
+ html.lvd-admin .collection-edit--articles .doc-controls__content{flex:0 1 auto;width:auto;min-width:0;padding:0}
+ html.lvd-admin .collection-edit--articles .doc-controls__meta{min-height:0;width:auto;flex:0 1 auto}
+ html.lvd-admin .collection-edit--articles .doc-controls__controls{gap:6px;flex-wrap:nowrap;min-width:0}
+ html.lvd-admin .collection-edit--articles .lvd-article-language-actions{gap:6px;flex-wrap:nowrap}
+ html.lvd-admin .collection-edit--articles .lvd-article-language-actions button,html.lvd-admin .collection-edit--articles .doc-controls__controls .btn{min-height:44px;padding:8px;font-size:12px;white-space:nowrap}
+ html.lvd-admin .collection-edit--articles .doc-controls__controls-wrapper{gap:6px;justify-content:flex-start}
+ html.lvd-admin .collection-edit--articles .doc-controls__wrapper{gap:6px}
+}
+
+html.lvd-admin .collection-edit--articles .doc-controls__wrapper{flex-wrap:wrap}
+html.lvd-admin .collection-edit--articles .doc-controls__controls-wrapper{order:0;flex:1 1 100%}
+html.lvd-admin .collection-edit--articles .doc-controls__content{order:1;flex:1 1 100%;padding:0}
+html.lvd-admin .collection-edit--articles .doc-controls__meta{min-height:0}
+html.lvd-admin .collection-edit--articles .doc-controls__meta>li:has(.autosave){display:flex;font-size:11px;color:var(--admin-muted)}
 .lvd-article-editor{--editor-surface:#151515;--editor-ink:#c9c9c9;--editor-muted:#939393;--editor-line:#333;min-width:0;margin:0 0 28px;border:1px solid var(--editor-line);border-radius:7px;background:var(--editor-surface);color:var(--editor-ink);overflow:visible}
 .lvd-article-editor.has-error{border-color:#b96660}
 .lvd-article-editor :is(button,input,select,textarea){font:inherit}

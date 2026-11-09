@@ -11,7 +11,7 @@ import { articleLock, auditArticle } from "./audit";
 import {articleLanguageGroup} from "./translation-group";
 export const Articles: CollectionConfig = {
   slug: "articles",labels:{singular:"Bài viết",plural:"Bài viết & hỏi đáp"},
-  versions: { drafts: true },
+  versions: { drafts: { autosave: { interval: 1200, showSaveDraftButton: false } } },
   admin: { group: "Nội dung", useAsTitle: "title",defaultColumns:["title","categories","tags","_status","aiAllowed","updatedAt"],preview:doc=>"/bai-viet/"+doc.slug },
   access: {
     create: createArticle,

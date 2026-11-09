@@ -84,5 +84,13 @@ export async function testEditorial(payload:Payload,owner:User,specialist:User){
   await pool.query("UPDATE articles SET updated_at=updated_at+interval '1 second' WHERE id=$1",[lifecycle.id]);
   await assert.rejects(()=>payload.update({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false,draft:true,data:{body:'Stale version must not overwrite a newer SQL revision.'}}),/Article changed concurrently/,'A newer main-table revision still invalidates an older native version');
  }finally{await payload.delete({collection:'articles',id:lifecycle.id,user:owner,overrideAccess:false});}
+ const auto=await payload.create({collection:'articles',user:owner,overrideAccess:false,data:{title:'Synthetic autosave '+suffix,slug:'autosave-'+suffix,jurisdiction:'BOTH',language:'vi',body:'Published content remains stable.',_status:'published',reviewState:'approved',aiAllowed:false}});
+ try{
+  await payload.update({collection:'articles',id:auto.id,user:owner,overrideAccess:false,draft:true,autosave:true,data:{body:'Automatically saved draft.',_status:'draft'}});
+  const saved=await payload.findByID({collection:'articles',id:auto.id,user:owner,overrideAccess:false,draft:true});
+  assert.equal(saved.body,'Automatically saved draft.');
+  assert.equal((await pool.query('SELECT body FROM articles WHERE id=$1',[auto.id])).rows[0].body,'Published content remains stable.');
+  assert.ok((await pool.query('SELECT 1 FROM _articles_v WHERE parent_id=$1 AND autosave=true',[auto.id])).rowCount);
+ }finally{await payload.delete({collection:'articles',id:auto.id,user:owner,overrideAccess:false});}
  console.log('Editorial checks passed: 16 seeded parent categories, news tree, tags, native relations/versions, hierarchy rename/cycle/delete, AI opt-in/uncheck/draft/delete, specialist self-publication, native Save draft/publish and stale draft rejection');
 }
