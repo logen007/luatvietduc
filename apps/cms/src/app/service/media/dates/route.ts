@@ -8,7 +8,7 @@ export async function GET(req:Request){
  try{
   const payload=await getPayload({config}),{user}=await payload.auth({headers:req.headers});
   if(!user||!canEnterAdmin(user))return Response.json({error:'Không có quyền xem thư viện tệp.'},{status:user?403:401,headers});
-  const {rows}=await pool.query("SELECT to_char(created_at AT TIME ZONE 'UTC','YYYY-MM') AS month,count(*)::int AS count FROM media WHERE legacy_parent_id IS NULL GROUP BY 1 ORDER BY 1 DESC LIMIT 240");
+  const {rows}=await pool.query("SELECT to_char(created_at AT TIME ZONE 'UTC','YYYY-MM') AS month,count(*)::int AS count FROM media WHERE legacy_parent_id IS NULL AND (filename IS NULL OR filename NOT ILIKE 'avatar-%') GROUP BY 1 ORDER BY 1 DESC LIMIT 240");
   return Response.json({dates:rows},{headers});
  }catch{return Response.json({error:'Chưa tải được danh sách ngày.'},{status:503,headers});}
 }
