@@ -928,6 +928,9 @@ html.lvd-admin .lvd-admin-back:hover{background:var(--admin-raised);border-color
  html.lvd-admin .collection-edit--articles .lvd-article-editor .tiptap{padding:18px 16px}
  html.lvd-admin .collection-edit--articles .lvd-article-editor .tiptap h2{font-size:24px;line-height:1.4}
 }
+
+/* Admin document screens go straight to editing; omit technical tab chrome. */
+html.lvd-admin .doc-header .doc-tabs{display:none}
 .lvd-article-editor{--editor-surface:#151515;--editor-ink:#c9c9c9;--editor-muted:#939393;--editor-line:#333;min-width:0;margin:0 0 28px;border:1px solid var(--editor-line);border-radius:7px;background:var(--editor-surface);color:var(--editor-ink);overflow:visible}
 .lvd-article-editor.has-error{border-color:#b96660}
 .lvd-article-editor :is(button,input,select,textarea){font:inherit}
