@@ -114,3 +114,13 @@ html.lvd-admin .operator-workspace.is-embedded{margin:0;max-width:none;border:0;
 }
 
 .operator-conversation-header>div:first-of-type>p{display:flex;align-items:center;gap:6px}
+
+/* Give the conversation title all space left by its fixed-size actions. */
+.operator-conversation-header>div:first-of-type{flex:1 1 0;min-width:0}
+.operator-conversation-header h2{width:100%;max-width:none}
+.operator-conversation-header .operator-conversation-title{flex:1 1 0;min-width:0}
+@media(max-width:760px){
+ .operator-workspace .operator-conversation-header{flex-wrap:nowrap}
+ .operator-workspace .operator-conversation-header h2{max-width:none}
+ .operator-workspace .operator-conversation-header>.operator-back{flex-shrink:0}
+}
