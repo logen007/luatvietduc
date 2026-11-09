@@ -202,6 +202,10 @@ def extract_safe(archive,destination):
             target.parent.mkdir(parents=True,exist_ok=True)
             with tar.extractfile(member) as src,target.open('xb') as dst: shutil.copyfileobj(src,dst,1024*1024)
 
+def recovery_environment():
+    private=json.loads(pathlib.Path('/etc/luatvietduc-deploy/config.json').read_text())
+    return pathlib.Path(private['env_file'])
+
 def capture(web,db,config,root,rc):
     with stage('media-lock'):bridge(web,'lock')
     try:
@@ -214,8 +218,7 @@ def capture(web,db,config,root,rc):
                 p=subprocess.run(['docker','exec','-i',db,'pg_restore','--list'],stdin=source,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,timeout=120)
             if p.returncode:raise BackupFailure('Invalid database dump')
         with stage('recovery-config'):
-            private=json.loads(pathlib.Path('/etc/luatvietduc-deploy/config.json').read_text())
-            env=pathlib.Path(private['env_file'])
+            env=recovery_environment()
             if env.stat().st_uid!=0 or env.stat().st_mode & 0o077: raise BackupFailure('Application recovery configuration permissions')
             shutil.copyfile(env,bundle/'app.env');(bundle/'app.env').chmod(0o600)
         with stage('media-copy'):

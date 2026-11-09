@@ -1,0 +1,29 @@
+name: Portable package
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feat/platform-cms-bootstrap']
+    paths: ['ops/portable/**', 'apps/cms/scripts/portable.ts', '.github/workflows/portable-package.yml']
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Check installer safety and recovery guards
+        run: python3 -m unittest discover -s ops/portable -p 'test_*.py' -v
+      - name: Install export encryption tool
+        run: sudo apt-get update -qq && sudo apt-get install -y age
+      - name: Build precompiled package from this exact revision
+        run: python3 ops/portable/build.py --output /tmp/lvd-package
+      - name: Exercise install, update, failure rollback and encrypted restore
+        run: python3 ops/portable/check-install.py --package /tmp/lvd-package
+      - uses: actions/upload-artifact@v6
+        with:
+          name: luatvietduc-portable
+          path: /tmp/lvd-package
+          retention-days: 14
