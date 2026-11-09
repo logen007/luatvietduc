@@ -831,8 +831,9 @@
       "name": "Lê Văn Dương",
       "role": "Luật sư thành viên",
       "roleDe": "Partneranwalt",
-      "field": "Tư vấn pháp lý",
-      "fieldDe": "Rechtsberatung"
+      "field": "M&A, doanh nghiệp và dự án đầu tư",
+      "fieldDe": "M&A, Unternehmensrecht und Investitionsprojekte",
+      "url": "https://bizlawyer.vn/vi/team/le-van-duong/"
     },
     {
       "name": "Võ Nguyễn Bảo Trâm",
@@ -854,36 +855,41 @@
       "name": "Đỗ Mạnh Dũng",
       "role": "Luật sư – Cố vấn cấp cao",
       "roleDe": "Anwalt – Seniorberater",
-      "field": "Tư vấn pháp luật",
-      "fieldDe": "Rechtsberatung"
+      "field": "Tư vấn và tranh tụng hình sự, dân sự, kinh doanh thương mại",
+      "fieldDe": "Beratung und Prozessführung im Straf-, Zivil- und Wirtschaftsrecht",
+      "url": "https://bizlawyer.vn/vi/team/do-manh-dung/"
     },
     {
       "name": "Nguyễn Thị Hoa",
       "role": "Luật sư",
       "roleDe": "Rechtsanwältin",
-      "field": "Tư vấn pháp lý",
-      "fieldDe": "Rechtsberatung"
+      "field": "Tranh chấp dân sự, thương mại, đất đai, lao động và gia đình",
+      "fieldDe": "Zivil-, Handels-, Grundstücks-, Arbeits- und Familienstreitigkeiten",
+      "url": "https://bizlawyer.vn/vi/team/nguyen-thi-hoa/"
     },
     {
       "name": "Cao Vân Anh",
       "role": "Luật sư",
       "roleDe": "Rechtsanwältin",
-      "field": "Tư vấn pháp lý",
-      "fieldDe": "Rechtsberatung"
+      "field": "Doanh nghiệp, tranh chấp thương mại và thủ tục dự án",
+      "fieldDe": "Unternehmensrecht, Handelsstreitigkeiten und Projektverfahren",
+      "url": "https://bizlawyer.vn/vi/team/cao-van-anh/"
     },
     {
       "name": "Phạm Anh Hùng",
       "role": "Luật sư",
       "roleDe": "Rechtsanwalt",
-      "field": "Tư vấn pháp lý",
-      "fieldDe": "Rechtsberatung"
+      "field": "Tranh tụng hình sự, dân sự, thương mại và xây dựng",
+      "fieldDe": "Prozessführung im Straf-, Zivil-, Handels- und Baurecht",
+      "url": "https://bizlawyer.vn/vi/team/pham-anh-hung/"
     },
     {
       "name": "Vũ Hà Vân",
       "role": "Chuyên gia pháp lý",
       "roleDe": "Rechtsexpertin",
-      "field": "Nghiên cứu và tư vấn pháp luật",
-      "fieldDe": "Rechtsrecherche und Beratung"
+      "field": "Pháp lý doanh nghiệp, giấy phép và dự án đầu tư",
+      "fieldDe": "Unternehmensrecht, Genehmigungen und Investitionsprojekte",
+      "url": "https://bizlawyer.vn/vi/team/vu-ha-van/"
     }
   ],
   "partners": [
