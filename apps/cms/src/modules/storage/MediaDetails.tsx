@@ -33,7 +33,7 @@ export function MediaDetails({id,ids,onSelect,onClose,onChanged}:{id:number;ids:
  }
  useEffect(()=>{if(!dirty||!editable||saving||error)return;const timer=setTimeout(()=>void save(),650);return()=>clearTimeout(timer);},[draft,saved,saving,error,editable]);
  useEffect(()=>{if(closing.current&&!dirty&&!saving)onClose();},[dirty,saving]);
- function close(){if(dirty&&(error||!editable)&&!saving){closing.current=false;if(confirmDiscardChanges(true))onClose();return;}if(dirty||saving){closing.current=true;void save();}else onClose();}
+ async function close(){if(dirty&&(error||!editable)&&!saving){closing.current=false;if(await confirmDiscardChanges(true))onClose();return;}if(dirty||saving){closing.current=true;void save();}else onClose();}
  function move(next:number){if(next<0||next>=ids.length||dirty||saving)return;onSelect(ids[next]);}
  const index=ids.indexOf(id),src=mediaURL(doc?.url),original=mediaURL(doc?.originalImageURL),absolute=src?new URL(src,typeof location==='undefined'?'https://luatvietduc.com':location.origin).href:'';
  async function remove(){if(!doc||!editable||dirty||flight.current)return;flight.current=true;setDeleting(true);setSaving(true);setDeleteError('');try{const r=await fetch('/api/media/'+id,{method:'DELETE',signal:AbortSignal.timeout(20000)});if(!r.ok&&r.status!==404)throw new Error('Chưa xóa được tệp. Tải lại để kiểm tra.');if(mounted.current){onChanged();onClose();}}catch(e){if(mounted.current){setDeleteError(e instanceof Error&&e.name==='Error'?e.message:'Chưa xác nhận xóa xong. Kiểm tra thư viện trước khi thử lại.');setSaving(false);setDeleting(false);}}finally{flight.current=false;}}

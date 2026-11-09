@@ -20,7 +20,7 @@ test('large lists warm only the intended destination, preserve handlers and neve
  const exports={},Link=()=>{};
  const source=ts.transpileModule(fs.readFileSync(new URL('../src/modules/shared/AppLink.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
  vm.runInNewContext(source,{exports,window:{location:{pathname:'/admin/inbox'}},require:name=>({
-  react:{useState:()=>[warmed,value=>{warmed=value;stateWrites++;}]},
+  react:{useRef:()=>({current:null}),useState:()=>[warmed,value=>{warmed=value;stateWrites++;}]},
   'react/jsx-runtime':{jsx:(type,props)=>({type,props})},
   'next/link':{default:Link},'./navigation':{isPageLink,prefetchPage},
   './unsaved-changes':{confirmAdminNavigation:()=>{confirmed++;return false;}},

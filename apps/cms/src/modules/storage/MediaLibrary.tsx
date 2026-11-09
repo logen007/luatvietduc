@@ -1,4 +1,5 @@
 'use client';
+import {confirmAction} from '../shared/confirm-dialog';
 import {AppLink} from '../shared/AppLink';
 import {Photo} from '../public-site/Photo';
 import {packagedPhotoName} from '../public-site/photos';
@@ -43,7 +44,8 @@ function MediaToolbar(props:ListViewClientProps){
  async function removeSelected(){
   if(gate.current||uploadBusy||!props.hasDeletePermission||props.disableBulkDelete||!selectedDocs.length)return;
   const docs=[...selectedDocs],owner=account;
-  if(!window.confirm('Xóa '+docs.length+' tệp đã chọn?'+(docs.some(mediaReadOnly)?' Ảnh đi kèm giao diện chỉ được gỡ khỏi Thư viện.':' Thao tác này không thể hoàn tác.')))return;
+  if(!await confirmAction({title:'Xóa '+docs.length+' tệp?',message:docs.some(mediaReadOnly)?'Ảnh đi kèm giao diện chỉ được gỡ khỏi Thư viện. Các tệp tải lên sẽ bị xóa và không thể hoàn tác.':'Các tệp đã chọn sẽ bị xóa. Thao tác này không thể hoàn tác.',confirmLabel:'Xóa tệp',danger:true}))return;
+  if(!mounted.current||accountRef.current!==owner||gate.current||uploadBusy)return;
   if(timer.current){clearTimeout(timer.current);timer.current=null;setSearch(query.search||'');}
   gate.current=true;setBusy(true);setDeleteError('');setDeleteStatus('Đang xóa…');let removed=0,failed=0;
   try{

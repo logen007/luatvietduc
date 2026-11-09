@@ -3,6 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import {useAuth} from '@payloadcms/ui';
 import type {MediaItem} from './MediaDetails';
 import {mediaEditable,mediaReadOnly,mediaURL} from './media-view';
+import {confirmAction} from '../shared/confirm-dialog';
 import {confirmDiscardChanges,useUnsavedChanges} from '../shared/unsaved-changes';
 import {mediaReceipt} from './media-client';
 import {commitImageDraft,imageCrop,imageEditBody,imageGeometry,imagePreviewTransform,initialImageDraft,initialImageHistory,redoImageDraft,undoImageDraft,type ImageCrop,type ImageDraft} from './image-editor-model';
@@ -18,13 +19,14 @@ export function MediaImageEditor({doc,onClose,onSaved}:{doc:MediaItem;onClose:()
  useUnsavedChanges(allowed&&(dirty||busy));
  useEffect(()=>{mounted.current=true;dialog.current?.showModal();return()=>{mounted.current=false;};},[]);
  function change(next:ImageDraft){setError('');setHistory(value=>commitImageDraft(value,next));}
- function close(){if(!flight.current&&confirmDiscardChanges(dirty))onClose();}
+ async function close(){if(!flight.current&&await confirmDiscardChanges(dirty)&&mounted.current&&!flight.current)onClose();}
  function updateCrop(field:keyof ImageCrop,value:number){change({...draft,crop:imageCrop(source.width,source.height,{...geometry.crop,[field]:value})});}
  function point(event:React.PointerEvent<SVGSVGElement>){const matrix=event.currentTarget.getScreenCTM();if(!matrix)return null;const p=new DOMPoint(event.clientX,event.clientY).matrixTransform(matrix.inverse());return {left:Math.max(0,Math.min(source.width-1,p.x)),top:Math.max(0,Math.min(source.height-1,p.y))};}
  function selection(event:React.PointerEvent<SVGSVGElement>){const start=drag.current,end=point(event);if(!start||!end)return null;return imageCrop(source.width,source.height,{left:Math.min(start.left,end.left),top:Math.min(start.top,end.top),width:Math.abs(end.left-start.left),height:Math.abs(end.top-start.top)});}
  async function save(operation:'edit'|'restore'){
   if(flight.current||!allowed||!doc.updatedAt||(operation==='edit'&&(!ready||!dirty))||(operation==='restore'&&!mediaURL(doc.originalImageURL)))return;
-  if(operation==='restore'&&!window.confirm('Khôi phục ảnh gốc và bỏ các chỉnh sửa hiện tại?'))return;
+  if(operation==='restore'&&!await confirmAction({title:'Khôi phục ảnh gốc?',message:'Các chỉnh sửa hiện tại sẽ được thay bằng ảnh gốc.',confirmLabel:'Khôi phục',danger:true}))return;
+  if(!mounted.current||ownerRef.current!==owner||flight.current)return;
   const account=owner;flight.current=true;setBusy(true);setError('');
   try{
    const response=await fetch('/service/media/image/'+doc.id,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(operation==='restore'?{updatedAt:doc.updatedAt,operation}:request),signal:AbortSignal.timeout(60000)}),result=await response.json();

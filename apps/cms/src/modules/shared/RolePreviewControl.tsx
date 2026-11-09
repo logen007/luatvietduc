@@ -20,7 +20,7 @@ export function RolePreviewControl({compact=false,renderedRole,reserveSpace=fals
  async function change(next:Role){
   if(busy||(next===current&&!restore))return;
   const destination=next==='member'?'/tai-khoan':'/admin';
-  if(!confirmAdminNavigation(destination))return;
+  if(!confirmAdminNavigation(destination,()=>void change(next)))return;
   setBusy(true);setError('');
   try{await api('role-preview',{role:next});invalidatePublicSession();window.location.assign(destination);}
   catch{setError('Chưa chuyển được vai trò. Thử lại nhé.');setBusy(false);void refreshPublicProfile().catch(()=>{});}

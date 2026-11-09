@@ -312,7 +312,7 @@ export function useWorkspace(staff=false,manageList=true){
     }catch(e){if(valid()){setError((e as Error).message);wakeTranscript.current();}return false;}
     finally{if(operations.current.end(operation)&&current())setBusy(false);}
   }
-  async function manageCustomerConversation(id:string,action:'title'|'customer-delete',title?:string,confirmDelete?:()=>boolean){
+  async function manageCustomerConversation(id:string,action:'title'|'customer-delete',title?:string,confirmDelete?:()=>boolean|Promise<boolean>){
     if(staff||!visible||!current()||reauthorizing||!loaded||busy||uploading||!rows.some(row=>row.id===id))return false;
     const operation=operations.current.begin();if(!operation)return false;
     const valid=()=>current()&&operations.current.isCurrent(operation);
@@ -320,7 +320,8 @@ export function useWorkspace(staff=false,manageList=true){
     try{
       const snapshot=(await api<Transcript>(`conversations/${id}?after=${Number.MAX_SAFE_INTEGER}`)).conversation;
       if(!valid())return false;
-      if(action==='customer-delete'&&confirmDelete&&!confirmDelete())return false;
+      if(action==='customer-delete'&&confirmDelete&&!await confirmDelete())return false;
+      if(!valid())return false;
       const receipt=await api<{id:string;deleted?:boolean;title?:string;version?:number;updatedAt?:string;customTitle?:boolean}>(`conversations/${id}/${action}`,{version:snapshot.version,updatedAt:snapshot.updatedAt,...(action==='title'?{title}:{})});
       if(!valid())return false;
       if(receipt.id!==id||action==='customer-delete'&&!receipt.deleted||action==='title'&&(typeof receipt.title!=='string'||typeof receipt.updatedAt!=='string'||!Number.isSafeInteger(receipt.version)||receipt.customTitle!==true))throw new Error('Chưa xác nhận được cập nhật hội thoại. Tải lại để kiểm tra.');
@@ -439,6 +440,6 @@ export function useWorkspace(staff=false,manageList=true){
   // effects have a chance to clear the previous workspace.
   function retry(){if(busy||uploading)return;if(session.status==='error'){void loadPublicSession().catch(()=>{});}else if(initializationFailed){setIntakeAttempt(value=>value+1);}else{wakeTranscript.current();}}
   const draftVisible=visible&&!reauthorizing&&!conversation?.restricted&&(!staff||Boolean(conversation));
-  return {renameCustomerConversation:(id:string,title:string)=>manageCustomerConversation(id,'title',title),deleteCustomerConversation:(id:string,confirm:()=>boolean)=>manageCustomerConversation(id,'customer-delete',undefined,confirm),deleteConversation,openAccount,initializationFailed:session.status==='error'||visible&&initializationFailed,retry,attachments:draftVisible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>{if(!reauthorizing&&!operations.current.busy())setAttachments(previous=>previous.filter(file=>file.id!==id));},me,rows:visible?rows:[],selected:visible?selected:'',setSelected:selectConversation,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:draftVisible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded&&!initializationFailed&&!reauthorizing,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',homepageSubmitting:visible&&Boolean(homepageSubmit.current||!selected&&busy&&sendingBody),pendingKey:visible?outbox.current.pendingKey(selected):undefined,sessionRevision:session.revision,sessionStatus:session.status};
+  return {renameCustomerConversation:(id:string,title:string)=>manageCustomerConversation(id,'title',title),deleteCustomerConversation:(id:string,confirm:()=>boolean|Promise<boolean>)=>manageCustomerConversation(id,'customer-delete',undefined,confirm),deleteConversation,openAccount,initializationFailed:session.status==='error'||visible&&initializationFailed,retry,attachments:draftVisible?attachments:[],uploading:visible&&uploading,attachFiles,removeAttachment:(id:string)=>{if(!reauthorizing&&!operations.current.busy())setAttachments(previous=>previous.filter(file=>file.id!==id));},me,rows:visible?rows:[],selected:visible?selected:'',setSelected:selectConversation,conversation:visible?conversation:null,messages:visible?messages:[],error:session.status==='error'?'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.':visible?error:'',setError,connectionError:visible?connectionError:'',text:draftVisible?text:'',setText,country:visible?country:'',setCountry,internal:visible&&internal,setInternal,busy:visible&&busy,loaded:visible&&loaded&&!initializationFailed&&!reauthorizing,notice,maxLength,log,shell,act,send,staffAllowed,startNew,requestHuman,preferHuman:visible&&preferHuman,sendingBody:visible?sendingBody:'',homepageSubmitting:visible&&Boolean(homepageSubmit.current||!selected&&busy&&sendingBody),pendingKey:visible?outbox.current.pendingKey(selected):undefined,sessionRevision:session.revision,sessionStatus:session.status};
 }
 export type WorkspaceState=ReturnType<typeof useWorkspace>;

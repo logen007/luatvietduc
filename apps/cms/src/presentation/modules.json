@@ -25,7 +25,8 @@
     "editorial-ui-css/06-application-menu.css",
     "live-css/09-public-shell.css",
     "form-controls.css",
-    "release-notice.css"
+    "release-notice.css",
+    "confirm-dialog.css"
   ],
   "editorial-ui.js": [
     "editorial-ui-js/00-native-routing.js"
@@ -47,6 +48,7 @@
     "../modules/content/article-editor.css",
     "admin-profile.css",
     "form-controls.css",
-    "release-notice.css"
+    "release-notice.css",
+    "confirm-dialog.css"
   ]
 }
