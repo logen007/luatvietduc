@@ -892,6 +892,12 @@ html.lvd-admin .lvd-media-delete-confirm button:first-of-type{color:#efaaaa}
  html.lvd-admin .lvd-media-details .lvd-media-delete-confirm button,html.lvd-admin .lvd-media-upload button{min-height:44px}
  html.lvd-admin .lvd-media-detail-fields :is(input,textarea,select){font-size:16px}
 }
+
+/* Root pages open the menu; child pages return to their explicit parent. */
+html.lvd-admin .template-default__nav-toggler-container:has(.lvd-admin-back) .template-default__nav-toggler{display:none}
+html.lvd-admin .lvd-admin-back{display:grid;place-items:center;box-sizing:border-box;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:0;border:1px solid var(--admin-line);border-radius:4px;background:var(--admin-sidebar);color:var(--admin-text);text-decoration:none}
+html.lvd-admin .lvd-admin-back svg{width:24px;height:24px}
+html.lvd-admin .lvd-admin-back:hover{background:var(--admin-raised);border-color:var(--admin-muted)}
 .lvd-article-editor{--editor-surface:#151515;--editor-ink:#c9c9c9;--editor-muted:#939393;--editor-line:#333;min-width:0;margin:0 0 28px;border:1px solid var(--editor-line);border-radius:7px;background:var(--editor-surface);color:var(--editor-ink);overflow:visible}
 .lvd-article-editor.has-error{border-color:#b96660}
 .lvd-article-editor :is(button,input,select,textarea){font:inherit}

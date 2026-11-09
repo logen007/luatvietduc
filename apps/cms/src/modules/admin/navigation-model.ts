@@ -63,3 +63,24 @@ export function adminShortcuts(viewer?:AdminViewer|null):Shortcut[]{
   ]:[]),
  ];
 }
+
+// Explicit parents keep Back inside AdminCP, even after a direct/deep link.
+export function adminParentPath(pathname:string):string|null{
+ const path=pathname.replace(/\/+$/,'');
+ const children:Record<string,string>={
+  '/admin/articles/import':adminLinks.articles.href,
+  '/admin/knowledge/rules':adminLinks.knowledge.href,
+  '/admin/settings/connections':adminLinks.settings.href,
+  '/admin/settings/backups':adminLinks.settings.href,
+  '/admin/collections/categories':adminLinks.articles.href,
+  '/admin/collections/tags':adminLinks.articles.href,
+  '/admin/collections/quick-replies':adminLinks.inbox.href,
+  '/admin/collections/audit-events':adminLinks.settings.href,
+ };
+ if(children[path])return children[path];
+ const collection=path.match(/^\/admin\/collections\/([^/]+)\/.+/);
+ if(collection)return '/admin/collections/'+collection[1];
+ if(path.startsWith('/admin/globals/'))return adminLinks.settings.href;
+ if(path.startsWith('/admin/settings/'))return adminLinks.settings.href;
+ return null;
+}
