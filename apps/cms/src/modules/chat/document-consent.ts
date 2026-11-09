@@ -1,3 +1,4 @@
+export const DOCUMENT_PROCESSING_VERSION='gemini-documents-auto-v1';
 export const DOCUMENT_CONSENT_VERSION='gemini-documents-v1';
 export const DOCUMENT_TOTAL_BYTES=12*1024*1024;
 export const documentMimeTypes=['application/pdf','image/jpeg','image/png','image/webp'] as const;

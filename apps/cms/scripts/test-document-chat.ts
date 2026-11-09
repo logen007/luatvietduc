@@ -43,6 +43,17 @@ export async function testDocumentChat(owner:User){
   const follow=await chat.message(guest,good.c.id,{key:randomUUID(),body:'Tài liệu này ghi gì?',aiConsentVersion:'gemini-rag-v1'},2000);
   await replyToMessage(guest,good.c.id,follow.id,policy);assert.equal(calls,2,'Same-thread follow-up can read explicitly consented documents');
   const declined=await make();await chat.message(guest,declined.c.id,{...declined.data,documentConsentVersion:undefined},2000);assert.equal((await chat.transcript(guest,declined.c.id)).conversation.aiEnabled,false);assert.equal(calls,2);
+  const automatic=await make();const automaticMessage=await chat.message(guest,automatic.c.id,{...automatic.data,documentConsentVersion:undefined,aiConsentVersion:undefined},2000,{documentAIAvailable:true});
+  const automaticMeta=(await pool.query('SELECT metadata FROM lvd_messages WHERE id=$1',[automaticMessage.id])).rows[0].metadata;
+  assert.equal(automaticMeta.documentConsent,undefined);assert.equal(automaticMeta.documentProcessing.mode,'customer-upload');
+  await replyToMessage(guest,automatic.c.id,automaticMessage.id,policy);assert.equal((await chat.transcript(guest,automatic.c.id)).messages.at(-1)?.metadata.kind,'document');
+  const resume=await make();await chat.message(guest,resume.c.id,{...resume.data,documentConsentVersion:undefined},2000,{documentAIAvailable:false});assert.equal((await chat.transcript(guest,resume.c.id)).conversation.aiEnabled,false);
+  const resumeFile=randomUUID(),resumeKey='private-chat/'+resume.c.id+'/'+resumeFile;objects.set(resumeKey,bytes);
+  await pool.query("INSERT INTO lvd_chat_files(id,conversation_id,actor_key,object_key,name,mime_type,size,ready) VALUES($1,$2,$3,$4,'synthetic.pdf','application/pdf',$5,true)",[resumeFile,resume.c.id,'guest:'+guest.guestHash,resumeKey,bytes.length]);
+  const resumed=await chat.message(guest,resume.c.id,{key:randomUUID(),body:'Đọc tài liệu',fileIds:[resumeFile]},2000,{documentAIAvailable:true});assert.equal((await chat.transcript(guest,resume.c.id)).conversation.aiEnabled,true);
+  await replyToMessage(guest,resume.c.id,resumed.id,policy);assert.equal((await chat.transcript(guest,resume.c.id)).messages.at(-1)?.metadata.kind,'document');
+  const handed=await make();await chat.transition(guest,handed.c.id,{action:'handoff',version:1});
+  await chat.message(guest,handed.c.id,{...handed.data,documentConsentVersion:undefined},2000,{documentAIAvailable:true});assert.equal((await chat.transcript(guest,handed.c.id)).conversation.aiEnabled,false,'Automatic document processing cannot undo an explicit human handoff');
   const unsupported=await make();await pool.query("UPDATE lvd_chat_files SET mime_type='text/plain' WHERE id=$1",[unsupported.id]);await assert.rejects(()=>chat.message(guest,unsupported.c.id,unsupported.data,2000),{status:400});
   const broken=await make();invalid=true;const b=await chat.message(guest,broken.c.id,broken.data,2000);await replyToMessage(guest,broken.c.id,b.id,policy);invalid=false;
   view=await chat.transcript(guest,broken.c.id);assert.equal(view.conversation.aiEnabled,true);assert.match(view.messages.at(-1)!.body,/chưa đọc được/);
@@ -55,7 +66,7 @@ export async function testDocumentChat(owner:User){
   const removed=await make();const remove=await chat.message(guest,removed.c.id,removed.data,2000);onProvider=async()=>{await pool.query('DELETE FROM lvd_conversations WHERE id=$1',[removed.c.id]);};
   await replyToMessage(guest,removed.c.id,remove.id,policy);onProvider=undefined;assert.equal((await pool.query('SELECT 1 FROM lvd_messages WHERE conversation_id=$1',[removed.c.id])).rowCount,0,'Deleted conversations cannot be resurrected by a document response');
   const missing=await make();const m=await chat.message(guest,missing.c.id,missing.data,2000);await pool.query('DELETE FROM lvd_chat_files WHERE id=$1',[missing.id]);const before=calls;await replyToMessage(guest,missing.c.id,m.id,policy);assert.equal(calls,before);assert.equal((await chat.transcript(guest,missing.c.id)).conversation.aiEnabled,true);
-  console.log('Document chat checks passed: exact consent, owner isolation, retry identity, durable jobs, factual response/follow-up, no embeddings, no-consent handoff, unsupported files, invalid provider output, missing files and human-claim race; mocked storage/provider only.');
+  console.log('Document chat checks passed: automatic upload processing, legacy consent compatibility, safe restart, explicit-handoff preservation, owner isolation, retry identity, durable jobs, factual response/follow-up, no embeddings, no-consent handoff, unsupported files, invalid provider output, missing files and human-claim race; mocked storage/provider only.');
  }finally{
   globalThis.fetch=fetcher;S3Client.prototype.send=send;
   await pool.query('DELETE FROM lvd_conversations WHERE id=ANY($1::uuid[])',[ids]);

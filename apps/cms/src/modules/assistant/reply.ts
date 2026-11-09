@@ -1,4 +1,4 @@
-import {consentedDocuments,readDocuments} from './documents';
+import {conversationDocuments,readDocuments} from './documents';
 import {conversationTitle} from '../chat/conversation-title';
 import {answerHistory,questionWithHistory,groundedPreviousAnswer} from './conversation-context';
 import {MAX_CLARIFICATIONS,clarificationLanguage,contextualIntakeReply,nextClarification,clarificationHistory,intakeClarification,currentIntakeContext,clarificationText,isVagueIntakeReply,isBriefIntakeFollowup,acknowledgementText,unrepeatedClarification,isRepeatedClarification,isOpeningClarification,intakeUnavailableText} from './clarification';
@@ -33,8 +33,8 @@ export async function replyToMessage(actor:Actor,id:string,messageId:string|numb
   // correction. Recollect facts outside the contiguous recent window instead.
   const previous=(await db.query("SELECT role,body,metadata FROM lvd_messages WHERE conversation_id=$1 AND id<$2 AND NOT internal AND COALESCE(metadata->>'kind','')<>'deleted' ORDER BY id DESC LIMIT 80",[id,message.id])).rows;
   const history=clarificationHistory(previous,CONSENT_VERSION);
-  let documents:Awaited<ReturnType<typeof consentedDocuments>>=[],documentUnavailable=false;
-  if(message.metadata?.aiConsent?.version===CONSENT_VERSION)try{documents=await consentedDocuments(db,id,message.id);}catch{documentUnavailable=true;}
+  let documents:Awaited<ReturnType<typeof conversationDocuments>>=[],documentUnavailable=false;
+  if(message.metadata?.aiConsent?.version===CONSENT_VERSION)try{documents=await conversationDocuments(db,id,message.id);}catch{documentUnavailable=true;}
   return {documents,documentUnavailable,previousQuestions:previous.filter(row=>row.role==='assistant'&&row.metadata?.kind==='clarify').map(row=>String(row.body)).slice(0,6),retainHistory:Boolean(conversation.retain_history),meaningfulHistory:previous.some(row=>row.role==='user'&&!isVagueIntakeReply(String(row.body))),previousAnswer:previous.find(row=>row.role==='assistant'&&row.metadata?.kind==='ai'),question:String(message.body),intakeQuestion:contextualIntakeReply(String(message.body),history.pendingKey),consented:message.metadata?.aiConsent?.version===CONSENT_VERSION,context:answerHistory(previous,CONSENT_VERSION),localContext:history.localContext,localContextConsented:history.context===history.localContext,clarificationKeys:history.keys,clarificationCount:history.count,intakeAnswers:{...history.answers,...(history.pendingKey?{[history.pendingKey]:String(message.body)}:{})},country:conversation.jurisdiction,version:conversation.version};
  });
  if(!work)return;

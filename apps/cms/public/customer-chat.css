@@ -1210,14 +1210,3 @@ body:has(.lvd-chat) :is(.lvd-chat,.chat-history-dialog) .chat-history-search{mar
  .live-shell.chat-shell.lvd-chat[data-keyboard-open="true"] .chat-log{flex:1 1 0;min-height:0;overflow-y:auto}
  .live-shell.chat-shell.lvd-chat[data-keyboard-open="true"] .chat-compose-wrap{flex:0 0 auto;margin: auto auto 0;padding:8px 0 0}
 }
-
-.chat-document-consent{box-sizing:border-box;width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:24px;border:1px solid #414141;border-radius:4px;background:#242424;color:#d4d4d4;font:400 15px/1.65 var(--lvd-font);overflow:auto}
-.chat-document-consent::backdrop{background:#0009}
-.chat-document-consent h2{margin:0 0 12px;font-size:20px;line-height:1.4;color:inherit}
-.chat-document-consent p{margin:12px 0;color:inherit}
-.chat-document-consent ul{padding-left:20px;overflow-wrap:anywhere}
-.chat-document-consent-actions{display:flex;flex-direction:column;gap:8px;margin-top:20px}
-.chat-document-consent-actions button{min-height:44px;padding:10px 14px;border:1px solid #555;border-radius:4px;background:transparent;color:inherit;font:inherit;cursor:pointer}
-.chat-document-consent-actions button:first-child{background:#d4d4d4;color:#242424}
-.chat-document-consent-actions button:disabled{opacity:.45;cursor:not-allowed}
-.chat-document-consent :focus-visible{outline:2px solid #d4d4d4;outline-offset:3px}

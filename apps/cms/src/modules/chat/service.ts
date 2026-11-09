@@ -1,4 +1,4 @@
-import {DOCUMENT_CONSENT_VERSION,validDocumentBatch} from './document-consent';
+import {DOCUMENT_CONSENT_VERSION,DOCUMENT_PROCESSING_VERSION,readableDocument,validDocumentBatch} from './document-consent';
 import {conversationTitle,recoveredConversationTitle,unnamedTitleContextSQL} from './conversation-title';
 import {customerMetadata} from '../knowledge/citations';
 import {avatarURL} from '../identity/avatar';
@@ -136,7 +136,7 @@ export async function message(
   id: string,
   data: any,
   maxLength: number,
-  context:{country?:unknown}={},
+  context:{country?:unknown;documentAIAvailable?:boolean}={},
 ) {
   const fileIds = Array.isArray(data.fileIds)?data.fileIds:[];
   if(fileIds.length>4||new Set(fileIds).size!==fileIds.length||fileIds.some((v:unknown)=>typeof v!=="string"||!/^[a-f0-9-]{36}$/i.test(v)))throw new HttpError(400,"Tệp đính kèm không hợp lệ.");
@@ -183,15 +183,21 @@ export async function message(
     )
       throw new HttpError(409, "Cần nhận xử lý hội thoại trước khi trả lời.");
     const documentConsent=own&&fileIds.length>0&&data.documentConsentVersion===DOCUMENT_CONSENT_VERSION;
-    if(documentConsent&&data.aiConsentVersion!=='gemini-rag-v1')throw new HttpError(400,'Cần đồng ý cho AI xử lý tài liệu.');
-    if(data.documentConsentVersion!==undefined&&!documentConsent)throw new HttpError(400,'Đồng ý xử lý tài liệu không hợp lệ.');
+    if(documentConsent&&data.aiConsentVersion!=='gemini-rag-v1')throw new HttpError(400,'Thông tin xử lý tài liệu không hợp lệ.');
+    if(data.documentConsentVersion!==undefined&&!documentConsent)throw new HttpError(400,'Thông tin xử lý tài liệu không hợp lệ.');
+    let processDocuments=false;
     if(fileIds.length){
       const files=await db.query("SELECT id,mime_type,size FROM lvd_chat_files WHERE id=ANY($1::uuid[]) AND conversation_id=$2 AND actor_key=$3 AND message_id IS NULL AND ready=true FOR UPDATE",[fileIds,id,actorKey]);
       if(files.rowCount!==fileIds.length)throw new HttpError(403,"Không thể gửi tệp này trong hội thoại.");
-      if(documentConsent&&!validDocumentBatch(files.rows.map(f=>({mimeType:f.mime_type,size:Number(f.size)}))))throw new HttpError(400,'AI đọc tối đa 4 ảnh/PDF, tổng dung lượng 12 MB.');
+      const documents=files.rows.map(f=>({mimeType:f.mime_type,size:Number(f.size)}));
+      if((documentConsent||own&&context.documentAIAvailable&&documents.every(f=>readableDocument(f.mimeType)))&&!validDocumentBatch(documents))throw new HttpError(400,'AI đọc tối đa 4 ảnh/PDF, tổng dung lượng 12 MB.');
+      if(own&&validDocumentBatch(documents)&&c.state==='queued'&&c.assigned_to==null&&(context.documentAIAvailable===true||context.documentAIAvailable===undefined&&documentConsent&&c.ai_enabled)){
+       const transferred=!c.ai_enabled&&(await db.query("SELECT 1 FROM lvd_chat_events WHERE conversation_id=$1 AND action IN ('claim','handoff','close','reopen','release') UNION ALL SELECT 1 FROM lvd_messages WHERE conversation_id=$1 AND role='staff' LIMIT 1",[id])).rowCount;
+       processDocuments=!transferred;
+      }
     }
     const browserContext=own?normalizeBrowserContext(data.browserContext,context.country):undefined;
-    const metadata:any={...(browserContext?{browserContext}:{}),...(own&&(!fileIds.length||documentConsent)&&data.aiConsentVersion==='gemini-rag-v1'?{aiConsent:{version:'gemini-rag-v1',provider:'google-gemini',at:new Date().toISOString()}}:{}),...(documentConsent?{documentConsent:{version:DOCUMENT_CONSENT_VERSION,provider:'google-gemini',at:new Date().toISOString(),fileIds}}:{}),...(fileIds.length?{fileIds}:{})};
+    const metadata:any={...(browserContext?{browserContext}:{}),...(own&&(processDocuments||!fileIds.length&&data.aiConsentVersion==='gemini-rag-v1')?{aiConsent:{version:'gemini-rag-v1',provider:'google-gemini',at:new Date().toISOString(),...(processDocuments&&!documentConsent?{basis:'customer-upload'}:{})}}:{}),...(processDocuments&&!documentConsent?{documentProcessing:{version:DOCUMENT_PROCESSING_VERSION,provider:'google-gemini',mode:'customer-upload',at:new Date().toISOString(),fileIds}}:{}),...(documentConsent?{documentConsent:{version:DOCUMENT_CONSENT_VERSION,provider:'google-gemini',at:new Date().toISOString(),fileIds}}:{}),...(fileIds.length?{fileIds}:{})};
     const result = await db.query(
       "INSERT INTO lvd_messages(conversation_id,role,body,internal,actor_key,client_key,metadata) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",
       [id, own ? "user" : "staff", body, internal, actorKey, key, Object.keys(metadata).length?JSON.stringify(metadata):null],
@@ -205,9 +211,10 @@ export async function message(
     );
     if(fileIds.length){
       await db.query("UPDATE lvd_chat_files SET message_id=$1,internal=$2 WHERE id=ANY($3::uuid[])",[result.rows[0].id,internal,fileIds]);
-      if(own&&!documentConsent)await db.query("UPDATE lvd_conversations SET ai_enabled=false,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,state=CASE WHEN state='human' THEN state ELSE 'queued' END,version=version+1 WHERE id=$1",[id]);
+      if(own&&!processDocuments)await db.query("UPDATE lvd_conversations SET ai_enabled=false,ai_generation=NULL,ai_started_at=NULL,ai_message_id=NULL,state=CASE WHEN state='human' THEN state ELSE 'queued' END,version=version+1 WHERE id=$1",[id]);
     }
-    if(own&&(!fileIds.length||documentConsent)&&c.state==='queued'&&c.ai_enabled)await db.query('INSERT INTO lvd_answer_jobs(message_id,conversation_id) VALUES($1,$2) ON CONFLICT(message_id) DO NOTHING',[result.rows[0].id,id]);
+    if(processDocuments&&!c.ai_enabled)await db.query('UPDATE lvd_conversations SET ai_enabled=true,version=version+1 WHERE id=$1',[id]);
+    if(own&&(!fileIds.length&&c.ai_enabled||processDocuments)&&c.state==='queued')await db.query('INSERT INTO lvd_answer_jobs(message_id,conversation_id) VALUES($1,$2) ON CONFLICT(message_id) DO NOTHING',[result.rows[0].id,id]);
     return {...result.rows[0],role:own?'user':'staff'};
   });
 }

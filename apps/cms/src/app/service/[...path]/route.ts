@@ -120,7 +120,7 @@ async function route(
           id,
           data,
           (await settings()).maxMessageLength || 2000,
-          {country:req.headers.get('cf-ipcountry')},
+          {country:req.headers.get('cf-ipcountry'),...(Array.isArray(data.fileIds)&&data.fileIds.length?{documentAIAvailable:(await settings()).customerAIEnabled!==false&&Boolean(await activeValues('ai'))}:{})},
         );
         result=sent;
       } else if(segments.length===3&&segments[2]==='delete'&&method==='POST'){
