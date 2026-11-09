@@ -124,3 +124,13 @@ html.lvd-admin .operator-workspace.is-embedded{margin:0;max-width:none;border:0;
  .operator-workspace .operator-conversation-header h2{max-width:none}
  .operator-workspace .operator-conversation-header>.operator-back{flex-shrink:0}
 }
+
+/* iOS pans the visual viewport on focus; anchor the operator shell once. */
+@media(max-width:760px){
+ html.lvd-admin .operator-workspace.is-embedded[data-keyboard-open="true"],.operator-workspace[data-keyboard-open="true"]{position:fixed;z-index:100;inset:auto;top:var(--lvd-chat-offset,0px);left:0;right:0;box-sizing:border-box;width:100%;max-width:none;height:var(--lvd-chat-vh,100dvh);min-height:0;margin:0;border:0;border-radius:0;overflow:hidden}
+ .operator-workspace[data-keyboard-open="true"] .operator-conversation{height:100%;min-height:0;overflow:hidden}
+ .operator-workspace[data-keyboard-open="true"] .operator-conversation-header{flex:0 0 auto;min-height:64px}
+ .operator-workspace[data-keyboard-open="true"] .operator-log{flex:1 1 0;min-height:0;overflow-y:auto}
+ .operator-workspace[data-keyboard-open="true"] .operator-composer-shell{flex:0 0 auto;margin: auto 12px 8px}
+ .operator-workspace[data-keyboard-open="true"] .operator-error{flex-shrink:0}
+}
