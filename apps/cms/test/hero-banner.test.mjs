@@ -1,9 +1,19 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultHeroBanner,heroBanner,latestHeroBanner,publicMediaURL} from '../src/modules/settings/hero-banner.ts';
+import {defaultHeroBanner,heroBanner,heroVideoSource,latestHeroBanner,publicMediaURL} from '../src/modules/settings/hero-banner.ts';
 import {readPublicSettings} from '../src/modules/settings/public-contract.ts';
 import {mediaUploadLimit} from '../src/modules/storage/upload-limits.ts';
 const media=(mimeType,url='/api/media/file/banner.mp4')=>({visibility:'public',mimeType,url,updatedAt:'2026-11-07T12:00:00Z'});
+test('optimized banner keeps the chosen clip, respects its revision and independent mobile choice',()=>{
+ const source='/api/media/file/legal-hero-vietnam-family-20261108.mp4?v=1794112118108';
+ assert.equal(heroVideoSource(source),'/media/hero-family-desktop-v1.mp4');
+ assert.equal(heroVideoSource('https://luatvietduc.com'+source,true),'/media/hero-family-mobile-v1.mp4');
+ for(const changed of [source.replace('1794112118108','1794112118109'),'https://other.invalid'+source,'/different.mp4'])assert.equal(heroVideoSource(changed),changed);
+ const selected={visibility:'public',mimeType:'video/mp4',url:source.split('?')[0],updatedAt:new Date(1794112118108).toISOString()};
+ const banner=heroBanner({heroVideo:selected});assert.equal(banner.video,'/media/hero-family-desktop-v1.mp4');assert.equal(banner.mobileVideo,'/media/hero-family-mobile-v1.mp4');
+ assert.equal(heroBanner({heroVideo:selected,heroMobileVideo:media('video/mp4','/custom-phone.mp4')}).mobileVideo,'/custom-phone.mp4?v=1794052800000');
+ assert.equal(heroBanner({heroVideo:{...selected,visibility:'private'}}).video,defaultHeroBanner.video);
+});
 test('banner projects only public playable media and preserves current defaults',()=>{
  assert.deepEqual(heroBanner({}),defaultHeroBanner);
  const video=media('video/mp4'),poster=media('image/webp','https://cdn.example.invalid/poster.webp?size=large');

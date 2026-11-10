@@ -1,0 +1,9 @@
+[
+  {
+    "source": "/api/media/file/legal-hero-vietnam-family-20261108.mp4?v=1794112118108",
+    "sha256": "8d1fe125f6d8d350bc3c2e5a072829219a9b28687cd5e05b414f282355ee442f",
+    "duration": 23.32,
+    "desktop": "/media/hero-family-desktop-v1.mp4",
+    "mobile": "/media/hero-family-mobile-v1.mp4"
+  }
+]

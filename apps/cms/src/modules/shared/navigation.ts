@@ -9,9 +9,9 @@ export function isPageLink(href:string){
    !/\.(?:pdf|zip|csv|ico|png|jpe?g|webp|avif|svg|gif|mp4|webm|mjs|js|css|json|xml)$/i.test(path);
  }catch{return false;}
 }
-// Warm the small set of common public destinations, not every article/filter
-// or any private page. Next retains the shared layout and downloaded resources.
+// Warm public destinations on pointer/focus/touch intent through AppLink.
+// Viewport prefetch otherwise pulls whole interactive routes into the initial
+// page load. Next still retains layouts and resources after navigation.
 export function prefetchPage(href:string){
- return /^\/(?:hoi-dap|thu-vien|phap-luat\/(?:viet-nam|duc)|tin-tuc|gioi-thieu|lien-he)?$/.test(href)?true:
-  /^\/(?:admin|tai-khoan)(?:[/?#]|$)/.test(href)?false:null;
+ return /^\/(?:admin|tai-khoan)(?:[/?#]|$)/.test(href)?false:null;
 }

@@ -120,3 +120,37 @@ giảm 24.525 byte JavaScript ở Tin tức, 31.948 byte ở Hỏi đáp; đây 
 giảm tổng dung lượng hoặc số đo LCP production. Nội dung, canonical và JSON-LD
 vẫn đọc được khi tắt JavaScript. Rà sitemap hiện tại: 109 URL đạt các kiểm tra
 HTTP/metadata cơ bản. Xem [báo cáo và giới hạn](verification/2026-11-08-route-code.md).
+
+
+## PageSpeed desktop — 2026-11-10
+
+Báo cáo chủ website gửi: Performance 78, FCP 0,3s, LCP 1,6s, TBT 380ms,
+CLS 0. Video quản trị `legal-hero-vietnam-family-20261108.mp4` tải 12.452.235
+byte, chiếm phần lớn 13.496 KiB của trang. Không nhầm với video mặc định.
+
+Tạo hai rendition từ đúng nguồn công khai, không sửa bản gốc/R2/bản ghi media.
+`settings/hero-video-renditions.json` ghim URL có revision và SHA-256 nguồn.
+Máy tính giữ 1600×900; điện thoại 960×540; cả hai giữ 23,32 giây và 25fps.
+Bản cuối lần lượt 3.417.555 và 1.259.737 byte (giảm khoảng 73% và 90%).
+Nếu admin chọn video khác, thay file hoặc chọn riêng bản điện thoại, phép ghép
+không áp dụng nhầm rendition cũ. Poster, nút phát/dừng, giảm chuyển động và
+chế độ tiết kiệm dữ liệu giữ nguyên.
+
+Tái tạo từ file nguồn có SHA-256
+`8d1fe125f6d8d350bc3c2e5a072829219a9b28687cd5e05b414f282355ee442f`:
+
+```sh
+ffmpeg -i source.mp4 -map 0:v:0 -an -c:v libx264 -preset slow -crf 27 -pix_fmt yuv420p -movflags +faststart -threads 2 hero-family-desktop-v1.mp4
+ffmpeg -i source.mp4 -map 0:v:0 -an -vf 'scale=960:-2' -c:v libx264 -preset slow -crf 28 -pix_fmt yuv420p -movflags +faststart -threads 2 hero-family-mobile-v1.mp4
+```
+
+Liên kết công khai chuyển từ tải trước theo viewport sang tải trước khi hover,
+focus hoặc chạm. Không tải hàng loạt route tương tác trong lúc khởi động trang;
+vẫn giữ Next navigation/cache và làm ấm chat khi khách tương tác ô câu hỏi.
+Trang riêng tư tiếp tục không tải trước. Đây là giảm việc tải sớm, chưa tuyên bố
+đã loại hết mã CMS khỏi bundle. Một thử nghiệm tách entry dùng chung không giảm
+nhóm chunk nên đã bỏ trước phát hành.
+
+Kiểm tra: ffprobe xác nhận kích thước/thời lượng, regression test chọn video,
+revision mới/tệp riêng tư/mobile riêng, điều hướng và xác nhận bỏ nháp. Điểm
+PageSpeed sau triển khai cần một lần đo mới; không suy ra điểm từ số byte.

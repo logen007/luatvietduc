@@ -9,8 +9,8 @@ test('only UI pages participate in client navigation, including filtered and has
  for(const href of ['/','/hoi-dap?question=nh%C3%A0','/tai-khoan?mode=signin','/tin-tuc?nhom=gia-dinh','/gioi-thieu#doi-ngu','/bai-viet/test','/admin/collections/articles?depth=1'])assert.equal(isPageLink(href),true,href);
  for(const href of ['#main','https://example.invalid/','mailto:test@example.invalid','//example.invalid','/\\example.invalid','/auth/google','/service/backups/google/start','/api/media/1','/assets/test.svg','/favicon.ico','/service/article-import','/x/../auth/google','/%61uth/google','/service%2Fbackups','/%2fexample.invalid','/%zz'])assert.equal(isPageLink(href),false,href);
 });
-test('warm common public pages while keeping private pages and arbitrary searches out of automatic prefetch',()=>{
- for(const href of ['/','/hoi-dap','/tin-tuc','/phap-luat/viet-nam'])assert.equal(prefetchPage(href),true,href);
+test('public pages warm on intent rather than viewport entry; private pages never warm automatically',()=>{
+ for(const href of ['/','/hoi-dap','/tin-tuc','/phap-luat/viet-nam'])assert.equal(prefetchPage(href),null,href);
  for(const href of ['/admin','/admin/inbox','/tai-khoan?mode=reset'])assert.equal(prefetchPage(href),false,href);
  for(const href of ['/bai-viet/one','/tin-tuc?q=private','/hoi-dap?conversation=synthetic'])assert.equal(prefetchPage(href),null,href);
 });
@@ -36,6 +36,7 @@ test('large lists warm only the intended destination, preserve handlers and neve
   const count=stateWrites,props=render({href});props.onMouseEnter({});assert.equal(stateWrites,count);assert.equal(props.prefetch,false);
  }
  const explicit=render({href:'/bai-viet/article-1',prefetch:false});explicit.onFocus({});assert.equal(explicit.prefetch,false);
- assert.equal(render({href:'/hoi-dap'}).prefetch,true);
+ assert.equal(render({href:'/hoi-dap'}).prefetch,false);
+ render({href:'/hoi-dap'}).onFocus({});assert.equal(render({href:'/hoi-dap'}).prefetch,true);
  let prevented=false;render({href:'/tin-tuc'}).onNavigate({preventDefault:()=>{prevented=true;}});assert.equal(confirmed,1);assert.equal(prevented,true);
 });
