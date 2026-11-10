@@ -154,3 +154,29 @@ nhóm chunk nên đã bỏ trước phát hành.
 Kiểm tra: ffprobe xác nhận kích thước/thời lượng, regression test chọn video,
 revision mới/tệp riêng tư/mobile riêng, điều hướng và xác nhận bỏ nháp. Điểm
 PageSpeed sau triển khai cần một lần đo mới; không suy ra điểm từ số byte.
+
+## Tối ưu khi tải lên — 2026-11-10
+
+Điểm vào chung là `storage/compress-upload.ts`: hook Media chạy trước Payload
+đọc kích thước/tạo size, nên Thư viện, trình soạn bài, banner và avatar dùng
+cùng xử lý. Tệp chat gọi sau kiểm tra quyền/tiếp nhận; cập nhật size trong cùng
+lượt đánh dấu ready. Giữ các kiểm tra quyền, định dạng, quota và khoá sao lưu.
+
+Chọn nén không mất thông tin: JPEG dùng jpegtran tối ưu bảng mã và giữ metadata;
+PNG/WebP giữ pixel/metadata, không đổi kích thước. Bỏ qua ảnh động, SVG và tài
+liệu PDF/DOCX/TXT. MP4/WebM thử encoder lossless, giữ kích thước, âm thanh,
+metadata, số khung hình và thời lượng; chỉ nhận kết quả nhỏ hơn và khớp probe.
+Video đã nén tốt thường không giảm thêm; không hứa mức giảm của việc hạ bitrate.
+Không thay nội dung byte của các tệp cũ; dữ liệu mới lưu bằng bản tối ưu đã kiểm tra.
+
+Giới hạn một encoder mỗi tiến trình, ảnh tối đa 40 triệu pixel, video tối đa
+4K/3 phút, một luồng CPU, deadline 20 giây. Hết hạn, lỗi, đang bận hoặc bản nén
+không nhỏ hơn thì giữ tệp nhận được; không chặn upload. Đây không phải hàng chờ
+nén nền và không mở thêm định dạng video cho chat. FFmpeg và libjpeg-turbo được
+cài trong cả image triển khai hiện tại và image portable, tăng dung lượng image
+để có công cụ chạy tại máy chủ; không dùng dịch vụ bên ngoài để xử lý tệp riêng.
+
+Phát hành qua `release-reviewed-upload-compression.py`: chỉ duyệt đúng dòng
+cài hai gói trong Dockerfile và đúng collection hook, không chạy migration DB.
+Giữ Compose, engine, lịch sao lưu, font và dữ liệu hiện có. Candidate kiểm tra
+binary và nén ảnh thật trước khi đổi web, giữ rollback image hiện hành.

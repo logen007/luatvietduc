@@ -1,3 +1,4 @@
+import {compressUpload} from '../storage/compress-upload';
 import {randomUUID} from 'node:crypto';
 import {PutObjectCommand,GetObjectCommand,DeleteObjectCommand} from '@aws-sdk/client-s3';
 import {Readable} from 'node:stream';
@@ -34,8 +35,9 @@ export async function uploadChatFile(actor:Actor,conversationId:string,name:stri
  });
  const client=r2Client(values);
  try{
+  buffer=await compressUpload(buffer,mime);
   await client.send(new PutObjectCommand({Bucket:values.bucket,Key:key,Body:buffer,ContentType:mime,CacheControl:'private, no-store'}),{abortSignal:AbortSignal.timeout(30000)});
-  await transaction(async db=>{await db.query('SELECT pg_advisory_xact_lock_shared(73041104)');if((await db.query('SELECT media_locked_until>now() AS locked FROM lvd_backup_runtime WHERE id=1')).rows[0]?.locked)throw new HttpError(409,'Đang sao lưu tệp.');await db.query('UPDATE lvd_chat_files SET ready=true WHERE id=$1',[id]);});
+  await transaction(async db=>{await db.query('SELECT pg_advisory_xact_lock_shared(73041104)');if((await db.query('SELECT media_locked_until>now() AS locked FROM lvd_backup_runtime WHERE id=1')).rows[0]?.locked)throw new HttpError(409,'Đang sao lưu tệp.');await db.query('UPDATE lvd_chat_files SET ready=true,size=$2 WHERE id=$1',[id,buffer.length]);});
   return {id,name:name.slice(0,180),size:buffer.length,mimeType:mime,url:'/service/chat-files/'+id};
  }catch{
   try{await client.send(new DeleteObjectCommand({Bucket:values.bucket,Key:key}),{abortSignal:AbortSignal.timeout(5000)});await pool.query('DELETE FROM lvd_chat_files WHERE id=$1 AND ready=false',[id]);}catch{}

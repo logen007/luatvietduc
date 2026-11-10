@@ -17,6 +17,7 @@ RUN --mount=type=cache,id=lvd-portable-next,target=/app/.next/cache,sharing=lock
 RUN cp /tmp/build-maintenance.mjs ./build-maintenance.mjs && node build-maintenance.mjs && rm -rf .next/standalone/public
 
 FROM node:24.22.1-bookworm-slim AS runtime
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg libjpeg-turbo-progs && rm -rf /var/lib/apt/lists/*
 ARG LVD_COMMIT
 LABEL org.opencontainers.image.source="https://github.com/logen007/luatvietduc" org.opencontainers.image.revision=$LVD_COMMIT
 WORKDIR /app

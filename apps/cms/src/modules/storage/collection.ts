@@ -1,3 +1,4 @@
+import {compressMediaUpload} from './compress-upload';
 import {mediaMetadataGuard} from './metadata-guard';
 import {bundledURL} from './bundled';
 import {mediaWriteGuard} from "../backup/media-lock";
@@ -24,7 +25,7 @@ export const Media: CollectionConfig = {
     update: ({req})=>req.user?.role==="owner"?true:req.user?.role==="support"?{uploadedBy:{equals:req.user.id}}:false,
     delete: ({req}):boolean|Where=>req.user?.role==="owner"?true:req.user?.role==="support"?{uploadedBy:{equals:req.user.id}}:false,
   },
-  hooks:{beforeOperation:[mediaRootEnumeration,mediaStorageCoordinates],afterRead:[({doc})=>bundledURL(doc),originalMediaView],beforeChange:[mediaMetadataGuard],beforeDelete:[mediaWriteGuard,captureMediaOwnedFiles],afterDelete:[deleteMediaOwnedFiles]},
+  hooks:{beforeOperation:[mediaRootEnumeration,mediaStorageCoordinates,compressMediaUpload],afterRead:[({doc})=>bundledURL(doc),originalMediaView],beforeChange:[mediaMetadataGuard],beforeDelete:[mediaWriteGuard,captureMediaOwnedFiles],afterDelete:[deleteMediaOwnedFiles]},
   upload: {
     disableLocalStorage: true,
     crop:false,
