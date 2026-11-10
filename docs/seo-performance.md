@@ -162,8 +162,14 @@ PageSpeed sau triển khai cần một lần đo mới; không suy ra điểm t�
 cùng xử lý. Tệp chat gọi sau kiểm tra quyền/tiếp nhận; cập nhật size trong cùng
 lượt đánh dấu ready. Giữ các kiểm tra quyền, định dạng, quota và khoá sao lưu.
 
-Chọn nén không mất thông tin: JPEG dùng jpegtran tối ưu bảng mã và giữ metadata;
-PNG/WebP giữ pixel/metadata, không đổi kích thước. Bỏ qua ảnh động, SVG và tài
+Ảnh PNG/WebP được khai báo công khai bởi Admin hoặc Local API có quyền được ưu
+tiên chuyển sang JPG progressive chất lượng 94, màu 4:4:4, giữ kích thước/metadata
+khi mọi pixel đều đục và JPG nhỏ hơn cả bản gốc lẫn PNG/WebP đã tối ưu. Ảnh có
+pixel trong suốt giữ định dạng hiện có; PNG/WebP vốn nhỏ hơn cũng được giữ lại.
+Phạm vi mặc định/riêng tư, ảnh giấy tờ và ảnh chat chỉ nén không mất thông tin:
+JPEG dùng jpegtran tối ưu bảng mã và giữ metadata; PNG/WebP giữ pixel/metadata,
+không đổi kích thước. Không tái nén mất dữ liệu ảnh JPEG đã tải lên.
+Bỏ qua ảnh động, SVG và tài
 liệu PDF/DOCX/TXT. MP4/WebM thử encoder lossless, giữ kích thước, âm thanh,
 metadata, số khung hình và thời lượng; chỉ nhận kết quả nhỏ hơn và khớp probe.
 Video đã nén tốt thường không giảm thêm; không hứa mức giảm của việc hạ bitrate.
