@@ -8,7 +8,7 @@ export function HeroVideo({initial}:{initial:HeroBanner}){
  const video=useRef<HTMLVideoElement>(null),toggleButton=useRef<HTMLButtonElement>(null),choice=useRef<'play'|'pause'|null>(null),[paused,setPaused]=useState(true);
  useEffect(()=>{
   const el=video.current,button=toggleButton.current;if(!el)return;
-  let visible=false,ready=document.readyState==='complete',timer:ReturnType<typeof setTimeout>|undefined;
+  let visible=false,ready=false,timer:ReturnType<typeof setTimeout>|undefined;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)'),mobile=window.matchMedia('(max-width:760px)'),connection=(navigator as Navigator&{connection?:EventTarget&{saveData?:boolean}}).connection;
   const sync=()=>{
    if((!ready&&choice.current!=='play')||document.hidden||!visible||choice.current==='pause'||(choice.current!=='play'&&(reduced.matches||connection?.saveData))){el.pause();return;}
@@ -16,7 +16,7 @@ export function HeroVideo({initial}:{initial:HeroBanner}){
    if(el.getAttribute('src')!==source){el.src=source;el.load();}
    void el.play().catch(()=>setPaused(true));
   };
-  const loaded=()=>{timer=setTimeout(()=>{ready=true;sync();},250);};if(!ready)window.addEventListener('load',loaded,{once:true});
+  const loaded=()=>{timer=setTimeout(()=>{ready=true;sync();},mobile.matches?3000:250);};if(document.readyState==='complete')loaded();else window.addEventListener('load',loaded,{once:true});
   const onPlay=()=>setPaused(false),onPause=()=>setPaused(true),observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;sync();});
   observer.observe(el);el.addEventListener('play',onPlay);el.addEventListener('pause',onPause);document.addEventListener('visibilitychange',sync);reduced.addEventListener('change',sync);mobile.addEventListener('change',sync);connection?.addEventListener('change',sync);
   const toggle=()=>{choice.current=el.paused?'play':'pause';sync();};button?.addEventListener('click',toggle);sync();

@@ -1058,7 +1058,7 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 /* Link/button hit areas stay fixed, even when clicked immediately after scrolling. */
 @media(prefers-reduced-motion:no-preference){
   .lvd-public-site .pm-hero-links{animation:lvd-scroll-reveal .65s cubic-bezier(.22,1,.36,1) backwards}
-  .lvd-public-site .pm-hero h1{animation:lvd-hero-entrance .9s cubic-bezier(.22,1,.36,1) .08s backwards}
+  .lvd-public-site .pm-hero h1{animation:lvd-hero-entrance .6s cubic-bezier(.22,1,.36,1)}
   .lvd-public-site .pm-hero-description{animation:lvd-hero-entrance .85s cubic-bezier(.22,1,.36,1) .18s backwards}
   /* Fade the form without moving its controls or changing their containing block. */
   .lvd-public-site .pm-ask-slot{animation:lvd-scroll-reveal .75s cubic-bezier(.22,1,.36,1) .28s backwards}
@@ -1069,7 +1069,8 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
   .lvd-public-site [data-scroll-reveal="visible"] :is(img,.pm-field-icon,.pm-country-copy,.lvd-benefit-icon,.lvd-benefit-copy>h2,.lvd-benefit-copy>p){animation:lvd-scroll-lift .72s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms) both}
   @keyframes lvd-scroll-reveal{from{opacity:0}to{opacity:1}}
   @keyframes lvd-scroll-lift{from{translate:0 20px}to{translate:0 0}}
-  @keyframes lvd-hero-entrance{from{opacity:0;translate:0 24px;filter:blur(4px)}to{opacity:1;translate:0 0;filter:blur(0)}}
+  /* Keep the LCP heading visible from its first paint. */
+  @keyframes lvd-hero-entrance{from{translate:0 12px}to{translate:0 0}}
 }
 
 /* Motion stays on content and icons, keeping links and form hit areas stable. */
