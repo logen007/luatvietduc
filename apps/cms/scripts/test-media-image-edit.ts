@@ -50,12 +50,15 @@ export async function testMediaImageEdit(payload:Payload,owner:User){
   actor=await payload.create({collection:'users',user:owner,overrideAccess:false,data:{name:'Synthetic image editor',email:'image-edit-'+suffix+'@example.invalid',password,role:'support',jurisdictions:['VN']}});
   other=await payload.create({collection:'users',user:owner,overrideAccess:false,data:{name:'Synthetic other editor',email:'other-image-edit-'+suffix+'@example.invalid',password,role:'support',jurisdictions:['VN']}});
   const token=(await payload.login({collection:'users',data:{email:actor.email,password}})).token!,otherToken=(await payload.login({collection:'users',data:{email:other.email,password}})).token!;
-  const original=await sharp({create:{width:400,height:240,channels:3,background:'#899'}}).png().toBuffer();
-  const created=await payload.create({collection:'media',user:actor,overrideAccess:false,file:{name:'synthetic-'+suffix+'.png',mimetype:'image/png',data:original,size:original.length},data:{title:'Synthetic editable image',prefix:'originals/2147483647',_objectKey:'foreign'} as any});imageId=created.id;
+  const input=await sharp({create:{width:400,height:240,channels:3,background:'#899'}}).png().toBuffer();
+  const created=await payload.create({collection:'media',user:actor,overrideAccess:false,file:{name:'synthetic-'+suffix+'.png',mimetype:'image/png',data:input,size:input.length},data:{title:'Synthetic editable image',prefix:'originals/2147483647',_objectKey:'foreign'} as any});imageId=created.id;
   const image=await testMediaCoordinateForgery(payload,actor,created.id);
   assert.equal(puts.some(key=>key.startsWith('originals/')),false,'An upload cannot choose the protected original-source namespace');
   const initial=await stored(),initialNames=[initial.filename,...Object.values(initial.sizes||{}).map(size=>size.filename).filter((name):name is string=>Boolean(name))];
-  assert.equal(initial.originalFile??undefined,undefined);assert.deepEqual(Buffer.from(await(await mediaOriginalResponse(request(imageId,token,'GET'),payload,imageId)).arrayBuffer()),original,'Unedited original download falls back to the current upload');
+  assert.equal(initial.originalFile??undefined,undefined);
+  const original=Buffer.from(await(await mediaOriginalResponse(request(imageId,token,'GET'),payload,imageId)).arrayBuffer());
+  assert.deepEqual(original,objects.get(initial.filename)?.body,'Unedited original download falls back to the stored upload');
+  assert.deepEqual(await sharp(original).raw().toBuffer(),await sharp(input).raw().toBuffer(),'Upload compression preserves every source pixel');
   const before=reads;await assert.rejects(()=>mediaOriginalResponse(request(image.id,undefined,'GET'),payload,image.id),{status:403});assert.equal(reads,before);
   await assert.rejects(()=>editMediaImage(request(image.id,otherToken),payload,image.id,{operation:'edit',updatedAt:image.updatedAt,rotate:90}),{status:403});
   assert.equal(puts.some(key=>key.startsWith('originals/')),false,'Unauthorized edits cannot create a backup');
