@@ -597,3 +597,29 @@ html.lvd-admin .lvd-media-picker-view .list-header__title-actions{display:none}
 html.lvd-admin .lvd-media-picker-view .list-drawer__header-close{padding:0;display:grid;place-items:center}
 html.lvd-admin:has(.drawer--is-open .lvd-media-picker-view) .lvd-admin-back{visibility:hidden}
 html.lvd-admin .lvd-media-picker-view .list-header__title-and-actions{padding-inline-start:0;min-height:44px;padding-block:0}
+
+/* Article workspace: one editable title, readable settings and a bounded sidebar. */
+html.lvd-admin:has(.collection-edit--articles .lvd-inline-article-title) .doc-header:not(.drawer .doc-header){display:none}
+html.lvd-admin .collection-edit--articles .document-fields{--main-width:calc(100% - 320px);--sidebar-wrap-width:320px;--sidebar-wrap-min-width:320px;--sidebar-gutter-h-left:20px;--sidebar-gutter-h-right:20px;--main-gutter-h-right:24px}
+html.lvd-admin .collection-edit--articles .document-fields__main{min-width:0}
+html.lvd-admin .collection-edit--articles .document-fields__edit{padding-top:20px}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar{padding-top:20px}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .field-label:not(.checkbox-input .field-label){position:static;display:block;width:auto;height:auto;padding:0;margin:0 0 8px;overflow:visible;clip-path:none;white-space:normal;border:0;font-size:13px;font-weight:600}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .field-type{min-width:0;margin-bottom:22px}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .field-description{font-size:12px;line-height:1.5}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .upload__dropzoneContent{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:110px;padding:16px;text-align:center}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .upload__dropzoneContent .btn{margin:0}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .upload .dropzone{padding:0}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .upload__dropzoneContent__orText{font-size:12px}
+html.lvd-admin .collection-edit--articles .lvd-post-permalink{margin-bottom:16px}
+html.lvd-admin .collection-edit--articles .lvd-post-permalink__row{gap:8px}
+html.lvd-admin .collection-edit--articles .lvd-post-permalink__url{font-size:12px;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.lvd-admin .collection-edit--articles .lvd-inline-article-title input{font-size:22px}
+html.lvd-admin .collection-edit--articles .doc-controls__wrapper{padding-block:10px}
+@media(max-width:1000px){
+ html.lvd-admin .collection-edit--articles .document-fields{display:block;--main-width:100%;--sidebar-wrap-width:100%;--sidebar-wrap-min-width:0;--sidebar-wrap-position:static;--sidebar-wrap-height:auto;--main-gutter-h-right:var(--gutter-h);--sidebar-gutter-h-left:var(--gutter-h);--sidebar-gutter-h-right:var(--gutter-h)}
+ html.lvd-admin .collection-edit--articles .document-fields__sidebar-wrap{width:100%;min-width:0;position:static;height:auto}
+ html.lvd-admin .collection-edit--articles .document-fields__sidebar{height:auto;overflow:visible;min-height:0;border-top:1px solid var(--admin-line)}
+ html.lvd-admin .collection-edit--articles .document-fields__main{width:100%}
+}
+@media(max-width:760px){html.lvd-admin .collection-edit--articles .lvd-inline-article-title input{font-size:18px}html.lvd-admin .collection-edit--articles .document-fields__edit{padding-top:12px}}

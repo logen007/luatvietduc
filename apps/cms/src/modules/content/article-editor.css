@@ -69,3 +69,12 @@ html.lvd-admin .lvd-article-editor .lvd-editor-group select:not([multiple]):not(
  .lvd-article-editor .lvd-editor-panel input{font-size:16px;min-height:44px}
  .lvd-editor-toolbar{scroll-padding-inline:8px}
 }
+
+/* Keep formatting tools in one predictable row instead of a stray undo row. */
+.lvd-article-editor{border-radius:4px}
+.lvd-editor-top{padding:7px 10px;gap:8px}
+.lvd-editor-toolbar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;gap:0;padding:6px}
+.lvd-editor-group{flex:none;padding-inline:5px}
+html.lvd-admin .lvd-article-editor .lvd-editor-group select:not([multiple]):not([size]){min-width:0;width:138px;max-width:138px;min-height:38px;font-size:13px}
+.lvd-article-editor .tiptap{padding:24px;min-height:420px;font-size:16px;line-height:1.7}
+@media(max-width:760px){html.lvd-admin .lvd-article-editor .lvd-editor-group select:not([multiple]):not([size]){min-height:44px;font-size:16px;width:150px;max-width:150px}.lvd-article-editor .tiptap{padding:18px 16px;min-height:360px}}

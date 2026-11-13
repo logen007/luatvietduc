@@ -34,6 +34,10 @@ try{
   const cover=page.locator('#field-featuredImage');
   assert.equal(await cover.count(),1);
   const initialImageCount=await page.locator('.lvd-article-editor .tiptap img').count();
+  assert.equal(await page.locator('.doc-header:visible').count(),0,'Only the inline editable title is visible');
+  await page.screenshot({path:'test-results/media-picker/editor-'+width+'.png'});
+  if(width>1000){const sidebar=await page.locator('.document-fields__sidebar-wrap').boundingBox();assert.ok(sidebar.width<=321,'Sidebar remains compact');}
+  await page.locator('#field-featuredImage .field-label').waitFor({state:'visible'});
   const picker=page.locator('.lvd-media-picker:visible');
   // Cover fields retain their native image/public constraints in the shared chooser.
   await cover.getByRole('button',{name:'Chọn tệp',exact:true}).click();await picker.waitFor();

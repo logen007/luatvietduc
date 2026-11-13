@@ -35,3 +35,14 @@ kiểm tra biên nhận và không tự gửi lại một upload chưa xác nh�
 
 Chưa kiểm tra trực tiếp Safari/iPhone thật. Đây là xác minh cục bộ, không phải
 xác nhận đã triển khai production hoặc đã thử upload với tài khoản thật.
+
+## Bố cục trang soạn bài — 01.42.01
+
+Sửa selector của tiêu đề native ở ngoài form, chỉ giữ tiêu đề inline có thể sửa.
+Sidebar desktop cố định 320px; từ 1000px trở xuống đưa thiết lập xuống dưới nội
+dung. Hiện lại nhãn các trường sidebar, thu dropzone ảnh chính và permalink;
+thanh định dạng một hàng có cuộn khi thiếu chỗ, giữ các công cụ hiện có.
+
+Đã chạy lại helper browser ở 320/390/768/1280px: một tiêu đề, nhãn ảnh chính hiện,
+sidebar desktop <=321px, toàn bộ luồng media vẫn đạt. Đã xem ảnh editor-390.png
+và editor-1280.png. Đây là thay đổi CSS, không thay lưu nội dung hay quyền.
