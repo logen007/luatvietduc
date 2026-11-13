@@ -30,3 +30,12 @@ export function mediaEditable(doc:{uploadedBy?:unknown},user?:{id?:unknown;role?
  const uploader=doc.uploadedBy&&typeof doc.uploadedBy==='object'?(doc.uploadedBy as {id?:unknown}).id:doc.uploadedBy;
  return user?.role==='owner'||Boolean(user?.role==='support'&&user.id!=null&&uploader!=null&&String(uploader)===String(user.id));
 }
+
+// List responses may omit virtual URL fields. Native file routes still enforce
+// the same collection ACL for both originals and generated thumbnails.
+export function mediaPreviewURL(doc:{filename?:string;url?:string;thumbnailURL?:string;sizes?:Record<string,{url?:string;filename?:string}|null>}){
+ const direct=mediaURL(doc.thumbnailURL||doc.sizes?.thumbnail?.url||doc.url||bundledFile(doc.filename)?.url);
+ if(direct)return direct;
+ const filename=doc.sizes?.thumbnail?.filename||doc.filename;
+ return filename&&!/[\\/]/.test(filename)?'/api/media/file/'+encodeURIComponent(filename):'';
+}

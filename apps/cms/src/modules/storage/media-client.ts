@@ -7,7 +7,7 @@ export function mediaReceipt(value:unknown,expectedId?:number):MediaReceipt{
 
 // A successful HTTP status alone is not an upload receipt. This transport
 // never retries an ambiguous write and stops when its owning view is closed.
-export function uploadMediaFile(file:File,signal:AbortSignal,onProgress:(value:number)=>void,createRequest=()=>new XMLHttpRequest()):Promise<MediaReceipt>{
+export function uploadMediaFile(file:File,signal:AbortSignal,onProgress:(value:number)=>void,createRequest=()=>new XMLHttpRequest(),visibility?:'private'|'public'):Promise<MediaReceipt>{
  return new Promise((resolve,reject)=>{
   if(signal.aborted){reject(new Error('Đã dừng tải tệp.'));return;}
   const xhr=createRequest();let settled=false;
@@ -27,7 +27,7 @@ export function uploadMediaFile(file:File,signal:AbortSignal,onProgress:(value:n
    xhr.onerror=xhr.ontimeout=()=>finish(new Error('Chưa xác nhận tải xong. Kiểm tra thư viện trước khi thử lại.'));
    xhr.onabort=()=>finish(new Error('Đã dừng tải tệp.'));
    signal.addEventListener('abort',abort,{once:true});
-   const form=new FormData();form.append('file',file);form.append('_payload',JSON.stringify({title:file.name.replace(/\.[^.]+$/,''),alt:''}));xhr.send(form);
+   const form=new FormData();form.append('file',file);form.append('_payload',JSON.stringify({title:file.name.replace(/\.[^.]+$/,''),alt:'',...(visibility?{visibility}:{})}));xhr.send(form);
   }catch(error){finish(error instanceof Error?error:new Error('Chưa tải được tệp.'));}
  });
 }

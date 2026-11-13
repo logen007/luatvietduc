@@ -9,14 +9,15 @@ import {DefaultListView,useAuth,useListDrawerContext,useListQuery,useSelection,u
 import type {ListViewClientProps} from 'payload';
 import {MediaDetails,type MediaItem} from './MediaDetails';
 import {MediaUploader} from './MediaUploader';
+import {MediaPicker} from './MediaPicker';
 import {useUnsavedChanges} from '../shared/unsaved-changes';
-import {mediaEditable,mediaFilters,mediaName,mediaReadOnly,mediaURL,mediaWhere,type MediaKind} from './media-view';
+import {mediaEditable,mediaFilters,mediaName,mediaReadOnly,mediaPreviewURL,mediaWhere,type MediaKind} from './media-view';
 type Mode='grid'|'list';
 type MediaDoc=MediaItem;
 const ViewContext=createContext<{mode:Mode;setMode:(mode:Mode)=>void;bulk:boolean;setBulk:(value:boolean)=>void;busy:boolean;setBusy:(value:boolean)=>void}>({mode:'grid',setMode:()=>{},bulk:false,setBulk:()=>{},busy:false,setBusy:()=>{}});
 function ViewIcon({grid}:{grid?:boolean}){return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">{grid?<><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></>:<><path d="M9 5h12M9 12h12M9 19h12"/><rect x="3" y="4" width="2" height="2"/><rect x="3" y="11" width="2" height="2"/><rect x="3" y="18" width="2" height="2"/></>}</svg>;}
 function FilePreview({doc}:{doc:MediaDoc}){
- const [failed,setFailed]=useState(false),src=mediaURL(doc.thumbnailURL||doc.sizes?.thumbnail?.url||doc.url),image=doc.mimeType?.startsWith('image/'),packaged=packagedPhotoName(src);
+ const [failed,setFailed]=useState(false),src=mediaPreviewURL(doc),image=doc.mimeType?.startsWith('image/'),packaged=packagedPhotoName(src);
  useEffect(()=>setFailed(false),[src]);
  return <span className={'lvd-media-preview'+(doc.mimeType==='image/svg+xml'?' is-svg':'')}>
   {image&&src&&!failed?(packaged?<Photo name={packaged} width={480} responsive={false} alt="" loading="lazy" decoding="async" onError={()=>setFailed(true)}/>:<img src={src} alt="" loading="lazy" decoding="async" onError={()=>setFailed(true)}/>):<span className="lvd-media-file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden="true"><path d="M6 2h8l5 5v15H5V2h1ZM14 2v6h5M8 13h8M8 17h6"/></svg><small>{doc.mimeType?.split('/')[1]?.replace('svg+xml','SVG').toUpperCase()||'FILE'}</small></span>}
@@ -116,6 +117,6 @@ export function MediaLibrary(props:ListViewClientProps){
  const [mode,setMode]=useState<Mode>('grid'),[bulk,setBulk]=useState(false),[busy,setBusy]=useState(false),{isInDrawer}=useListDrawerContext();
  useEffect(()=>{try{const stored=localStorage.getItem('lvd-media-view');if(stored==='list'||stored==='grid')setMode(stored);}catch{}},[]);
  function changeMode(value:Mode){setMode(value);try{localStorage.setItem('lvd-media-view',value);}catch{}}
- if(isInDrawer)return <DefaultListView {...props}/>;
+ if(isInDrawer)return <div className="lvd-media-picker-view"><DefaultListView {...props} disableBulkEdit disableBulkDelete BeforeListTable={<MediaPicker canCreate={Boolean(props.hasCreatePermission)}/>} Table={<></>}/></div>;
  return <ViewContext.Provider value={{mode,setMode:changeMode,bulk,setBulk,busy,setBusy}}><div className="lvd-media-library"><DefaultListView {...props} disableBulkEdit disableBulkDelete BeforeListTable={<><MediaToolbar {...props}/>{props.BeforeListTable}</>} Table={<MediaItems/>}/></div></ViewContext.Provider>;
 }

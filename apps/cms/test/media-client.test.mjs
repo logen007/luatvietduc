@@ -38,3 +38,7 @@ test('server upload failures remain failures without inventing a receipt',async(
  const xhr=new FakeXHR(),task=uploadMediaFile(file(),new AbortController().signal,()=>{},()=>xhr);
  xhr.respond(503,{errors:[{message:'Synthetic storage failure'}]});await assert.rejects(task,/Synthetic storage failure/);
 });
+test('public publishing is sent only as an explicit upload option',async()=>{
+ const xhr=new FakeXHR(),task=uploadMediaFile(file(),new AbortController().signal,()=>{},()=>xhr,'public');
+ assert.equal(JSON.parse(xhr.form.get('_payload')).visibility,'public');xhr.respond(201,{doc});assert.equal(await task,doc);
+});

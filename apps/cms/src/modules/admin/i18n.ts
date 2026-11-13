@@ -7,6 +7,7 @@ export const adminI18n={
  supportedLanguages:{vi},
  translations:{vi:{
   general:{createNew:'Thêm mới',createNewLabel:'Thêm mới {{label}}',searchBy:'Tìm theo {{label}}'},
+  fields:{chooseFromExisting:'Chọn tệp'},
   upload:{fileName:'Tên tệp',fileSize:'Dung lượng tệp'},
   version:{publishChanges:'Xuất bản'},
  }},

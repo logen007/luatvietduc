@@ -179,6 +179,6 @@ export function ArticleEditor({path, field, readOnly, validate}: TextareaFieldCl
     {mode === 'html' && <textarea className="lvd-editor-html" aria-label="Mã HTML nội dung bài viết" aria-required={required} aria-invalid={Boolean(error)} aria-describedby={error ? uid + '-error' : undefined} spellCheck={false} readOnly={!editable} value={html} placeholder="<p>Nội dung bài viết…</p>" onChange={event => {const next = event.target.value; setHTML(next); sourceDirty.current = true; const stored = next.trim() ? MARKER + next + '</div>' : ''; emitted.current = stored; latest.current.raw = stored; setValue(stored);}}/>}
     {localError && <div className="lvd-editor-notice" role="alert">{localError}</div>}
     {error && <div id={uid + '-error'} className="lvd-editor-error" role="alert">{error}</div>}
-    <MediaDrawer allowCreate={false} filterOptions={PUBLIC_MEDIA_FILTER} onSelect={({doc}) => void selectMedia(doc)}/>
+    <MediaDrawer allowCreate={true} filterOptions={PUBLIC_MEDIA_FILTER} onSelect={({doc}) => void selectMedia(doc)}/>
   </div>;
 }

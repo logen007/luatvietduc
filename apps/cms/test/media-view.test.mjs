@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mediaFilters,mediaWhere,mediaName,mediaReadOnly,mediaURL,mediaEditable} from '../src/modules/storage/media-view.ts';
+import {mediaFilters,mediaWhere,mediaName,mediaReadOnly,mediaURL,mediaEditable,mediaPreviewURL} from '../src/modules/storage/media-view.ts';
 import {bundledFiles} from '../src/modules/storage/bundled.ts';
 test('media filters replace only their own criteria and keep unrelated access filters',()=>{
  const base={visibility:{equals:'private'},mimeType:{equals:'application/pdf'}};
@@ -19,4 +19,12 @@ test('media editing allows admin and only the specialist who uploaded the file',
  assert.equal(mediaEditable({uploadedBy:2},{id:1,role:'owner'}),true);
  assert.equal(mediaEditable({uploadedBy:{id:2}},{id:2,role:'support'}),true);
  for(const user of [{id:3,role:'support'},{id:2,role:'member'},null])assert.equal(Boolean(mediaEditable({uploadedBy:2},user)),false);
+});
+
+test('missing preview URLs fall back to guarded native file routes without accepting paths',()=>{
+ assert.equal(mediaPreviewURL({filename:'photo.jpg'}),'/api/media/file/photo.jpg');
+ assert.equal(mediaPreviewURL({filename:'photo.jpg',sizes:{thumbnail:{filename:'photo-150x150.jpg'}}}),'/api/media/file/photo-150x150.jpg');
+ assert.equal(mediaPreviewURL({filename:'../secret.jpg'}),'');
+ assert.equal(mediaPreviewURL({filename:'photo.jpg',thumbnailURL:'https://cdn.example.invalid/thumb.jpg'}),'https://cdn.example.invalid/thumb.jpg');
+ const bundled=bundledFiles[0];assert.equal(mediaPreviewURL(bundled),bundled.url);
 });
