@@ -21,8 +21,9 @@ try{
  server=spawn(process.execPath,['node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port','3047'],{stdio:['ignore','pipe','pipe'],env:process.env});server.stdout.on('data',s=>log=(log+s).slice(-4000));server.stderr.on('data',s=>log=(log+s).slice(-4000));
  let ready=false;for(let n=0;n<100;n++){try{if((await fetch(base+'/health/ready')).ok){ready=true;break;}}catch{}await pause(200);}assert.ok(ready,log);
  browser=await chromium.launch({headless:true,executablePath:process.env.LVD_TEST_BROWSER_EXECUTABLE||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
- for(const width of [320,390,768,1280]){
-  await payload.update({collection:'articles',id:article.id,user:owner,overrideAccess:false,draft:true,data:{body:'Synthetic image picker test.',featuredImage:null}});
+ const categories=await payload.find({collection:'categories',limit:1,overrideAccess:true}),tags=await payload.find({collection:'tags',limit:2,overrideAccess:true});
+ for(const width of [320,390,768,1280,1642]){
+  await payload.update({collection:'articles',id:article.id,user:owner,overrideAccess:false,draft:true,data:{body:'<div data-lvd-richtext="1"><h2>Bài kiểm tra cuộn trang</h2>'+('<p>Nội dung dài để kiểm tra cuộn trang và cột thiết lập.</p>'.repeat(20))+'</div>',featuredImage:null,categories:categories.docs.map(x=>x.id),tags:tags.docs.map(x=>x.id)}});
   const context=await browser.newContext({viewport:{width,height:844},isMobile:width<768,hasTouch:width<768});
   await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
   await context.route('**/api/media/file/**',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240"><rect width="320" height="240" fill="#799"/></svg>'}));
@@ -35,6 +36,17 @@ try{
   assert.equal(await cover.count(),1);
   const initialImageCount=await page.locator('.lvd-article-editor .tiptap img').count();
   assert.equal(await page.locator('.doc-header:visible').count(),0,'Only the inline editable title is visible');
+  const geometry=await page.evaluate(()=>{const e=document.querySelector('.document-fields__sidebar');return {pageWidth:document.documentElement.scrollWidth,viewport:innerWidth,sideWidth:e.clientWidth,sideScroll:e.scrollWidth,sideLeft:e.scrollLeft,style:{overflow:getComputedStyle(e).overflow,position:getComputedStyle(e.parentElement).position},overflow:[...e.querySelectorAll('*')].filter(x=>x.getBoundingClientRect().right>e.getBoundingClientRect().right+1).slice(0,12).map(x=>({class:x.className,width:x.getBoundingClientRect().width,left:x.getBoundingClientRect().left,right:x.getBoundingClientRect().right,box:getComputedStyle(x).boxSizing,min:getComputedStyle(x).minWidth,padding:getComputedStyle(x).padding}))};});
+  assert.ok(geometry.pageWidth<=geometry.viewport+1,JSON.stringify(geometry));assert.ok(geometry.sideScroll<=geometry.sideWidth+1,JSON.stringify(geometry));
+  const tagsField=page.locator('#field-tags');
+  const selectBox=await tagsField.locator('.rs__control').boundingBox();assert.ok(selectBox.width>120,'Selected tags keep a usable control width');
+  if(tags.docs.length){for(const chip of await tagsField.locator('.rs__multi-value__label').all()){const box=await chip.boundingBox();assert.ok(box.width>20,'Selected tag text stays readable');}}await tagsField.scrollIntoViewIfNeeded();await tagsField.locator('input').first().focus();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.document-fields__sidebar').evaluate(e=>e.scrollLeft),0,'Focusing selected tags cannot move sidebar sideways');
+  const pointer=await tagsField.boundingBox();await page.mouse.move(pointer.x+pointer.width/2,pointer.y+pointer.height/2);const beforeY=await page.evaluate(()=>scrollY);await page.mouse.wheel(0,beforeY>0?-200:200);await page.waitForFunction(before=>Math.abs(scrollY-before)>5,beforeY);
+  assert.equal(await page.locator('.document-fields__sidebar').evaluate(e=>e.scrollTop),0,'Sidebar does not capture a separate vertical scroll');
+  await page.evaluate(()=>{window.scrollTo(0,0);return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
+  if(width>1000){const add=page.locator('#field-categories .relationship-add-new__add-button');await add.hover();const hint=page.locator('#field-categories .tooltip--show:visible').first();await hint.waitFor();const box=await hint.boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width,'Visible tooltip stays inside viewport');await page.mouse.move(100,100);}
   await page.screenshot({path:'test-results/media-picker/editor-'+width+'.png'});
   if(width>1000){const sidebar=await page.locator('.document-fields__sidebar-wrap').boundingBox();assert.ok(sidebar.width<=321,'Sidebar remains compact');}
   await page.locator('#field-featuredImage .field-label').waitFor({state:'visible'});

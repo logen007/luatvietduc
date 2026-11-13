@@ -46,3 +46,21 @@ thanh định dạng một hàng có cuộn khi thiếu chỗ, giữ các công 
 Đã chạy lại helper browser ở 320/390/768/1280px: một tiêu đề, nhãn ảnh chính hiện,
 sidebar desktop <=321px, toàn bộ luồng media vẫn đạt. Đã xem ảnh editor-390.png
 và editor-1280.png. Đây là thay đổi CSS, không thay lưu nội dung hay quyền.
+
+## Sửa cuộn và clipping sidebar — 01.42.02
+
+Tái hiện với bài dài đúng định dạng rich text, một danh mục và hai tag đã chọn:
+sidebar 320px nhưng scrollWidth 352px trên desktop. Phần gây tràn là tooltip
+nút thêm quan hệ căn giữa ở cạnh phải, kể cả khi tooltip đang ẩn. Scrollbar
+ngang của sidebar cho phép cắt mất đầu nhãn khi lấy nét vào control.
+
+Căn tooltip về trong viewport; dùng grid có cột nội dung minmax(0,1fr) và cột
+thiết lập 320px; sidebar nằm trong luồng trang, bỏ viewport/scroll riêng. Giữ
+các dropdown và gợi ý hoạt động, không dùng overflow:hidden để giấu nội dung.
+
+Helper browser đã chạy đạt 320/390/768/1280/1642px: không tràn ngang toàn trang
+hoặc sidebar; lấy nét tag không đổi scrollLeft; bánh xe trên sidebar làm trang
+cuộn và sidebar.scrollTop vẫn 0; tooltip đang mở nằm trong viewport; ô chọn và
+text tag không bị co mất; chọn ảnh chính/chèn/tải tệp vẫn đạt. Đã xem ảnh desktop
+1642px với danh mục/tag có dữ liệu. Kiểm tra vẫn là Chromium cục bộ/mô phỏng mobile,
+không phải Safari thiết bị thật hay xác nhận production đã cập nhật.
