@@ -50,6 +50,7 @@
     "form-controls.css",
     "release-notice.css",
     "confirm-dialog.css",
-    "admin-actions.css"
+    "admin-actions.css",
+    "admin-editor.css"
   ]
 }

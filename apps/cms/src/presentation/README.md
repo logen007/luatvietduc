@@ -91,3 +91,12 @@ and menu contents. Put new standalone admin action groups in `.lvd-admin-actions
 they wrap and align to the right. The article editor retains its existing compact
 mobile row rules. Avoid broad selectors that resize table checkboxes, tag chips,
 navigation or menu items. This module is assembled after the base/profile styles.
+
+## Shared content editor structure
+
+Article and knowledge editing share `modules/content/InlineDocumentTitle.tsx`
+and `admin-editor.css`. Knowledge's real title field is registered as
+`DocumentTitleField` in `modules/admin/presentation.ts`; article translation uses
+the same title input with its existing form state. Change the shared component
+and editor shell for structural consistency, rather than duplicating CSS per
+collection. Preserve each collection's draft/publish and private/public behavior.

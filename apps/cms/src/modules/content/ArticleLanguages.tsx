@@ -4,6 +4,7 @@ import {useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useDocumentInfo,useField,useForm,useFormModified,useFormProcessing} from '@payloadcms/ui';
 import {translationList,translationTarget,translationText,type ArticleLanguage as Language,type LanguageSibling as Sibling} from './translation-client';
+import {InlineDocumentTitle} from './InlineDocumentTitle';
 const names={vi:'Tiếng Việt',de:'Tiếng Đức'};
 export function ArticleLanguages(){
  const router=useRouter();
@@ -70,7 +71,7 @@ export function ArticleLanguages(){
  }
  const controls=<div className="lvd-article-language-actions"><button type="button" className="lvd-article-language-toggle" aria-label={'Chuyển bài viết sang '+names[other]} title={'Chuyển sang '+names[other]} disabled={disabled||(Boolean(id)&&!siblings)} onClick={()=>void select()}><img src={'/assets/flags/'+(language==='vi'?'vn':'de')+'.svg'} width="20" height="14" alt=""/>{language.toUpperCase()}</button><button type="button" className="lvd-article-translate" disabled={disabled||!ready} title={ready?'Dịch sang '+names[language]:'Chưa bật kết nối AI dịch bài viết'} onClick={()=>void translate()}>Dịch bằng AI</button></div>;
  return <div ref={root} className="lvd-article-languages" aria-label="Ngôn ngữ bài viết" aria-busy={Boolean(busy)}>
-  {titleHost&&createPortal(<div className="lvd-inline-article-title"><label className="sr-only" htmlFor="lvd-article-title">Tiêu đề bài viết</label><input id="lvd-article-title" aria-label="Tiêu đề bài viết" placeholder="Thêm tiêu đề" maxLength={240} value={title||''} onChange={event=>setTitle(event.target.value)} disabled={Boolean(busy||documentIsLocked)} autoComplete="off"/></div>,titleHost)}
+  {titleHost&&createPortal(<InlineDocumentTitle id="lvd-article-title" className="lvd-inline-article-title" label="Tiêu đề bài viết" value={title||''} onChange={setTitle} disabled={Boolean(busy||documentIsLocked)}/>,titleHost)}
   {host&&createPortal(controls,host)}
   {busy&&<div className="lvd-translation-loading" role="status"><span>{busy==='translation'?'Đang dịch…':'Đang mở bản '+other.toUpperCase()+'…'}</span><div className="lvd-translation-progress" role="progressbar" aria-label={busy==='translation'?'Đang dịch bài viết':'Đang mở bản ngôn ngữ'}><i/></div></div>}
   {message&&<p role="status">{message}</p>}

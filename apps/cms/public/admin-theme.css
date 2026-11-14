@@ -1299,3 +1299,39 @@ html.lvd-admin .relationship-add-new__tooltip{left:auto;right:0;max-width:260px;
 html.lvd-admin .relationship-add-new__tooltip.tooltip--position-top{transform:translate3d(0,calc(var(--caret-size) * -1),0)}
 html.lvd-admin .relationship-add-new__tooltip.tooltip--position-bottom{transform:translate3d(0,var(--caret-size),0)}
 html.lvd-admin .relationship-add-new__tooltip::after{left:auto;right:12px}
+/* The article and private-knowledge editors share one title/action/content shell. */
+html.lvd-admin .lvd-document-title-field{display:contents}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .lvd-inline-document-title{order:-1;flex:1 1 240px;min-width:0;font-size:22px}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .lvd-inline-document-title input{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:44px;margin:0;padding:6px 8px;border:1px solid transparent;border-radius:4px;background:transparent;box-shadow:none;color:var(--admin-text);font-family:inherit;font-size:22px;font-weight:600;line-height:1.3;text-overflow:ellipsis}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .lvd-inline-document-title input:hover:not(:read-only){border-color:var(--admin-line)}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .lvd-inline-document-title input:focus{outline:none;border-color:var(--admin-muted);background:var(--admin-panel);text-overflow:clip}
+html.lvd-admin .lvd-inline-title-error{padding:4px 8px;color:var(--theme-error-500);font-size:12px;line-height:1.5}
+html.lvd-admin:has(.collection-edit--knowledge:not(.drawer .collection-edit--knowledge) .lvd-inline-document-title) .doc-header:not(.drawer .doc-header){display:none}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .doc-controls.gutter{--lvd-editor-edge:20px;top:0;padding-left:var(--gutter-h);padding-right:var(--lvd-editor-edge)}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .doc-controls__wrapper{box-sizing:border-box;display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;height:auto;min-height:64px;padding-block:10px;gap:8px 16px}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .doc-controls__controls-wrapper{flex:0 1 auto;min-width:0;width:auto;height:auto;margin-left:auto;justify-content:flex-end}
+html.lvd-admin .collection-edit--knowledge:has(.lvd-inline-document-title) .doc-controls__content{display:none}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields{display:grid;grid-template-columns:minmax(0,1fr) 320px;align-items:stretch;min-height:calc(100dvh - var(--doc-controls-height,64px));--main-width:calc(100% - 320px);--sidebar-wrap-width:320px;--sidebar-wrap-min-width:320px;--main-gutter-h-right:24px}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__main{width:auto;min-width:0;min-height:0}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__edit{padding-top:20px;border-right:0}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__sidebar-wrap{box-sizing:border-box;position:static;top:auto;width:auto;min-width:0;min-height:0;height:auto;align-self:stretch;border-left:1px solid var(--admin-line)}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__sidebar{box-sizing:border-box;width:100%;min-width:0;min-height:0;height:auto;overflow:visible;padding:0}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__sidebar-fields{box-sizing:border-box;width:100%;min-width:0;padding:20px}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__sidebar-fields>.render-fields{box-sizing:border-box;width:100%;min-width:0}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__sidebar .field-type{box-sizing:border-box;width:100%;max-width:100%;min-width:0;margin-bottom:22px;overflow-wrap:anywhere}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__sidebar .field-label:not(.checkbox-input .field-label){position:static;display:block;width:auto;height:auto;padding:0;margin:0 0 8px;overflow:visible;clip-path:none;white-space:normal;border:0;font-size:13px;font-weight:600}
+html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__sidebar .field-description{font-size:12px;line-height:1.5}
+@media(max-width:1000px){
+ html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .doc-controls.gutter{--lvd-editor-edge:var(--gutter-h)}
+ html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields{grid-template-columns:minmax(0,1fr);--main-width:100%;--sidebar-wrap-width:100%;--sidebar-wrap-min-width:0;--main-gutter-h-right:var(--gutter-h)}
+ html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__sidebar-wrap{border-left:0}
+ html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__sidebar{border-top:1px solid var(--admin-line)}
+ html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__sidebar-fields{padding-inline:var(--gutter-h)}
+}
+@media(max-width:900px){html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .lvd-inline-document-title{flex-basis:100%}html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .doc-controls__controls-wrapper{flex:1 1 100%}}
+@media(max-width:1024px){html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .lvd-inline-document-title{padding-left:var(--lvd-admin-title-inset,52px)}}
+@media(max-width:760px){
+ html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .lvd-inline-document-title{font-size:18px}
+ html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .lvd-inline-document-title input{font-size:18px}
+ html.lvd-admin :is(.collection-edit--articles,.collection-edit--knowledge) .document-fields__edit{padding-top:12px}
+}

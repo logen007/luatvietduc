@@ -8,6 +8,7 @@ import { AiAllowedCell as AiAllowedCell_aaeb3d4bcbcb938ccfb764f28a8cc75e } from 
 import { ArticleAuthorField as ArticleAuthorField_88076703b83f6caa32468c6675becc28 } from '../../../modules/admin/ArticleAuthorCell'
 import { ArticleAuthorCell as ArticleAuthorCell_88076703b83f6caa32468c6675becc28 } from '../../../modules/admin/ArticleAuthorCell'
 import { ArticleImportActions as ArticleImportActions_b011b2f36dc3b52e0017175569647f8d } from '../../../modules/content/ArticleImportActions'
+import { DocumentTitleField as DocumentTitleField_c7dcc5c99687704c2d5b5306a23b3265 } from '../../../modules/content/DocumentTitleField'
 import { KnowledgeStatusCell as KnowledgeStatusCell_be2b77c824143248d8b14bc6a90ce460 } from '../../../modules/admin/KnowledgeStatusCell'
 import { MediaImageTools as MediaImageTools_ad55e69361eed082914184cc1975b8e8 } from '../../../modules/storage/MediaImageTools'
 import { MediaLibrary as MediaLibrary_6d3f0492a365f15c11305d4fe54e8552 } from '../../../modules/storage/MediaLibrary'
@@ -40,6 +41,7 @@ export const importMap = {
   "./modules/admin/ArticleAuthorCell#ArticleAuthorField": ArticleAuthorField_88076703b83f6caa32468c6675becc28,
   "./modules/admin/ArticleAuthorCell#ArticleAuthorCell": ArticleAuthorCell_88076703b83f6caa32468c6675becc28,
   "./modules/content/ArticleImportActions#ArticleImportActions": ArticleImportActions_b011b2f36dc3b52e0017175569647f8d,
+  "./modules/content/DocumentTitleField#DocumentTitleField": DocumentTitleField_c7dcc5c99687704c2d5b5306a23b3265,
   "./modules/admin/KnowledgeStatusCell#KnowledgeStatusCell": KnowledgeStatusCell_be2b77c824143248d8b14bc6a90ce460,
   "./modules/storage/MediaImageTools#MediaImageTools": MediaImageTools_ad55e69361eed082914184cc1975b8e8,
   "./modules/storage/MediaLibrary#MediaLibrary": MediaLibrary_6d3f0492a365f15c11305d4fe54e8552,
