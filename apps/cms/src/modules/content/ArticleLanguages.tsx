@@ -11,7 +11,15 @@ export function ArticleLanguages(){
  const {value:language='vi',setValue:setLanguage}=useField<Language>({path:'language'}),{value:title='',setValue:setTitle}=useField<string>({path:'title'}),{setValue:setBody}=useField<string>({path:'body'});
  const [titleHost,setTitleHost]=useState<Element|null>(null),[host,setHost]=useState<Element|null>(null),[siblings,setSiblings]=useState<Sibling[]|null>(null),[ready,setReady]=useState(false),[busy,setBusy]=useState<'switch'|'translation'|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[attempt,setAttempt]=useState(0);
  const flight=useRef<AbortController|null>(null),mounted=useRef(true),root=useRef<HTMLDivElement>(null);
- useEffect(()=>{mounted.current=true;setHost(root.current?.closest('.collection-edit--articles')?.querySelector('.doc-controls__controls')||null);setTitleHost(root.current?.closest('.collection-edit--articles')?.querySelector('.doc-controls__wrapper')||null);return()=>{mounted.current=false;flight.current?.abort();};},[]);
+ useEffect(()=>{
+  mounted.current=true;
+  const article=root.current?.closest('.collection-edit--articles'),actions=article?.querySelector('.doc-controls__controls');
+  // Match DOM/tab order to the visible toolbar order, including portalled actions.
+  const slot=document.createElement('div');slot.className='lvd-article-language-slot';actions?.prepend(slot);
+  setHost(actions?slot:null);setTitleHost(article?.querySelector('.doc-controls__wrapper')||null);
+  article?.querySelector('.doc-controls__popup .popup-button')?.setAttribute('aria-label','Thao tác khác');
+  return()=>{mounted.current=false;flight.current?.abort();slot.remove();};
+ },[]);
  useEffect(()=>{
   const controller=new AbortController();setSiblings(null);setReady(false);setError('');setMessage('');
   fetch('/service/articles/translations'+(id?'?id='+encodeURIComponent(id):''),{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)])}).then(async response=>{const body=await response.json();if(!response.ok)throw new Error(body.error||'Chưa tải được bản ngôn ngữ.');return translationList(body,controller.signal);}).then(body=>{if(!controller.signal.aborted){setSiblings(body.articles);setReady(body.translationReady);}}).catch(e=>{if(!controller.signal.aborted)setError(e.message||'Chưa tải được bản ngôn ngữ.');});
@@ -63,7 +71,7 @@ export function ArticleLanguages(){
  const controls=<div className="lvd-article-language-actions"><button type="button" className="lvd-article-language-toggle" aria-label={'Chuyển bài viết sang '+names[other]} title={'Chuyển sang '+names[other]} disabled={disabled||(Boolean(id)&&!siblings)} onClick={()=>void select()}><img src={'/assets/flags/'+(language==='vi'?'vn':'de')+'.svg'} width="20" height="14" alt=""/>{language.toUpperCase()}</button><button type="button" className="lvd-article-translate" disabled={disabled||!ready} title={ready?'Dịch sang '+names[language]:'Chưa bật kết nối AI dịch bài viết'} onClick={()=>void translate()}>Dịch bằng AI</button></div>;
  return <div ref={root} className="lvd-article-languages" aria-label="Ngôn ngữ bài viết" aria-busy={Boolean(busy)}>
   {titleHost&&createPortal(<div className="lvd-inline-article-title"><label className="sr-only" htmlFor="lvd-article-title">Tiêu đề bài viết</label><input id="lvd-article-title" aria-label="Tiêu đề bài viết" placeholder="Thêm tiêu đề" maxLength={240} value={title||''} onChange={event=>setTitle(event.target.value)} disabled={Boolean(busy||documentIsLocked)} autoComplete="off"/></div>,titleHost)}
-  {host&&createPortal(<div className="lvd-article-language-slot">{controls}</div>,host)}
+  {host&&createPortal(controls,host)}
   {busy&&<div className="lvd-translation-loading" role="status"><span>{busy==='translation'?'Đang dịch…':'Đang mở bản '+other.toUpperCase()+'…'}</span><div className="lvd-translation-progress" role="progressbar" aria-label={busy==='translation'?'Đang dịch bài viết':'Đang mở bản ngôn ngữ'}><i/></div></div>}
   {message&&<p role="status">{message}</p>}
   {error&&<div className="lvd-translation-error" role="alert">{error}{!siblings&&<button type="button" onClick={()=>setAttempt(a=>a+1)}>Thử lại</button>}</div>}
