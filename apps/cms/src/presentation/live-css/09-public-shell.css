@@ -1,0 +1,6 @@
+/* A configured wordmark replaces the text brand and retains its natural ratio. */
+.live-header .public-brand-logo{display:block;width:auto;height:auto;max-width:min(300px,100%);object-fit:contain;flex-shrink:0;transition:filter .3s ease}
+.live-header .public-brand-logo+.brand-name{display:none}
+.pm-home:not(.pm-scrolled) .public-brand-logo,.pm-article-hero:not(.pm-scrolled) .public-brand-logo,body:has(.lvd-chat) .public-brand-logo{filter:brightness(0) invert(1)}
+.live-footer .public-footer-logo{display:block;width:auto;max-width:100%;object-fit:contain;object-position:left center;filter:brightness(0) invert(1)}
+@media(max-width:600px){.live-header .public-brand-logo{max-width:calc(100vw - 160px)}}

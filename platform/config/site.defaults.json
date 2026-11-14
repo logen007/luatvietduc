@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "site": {
+    "name": "Luật Việt Đức",
+    "plannedDomain": "luatvietduc.com",
+    "domainVerified": false,
+    "defaultLocale": "vi",
+    "locales": [
+      "vi",
+      "de"
+    ]
+  },
+  "socialLinks": [],
+  "features": {
+    "aiChat": false,
+    "liveChat": false,
+    "publicRegistration": false,
+    "newsletter": false
+  },
+  "ai": {
+    "approvedPublicKnowledgeOnly": true,
+    "requireSources": true,
+    "onInsufficientEvidence": "queue_for_human",
+    "learnFromPrivateConversations": false
+  },
+  "support": {
+    "businessHours": [],
+    "responseTimePromise": null,
+    "allowAttachments": false
+  },
+  "search": {
+    "publicIndexingEnabled": false
+  }
+}

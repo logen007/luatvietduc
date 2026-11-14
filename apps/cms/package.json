@@ -1,0 +1,71 @@
+{
+  "name": "@luatvietduc/cms",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24.22.1"
+  },
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "payload": "payload",
+    "generate:types": "payload generate:types",
+    "migrate:create": "payload migrate:create",
+    "migrate": "payload migrate",
+    "test": "node --import tsx --test test/*.test.mjs",
+    "bootstrap:owner": "payload run scripts/bootstrap-owner.ts",
+    "test:db": "payload run scripts/test-db.ts",
+    "prebuild": "node scripts/prepare-frontend.mjs",
+    "predev": "node scripts/prepare-frontend.mjs",
+    "test:system": "payload run scripts/test-system.ts",
+    "test:dialogues": "payload run scripts/run-dialogue-campaign.ts",
+    "test:http": "payload run scripts/test-http.ts",
+    "test:browser": "node --import tsx scripts/test-browser.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.1161.0",
+    "@payloadcms/db-postgres": "3.92.1",
+    "@payloadcms/next": "3.92.1",
+    "@payloadcms/plugin-cloud-storage": "3.92.1",
+    "@payloadcms/storage-s3": "3.92.1",
+    "@payloadcms/translations": "3.92.1",
+    "@tiptap/core": "3.32.3",
+    "@tiptap/extension-image": "3.32.3",
+    "@tiptap/extension-table": "3.32.3",
+    "@tiptap/extension-text-align": "3.32.3",
+    "@tiptap/extension-text-style": "3.32.3",
+    "@tiptap/pm": "3.32.3",
+    "@tiptap/react": "3.32.3",
+    "@tiptap/starter-kit": "3.32.3",
+    "graphql": "16.11.0",
+    "html-to-text": "10.0.1",
+    "jose": "5.10.0",
+    "next": "16.4.5",
+    "payload": "3.92.1",
+    "pg": "8.20.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "sanitize-html": "2.18.1",
+    "sharp": "0.35.5"
+  },
+  "devDependencies": {
+    "@types/html-to-text": "9.0.4",
+    "@types/node": "24.10.0",
+    "@types/pg": "8.15.6",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@types/sanitize-html": "2.16.2",
+    "playwright": "1.55.1",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "dompurify": "3.4.17",
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.25.12"
+    }
+  }
+}

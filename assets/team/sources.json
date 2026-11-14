@@ -9,9 +9,15 @@
       "profile": "https://bizlawyer.vn/vi/team/duong-thanh-tam/",
       "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Duong-Thanh-Tam.jpg",
       "verification": "Official profile heading and linked portrait alternative text name Dương Thành Tâm.",
-      "originalDimensions": [892, 1116],
+      "originalDimensions": [
+        892,
+        1116
+      ],
       "file": "assets/team/duong-thanh-tam.webp",
-      "dimensions": [639, 800],
+      "dimensions": [
+        639,
+        800
+      ],
       "bytes": 20938
     },
     {
@@ -19,9 +25,15 @@
       "profile": "https://bizlawyer.vn/vi/team/vo-nguyen-bao-tram/",
       "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Vo-Nguyen-Bao-Tram-1.jpg",
       "verification": "Official profile heading and linked portrait alternative text name Võ Nguyễn Bảo Trâm.",
-      "originalDimensions": [800, 1001],
+      "originalDimensions": [
+        800,
+        1001
+      ],
       "file": "assets/team/vo-nguyen-bao-tram.webp",
-      "dimensions": [639, 800],
+      "dimensions": [
+        639,
+        800
+      ],
       "bytes": 27596
     },
     {
@@ -29,10 +41,118 @@
       "profile": "https://bizlawyer.vn/vi/team/nguyen-xuan-phuoc/",
       "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Nguyen-Xuan-Phuoc.jpg",
       "verification": "Official profile page title, og:image, schema.org ImageObject caption, and visible image alt name Nguyễn Xuân Phước.",
-      "originalDimensions": [800, 1001],
+      "originalDimensions": [
+        800,
+        1001
+      ],
       "file": "assets/team/nguyen-xuan-phuoc.webp",
-      "dimensions": [639, 800],
+      "dimensions": [
+        639,
+        800
+      ],
       "bytes": 65340
+    },
+    {
+      "name": "Lê Văn Dương",
+      "profile": "https://bizlawyer.vn/vi/team/le-van-duong/",
+      "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Le-Van-Duong-1.jpg",
+      "verification": "Official profile image alternative text identifies this professional.",
+      "originalDimensions": [
+        800,
+        1001
+      ],
+      "file": "assets/team/le-van-duong.webp",
+      "dimensions": [
+        639,
+        800
+      ],
+      "bytes": 31244,
+      "retrievedOn": "2026-11-09"
+    },
+    {
+      "name": "Đỗ Mạnh Dũng",
+      "profile": "https://bizlawyer.vn/vi/team/do-manh-dung/",
+      "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Do-Manh-Dung.jpg",
+      "verification": "Official profile image alternative text identifies this professional.",
+      "originalDimensions": [
+        800,
+        1001
+      ],
+      "file": "assets/team/do-manh-dung.webp",
+      "dimensions": [
+        639,
+        800
+      ],
+      "bytes": 47352,
+      "retrievedOn": "2026-11-09"
+    },
+    {
+      "name": "Nguyễn Thị Hoa",
+      "profile": "https://bizlawyer.vn/vi/team/nguyen-thi-hoa/",
+      "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Nguyen-Thi-Hoa.jpg",
+      "verification": "Official profile image alternative text identifies this professional.",
+      "originalDimensions": [
+        800,
+        1001
+      ],
+      "file": "assets/team/nguyen-thi-hoa.webp",
+      "dimensions": [
+        639,
+        800
+      ],
+      "bytes": 30286,
+      "retrievedOn": "2026-11-09"
+    },
+    {
+      "name": "Cao Vân Anh",
+      "profile": "https://bizlawyer.vn/vi/team/cao-van-anh/",
+      "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Cao-Van-Anh.jpg",
+      "verification": "Official profile image alternative text identifies this professional.",
+      "originalDimensions": [
+        800,
+        1000
+      ],
+      "file": "assets/team/cao-van-anh.webp",
+      "dimensions": [
+        640,
+        800
+      ],
+      "bytes": 25634,
+      "retrievedOn": "2026-11-09"
+    },
+    {
+      "name": "Phạm Anh Hùng",
+      "profile": "https://bizlawyer.vn/vi/team/pham-anh-hung/",
+      "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Pham-Anh-Hung.jpg",
+      "verification": "Official profile image alternative text identifies this professional.",
+      "originalDimensions": [
+        800,
+        1001
+      ],
+      "file": "assets/team/pham-anh-hung.webp",
+      "dimensions": [
+        639,
+        800
+      ],
+      "bytes": 18034,
+      "retrievedOn": "2026-11-09"
+    },
+    {
+      "name": "Vũ Hà Vân",
+      "profile": "https://bizlawyer.vn/vi/team/vu-ha-van/",
+      "sourceImage": "https://bizlawyer.vn/wp-content/uploads/Vu-Ha-Van.jpg",
+      "verification": "Official profile image alternative text identifies this professional.",
+      "originalDimensions": [
+        800,
+        1001
+      ],
+      "file": "assets/team/vu-ha-van.webp",
+      "dimensions": [
+        639,
+        800
+      ],
+      "bytes": 21986,
+      "retrievedOn": "2026-11-09"
     }
   ]
 }

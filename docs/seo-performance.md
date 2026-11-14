@@ -1,0 +1,188 @@
+# SEO và tốc độ
+
+Nội dung công khai dùng metadata riêng cho từng loại trang, ảnh Open Graph/Twitter,
+JSON-LD Organization/WebSite/WebPage và Article/NewsArticle + BreadcrumbList.
+Không khai báo tác giả cá nhân, đánh giá hay FAQ chưa có căn cứ hiển thị.
+
+`modules/public-site/seo.ts` giữ quy tắc metadata, canonical, robots, schema và XML.
+`Page.tsx` định nghĩa mô tả theo trang; trang bài viết lấy từ nội dung thực.
+Thư viện Việt Nam dùng canonical `/phap-luat/viet-nam`; nhóm Việt Nam dùng
+`/chu-de/{id}`. Mỗi trang phân trang có canonical riêng. Tìm kiếm/bộ lọc không
+lập chỉ mục. Chỉ cặp bài VI/DE thực sự đã xuất bản mới có hreflang; việc đổi ngôn
+ngữ của giao diện bằng cookie không tạo ra URL dịch giả.
+
+Sitemap chia tối đa 1.000 bài mỗi tệp, đọc qua quyền công khai, chỉ có bài đã xuất
+bản/được duyệt/có nội dung và các trang công khai. Thu hồi bài có hiệu lực ngay.
+Không thêm kiến thức AI riêng, tài khoản, hội thoại, API hoặc admin. Các vùng này
+có noindex và cấm cache; robots tôn trọng nút bật lập chỉ mục trong Cài đặt website.
+Robots/sitemap không cache để thay đổi của admin có hiệu lực trên lượt đọc mới.
+
+Ảnh đóng gói có 3 cỡ WebP 480/960/1440 trong `assets/optimized-photos`, giữ nguyên
+ảnh nguồn và bản ghi Thư viện. `photos.ts` + `photo-sizes.json` cung cấp srcset,
+sizes và kích thước đúng; thẻ danh sách dùng ảnh cắt 1.6:1 riêng để không tải
+thừa phần ảnh dọc, còn ảnh trong bài giữ đầy đủ; ảnh nền blur chỉ cần cỡ nhỏ. Tái tạo bằng:
+`cd apps/cms && node scripts/optimize-public-photos.mjs`.
+
+Video điện thoại 1280px có cùng 25,04 giây/các cảnh của bản gốc, 2.575.244 byte
+so với 11.771.155 byte. Bản máy tính giữ nguyên. Chỉ tải video khi trang đã tải,
+hero hiện trong màn hình và không bật tiết kiệm dữ liệu/giảm chuyển động; nút
+phát chủ động vẫn hoạt động. Poster được ưu tiên; ảnh phía dưới tải khi cần.
+
+Font giữ Inter/Articulat. Link CSS font trực tiếp thay CSS import, ưu tiên đúng
+subset tiếng Việt để tránh lượt tải latin-ext dư. Chỉ tài nguyên đóng gói công
+khai có browser cache 1 giờ; không cache HTML riêng tư, API, phiên hay tệp khách.
+
+Kiểm tra: `npm test`, `npm run typecheck`, production build, bộ trình duyệt hiện
+có và `node --import tsx scripts/test-public-seo.mjs` (chỉ DB `lvd_test` cục bộ).
+Kiểm tra SEO gồm robots bật/tắt, 12 loại trang thật, metadata/JSON-LD, tìm kiếm,
+trang riêng tư, cặp dịch đã xuất bản, loại bài nháp và thu hồi ngay.
+
+Search Console cần xác minh bằng tài khoản quản lý tên miền và gửi
+`https://luatvietduc.com/sitemap.xml`; chưa tuyên bố đã gửi hay Google đã index.
+Không có cam kết thứ hạng hoặc điểm PageSpeed cố định.
+
+## Đợt tối ưu tải trang 2026-11-08
+
+Đo đọc trang công khai bằng Chrome, viewport 390×844/DPR 2, mỗi trang một context
+mới. Lượt không giới hạn mạng ghi nhận TTFB 271–374 ms trên Trang chủ, Tin tức,
+Thư viện Việt Nam và Hỏi đáp. Một mẫu mạng 2 Mbps/100 ms, CPU chậm 4 lần ghi nhận
+LCP Trang chủ 2.60 giây, Tin tức 1.20 giây. Đây là mẫu chẩn đoán trước thay đổi,
+không phải dữ liệu người dùng thực, điểm Lighthouse hoặc cam kết tốc độ.
+
+- Đóng gói đúng 13 logo đối tác hiện có tại `assets/logos/`, giữ SVG vector;
+  raster WebP chất lượng 82, tối đa 440×120 cho vùng hiển thị 220×60. Tổng nguồn
+  228.683 byte → 85.006 byte (giảm 63%). Không còn chờ hai origin ngoài cho dải
+  logo; dùng cache tài nguyên công khai hiện có. Giữ bộ lọc trắng, thứ tự và tên.
+- `AppLink` giữ tải trước các điểm đến phổ biến, còn bài viết/bộ lọc chỉ tải
+  trước khi hover/focus/touch. Không phát hàng loạt lượt đọc trang động cho cả
+  danh sách. Khóa không tải trước trang riêng tư, cảnh báo bản nháp, Back/Forward,
+  Next Link và hành vi mở tab/tải tệp vẫn giữ nguyên.
+- Các thành phần dịch không ghi lại cùng cookie/ngôn ngữ HTML ở mỗi nhãn.
+  Kiểm tra 50 thành phần: một lần ghi ban đầu, thêm một lần khi đổi ngôn ngữ.
+
+TypeScript và 581 unit/domain checks đạt. Kiểm tra bổ sung bao gồm ý định điều
+hướng, bàn phím/cảm ứng, trang riêng tư, đổi bộ lọc, cookie và nguồn logo tái tạo
+được. Chưa có phép đo tốc độ production sau khi triển khai bản này; số giảm
+63% là dung lượng logo, không phải toàn trang. Không thay video admin đã chọn,
+không cache dữ liệu hội thoại/tài khoản hay nới quyền truy cập.
+
+Tài liệu chính thức:
+- [Canonical](https://developers.google.com/search/docs/crawling-indexing/canonicalization)
+- [Phân trang](https://developers.google.com/search/docs/specialty/ecommerce/pagination-and-incremental-page-loading)
+- [Đa ngôn ngữ](https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites)
+- [Video và tốc độ](https://web.dev/learn/performance/video-performance)
+
+## Rà soát tiếp toàn bộ nhóm trang — 2026-11-08
+
+Đã thêm AVIF cùng WebP dự phòng cho ảnh dùng chung, giảm 35,9% tổng dung lượng
+bộ ảnh; nền tài khoản giảm 80,9%. Lưới thư viện dùng preview nhẹ của ảnh đóng
+gói, không thay ảnh gốc hoặc thumbnail R2. Editor được tải riêng khi mở vùng
+soạn thảo, không kéo Tiptap vào login và các trang quản trị không dùng editor.
+
+Xác minh 72 lượt mở trang local trên mobile/desktop, 2 trường hợp chọn định dạng
+ảnh và lưu/reload 2 loại editor. Các chỉ số production trước thay đổi và giới
+hạn phép đo, bao gồm CLS admin còn cao ở một số trang, được ghi đầy đủ tại
+[biên bản kiểm tra](verification/2026-11-08-site-speed.md). Không tuyên bố mức
+cải thiện LCP production từ phép đo localhost.
+
+## Ổn định giao diện trong lúc tải — lượt tiếp theo 2026-11-08
+
+Sửa khung menu trước hydration, khoảng trống nút chuyển vai trò, form Drive,
+quy tắc trả lời, tài khoản và editor. Đo local: CLS sao lưu 0,643 → 0, quy tắc
+0,563 → 0, đăng ký mobile 0,260 → 0,0011; không suy ra tốc độ production từ
+các số này. Xem [báo cáo ổn định bố cục](verification/2026-11-08-layout-stability.md).
+Không thay cache/ACL/phiên, schema hoặc lịch sao lưu.
+
+
+## Lượt rà tốc độ, SEO/AIO và cập nhật tiếp theo — 2026-11-08
+
+Rà 109 URL production trong sitemap, tất cả trả 200 và có title/description/H1/
+JSON-LD. Loại bỏ chuyển rich text lặp, đọc danh mục độc lập đồng thời, khử trùng
+sitemap tuyến tính; dùng lại catalog công khai/hash ảnh theo fingerprint snapshot.
+Thêm tiêu đề riêng cho phân trang và preview lớn chỉ cho trang được index.
+588 unit/domain checks, build, 72 lượt mở mobile/desktop và SEO/thu hồi đều đạt.
+Xem [biên bản và thời gian CI thực](verification/2026-11-08-performance-seo-aio.md).
+
+## Tách phiên bản tài nguyên — 2026-11-08
+
+CSS công khai, CSS admin, font CSS và script có fingerprint riêng. Sửa hộp thư
+không làm đổi URL của giao diện công khai; tải trước CSS Hỏi đáp khớp trang đích.
+590 unit/domain checks, build, 72 trường hợp mobile/desktop, lưu hai editor và
+12 nhóm kiểm tra SEO đạt. Chuyển Trang chủ → Tin tức không yêu cầu tải lại CSS
+dùng chung. Không thay cache dữ liệu riêng tư hoặc rút bỏ kiểm tra triển khai.
+Xem [phạm vi, bằng chứng và giới hạn](verification/2026-11-08-asset-cache.md).
+
+## Chỉ tải mã của trang cần dùng — 2026-11-08
+
+Tách mã tương tác Trang chủ, Liên hệ, Tin tức, Thư viện và các trang thông tin.
+Tin tức không tải form Liên hệ hoặc bộ tab Trang chủ nữa. Phép đo build cục bộ
+giảm 24.525 byte JavaScript ở Tin tức, 31.948 byte ở Hỏi đáp; đây không phải mức
+giảm tổng dung lượng hoặc số đo LCP production. Nội dung, canonical và JSON-LD
+vẫn đọc được khi tắt JavaScript. Rà sitemap hiện tại: 109 URL đạt các kiểm tra
+HTTP/metadata cơ bản. Xem [báo cáo và giới hạn](verification/2026-11-08-route-code.md).
+
+
+## PageSpeed desktop — 2026-11-10
+
+Báo cáo chủ website gửi: Performance 78, FCP 0,3s, LCP 1,6s, TBT 380ms,
+CLS 0. Video quản trị `legal-hero-vietnam-family-20261108.mp4` tải 12.452.235
+byte, chiếm phần lớn 13.496 KiB của trang. Không nhầm với video mặc định.
+
+Tạo hai rendition từ đúng nguồn công khai, không sửa bản gốc/R2/bản ghi media.
+`settings/hero-video-renditions.json` ghim URL có revision và SHA-256 nguồn.
+Máy tính giữ 1600×900; điện thoại 960×540; cả hai giữ 23,32 giây và 25fps.
+Bản cuối lần lượt 3.417.555 và 1.259.737 byte (giảm khoảng 73% và 90%).
+Nếu admin chọn video khác, thay file hoặc chọn riêng bản điện thoại, phép ghép
+không áp dụng nhầm rendition cũ. Poster, nút phát/dừng, giảm chuyển động và
+chế độ tiết kiệm dữ liệu giữ nguyên.
+
+Tái tạo từ file nguồn có SHA-256
+`8d1fe125f6d8d350bc3c2e5a072829219a9b28687cd5e05b414f282355ee442f`:
+
+```sh
+ffmpeg -i source.mp4 -map 0:v:0 -an -c:v libx264 -preset slow -crf 27 -pix_fmt yuv420p -movflags +faststart -threads 2 hero-family-desktop-v1.mp4
+ffmpeg -i source.mp4 -map 0:v:0 -an -vf 'scale=960:-2' -c:v libx264 -preset slow -crf 28 -pix_fmt yuv420p -movflags +faststart -threads 2 hero-family-mobile-v1.mp4
+```
+
+Liên kết công khai chuyển từ tải trước theo viewport sang tải trước khi hover,
+focus hoặc chạm. Không tải hàng loạt route tương tác trong lúc khởi động trang;
+vẫn giữ Next navigation/cache và làm ấm chat khi khách tương tác ô câu hỏi.
+Trang riêng tư tiếp tục không tải trước. Đây là giảm việc tải sớm, chưa tuyên bố
+đã loại hết mã CMS khỏi bundle. Một thử nghiệm tách entry dùng chung không giảm
+nhóm chunk nên đã bỏ trước phát hành.
+
+Kiểm tra: ffprobe xác nhận kích thước/thời lượng, regression test chọn video,
+revision mới/tệp riêng tư/mobile riêng, điều hướng và xác nhận bỏ nháp. Điểm
+PageSpeed sau triển khai cần một lần đo mới; không suy ra điểm từ số byte.
+
+## Tối ưu khi tải lên — 2026-11-10
+
+Điểm vào chung là `storage/compress-upload.ts`: hook Media chạy trước Payload
+đọc kích thước/tạo size, nên Thư viện, trình soạn bài, banner và avatar dùng
+cùng xử lý. Tệp chat gọi sau kiểm tra quyền/tiếp nhận; cập nhật size trong cùng
+lượt đánh dấu ready. Giữ các kiểm tra quyền, định dạng, quota và khoá sao lưu.
+
+Ảnh PNG/WebP được khai báo công khai bởi Admin hoặc Local API có quyền được ưu
+tiên chuyển sang JPG progressive chất lượng 94, màu 4:4:4, giữ kích thước/metadata
+khi mọi pixel đều đục và JPG nhỏ hơn cả bản gốc lẫn PNG/WebP đã tối ưu. Ảnh có
+pixel trong suốt giữ định dạng hiện có; PNG/WebP vốn nhỏ hơn cũng được giữ lại.
+Phạm vi mặc định/riêng tư, ảnh giấy tờ và ảnh chat chỉ nén không mất thông tin:
+JPEG dùng jpegtran tối ưu bảng mã và giữ metadata; PNG/WebP giữ pixel/metadata,
+không đổi kích thước. Không tái nén mất dữ liệu ảnh JPEG đã tải lên.
+Bỏ qua ảnh động, SVG và tài
+liệu PDF/DOCX/TXT. MP4/WebM thử encoder lossless, giữ kích thước, âm thanh,
+metadata, số khung hình và thời lượng; chỉ nhận kết quả nhỏ hơn và khớp probe.
+Video đã nén tốt thường không giảm thêm; không hứa mức giảm của việc hạ bitrate.
+Không thay nội dung byte của các tệp cũ; dữ liệu mới lưu bằng bản tối ưu đã kiểm tra.
+
+Giới hạn một encoder mỗi tiến trình, ảnh tối đa 40 triệu pixel, video tối đa
+4K/3 phút, một luồng CPU, deadline 20 giây. Hết hạn, lỗi, đang bận hoặc bản nén
+không nhỏ hơn thì giữ tệp nhận được; không chặn upload. Đây không phải hàng chờ
+nén nền và không mở thêm định dạng video cho chat. FFmpeg và libjpeg-turbo được
+cài trong cả image triển khai hiện tại và image portable, tăng dung lượng image
+để có công cụ chạy tại máy chủ; không dùng dịch vụ bên ngoài để xử lý tệp riêng.
+
+Phát hành qua `release-reviewed-upload-compression.py`: chỉ duyệt đúng dòng
+cài hai gói trong Dockerfile và đúng collection hook, không chạy migration DB.
+Giữ Compose, engine, lịch sao lưu, font và dữ liệu hiện có. Candidate kiểm tra
+binary và nén ảnh thật trước khi đổi web, giữ rollback image hiện hành.

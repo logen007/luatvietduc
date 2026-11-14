@@ -1,0 +1,12 @@
+[Unit]
+Description=Luật Việt Đức public knowledge indexing
+After=docker.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/luatvietduc-rag/worker.py
+TimeoutStartSec=170
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/run/lock
+ProtectHome=true

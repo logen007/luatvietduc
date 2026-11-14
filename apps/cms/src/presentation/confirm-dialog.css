@@ -1,0 +1,22 @@
+.lvd-confirm-dialog{box-sizing:border-box;width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;border:1px solid #ddd9d1;border-radius:4px;background:#fff;color:#242321;box-shadow:0 20px 70px #0004;font-family:var(--lvd-font,Inter,system-ui,sans-serif);animation:lvd-confirm-enter .18s ease-out both}
+.lvd-confirm-dialog::backdrop{background:#0008;backdrop-filter:blur(3px)}
+.lvd-confirm-dialog h2{margin:0 30px 12px 0;color:inherit;font:600 21px/1.35 var(--lvd-font,Inter,system-ui,sans-serif);letter-spacing:-.015em}
+.lvd-confirm-dialog p{margin:0;color:#6a6760;font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+.lvd-confirm-dialog button{box-sizing:border-box;cursor:pointer;min-height:44px;padding:10px 16px;border:1px solid #d9d5ce;border-radius:4px;background:transparent;color:inherit;font:500 14px/1.4 var(--lvd-font,Inter,system-ui,sans-serif);transition:background .15s,border-color .15s}
+.lvd-confirm-dialog .lvd-confirm-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:28px}
+.lvd-confirm-dialog button:hover{background:#f2f0eb}
+.lvd-confirm-dialog button.is-primary{background:#252522;border-color:#252522;color:#fff}
+.lvd-confirm-dialog button.is-danger{background:#ba3737;border-color:#ba3737;color:#fff}
+.lvd-confirm-dialog button:is(.is-danger,.is-primary):hover{filter:brightness(.92)}
+.lvd-confirm-dialog .lvd-confirm-close{position:absolute;top:12px;right:12px;display:grid;place-items:center;width:40px;min-height:40px;padding:0;border:0;font-size:25px;color:#777}
+.lvd-confirm-dialog button:focus-visible{outline:2px solid #8c8264;outline-offset:3px}
+html:is([data-theme=dark],.dark) .lvd-confirm-dialog{color-scheme:dark}
+:is(html[data-theme=dark] .lvd-confirm-dialog,.lvd-confirm-dialog.is-dark){background:#222;color:#e3e3df;border-color:#484844}
+:is(html[data-theme=dark] .lvd-confirm-dialog,.lvd-confirm-dialog.is-dark) p{color:#aaa9a2}
+:is(html[data-theme=dark] .lvd-confirm-dialog,.lvd-confirm-dialog.is-dark) button{border-color:#55554d}
+:is(html[data-theme=dark] .lvd-confirm-dialog,.lvd-confirm-dialog.is-dark) button:hover{background:#33332f}
+:is(html[data-theme=dark] .lvd-confirm-dialog,.lvd-confirm-dialog.is-dark) button.is-primary{background:#e6e4dc;color:#222}
+:is(html[data-theme=dark] .lvd-confirm-dialog,.lvd-confirm-dialog.is-dark) button.is-danger{background:#ba3737;border-color:#ba3737;color:white}
+@keyframes lvd-confirm-enter{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@media(max-width:480px){.lvd-confirm-dialog{padding:24px}.lvd-confirm-dialog .lvd-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}}
+@media(prefers-reduced-motion:reduce){.lvd-confirm-dialog{animation:none}.lvd-confirm-dialog button{transition:none}}

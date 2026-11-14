@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "text": {
+    "Phát video": {
+      "vi": "Phát video",
+      "de": "Video abspielen"
+    },
+    "Tạm dừng video": {
+      "vi": "Tạm dừng video",
+      "de": "Video anhalten"
+    },
+    "Logo đối tác": {
+      "vi": "Logo đối tác",
+      "de": "Partnerlogos"
+    },
+    "Không thể lưu câu hỏi trong trình duyệt. Vui lòng mở trò chuyện để gửi.": {
+      "vi": "Không thể lưu câu hỏi trong trình duyệt. Vui lòng mở trò chuyện để gửi.",
+      "de": "Die Frage konnte im Browser nicht gespeichert werden. Bitte öffnen Sie den Chat."
+    },
+    "Giải đáp pháp luật": {
+      "vi": "Giải đáp pháp luật",
+      "de": "Recht in Vietnam"
+    },
+    "Việt Nam và Đức.": {
+      "vi": "Việt Nam và Đức.",
+      "de": "und Deutschland."
+    },
+    "Được tư vấn bởi chuyên gia giàu kinh nghiệm, giải thích rõ ràng và đề xuất hướng xử lý thiết thực.": {
+      "vi": "Được tư vấn bởi chuyên gia giàu kinh nghiệm, giải thích rõ ràng và đề xuất hướng xử lý thiết thực.",
+      "de": "Erfahrene Fachleute beraten Sie, erklären Zusammenhänge verständlich und schlagen praktikable Lösungswege vor."
+    },
+    "Bạn cần làm rõ vấn đề gì?": {
+      "vi": "Bạn cần làm rõ vấn đề gì?",
+      "de": "Was möchten Sie klären?"
+    },
+    "Gửi câu hỏi": {
+      "vi": "Gửi câu hỏi",
+      "de": "Frage senden"
+    },
+    "Hội thoại": {
+      "vi": "Hội thoại",
+      "de": "Gespräche"
+    },
+    "Tin tức & đời sống": {
+      "vi": "Tin tức & đời sống",
+      "de": "Nachrichten & Alltag"
+    },
+    "Xem tất cả tin tức": {
+      "vi": "Xem tất cả",
+      "de": "Alle ansehen"
+    },
+    "Chủ đề đang được quan tâm": {
+      "vi": "Lĩnh vực Pháp luật",
+      "de": "Rechtsgebiete"
+    },
+    "Xem tất cả lĩnh vực": {
+      "vi": "Xem tất cả lĩnh vực",
+      "de": "Alle Rechtsgebiete"
+    },
+    "Giấy tờ": {
+      "vi": "Giấy tờ",
+      "de": "Dokumente"
+    },
+    "Ủy quyền và giao dịch": {
+      "vi": "Ủy quyền và giao dịch",
+      "de": "Vollmachten und Rechtsgeschäfte"
+    },
+    "Tìm hiểu cách chuẩn bị giấy tờ khi bạn không thể trực tiếp giải quyết công việc.": {
+      "vi": "Tìm hiểu cách chuẩn bị giấy tờ khi bạn không thể trực tiếp giải quyết công việc.",
+      "de": "Erfahren Sie, welche Unterlagen Sie benötigen, wenn Sie eine Angelegenheit nicht persönlich erledigen können."
+    },
+    "Cư trú tại Đức": {
+      "vi": "Cư trú tại Đức",
+      "de": "Aufenthalt in Deutschland"
+    },
+    "Làm rõ loại thủ tục, giấy tờ đang có và bước cần chuẩn bị tiếp theo.": {
+      "vi": "Làm rõ loại thủ tục, giấy tờ đang có và bước cần chuẩn bị tiếp theo.",
+      "de": "Klären Sie Ihr Anliegen, vorhandene Unterlagen und die nächsten Vorbereitungsschritte."
+    },
+    "Quốc tịch và giấy tờ cá nhân": {
+      "vi": "Quốc tịch và giấy tờ cá nhân",
+      "de": "Staatsangehörigkeit und Ausweispapiere"
+    },
+    "Tra cứu thông tin phù hợp với tình trạng quốc tịch và giấy tờ của bạn.": {
+      "vi": "Tra cứu thông tin phù hợp với tình trạng quốc tịch và giấy tờ của bạn.",
+      "de": "Finden Sie Informationen zu Ihrer Staatsangehörigkeit und Ihren Dokumenten."
+    },
+    "Gia đình & tài sản": {
+      "vi": "Gia đình & tài sản",
+      "de": "Familie & Vermögen"
+    },
+    "Hôn nhân và gia đình": {
+      "vi": "Hôn nhân và gia đình",
+      "de": "Ehe und Familie"
+    },
+    "Trao đổi về hôn nhân, con cái và những việc cần thu xếp giữa Việt Nam và Đức.": {
+      "vi": "Trao đổi về hôn nhân, con cái và những việc cần thu xếp giữa Việt Nam và Đức.",
+      "de": "Besprechen Sie Fragen zu Ehe, Kindern und familiären Angelegenheiten zwischen Vietnam und Deutschland."
+    },
+    "Thừa kế": {
+      "vi": "Thừa kế",
+      "de": "Erbschaft"
+    },
+    "Bắt đầu từ tài sản, quan hệ gia đình và những giấy tờ đang có.": {
+      "vi": "Bắt đầu từ tài sản, quan hệ gia đình và những giấy tờ đang có.",
+      "de": "Beginnen Sie mit dem Nachlass, den Familienverhältnissen und den vorhandenen Unterlagen."
+    },
+    "Nhà ở và đất đai": {
+      "vi": "Nhà ở và đất đai",
+      "de": "Wohnen und Grundstücke"
+    },
+    "Làm rõ việc mua bán, tặng cho hoặc quản lý nhà đất của bạn.": {
+      "vi": "Làm rõ việc mua bán, tặng cho hoặc quản lý nhà đất của bạn.",
+      "de": "Klären Sie Fragen zum Kauf, zur Schenkung oder zur Verwaltung Ihrer Immobilie."
+    },
+    "Công việc & kinh doanh": {
+      "vi": "Công việc & kinh doanh",
+      "de": "Arbeit & Unternehmen"
+    },
+    "Hợp đồng và công việc": {
+      "vi": "Hợp đồng và công việc",
+      "de": "Verträge und Arbeit"
+    },
+    "Hiểu những điều cần lưu ý trong hợp đồng và quan hệ lao động.": {
+      "vi": "Hiểu những điều cần lưu ý trong hợp đồng và quan hệ lao động.",
+      "de": "Erfahren Sie, worauf es bei Verträgen und Arbeitsverhältnissen ankommt."
+    },
+    "Đầu tư và kinh doanh": {
+      "vi": "Đầu tư và kinh doanh",
+      "de": "Investitionen und Unternehmen"
+    },
+    "Tìm hiểu các bước chuẩn bị cho hoạt động đầu tư, kinh doanh của bạn.": {
+      "vi": "Tìm hiểu các bước chuẩn bị cho hoạt động đầu tư, kinh doanh của bạn.",
+      "de": "Informieren Sie sich über die Vorbereitung Ihrer Investition oder Geschäftstätigkeit."
+    },
+    "Thuế": {
+      "vi": "Thuế",
+      "de": "Steuern"
+    },
+    "Xác định vấn đề cần tìm hiểu từ hoạt động và hoàn cảnh thực tế của bạn.": {
+      "vi": "Xác định vấn đề cần tìm hiểu từ hoạt động và hoàn cảnh thực tế của bạn.",
+      "de": "Grenzen Sie Ihre Steuerfrage anhand Ihrer Tätigkeit und persönlichen Situation ein."
+    },
+    "Bạn đang cần hỗ trợ việc gì?": {
+      "vi": "Bạn đang cần hỗ trợ việc gì?",
+      "de": "Wobei benötigen Sie Unterstützung?"
+    },
+    "Nhu cầu hỗ trợ": {
+      "vi": "Nhu cầu hỗ trợ",
+      "de": "Ihr Anliegen"
+    },
+    "Chọn nội dung": {
+      "vi": "Chọn nội dung",
+      "de": "Thema auswählen"
+    },
+    "Hỏi ngay": {
+      "vi": "Hỏi ngay",
+      "de": "Jetzt fragen"
+    },
+    "Hiểu rõ trước khi quyết định": {
+      "vi": "Hiểu rõ trước khi quyết định",
+      "de": "Klarheit vor Ihrer Entscheidung"
+    },
+    "Làm rõ giấy tờ, quyền lợi và những điểm cần cân nhắc trong trường hợp của bạn.": {
+      "vi": "Làm rõ giấy tờ, quyền lợi và những điểm cần cân nhắc trong trường hợp của bạn.",
+      "de": "Klären Sie Unterlagen, Rechte und die Punkte, die in Ihrer Situation zu beachten sind."
+    },
+    "Có chuyên viên cùng tháo gỡ": {
+      "vi": "Có chuyên viên cùng tháo gỡ",
+      "de": "Mit fachkundiger Unterstützung"
+    },
+    "Trao đổi trực tiếp, bổ sung hồ sơ và nhận hướng xử lý phù hợp ngay trong cuộc trò chuyện.": {
+      "vi": "Trao đổi trực tiếp, bổ sung hồ sơ và nhận hướng xử lý phù hợp ngay trong cuộc trò chuyện.",
+      "de": "Besprechen Sie Ihr Anliegen, ergänzen Sie Unterlagen und erhalten Sie passende Handlungsmöglichkeiten direkt im Gespräch."
+    },
+    "Mọi trao đổi, cùng một nơi": {
+      "vi": "Mọi trao đổi, cùng một nơi",
+      "de": "Alle Gespräche an einem Ort"
+    },
+    "Giữ câu hỏi, tài liệu và phản hồi trong tài khoản để tiếp tục khi cần.": {
+      "vi": "Giữ câu hỏi, tài liệu và phản hồi trong tài khoản để tiếp tục khi cần.",
+      "de": "Speichern Sie Fragen, Unterlagen und Antworten in Ihrem Konto, um bei Bedarf daran anzuknüpfen."
+    },
+    "Đồng hành cùng bạn": {
+      "vi": "Đồng hành cùng bạn",
+      "de": "An Ihrer Seite"
+    },
+    "Hỏi đáp ngay": {
+      "vi": "Hỏi đáp ngay",
+      "de": "Jetzt Frage stellen"
+    }
+  }
+}
