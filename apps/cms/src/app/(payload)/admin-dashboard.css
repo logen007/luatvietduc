@@ -612,8 +612,8 @@ html.lvd-admin .collection-edit--articles .document-fields__sidebar .upload__dro
 html.lvd-admin .collection-edit--articles .document-fields__sidebar .upload .dropzone{padding:0}
 html.lvd-admin .collection-edit--articles .document-fields__sidebar .upload__dropzoneContent__orText{font-size:12px}
 html.lvd-admin .collection-edit--articles .lvd-post-permalink{margin-bottom:16px}
-html.lvd-admin .collection-edit--articles .lvd-post-permalink__row{gap:8px}
-html.lvd-admin .collection-edit--articles .lvd-post-permalink__url{font-size:12px;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.lvd-admin .collection-edit--articles .lvd-post-permalink__row{gap:8px;justify-content:flex-start;flex-wrap:nowrap}
+html.lvd-admin .collection-edit--articles .lvd-post-permalink__url{font-size:12px;min-width:0;flex:0 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.lvd-admin .collection-edit--articles .lvd-inline-article-title input{font-size:22px}
 html.lvd-admin .collection-edit--articles .doc-controls__wrapper{padding-block:10px}
 @media(max-width:1000px){
@@ -625,19 +625,35 @@ html.lvd-admin .collection-edit--articles .doc-controls__wrapper{padding-block:1
 @media(max-width:760px){html.lvd-admin .collection-edit--articles .lvd-inline-article-title input{font-size:18px}html.lvd-admin .collection-edit--articles .document-fields__edit{padding-top:12px}}
 
 /* One page scroll: native sticky sidebar sizing must not own a second viewport. */
-html.lvd-admin .collection-edit--articles .document-fields{display:grid;grid-template-columns:minmax(0,1fr) 320px;align-items:start}
+html.lvd-admin .collection-edit--articles .document-fields{display:grid;grid-template-columns:minmax(0,1fr) 320px;align-items:stretch;min-height:calc(100dvh - var(--doc-controls-height,64px))}
 html.lvd-admin .collection-edit--articles .document-fields__main{width:auto;min-width:0;min-height:0}
-html.lvd-admin .collection-edit--articles .document-fields__sidebar-wrap{box-sizing:border-box;position:static;top:auto;width:auto;min-width:0;height:auto;min-height:0;align-self:start}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar-wrap{box-sizing:border-box;position:static;top:auto;width:auto;min-width:0;height:auto;min-height:0;align-self:stretch;border-left:1px solid var(--admin-line)}
 html.lvd-admin .collection-edit--articles .document-fields__sidebar{box-sizing:border-box;width:100%;min-width:0;min-height:0;height:auto;overflow:visible;padding:0}
-html.lvd-admin .collection-edit--articles .document-fields__sidebar-fields{box-sizing:border-box;width:100%;min-width:0;padding:20px;border-left:1px solid var(--admin-line)}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar-fields{box-sizing:border-box;width:100%;min-width:0;padding:20px}
 html.lvd-admin .collection-edit--articles .document-fields__sidebar-fields>.render-fields{box-sizing:border-box;width:100%;min-width:0}
 html.lvd-admin .collection-edit--articles .document-fields__sidebar .field-type{box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow-wrap:anywhere}
 html.lvd-admin .collection-edit--articles .document-fields__sidebar .relationship__wrap{min-width:0;max-width:100%}
 html.lvd-admin .collection-edit--articles .document-fields__sidebar .rs__value-container{min-width:0;flex:1 1 0}
 html.lvd-admin .collection-edit--articles .document-fields__sidebar .rs__multi-value{max-width:100%}
-@media(max-width:1000px){html.lvd-admin .collection-edit--articles .document-fields{grid-template-columns:minmax(0,1fr)}html.lvd-admin .collection-edit--articles .document-fields__sidebar-fields{border-left:0;padding-inline:var(--gutter-h)}}
+@media(max-width:1000px){html.lvd-admin .collection-edit--articles .document-fields{grid-template-columns:minmax(0,1fr)}html.lvd-admin .collection-edit--articles .document-fields__sidebar-fields{padding-inline:var(--gutter-h)}html.lvd-admin .collection-edit--articles .document-fields__sidebar-wrap{border-left:0}}
 /* Right-edge relationship tooltips must not enlarge the scrollable canvas. */
 html.lvd-admin .collection-edit--articles .document-fields__sidebar .relationship-add-new__tooltip{left:auto;right:0;max-width:260px;white-space:normal}
 html.lvd-admin .collection-edit--articles .document-fields__sidebar .relationship-add-new__tooltip.tooltip--position-top{transform:translate3d(0,calc(var(--caret-size) * -1),0)}
 html.lvd-admin .collection-edit--articles .document-fields__sidebar .relationship-add-new__tooltip.tooltip--position-bottom{transform:translate3d(0,var(--caret-size),0)}
 html.lvd-admin .collection-edit--articles .document-fields__sidebar .relationship-add-new__tooltip::after{left:auto;right:12px}
+
+/* Article controls share a single size; relationship creation is a separate action. */
+html.lvd-admin .collection-edit--articles .lvd-article-language-actions{gap:8px}
+html.lvd-admin .collection-edit--articles .doc-controls__controls-wrapper{margin-left:auto;justify-content:flex-end;gap:8px}
+html.lvd-admin .collection-edit--articles :is(.lvd-article-language-actions button,.doc-controls__controls>.btn,.doc-controls__popup .popup-button){box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;height:44px;min-height:44px;margin:0;padding:0 12px;border-radius:4px;font-size:13px;line-height:1;white-space:nowrap}
+html.lvd-admin .collection-edit--articles :is(#preview-button,.doc-controls__popup .popup-button){width:44px;min-width:44px;padding:0;border:1px solid var(--admin-line);border-radius:4px;background:var(--admin-panel)}
+html.lvd-admin .collection-edit--articles .lvd-post-permalink__row>button{flex:0 0 auto;margin:0}
+html.lvd-admin .collection-edit--articles .document-fields__edit{border-right:0}
+html.lvd-admin .collection-edit--articles #field-tags .relationship--multi-value-label__drawer-toggler{display:none}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .relationship__wrap{align-items:flex-start;gap:8px}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .relationship__wrap>div.react-select{flex:1;min-width:0}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .relationship--allow-create .rs__control{border-radius:4px}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .relationship-add-new{flex:0 0 44px;height:44px}
+html.lvd-admin .collection-edit--articles .document-fields__sidebar .relationship-add-new__add-button{box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:44px;min-width:44px;height:44px;margin:0;padding:0;border:1px solid var(--admin-line);border-radius:4px;background:var(--admin-panel)}
+@media(max-width:760px){html.lvd-admin .collection-edit--articles .doc-controls__controls-wrapper{gap:6px}html.lvd-admin .collection-edit--articles .lvd-article-language-actions{gap:6px}html.lvd-admin .collection-edit--articles :is(.lvd-article-language-actions button,.doc-controls__controls>.btn){padding-inline:8px;font-size:12px}}
+@media(max-width:380px){html.lvd-admin .collection-edit--articles .doc-controls__controls-wrapper{flex-wrap:wrap}html.lvd-admin .collection-edit--articles .doc-controls__controls{flex-wrap:wrap;justify-content:flex-end}}
