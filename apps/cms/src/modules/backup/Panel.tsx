@@ -16,7 +16,7 @@ export function BackupPanel(){
   <p>Tự động sao lưu lúc 03:00 hằng ngày (giờ Việt Nam). Giữ 7 bản hằng ngày và 1 bản lưu theo tháng trên Google Drive. Bản sao được mã hóa trước khi gửi.</p>
   <IntegrationPanel providers={['drive']}/>
   <section className="lvd-admin-card"><h2>Kết nối tài khoản Drive</h2><p>Thêm redirect URI dưới đây vào OAuth Client dành riêng cho sao lưu:</p><code className="lvd-wrap-code">https://luatvietduc.com/service/backups/google/callback</code><p>Khóa age công khai dùng để mã hóa. Giữ khóa age bí mật ở nơi an toàn ngoài máy chủ; cần khóa này để khôi phục.</p>
-   <AppLink className="lvd-admin-action" href="/service/backups/google/start">Kết nối Google Drive</AppLink> <button type="button" disabled={busy} onClick={()=>void reload()}>Làm mới trạng thái</button>
+   <div className="lvd-admin-actions"><AppLink className="lvd-admin-action" href="/service/backups/google/start">Kết nối Google Drive</AppLink><button type="button" disabled={busy} onClick={()=>void reload()}>Làm mới trạng thái</button></div>
    {oauthError&&<p role="alert" className="lvd-admin-error">{oauthError}</p>}
    {loading?<p role="status">Đang tải trạng thái sao lưu…</p>:status&&!loadError&&<p>{status.authorized?'Đã cấp quyền Drive. Kiểm tra và bật kết nối ở trên.':'Chưa cấp quyền Drive.'} · {status.runtime?.ready?'Tiến trình sao lưu sẵn sàng.':'Tiến trình sao lưu chưa sẵn sàng.'}</p>}
    {loadError&&<p role="alert" className="lvd-admin-error">{loadError} <button type="button" onClick={()=>void reload()}>Thử lại</button></p>}

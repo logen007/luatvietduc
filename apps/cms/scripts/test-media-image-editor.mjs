@@ -3,7 +3,7 @@ import sharp from 'sharp';
 
 // The caller supplies one real synthetic uploaded-image row. All image bytes
 // and transform responses below are local browser fixtures, with no R2 calls.
-export async function testMediaImageEditor({page,base,image}){
+export async function testMediaImageEditor({page,base,image,inspectActions}){
  assert.ok(image?.id&&image.filename,'An existing synthetic image record is required');
  const origin=new URL(base).origin;assert.ok(['127.0.0.1','localhost'].includes(new URL(origin).hostname));
  const returnUrl=page.url(),viewport=page.viewportSize(),prefix='/__lvd-image-editor-fixture/'+image.id;
@@ -35,7 +35,7 @@ export async function testMediaImageEditor({page,base,image}){
  const open=async()=>{await page.locator('.lvd-media-image-tools').getByRole('button',{name:'Chỉnh sửa ảnh',exact:true}).click();await editor().waitFor({state:'visible'});};
  try{
   await page.route(assetPattern,assetRoute);await page.route(filePattern,assetRoute);await page.route(metadataPattern,metadataRoute);await page.route(operationPattern,operationRoute);
-  await page.goto(origin+'/admin/collections/media/'+image.id);await open();
+  await page.goto(origin+'/admin/collections/media/'+image.id);await open();await inspectActions?.(editor());
   await editor().getByRole('button',{name:'Xoay phải',exact:true}).click();await editor().getByRole('button',{name:'Lật ngang',exact:true}).click();
   await editor().getByLabel('Vùng cắt: X',{exact:true}).fill('20');await editor().getByLabel('Vùng cắt: Y',{exact:true}).fill('10');
   await editor().getByLabel('Vùng cắt: Chiều rộng',{exact:true}).fill('120');await editor().getByLabel('Vùng cắt: Chiều cao',{exact:true}).fill('80');
@@ -52,9 +52,9 @@ export async function testMediaImageEditor({page,base,image}){
   releaseFirst();await editor().waitFor({state:'detached'});
 
   await open();await editor().getByRole('button',{name:'Xoay trái',exact:true}).click();const beforeCancel=requests.length;
-  page.once('dialog',dialog=>dialog.accept());await editor().getByRole('button',{name:'Hủy',exact:true}).click();await editor().waitFor({state:'detached'});assert.equal(requests.length,beforeCancel,'Cancel never writes an image draft');
+  await editor().getByRole('button',{name:'Hủy',exact:true}).click();await page.locator('.lvd-confirm-dialog[open]').getByRole('button',{name:'Bỏ thay đổi',exact:true}).click();await editor().waitFor({state:'detached'});assert.equal(requests.length,beforeCancel,'Cancel never writes an image draft');
 
-  await open();page.once('dialog',dialog=>dialog.accept());await editor().getByRole('button',{name:'Khôi phục ảnh gốc',exact:true}).click();await editor().waitFor({state:'detached'});
+  await open();await editor().getByRole('button',{name:'Khôi phục ảnh gốc',exact:true}).click();await page.locator('.lvd-confirm-dialog[open]').getByRole('button',{name:'Khôi phục',exact:true}).click();await editor().waitFor({state:'detached'});
   assert.deepEqual(Object.keys(requests.at(-1)).sort(),['operation','updatedAt']);assert.equal(requests.at(-1).operation,'restore');
 
   // Recovery reads the preserved original on the server, never the broken
@@ -62,7 +62,7 @@ export async function testMediaImageEditor({page,base,image}){
   failPreview=true;await open();await editor().getByRole('alert').filter({hasText:'Chưa tải được ảnh.'}).waitFor();
   assert.equal(await editor().getByRole('button',{name:'Lưu ảnh',exact:true}).isDisabled(),true);
   assert.equal(await editor().getByRole('button',{name:'Khôi phục ảnh gốc',exact:true}).isEnabled(),true);
-  failPreview=false;page.once('dialog',dialog=>dialog.accept());await editor().getByRole('button',{name:'Khôi phục ảnh gốc',exact:true}).click();await editor().waitFor({state:'detached'});
+  failPreview=false;await editor().getByRole('button',{name:'Khôi phục ảnh gốc',exact:true}).click();await page.locator('.lvd-confirm-dialog[open]').getByRole('button',{name:'Khôi phục',exact:true}).click();await editor().waitFor({state:'detached'});
   assert.deepEqual(Object.keys(requests.at(-1)).sort(),['operation','updatedAt']);assert.equal(requests.at(-1).operation,'restore');
 
   await page.setViewportSize({width:390,height:844});await open();await editor().getByRole('button',{name:'Lật dọc',exact:true}).click();

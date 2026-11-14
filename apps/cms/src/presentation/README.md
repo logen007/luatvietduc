@@ -81,3 +81,13 @@ Language-switch text effect: `modules/shared/locale/ascii-transition.ts` and `as
 ## Runtime content modules
 
 See `docs/13-fast-edit-modules.md` from the repository root. Public UI copy is now split into `public/content/{common,home,library,news,account,information,contact}.json`. Edit VI/DE values under stable source keys for a snapshot update; do not edit React for simple wording. The three existing `public/media/benefits/*.webp` paths use the same atomic snapshot lane. New component logic and arbitrary asset paths still require application validation.
+
+## Shared AdminCP action controls
+
+`admin-actions.css` owns native document/list action bars and custom admin panel,
+file dialog, profile and relationship-add controls. Shared tokens are 44px height,
+4px corners and 8px gap. Preserve native primary/disabled states, form permissions
+and menu contents. Put new standalone admin action groups in `.lvd-admin-actions`;
+they wrap and align to the right. The article editor retains its existing compact
+mobile row rules. Avoid broad selectors that resize table checkboxes, tag chips,
+navigation or menu items. This module is assembled after the base/profile styles.

@@ -49,6 +49,7 @@
     "admin-profile.css",
     "form-controls.css",
     "release-notice.css",
-    "confirm-dialog.css"
+    "confirm-dialog.css",
+    "admin-actions.css"
   ]
 }
