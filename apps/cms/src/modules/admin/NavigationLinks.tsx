@@ -3,6 +3,7 @@ import {RolePreviewControl} from '../shared/RolePreviewControl';
 import Link from 'next/link';
 import {createPortal} from 'react-dom';
 import siteVersion from '../shared/site-version.json';
+import {visiblePoll} from '../shared/polling';
 import {useEffect,useRef,useState} from 'react';
 import {roleLabel} from '../identity/roles';
 import {Account,useAuth,useNav} from '@payloadcms/ui';
@@ -18,7 +19,17 @@ export function NavigationLinks({items,viewer}:{items:Item[];viewer?:{name?:stri
  const photo=avatarURL(user),[photoError,setPhotoError]=useState(false);
  useEffect(()=>setPhotoError(false),[photo]);
  const router=useRouter(),pathname=usePathname(),{navOpen,setNavOpen}=useNav(),[expanded,setExpanded]=useState<Record<string,boolean>>({});
- const root=useRef<HTMLDivElement>(null),[versionHost,setVersionHost]=useState<Element|null>(null);
+ const root=useRef<HTMLDivElement>(null),[versionHost,setVersionHost]=useState<Element|null>(null),[version,setVersion]=useState(siteVersion.version);
+ // Presentation releases advance independently of the compiled admin bundle.
+ useEffect(()=>{
+  const controller=new AbortController();
+  const stop=visiblePoll(async()=>{
+   const response=await fetch('/release.json',{cache:'no-store',credentials:'omit',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(8000)])});
+   const value=response.ok?await response.json():null;
+   if(!controller.signal.aborted&&/^\d{2}\.\d{2}\.\d{2}$/.test(value?.version||''))setVersion(value.version);
+  },60_000);
+  return()=>{controller.abort();stop();};
+ },[pathname]);
  useEffect(()=>{setVersionHost(document.querySelector('.template-default__nav-toggler-container'));},[]);
  // Payload's native mobile close button has no accessible name.
  useEffect(()=>{const close=root.current?.closest('.nav')?.querySelector<HTMLButtonElement>('.nav__mobile-close');if(close){close.setAttribute('aria-label','Đóng Menu');close.title='Đóng menu';}},[]);
@@ -33,7 +44,7 @@ export function NavigationLinks({items,viewer}:{items:Item[];viewer?:{name?:stri
  const closeMobile=()=>{if(window.matchMedia('(max-width: 1024px)').matches)setNavOpen(false);};
  const parent=adminParentPath(pathname);
  const active=(href:string)=>href==='/admin'?pathname==='/admin':pathname===href||pathname.startsWith(href+'/');
- return <div ref={root} className="lvd-admin-sidebar">{versionHost&&createPortal(<>{parent&&<Link className="lvd-admin-back" href={parent} prefetch={false} aria-label="Quay lại trang cha" title="Quay lại" onNavigate={event=>{if(!confirmAdminNavigation(parent,()=>{closeMobile();router.push(parent);}))event.preventDefault();else closeMobile();}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></Link>}<span className="lvd-admin-version">v{siteVersion.version}</span></>,versionHost)}<RolePreviewControl renderedRole={viewer?.role} reserveSpace={viewer?.role==='owner'||Boolean(viewer?.rolePreview)}/><nav className="lvd-admin-navigation lvd-admin-menu" aria-label="Quản trị website">{items.map((item,index)=>{
+ return <div ref={root} className="lvd-admin-sidebar">{versionHost&&createPortal(<>{parent&&<Link className="lvd-admin-back" href={parent} prefetch={false} aria-label="Quay lại trang cha" title="Quay lại" onNavigate={event=>{if(!confirmAdminNavigation(parent,()=>{closeMobile();router.push(parent);}))event.preventDefault();else closeMobile();}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></Link>}<span className="lvd-admin-version">v{version}</span></>,versionHost)}<RolePreviewControl renderedRole={viewer?.role} reserveSpace={viewer?.role==='owner'||Boolean(viewer?.rolePreview)}/><nav className="lvd-admin-navigation lvd-admin-menu" aria-label="Quản trị website">{items.map((item,index)=>{
   const selected=active(item.href)||Boolean(item.children?.some(child=>active(child.href))),open=expanded[item.href]??selected,subId='lvd-nav-children-'+index;
   return <div key={item.href} className={'lvd-menu-item'+(item.icon==='settings'?' lvd-menu-settings':'')+(selected?' is-current':'')}>{item.section&&<p className="lvd-menu-section">{item.section}</p>}<div className="lvd-menu-main"><Link href={item.href} title={item.label} aria-label={item.label} prefetch={false} onNavigate={event=>{if(!confirmAdminNavigation(item.href,()=>{closeMobile();router.push(item.href);}))event.preventDefault();else closeMobile();}} aria-current={pathname===item.href?'page':undefined}><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d={paths[item.icon]}/></svg><span>{item.label}</span></Link>{item.children&&<button type="button" aria-expanded={open} aria-controls={subId} aria-label={(open?'Thu gọn ':'Mở rộng ')+item.label} onClick={()=>setExpanded(previous=>({...previous,[item.href]:!open}))}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 6 3 3 3-3"/></svg></button>}</div>{item.children&&open&&<div id={subId} className="lvd-menu-children">{item.children.map(child=><Link prefetch={false} onNavigate={event=>{if(!confirmAdminNavigation(child.href,()=>{closeMobile();router.push(child.href);}))event.preventDefault();else closeMobile();}} key={child.href} href={child.href} aria-current={pathname===child.href?'page':undefined}>{child.label}</Link>)}</div>}</div>;
  })}</nav><div className="lvd-sidebar-footer"><Link className="lvd-sidebar-account" href="/admin/account" prefetch={false} title="Hồ sơ cá nhân" aria-label="Hồ sơ cá nhân" aria-current={pathname==='/admin/account'?'page':undefined} onNavigate={event=>{if(!confirmAdminNavigation('/admin/account',()=>{closeMobile();router.push('/admin/account');}))event.preventDefault();else closeMobile();}}><span className="lvd-sidebar-avatar" aria-hidden="true"><>{photo&&!photoError?<img src={photo} alt="" onError={()=>setPhotoError(true)}/>:<Account/>}</></span><span><strong>{user?.name||viewer?.name||'Luật Việt Đức'}</strong><small>{viewer?.role?roleLabel(viewer.role):'Quản trị'}</small></span></Link></div></div>;
