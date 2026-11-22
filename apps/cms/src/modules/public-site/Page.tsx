@@ -43,7 +43,7 @@ const descriptions:Record<string,string>={
  home:'Giải đáp pháp luật Việt Nam và Đức. Tìm thông tin về cư trú, quốc tịch, gia đình, tài sản và công việc; trao đổi với chuyên viên về vấn đề của bạn.',
  library:'Thư viện pháp luật Việt Nam: tìm bài viết theo lĩnh vực về quốc tịch, hôn nhân, thừa kế, nhà đất, lao động và các thủ tục liên quan.',
  news:'Tin tức và đời sống tại Đức: cập nhật về cư trú, giấy tờ, việc làm, gia đình, học tập và cộng đồng người Việt.',
- about:'Tìm hiểu Luật Việt Đức và đội ngũ chuyên gia hỗ trợ các vấn đề pháp luật Việt Nam, Đức, từ giấy tờ đến gia đình, tài sản và công việc.',
+ about:'Chuyên trang pháp lý Việt Nam – Đức của Bizlawyer & Partners cùng các đối tác, chia sẻ tri thức pháp luật và đồng hành cùng cộng đồng Việt Nam tại Đức.',
  contact:'Liên hệ Luật Việt Đức. Gửi câu hỏi hoặc lời nhắn về vấn đề của bạn và nhận phản hồi qua email.',
  privacy:'Cách Luật Việt Đức thu thập, sử dụng và bảo vệ thông tin tài khoản, hội thoại, tài liệu và các quyền của bạn đối với dữ liệu cá nhân.',
  terms:'Điều khoản sử dụng website, thư viện và dịch vụ hỏi đáp của Luật Việt Đức; phạm vi thông tin và trách nhiệm khi sử dụng.',
@@ -70,7 +70,7 @@ export async function PublicPage({path:pathname,query}:{path:string;query:URLSea
   {route.kind==='topic'&&groupView&&topic&&<TopicPage group={groupView} topic={topic}/>}
   {route.kind==='news'&&articleList&&<News key={query.toString()} articles={articleList} query={query.toString()} categories={content.newsCategories}/>}
   {route.kind==='legacy-news'&&data.story&&<LegacyStory story={data.story}/>}
-  {route.kind==='about'&&<About team={content.team}/>}
+  {route.kind==='about'&&<About/>}
   {route.kind==='privacy'&&<Policy copy={content.policies.privacy} extra={data.settings.privacyText||''}/>}
   {route.kind==='terms'&&<Policy copy={content.policies.terms}/>}
   {route.kind==='contact'&&<Contact/>}

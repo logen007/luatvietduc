@@ -9,7 +9,7 @@ export const Library = dynamic(() => import('./Library').then(module => module.L
 export const TopicPage = dynamic(() => import('./Library').then(module => module.TopicPage));
 export const News = dynamic(() => import('./News').then(module => module.News));
 export const LegacyStory = dynamic(() => import('./News').then(module => module.LegacyStory));
-export const About = dynamic(() => import('./Information').then(module => module.About));
+export const About = dynamic(() => import('./About').then(module => module.About));
 export const Policy = dynamic(() => import('./Information').then(module => module.Policy));
 export const Help = dynamic(() => import('./Information').then(module => module.Help));
 export const Contact = dynamic(() => import('./Contact').then(module => module.Contact));
