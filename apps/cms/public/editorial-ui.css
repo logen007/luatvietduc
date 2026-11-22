@@ -855,6 +855,7 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 .live-header .live-header-actions { gap:24px; }
 .live-header-login { color:#0b0b0b; text-decoration:none; white-space:nowrap; font:400 14px/20px var(--lvd-font); }
 .live-header .live-header-login-button { min-height:40px; padding:9px 16px; border-radius:4px; font:500 14px/20px var(--lvd-font); white-space:nowrap; }
+.lvd-redesign .header-login,.live-header .live-header-login-button { box-sizing:border-box; width:144px; min-width:144px; flex:0 0 144px; justify-content:center; }
 .live-header .live-header-login-button svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.5; }
 .site-header .live-menu-button { display:none; align-items:center; justify-content:center; flex-shrink:0; box-sizing:border-box; width:48px; min-width:48px; height:48px; padding:8px; border:0; border-radius:4px; background:none; color:#0b0b0b; cursor:pointer; }
 .live-menu-button svg,.live-menu-dialog svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.5; }
