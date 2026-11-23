@@ -63,3 +63,5 @@
  .live-header .live-nav{justify-self:center;margin:0}
  .live-header .live-header-actions{justify-self:end;margin:0}
 }
+
+:is(.lvd-footer-bottom,.live-footer-version-row) .lvd-language-switch button{width:auto;padding-inline:5px;border:1px solid #444}
