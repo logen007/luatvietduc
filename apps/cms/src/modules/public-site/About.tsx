@@ -19,7 +19,7 @@ export function About(){
    <Breadcrumb title={t('Giới thiệu')}/>
    <header className="lvd-about-hero">
     <div className="lvd-about-hero-copy"><span className="lvd-about-eyebrow">{text('about.label')}</span><h1>{text('about.title')}</h1><p className="lvd-about-tagline">{text('about.tagline')}</p><div className="button-row"><AppLink className="button" href="/hoi-dap">{t('Mở trò chuyện')} <Arrow/></AppLink><AppLink className="lvd-about-text-link" href="/thu-vien">{t('Khám phá thư viện')} <Arrow/></AppLink></div></div>
-    <figure className="lvd-about-hero-photo"><img src="/media/about/bizlawyer-exchange.webp" width={1440} height={1080} alt={text('Hoạt động trao đổi chuyên môn tại Bizlawyer & Partners')} decoding="async"/><figcaption>{text('Hoạt động trao đổi chuyên môn tại Bizlawyer & Partners')}</figcaption></figure>
+    <figure className="lvd-about-hero-photo"><img src="/media/about/reichstag-berlin.webp" width={1200} height={797} alt={text('about.hero.photo')} decoding="async"/></figure>
    </header>
    <div className="lvd-about-opening">{paragraphs(['about.intro.1','about.intro.2','about.intro.3'])}</div>
   </div>

@@ -205,10 +205,6 @@
       "vi": "Với vấn đề cần đánh giá riêng, bạn có thể yêu cầu chuyên viên tiếp nhận và tiếp tục trao đổi trên cùng hội thoại.",
       "de": "Wenn Ihr Anliegen individuell beurteilt werden muss, können Sie die Übernahme durch das Fachteam im selben Gespräch anfragen."
     },
-    "Hoạt động trao đổi chuyên môn tại Bizlawyer & Partners": {
-      "vi": "Hoạt động trao đổi chuyên môn tại Bizlawyer & Partners",
-      "de": "Fachlicher Austausch bei Bizlawyer & Partners"
-    },
     "about.label": {
       "vi": "GIỚI THIỆU",
       "de": "ÜBER UNS"
@@ -230,16 +226,16 @@
       "de": "Für die vietnamesische Gemeinschaft, die in der Bundesrepublik Deutschland lebt und arbeitet, betreffen rechtliche Fragen häufig nicht nur das deutsche Recht. Sie weisen auch enge Verbindungen und Überschneidungen mit dem vietnamesischen Recht auf. Aufenthaltsrecht, Staatsangehörigkeit, Ehe und Familie, Erbschaften, Vermögen, Arbeit, Steuern, Investitionen, die Gründung und Führung von Unternehmen sowie grenzüberschreitende Geschäfte und Streitigkeiten erfordern Fachkenntnisse, unterschiedliche Perspektiven und Zugang zu den Rechtsordnungen beider Länder."
     },
     "about.intro.3": {
-      "vi": "Xuất phát từ nhu cầu thực tiễn đó, chuyên trang Tư vấn pháp lý Việt Nam – Đức được xây dựng và phát triển bởi đội ngũ luật sư, chuyên gia pháp lý thuộc Công ty Luật TNHH Bizlawyer & Partners, cùng sự tham gia của các cố vấn, chuyên gia và cộng sự uy tín trong mạng lưới chuyên môn tại Việt Nam và Cộng hòa Liên bang Đức.",
-      "de": "Aus diesem praktischen Bedarf heraus wird die Plattform für Rechtsberatung Vietnam – Deutschland von Rechtsanwältinnen und Rechtsanwälten sowie juristischen Fachleuten der Công ty Luật TNHH Bizlawyer & Partners aufgebaut und weiterentwickelt. Hinzu kommen erfahrene Beratende, Fachleute und Mitwirkende aus dem fachlichen Netzwerk in Vietnam und der Bundesrepublik Deutschland."
+      "vi": "Chuyên trang Tư vấn pháp lý Việt Nam – Đức được xây dựng để giúp cộng đồng tiếp cận thông tin pháp luật của hai nước, với sự tham gia của các luật sư, cố vấn và cộng sự tại Việt Nam và Đức.",
+      "de": "Die Plattform für Rechtsberatung Vietnam – Deutschland erleichtert der Gemeinschaft den Zugang zu rechtlichen Informationen aus beiden Ländern. Rechtsanwälte, Beratende und Mitwirkende in Vietnam und Deutschland tragen dazu bei."
     },
     "about.foundation.title": {
       "vi": "Nền tảng chuyên môn – Mạng lưới kết nối Việt Nam và Đức",
       "de": "Fachliche Grundlage – ein Netzwerk zwischen Vietnam und Deutschland"
     },
     "about.foundation.1": {
-      "vi": "Với hệ thống hoạt động và mạng lưới hiện diện tại Hà Nội, Đà Nẵng, Thành phố Hồ Chí Minh và Frankfurt (Đức), Bizlawyer & Partners từng bước phát triển năng lực tư vấn pháp lý gắn với các hoạt động kinh doanh, đầu tư và giao dịch có yếu tố nước ngoài, đặc biệt là các quan hệ pháp lý giữa Việt Nam và Đức.",
-      "de": "Mit seiner Tätigkeit und seinem Netzwerk in Hanoi, Đà Nẵng, Ho-Chi-Minh-Stadt und Frankfurt (Deutschland) entwickelt Bizlawyer & Partners seine Beratungskompetenz für unternehmerische Aktivitäten, Investitionen und Geschäfte mit Auslandsbezug schrittweise weiter. Ein besonderer Schwerpunkt liegt auf den rechtlichen Beziehungen zwischen Vietnam und Deutschland."
+      "vi": "Mạng lưới chuyên môn tại Hà Nội, Đà Nẵng, Thành phố Hồ Chí Minh và Frankfurt kết nối kinh nghiệm tư vấn về kinh doanh, đầu tư và các giao dịch giữa Việt Nam và Đức.",
+      "de": "Das fachliche Netzwerk in Hanoi, Đà Nẵng, Ho-Chi-Minh-Stadt und Frankfurt bündelt Beratungserfahrung zu unternehmerischer Tätigkeit, Investitionen und Geschäften zwischen Vietnam und Deutschland."
     },
     "about.foundation.2": {
       "vi": "Website được phát triển trên cơ sở kết hợp kinh nghiệm hành nghề luật sư, kiến thức chuyên môn, sự am hiểu thực tiễn pháp lý của hai quốc gia và mạng lưới hợp tác với các tổ chức, chuyên gia trong nhiều lĩnh vực.",
@@ -382,8 +378,12 @@
       "de": "Und geteiltes Wissen schafft einen nachhaltigen Wert für die Gemeinschaft."
     },
     "about.signature": {
-      "vi": "Bizlawyer & Partners cùng các đối tác và cộng sự – Đồng hành pháp lý, kết nối tương lai Việt Nam – Đức.",
-      "de": "Bizlawyer & Partners mit seinen Partnern und Mitwirkenden – rechtlich an Ihrer Seite, für eine gemeinsame Zukunft zwischen Vietnam und Deutschland."
+      "vi": "Luật Việt Đức cùng các đối tác và cộng sự – Đồng hành pháp lý, kết nối tương lai Việt Nam – Đức.",
+      "de": "Luật Việt Đức mit seinen Partnern und Mitwirkenden – rechtlich an Ihrer Seite, für eine gemeinsame Zukunft zwischen Vietnam und Deutschland."
+    },
+    "about.hero.photo": {
+      "vi": "Tòa nhà Reichstag tại Berlin, Đức",
+      "de": "Reichstagsgebäude in Berlin, Deutschland"
     }
   }
 }

@@ -1,1 +1,2 @@
 - brandenburg-gate.webp — [Brandenburg Gate in Golden Evening Light](https://www.pexels.com/photo/brandenburg-gate-in-golden-evening-light-32239604/), [Pexels License](https://www.pexels.com/license/). Cropped and compressed for the About page.
+- reichstag-berlin.webp — [The Reichstag in Berlin](https://www.pexels.com/photo/the-reichstag-in-berlin-754943/), [Pexels License](https://www.pexels.com/license/). Compressed for the About page.
