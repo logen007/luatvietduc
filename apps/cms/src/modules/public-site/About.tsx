@@ -29,12 +29,7 @@ export function About(){
     {paragraphs(['about.foundation.1','about.foundation.2'])}
     {paragraphs(['about.foundation.4'])}
     <figure className="lvd-about-network-photo">
-     <img src="/media/about/frankfurt-main.webp" width={1280} height={330} alt={text('about.frankfurt.photo')} loading="lazy" decoding="async"/>
-     <figcaption>
-      <a href="https://commons.wikimedia.org/wiki/File:Frankfurt_skyline_panorama_with_river_main.jpg">Norbert Nagel / Wikimedia Commons</a>
-      {' · '}
-      <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>
-     </figcaption>
+     <img src="/media/about/brandenburg-gate.webp" width={1440} height={960} alt={text('about.berlin.photo')} loading="lazy" decoding="async"/>
     </figure>
    </Chapter>
    <Chapter number="02" id="gia-tri-cong-dong" title={text('about.community.title')}>

@@ -1121,7 +1121,6 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
 .lvd-about-chapter-body{min-width:0;max-width:840px}
 .lvd-about-anchor{display:block;scroll-margin-top:112px}
 .lvd-about-network-photo{overflow:hidden;margin:32px 0 0;border-radius:4px;background:#efede7}
-.lvd-about-network-photo figcaption{padding:10px 14px;color:#5c5953;font:400 13px/1.5 var(--lvd-font)}
 .lvd-about-missions{list-style:none;padding:0;margin:28px 0;border-top:1px solid #dedbd4}
 .lvd-about-missions li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:16px;padding:24px 0;border-bottom:1px solid #dedbd4}
 .lvd-about-missions li>span{padding-top:6px;color:#918b7e;font:400 13px/1.5 var(--lvd-font)}
