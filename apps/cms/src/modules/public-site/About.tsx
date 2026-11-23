@@ -32,7 +32,7 @@ export function About(){
    </Chapter>
    <div className="lvd-about-closing">
     <figure className="lvd-about-network-photo">
-     <img src="/media/about/berlin-museum-island.webp" width={720} height={1080} alt={text('about.berlin.photo')} loading="lazy" decoding="async"/>
+     <img src="/media/about/berlin-charlottenburg.webp" width={900} height={1200} alt={text('about.berlin.photo')} loading="lazy" decoding="async"/>
     </figure>
     <Chapter id="chat-luong-tri-thuc" title={text('about.quality.title')}>
      {paragraphs(['about.quality.3'])}

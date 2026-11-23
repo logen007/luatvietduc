@@ -6,3 +6,4 @@
 - reading-in-library.webp — [Woman Reading a Document while Leaning on a Bookcase](https://www.pexels.com/photo/woman-reading-a-document-while-leaning-on-a-bookcase-8837464/), [Pexels License](https://www.pexels.com/license/).
 - frankfurt-riverfront.webp — [Frankfurt Skyline with Modern Architecture and River](https://www.pexels.com/photo/frankfurt-skyline-with-modern-architecture-and-river-36700124/), [Pexels License](https://www.pexels.com/license/).
 - berlin-museum-island.webp — [Museum Island in Berlin, Germany](https://www.pexels.com/photo/museum-island-in-berlin-germany-18458005/), [Pexels License](https://www.pexels.com/license/).
+- berlin-charlottenburg.webp — [Visitors Strolling Near Charlottenburg Palace in Berlin](https://www.pexels.com/photo/visitors-strolling-near-charlottenburg-palace-in-berlin-34196822/), [Pexels License](https://www.pexels.com/license/).
