@@ -10,3 +10,4 @@ Homepage partner logos. Source artwork was cropped to remove outer margins and r
 White WebP variants use a transparent background and retain the original artwork proportions.
 
 The Bizlawyer color variant comes from the supplied bizlawyer_2026.svg. The G2G GmbH dark variant reverses the supplied monochrome artwork for the light strip.
+The full Bizlawyer lockup uses the supplied bizlawyer_2026-03.jpg. Its white background and the Amiragov logo background were converted to transparency.

@@ -1,5 +1,5 @@
 {
-  "sourceHash": "a700a374e86bd4846a6039476f8d621d18d5de9686b4324a4fcf49f8a64d44b5",
+  "sourceHash": "7a6b4290bf359aa9048b50260d66d555257cb115677c42439d1ff1a1470c1a4b",
   "groups": [
     {
       "id": "hon-nhan-gia-dinh",
@@ -895,7 +895,7 @@
   "partners": [
     {
       "name": "Bizlawyer & Partners",
-      "logo": "/media/partners/bizlawyer-2026-color.webp"
+      "logo": "/media/partners/bizlawyer-2026-full.webp"
     },
     {
       "name": "Atsumi & Sakai Frankfurt",
@@ -903,7 +903,7 @@
     },
     {
       "name": "Rechtsanwalt Michael Amiragov",
-      "logo": "/media/partners/michael-amiragov.webp"
+      "logo": "/media/partners/michael-amiragov-transparent.webp"
     },
     {
       "name": "G2G GmbH",
