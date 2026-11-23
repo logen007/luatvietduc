@@ -96,3 +96,5 @@ Middle four scenes remain unchanged from v9. The opening removes only its bottom
 ## Homepage opening replacement (2026-11-23)
 
 The v2 family banner replaces the opening with a clip from [Pexels](https://www.pexels.com/video/a-woman-smiling-and-posing-in-the-camera-while-people-are-working-behind-her-8102924/), under the [Pexels License](https://www.pexels.com/license/). The following scenes use the previously installed desktop and mobile footage; the original approvals continue to apply. The desktop poster is the first frame of the new opening.
+
+The v3 family banner uses seconds 0.8–4.96 of [Employees Planning in a Meeting](https://www.pexels.com/video/employees-planning-in-a-meeting-7845423/) under the [Pexels License](https://www.pexels.com/license/) for its opening. The following footage has the same sources as v2.
