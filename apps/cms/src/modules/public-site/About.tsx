@@ -19,17 +19,19 @@ export function About(){
    <Breadcrumb title={t('Giới thiệu')}/>
    <header className="lvd-about-hero">
     <div className="lvd-about-hero-copy"><span className="lvd-about-eyebrow">{text('about.label')}</span><h1>{text('about.title')}</h1><p className="lvd-about-tagline">{text('about.tagline')}</p><div className="button-row"><AppLink className="button" href="/hoi-dap">{t('Mở trò chuyện')} <Arrow/></AppLink><AppLink className="lvd-about-text-link" href="/thu-vien">{t('Khám phá thư viện')} <Arrow/></AppLink></div></div>
-    <figure className="lvd-about-hero-photo"><img src="/media/about/reichstag-berlin.webp" width={1200} height={797} alt={text('about.hero.photo')} decoding="async"/></figure>
+    <figure className="lvd-about-hero-photo"><img src="/media/about/frankfurt-cityscape.webp" width={1440} height={960} alt={text('about.hero.photo')} decoding="async"/></figure>
    </header>
-   <div className="lvd-about-opening">{paragraphs(['about.intro.1','about.intro.2','about.intro.3'])}</div>
+   <div className="lvd-about-opening">
+    <figure className="lvd-about-network-photo">
+     <img src="/media/about/berlin-spree.webp" width={720} height={1080} alt={text('about.berlin.photo')} loading="lazy" decoding="async"/>
+    </figure>
+    <div>{paragraphs(['about.intro.1','about.intro.2','about.intro.3'])}</div>
+   </div>
   </div>
   <div className="container lvd-about-chapters">
    <Chapter id="gia-tri-cong-dong" title={text('about.community.title')}>
     {paragraphs(['about.community.2'])}
     <ul className="lvd-about-missions">{missionIds.map(id=><li key={id}><div><h3>{text(`about.mission.${id}.title`)}</h3><p>{text(`about.mission.${id}.body`)}</p></div></li>)}</ul>
-    <figure className="lvd-about-network-photo">
-     <img src="/media/about/brandenburg-gate.webp" width={1440} height={960} alt={text('about.berlin.photo')} loading="lazy" decoding="async"/>
-    </figure>
    </Chapter>
    <Chapter id="chat-luong-tri-thuc" title={text('about.quality.title')}>
     {paragraphs(['about.quality.3'])}

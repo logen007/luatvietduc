@@ -1,2 +1,4 @@
 - brandenburg-gate.webp — [Brandenburg Gate in Golden Evening Light](https://www.pexels.com/photo/brandenburg-gate-in-golden-evening-light-32239604/), [Pexels License](https://www.pexels.com/license/). Cropped and compressed for the About page.
 - reichstag-berlin.webp — [The Reichstag in Berlin](https://www.pexels.com/photo/the-reichstag-in-berlin-754943/), [Pexels License](https://www.pexels.com/license/). Compressed for the About page.
+- frankfurt-cityscape.webp — [Cityscape of Frankfurt, Sergei Gussev](https://www.pexels.com/photo/cityscape-of-frankfurt-16648589/), [Pexels License](https://www.pexels.com/license/).
+- berlin-spree.webp — [Modern Architecture by Spree River in Berlin, Mike Balzer](https://www.pexels.com/photo/modern-architecture-by-spree-river-in-berlin-31913720/), [Pexels License](https://www.pexels.com/license/).
