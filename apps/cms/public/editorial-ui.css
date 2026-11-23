@@ -919,7 +919,7 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
  .live-header .live-header-actions{justify-self:end;margin:0}
 }
 
-:is(.lvd-footer-bottom,.live-footer-version-row) .lvd-language-switch button{width:auto;min-width:0;min-height:0;padding:0;overflow:hidden;border:1px solid #444}
+:is(.lvd-footer-bottom,.live-footer-version-row) .lvd-language-switch button{width:auto;min-width:0;min-height:0;padding:0;overflow:hidden;border:1px solid #444;border-radius:0}
 /* Contact email owns its form and responsive layout; the prototype remains a reference. */
 .lvd-redesign .contact-email-heading{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center;gap:clamp(32px,5vw,88px);max-width:none;margin:0 0 64px}
 .lvd-redesign .contact-email-heading h1{max-width:12ch;margin:0 0 22px;font:500 clamp(44px,5.2vw,72px)/1.08 var(--lvd-display);letter-spacing:-.03em;text-wrap:balance}
