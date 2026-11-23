@@ -6,3 +6,5 @@ Homepage partner logos. Source artwork was cropped to remove outer margins and r
 - G2G GmbH: owner confirmed the G2G Career logo at https://g2gcareer.com/wp-content/uploads/2026/07/g2gcareer-logo.svg
 - AMI: https://www.ami-deutschland.de/img/ami-deutschland_logo_v01_isolated.svg
 - Frankfurt RheinMain: https://www.frm-united.com/ header sprite, symbol logo_frm_horizontal
+
+White WebP variants use a transparent background and retain the original artwork proportions.

@@ -1,5 +1,5 @@
 {
-  "sourceHash": "1dc1e8bd62d6adaf7fdb557ec40518b5ca93bb73569ff68856d0d6e066c391c8",
+  "sourceHash": "7cc215f7b06e4cca31ae62ad99bbeb7b2b79a0a57fe4f1361c63ca1c45167d46",
   "groups": [
     {
       "id": "hon-nhan-gia-dinh",
@@ -895,27 +895,27 @@
   "partners": [
     {
       "name": "Bizlawyer & Partners",
-      "logo": "/media/partners/bizlawyer.webp"
+      "logo": "/media/partners/bizlawyer-white.webp"
     },
     {
       "name": "Atsumi & Sakai Frankfurt",
-      "logo": "/media/partners/atsumi-sakai-frankfurt.webp"
+      "logo": "/media/partners/atsumi-sakai-frankfurt-white.webp"
     },
     {
       "name": "Rechtsanwalt Michael Amiragov",
-      "logo": "/media/partners/michael-amiragov.webp"
+      "logo": "/media/partners/michael-amiragov-white.webp"
     },
     {
       "name": "G2G GmbH",
-      "logo": "/media/partners/g2g-career.webp"
+      "logo": "/media/partners/g2g-career-white.webp"
     },
     {
       "name": "AMI",
-      "logo": "/media/partners/ami.webp"
+      "logo": "/media/partners/ami-white.webp"
     },
     {
       "name": "Frankfurt RheinMain",
-      "logo": "/media/partners/frankfurt-rheinmain.webp"
+      "logo": "/media/partners/frankfurt-rheinmain-white.webp"
     }
   ],
   "newsSlugs": [

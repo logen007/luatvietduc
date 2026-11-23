@@ -7,8 +7,8 @@
 .pm-partner-group { display:flex; align-items:center; flex-shrink:0; gap:64px; list-style:none; margin:0; padding:0 64px 0 0; }
 .pm-partner-logo { display:block; flex:none; width:140px; height:38px; opacity:.85; }
 .pm-partner-logo:hover { opacity:1; }
-.pm-partner-tile { display:grid; place-items:center; flex:none; width:184px; height:68px; padding:8px 12px; box-sizing:border-box; background:#fff; border-radius:4px; }
-.pm-partner-tile img { display:block; width:100%; height:52px; object-fit:contain; }
+.pm-partner-item { flex:none; }
+.pm-partner-item .pm-partner-logo { object-fit:contain; }
 .pm-partners:hover .pm-partner-track,.pm-partners:focus-within .pm-partner-track { animation-play-state:paused; }
 .pm-partner-marquee:focus-visible { outline:2px solid #fff; outline-offset:5px; }
 @keyframes lvd-partners { to { transform:translateX(-50%); } }
