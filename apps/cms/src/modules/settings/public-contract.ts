@@ -10,7 +10,7 @@ export function readPublicSettings(value:unknown):PublicSettings{
  if(!known.some(key=>Object.hasOwn(value,key)))return invalid();
  for(const key of textFields)if(value[key]!=null&&typeof value[key]!=='string')return invalid();
  for(const key of boolFields)if(value[key]!=null&&typeof value[key]!=='boolean')return invalid();
- if(value.heroBanner!=null){const banner=value.heroBanner;if(!object(banner)||!['video','mobileVideo','poster'].every(key=>safeMediaURL(banner[key]))||typeof banner.revision!=='number'||!Number.isFinite(banner.revision)||banner.revision<0)return invalid();}
+ if(value.heroBanner!=null){const banner=value.heroBanner;if(!object(banner)||!['video','mobileVideo','poster'].every(key=>safeMediaURL(banner[key]))||(banner.mobilePoster!==undefined&&!safeMediaURL(banner.mobilePoster))||typeof banner.revision!=='number'||!Number.isFinite(banner.revision)||banner.revision<0)return invalid();}
  if(value.maxMessageLength!=null&&(typeof value.maxMessageLength!=='number'||!Number.isFinite(value.maxMessageLength)||value.maxMessageLength<100||value.maxMessageLength>10000))return invalid();
  for(const [key,max] of [['headerLogoHeight',64],['footerLogoHeight',120]] as const)if(value[key]!=null&&(typeof value[key]!=='number'||!Number.isFinite(value[key])||value[key]<16||value[key]>max))return invalid();
  for(const key of ['navigation','socialLinks']){

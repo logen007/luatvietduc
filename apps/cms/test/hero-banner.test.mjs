@@ -16,7 +16,8 @@ test('optimized banner keeps the chosen clip, respects its revision and independ
  const deployedPoster={...selected,mimeType:'image/webp',url:'https://luatvietduc.com/api/media/file/legal-hero-selected-two-scenes-poster-20261108.webp',updatedAt:new Date(1794105006005).toISOString()};
  const deployed=heroBanner({heroVideo:selected,heroMobileVideo:deployedMobile,heroPoster:deployedPoster});
  assert.equal(deployed.mobileVideo,'/media/hero-family-mobile-v4.mp4');
- assert.equal(deployed.poster,'/media/hero-family-poster-v3.webp');
+ assert.equal(deployed.poster,'/media/hero-family-poster-desktop-v4.webp');
+ assert.equal(deployed.mobilePoster,'/media/hero-family-poster-mobile-v4.webp');
  assert.equal(heroBanner({heroVideo:{...selected,visibility:'private'}}).video,defaultHeroBanner.video);
 });
 test('banner projects only public playable media and preserves current defaults',()=>{
@@ -32,7 +33,7 @@ test('banner projects only public playable media and preserves current defaults'
 test('browser accepts safe runtime banner revisions, retaining newer server settings over old route cache',()=>{
  const fresh={...defaultHeroBanner,video:'/new.mp4',mobileVideo:'/new.mp4',revision:20};
  assert.equal(readPublicSettings({heroBanner:fresh}).heroBanner,fresh);
- for(const patch of [{video:'data:video/mp4;base64,AA'},{poster:'//evil.invalid/a.webp'},{revision:NaN},{revision:-1}])assert.throws(()=>readPublicSettings({heroBanner:{...fresh,...patch}}));
+ for(const patch of [{video:'data:video/mp4;base64,AA'},{poster:'//evil.invalid/a.webp'},{mobilePoster:'//evil.invalid/a.webp'},{revision:NaN},{revision:-1}])assert.throws(()=>readPublicSettings({heroBanner:{...fresh,...patch}}));
  assert.equal(latestHeroBanner(fresh,{...defaultHeroBanner,revision:10}),fresh);
  assert.equal(latestHeroBanner(defaultHeroBanner,fresh),fresh);
  assert.equal(mediaUploadLimit('video/mp4'),50*1024*1024);assert.equal(mediaUploadLimit('image/jpeg'),10*1024*1024);assert.equal(mediaUploadLimit('application/pdf'),10*1024*1024);

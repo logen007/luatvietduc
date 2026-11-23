@@ -30,5 +30,11 @@ export function HeroVideo({initial}:{initial:HeroBanner}){
   const toggle=()=>{choice.current=el.paused?'play':'pause';sync();};button?.addEventListener('click',toggle);sync();
   return()=>{active=false;cancelFrame();observer.disconnect();el.pause();el.preload='none';el.removeAttribute('src');el.load();el.removeEventListener('play',onPlay);el.removeEventListener('pause',onPause);el.removeEventListener('playing',onPlaying);el.removeEventListener('error',onError);document.removeEventListener('visibilitychange',sync);reduced.removeEventListener('change',sync);mobile.removeEventListener('change',sync);connection?.removeEventListener('change',sync);button?.removeEventListener('click',toggle);};
  },[banner.video,banner.mobileVideo]);
- return <><link rel="preload" as="image" href={banner.poster} fetchPriority="high"/><video ref={video} className="pm-hero-video" muted loop playsInline preload="none" poster={banner.poster} aria-hidden="true" tabIndex={-1}/><img className="pm-hero-poster" src={banner.poster} alt="" fetchPriority="high" data-ready={hasFrame} aria-hidden="true"/><button ref={toggleButton} className="pm-video-toggle" type="button" aria-label={paused?l('Phát video','Video abspielen'):l('Tạm dừng video','Video anhalten')} aria-pressed={paused}><svg className="pm-video-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><svg className="pm-video-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button></>;
+ return <>
+  <video ref={video} className="pm-hero-video" muted loop playsInline preload="none" aria-hidden="true" tabIndex={-1}/>
+  <picture aria-hidden="true">
+   {banner.mobilePoster&&<source media="(max-width:760px)" srcSet={banner.mobilePoster}/>}
+   <img className="pm-hero-poster" src={banner.poster} alt="" fetchPriority="high" data-ready={hasFrame}/>
+  </picture>
+  <button ref={toggleButton} className="pm-video-toggle" type="button" aria-label={paused?l('Phát video','Video abspielen'):l('Tạm dừng video','Video anhalten')} aria-pressed={paused}><svg className="pm-video-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><svg className="pm-video-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg></button></>;
 }

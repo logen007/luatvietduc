@@ -8,7 +8,7 @@ export function heroVideoSource(source:string,mobile=false){
 }
 // Bundled defaults preserve the current banner until an admin selects media.
 export const defaultHeroBanner={video:'/media/legal-hero-stock-v10.mp4',mobileVideo:'/media/legal-hero-stock-mobile-v10.mp4',poster:'/media/legal-hero-stock-poster-v10.webp',revision:0};
-export type HeroBanner=typeof defaultHeroBanner;
+export type HeroBanner=typeof defaultHeroBanner & {mobilePoster?:string};
 export function publicMediaURL(value:unknown,kind:'video'|'image'){
  if(!value||typeof value!=='object')return null;
  const media=value as Record<string,unknown>;
@@ -25,6 +25,6 @@ export function safeMediaURL(value:unknown):value is string{
 export function heroBanner(settings:{heroVideo?:unknown;heroMobileVideo?:unknown;heroPoster?:unknown;updatedAt?:string|null}):HeroBanner{
  const video=publicMediaURL(settings.heroVideo,'video'),mobile=publicMediaURL(settings.heroMobileVideo,'video'),poster=publicMediaURL(settings.heroPoster,'image');
  const match=renditions.find(item=>matchesSource(video,item.source)&&(!mobile||matchesSource(mobile,item.mobileSource))&&matchesSource(poster,item.posterSource));
- return {video:heroVideoSource(video||defaultHeroBanner.video),mobileVideo:heroVideoSource(mobile||video||defaultHeroBanner.mobileVideo,true),poster:match?.poster||poster||defaultHeroBanner.poster,revision:Date.parse(settings.updatedAt||'')||0};
+ return {video:heroVideoSource(video||defaultHeroBanner.video),mobileVideo:heroVideoSource(mobile||video||defaultHeroBanner.mobileVideo,true),poster:match?.poster||poster||defaultHeroBanner.poster,...(match?{mobilePoster:match.mobilePoster}:{}),revision:Date.parse(settings.updatedAt||'')||0};
 }
 export function latestHeroBanner(initial:HeroBanner,current?:HeroBanner){return current&&current.revision>=initial.revision?current:initial;}

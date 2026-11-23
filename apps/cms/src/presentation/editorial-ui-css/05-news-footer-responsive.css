@@ -76,7 +76,7 @@
  .lvd-redesign .brand-name { font-size:25px; }
  .lvd-redesign .header-tools { gap:14px; }
  .lvd-redesign .header-login { display:inline-flex; }
- .pm-hero-video { object-position:62% center; }
+ .pm-hero-video,.pm-hero-poster { object-position:62% center; }
  .pm-ask-row { flex-wrap:nowrap; }
  .lvd-redesign .pm-ask textarea { flex-basis:0; height:48px; min-height:48px; }
  .lvd-redesign .pm-ask .button { width:48px; min-height:48px; }
