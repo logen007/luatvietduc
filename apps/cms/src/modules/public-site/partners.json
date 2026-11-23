@@ -1,20 +1,26 @@
 [
   {
-    "name": "Bizlawyer & Partners"
+    "name": "Bizlawyer & Partners",
+    "logo": "/media/partners/bizlawyer.webp"
   },
   {
-    "name": "Atsumi & Sakai Frankfurt"
+    "name": "Atsumi & Sakai Frankfurt",
+    "logo": "/media/partners/atsumi-sakai-frankfurt.webp"
   },
   {
-    "name": "Rechtsanwalt Michael Amiragov"
+    "name": "Rechtsanwalt Michael Amiragov",
+    "logo": "/media/partners/michael-amiragov.webp"
   },
   {
-    "name": "G2G GmbH"
+    "name": "G2G GmbH",
+    "logo": "/media/partners/g2g-career.webp"
   },
   {
-    "name": "AMI"
+    "name": "AMI",
+    "logo": "/media/partners/ami.webp"
   },
   {
-    "name": "Frankfurt RheinMain"
+    "name": "Frankfurt RheinMain",
+    "logo": "/media/partners/frankfurt-rheinmain.webp"
   }
 ]

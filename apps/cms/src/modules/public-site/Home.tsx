@@ -18,7 +18,11 @@ function Partners({items}:{items:Partner[]}){
      <div className="pm-partner-track">
       {[false,true].map(duplicate=>(
        <ul className="pm-partner-group" key={String(duplicate)} aria-hidden={duplicate||undefined}>
-        {items.map(({name})=><li className="pm-partner-name" key={name}>{name}</li>)}
+        {items.map(({name,logo})=>(
+         <li className="pm-partner-tile" key={name}>
+          <img src={logo} width={160} height={52} alt={duplicate?'':name} decoding="async"/>
+         </li>
+        ))}
        </ul>
       ))}
      </div>

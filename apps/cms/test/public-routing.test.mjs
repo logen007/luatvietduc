@@ -121,7 +121,12 @@ test('homepage displays the six approved partners in order',()=>{
   revision:'synthetic',benefitPhotos:[],banner:defaultHeroBanner,
  })));
  const visibleGroup=home.match(/<ul class="pm-partner-group">(.+?)<\/ul>/)?.[1]??'';
- assert.deepEqual([...visibleGroup.matchAll(/<li class="pm-partner-name">([^<]+)<\/li>/g)].map(([,name])=>name.replaceAll('&amp;','&')),names);
+ const logos=[...visibleGroup.matchAll(/<img [^>]*src="([^"]+)"[^>]*alt="([^"]+)"/g)];
+ assert.deepEqual(logos.map(([, ,name])=>name.replaceAll('&amp;','&')),names);
+ for(const [,src] of logos){
+  assert.match(src,/^\/media\/partners\/[a-z0-9-]+\.webp$/);
+  assert.ok(fs.statSync(new URL('../public'+src,import.meta.url)).size>0);
+ }
 });
 
 test('public indexing switch controls metadata without opening private areas',()=>{

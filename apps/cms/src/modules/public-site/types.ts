@@ -6,6 +6,6 @@ export type Card={id:number;slug:string;title:string;summary:string;language:'vi
 export type ArticleList={docs:Card[];page:number;totalPages:number;totalDocs:number};
 export type PublicQuery={q:string;group:string;page:number};
 export type TeamMember={name:string;role:string;roleDe:string;field:string;fieldDe:string;url?:string};
-export type Partner={name:string};
+export type Partner={name:string;logo:string};
 export type PublicCopy={vi:string;de:string};
 export type LegacyNews={id:string;title:string;summary:string;category:string;type:string;photo:string;published?:string|null;sourceName:string;sourceUrl:string;paragraphs:string[];points?:string[];secondary?:{name:string;url:string}[];checked?:string;caption?:string};
