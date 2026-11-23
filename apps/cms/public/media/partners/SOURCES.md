@@ -1,6 +1,6 @@
 Homepage partner logos. Source artwork was cropped to remove outer margins and resized proportionally to WebP for local delivery.
 
-- Bizlawyer & Partners: https://bizlawyer.vn/wp-content/themes/bizlawyer/images/logo.svg?v=1
+- Bizlawyer & Partners: transparent logo supplied by the owner (bizlawyer_2026-w.png).
 - Atsumi & Sakai Frankfurt: https://aplaw.de/wp-content/uploads/2024/07/AP-Frankfurt-long-hori-768x167.webp
 - Rechtsanwalt Michael Amiragov: https://www.ra-auslaenderrecht-ffm.de/ uses https://renderer.omergy.de/assets/1173/images/logo-amiragov-recht-frankfurt.png
 - G2G GmbH: original transparent logo supplied by the owner (G2G GmbH.png).
