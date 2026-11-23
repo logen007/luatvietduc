@@ -1,8 +1,9 @@
 import renditions from './hero-video-renditions.json';
 // Match an exact public media revision; replacing a file or choosing another
 // banner immediately falls back to that new source, never an unrelated clip.
+const matchesSource=(value:string|null,source:string)=>value===source||value==='https://luatvietduc.com'+source;
 export function heroVideoSource(source:string,mobile=false){
- const match=renditions.find(item=>source===item.source||source==='https://luatvietduc.com'+item.source);
+ const match=renditions.find(item=>matchesSource(source,item.source)||(mobile&&matchesSource(source,item.mobileSource)));
  return match?(mobile?match.mobile:match.desktop):source;
 }
 // Bundled defaults preserve the current banner until an admin selects media.
@@ -23,6 +24,7 @@ export function safeMediaURL(value:unknown):value is string{
 }
 export function heroBanner(settings:{heroVideo?:unknown;heroMobileVideo?:unknown;heroPoster?:unknown;updatedAt?:string|null}):HeroBanner{
  const video=publicMediaURL(settings.heroVideo,'video'),mobile=publicMediaURL(settings.heroMobileVideo,'video'),poster=publicMediaURL(settings.heroPoster,'image');
- return {video:heroVideoSource(video||defaultHeroBanner.video),mobileVideo:heroVideoSource(mobile||video||defaultHeroBanner.mobileVideo,true),poster:poster||defaultHeroBanner.poster,revision:Date.parse(settings.updatedAt||'')||0};
+ const match=renditions.find(item=>matchesSource(video,item.source)&&(!mobile||matchesSource(mobile,item.mobileSource))&&matchesSource(poster,item.posterSource));
+ return {video:heroVideoSource(video||defaultHeroBanner.video),mobileVideo:heroVideoSource(mobile||video||defaultHeroBanner.mobileVideo,true),poster:match?.poster||poster||defaultHeroBanner.poster,revision:Date.parse(settings.updatedAt||'')||0};
 }
 export function latestHeroBanner(initial:HeroBanner,current?:HeroBanner){return current&&current.revision>=initial.revision?current:initial;}
