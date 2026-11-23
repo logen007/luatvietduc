@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
+import {setTimeout as delay} from 'node:timers/promises';
 import pg from 'pg';
 import type {Payload} from 'payload';
 import type {User} from '../src/payload-types';
@@ -90,7 +91,17 @@ export async function testPasswordLoginAdmission(payload:Payload,owner:User){
   pg.Client.prototype.query=(function(this:pg.Client,...args:any[]){if(!unlockFailed&&typeof args[0]==='string'&&args[0].startsWith('SELECT pg_advisory_unlock')){unlockFailed=true;return Promise.reject(new Error('Synthetic unlock failure'));}return (originalQuery as any).apply(this,args);}) as typeof originalQuery;
   try{assert.equal(await withPasswordLoginLock(unknown,async()=>true),true);}finally{pg.Client.prototype.query=originalQuery;}
   assert.equal(unlockFailed,true);
-  assert.equal(await withPasswordLoginLock(unknown,async()=>true),true,'An unlock failure destroys the connection and releases its server lock');
+  // Client disposal can finish before PostgreSQL observes the disconnect.
+  const deadline=Date.now()+2000;
+  for(;;){
+   try{
+    assert.equal(await withPasswordLoginLock(unknown,async()=>true),true,'An unlock failure destroys the connection and releases its server lock');
+    break;
+   }catch(error){
+    if(!(error instanceof Error)||!('status' in error)||error.status!==409||Date.now()>=deadline)throw error;
+    await delay(25);
+   }
+  }
   console.log('Password admission checks passed: same-account exclusion, concurrent downgrade preservation, persistent native counters, lockout/expired-lock recovery, normal retry, old/new email mutation exclusion, missing-email lookup races, unknown-user contention and failure cleanup.');
  }finally{
   resume();if(pending)await Promise.allSettled([pending]);payload.db.findOne=originalFindOne;pg.Client.prototype.query=originalQuery;
