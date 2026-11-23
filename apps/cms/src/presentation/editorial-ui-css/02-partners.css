@@ -1,6 +1,6 @@
 /* Partner logos at the foot of the homepage hero. */
 .pm-partners { margin-top:auto; border-top:1px solid rgba(255,255,255,.1); background:linear-gradient(180deg,rgba(20,15,10,.32),rgba(10,8,6,.55)); -webkit-backdrop-filter:blur(12px) saturate(1.1); backdrop-filter:blur(12px) saturate(1.1); }
-.pm-partners-color { margin-bottom:10px; background:#fff; }
+.pm-partners-color { margin-bottom:1px; background:#fff; }
 .pm-partners-color .pm-partner-logo { opacity:1; }
 .pm-partners-color .pm-partner-marquee:focus-visible { outline-color:#242321; }
 .lvd-redesign .pm-partners-inner { display:flex; align-items:center; gap:32px; min-height:120px; padding-top:30px; padding-bottom:30px; }
