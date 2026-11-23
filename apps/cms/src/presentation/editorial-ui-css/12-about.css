@@ -12,6 +12,7 @@
 }
 .lvd-about-hero-copy {min-width:0;text-align:center}
 .lvd-about-hero-copy .button-row {justify-content:center}
+.lvd-about-hero-copy .button-row .lvd-arrow {display:none}
 .lvd-about-eyebrow {
   display:block;
   margin-bottom:16px;
