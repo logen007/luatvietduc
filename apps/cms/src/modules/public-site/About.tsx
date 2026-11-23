@@ -6,7 +6,6 @@ import {AppLink} from '../shared/AppLink';
 import {Arrow,Breadcrumb} from './ui';
 
 type CopyKey=keyof typeof information.text;
-const partnerIds=['bizlawyer','atsumi','michael','g2g','ami','frankfurt'] as const;
 const missionIds=['knowledge','life','business','connection','community'] as const;
 function Chapter({number,title,id,children}:{number:string;title:string;id:string;children:ReactNode}){
  return <section className="lvd-about-chapter" id={id} aria-labelledby={id+'-title'}><header><span className="lvd-about-chapter-number" aria-hidden="true">{number}</span><h2 id={id+'-title'}>{title}</h2></header><div className="lvd-about-chapter-body">{children}</div></section>;
@@ -27,10 +26,9 @@ export function About(){
   <div className="container lvd-about-chapters">
    <Chapter number="01" id="nen-tang-chuyen-mon" title={text('about.foundation.title')}>
     <span id="doi-ngu" className="lvd-about-anchor" aria-hidden="true"/>
-    {paragraphs(['about.foundation.1','about.foundation.2','about.foundation.3'])}
-    <ul className="lvd-about-partners">{partnerIds.map(id=><li key={id}><strong>{text(`about.partner.${id}.name`)}</strong><p>{text(`about.partner.${id}.description`)}</p></li>)}</ul>
+    {paragraphs(['about.foundation.1','about.foundation.2'])}
     {paragraphs(['about.foundation.4'])}
-    <figure className="lvd-about-network-photo"><img src="/media/about/bizlawyer-consultation.webp" width={1168} height={288} alt="" loading="lazy" decoding="async"/></figure>
+    <figure className="lvd-about-network-photo"><img src="/media/benefits/clarity.webp" width={1200} height={800} alt="" loading="lazy" decoding="async"/></figure>
    </Chapter>
    <Chapter number="02" id="gia-tri-cong-dong" title={text('about.community.title')}>
     {paragraphs(['about.community.1','about.community.2'])}

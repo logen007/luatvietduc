@@ -111,17 +111,17 @@ test('preserved policy copy has no active markup and links resolve to native pag
   const result=canonicalCopy(html);assert.doesNotMatch(result,/href="#\//);assert.ok(result.includes('href="/lien-he"'));
  }
  assert.equal(canonicalCopy('<a href="#section">anchor</a>'),'<a href="#section">anchor</a>');
- assert.equal(content.team.length,9);assert.equal(content.partners.length,13);
+ assert.equal(content.team.length,9);
 });
 
-test('all existing partner logos are packaged, bounded files rather than third-party page-load requests',()=>{
- assert.equal(content.partners.length,13);
- let total=0;
- for(const partner of content.partners){
-  assert.match(partner.logo,/^\/assets\/logos\/[a-z0-9-]+\.(svg|webp)$/);
-  const file=new URL('../../..'+partner.logo,import.meta.url);total+=fs.statSync(file).size;
- }
- assert.ok(total<100000,'The complete logo strip should stay under 100 KB');
+test('homepage displays the six approved partners in order',()=>{
+ const names=['Bizlawyer & Partners','Atsumi & Sakai Frankfurt','Rechtsanwalt Michael Amiragov','G2G GmbH','AMI','Frankfurt RheinMain'];
+ const home=renderToStaticMarkup(createElement(AppRouterContext.Provider,{value:{push(){},prefetch(){}}},createElement(Home,{
+  groups:[],partners:content.partners,news:{docs:[],totalDocs:0,totalPages:1,page:1},
+  revision:'synthetic',benefitPhotos:[],banner:defaultHeroBanner,
+ })));
+ const visibleGroup=home.match(/<ul class="pm-partner-group">(.+?)<\/ul>/)?.[1]??'';
+ assert.deepEqual([...visibleGroup.matchAll(/<li class="pm-partner-name">([^<]+)<\/li>/g)].map(([,name])=>name.replaceAll('&amp;','&')),names);
 });
 
 test('public indexing switch controls metadata without opening private areas',()=>{

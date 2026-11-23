@@ -1,6 +1,6 @@
 'use client';
 import {AppLink} from '../shared/AppLink';
-import {useId,useRef,useState} from 'react';
+import {useRef,useState} from 'react';
 import {useRouter} from 'next/navigation';
 import type {ArticleList,GroupSummary,Partner} from './types';
 import {Arrow,ArticleCards,GroupGrid,usePublicCopy} from './ui';
@@ -8,8 +8,24 @@ import {HomeServices,HomeBenefits} from './HomeServices';
 import {HeroVideo} from './HeroVideo';
 import type {HeroBanner} from '../settings/hero-banner';
 function Partners({items}:{items:Partner[]}){
- const l=usePublicCopy(),id=useId().replace(/[^a-zA-Z0-9_-]/g,'');
- return <section className="pm-partners" aria-label={l('Logo đối tác','Partnerlogos')}><div className="container pm-partners-inner"><div className="pm-partner-marquee" tabIndex={0} aria-label={l('Logo đối tác','Partnerlogos')}><div className="pm-partner-track">{[0,1].map(copy=><div className="pm-partner-group" key={copy} aria-hidden={copy===1?true:undefined}>{items.map((item,index)=>{const filter=id+'-'+copy+'-'+index;return <svg className="pm-partner-logo" key={item.logo} viewBox="0 0 220 60" width={140} height={38} role="img" aria-label={copy?'':item.source} focusable="false"><defs><filter id={filter} colorInterpolationFilters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  -.2126 -.7152 -.0722 0 1"/><feComponentTransfer><feFuncA type="linear" slope="1.1" intercept="-.05"/></feComponentTransfer><feComposite operator="in" in2="SourceGraphic"/></filter></defs><image href={item.logo} width={220} height={60} preserveAspectRatio="xMidYMid meet" filter={'url(#'+filter+')'}/></svg>;})}</div>)}</div></div></div></section>;
+ const l=usePublicCopy();
+ const label=l('Đơn vị liên kết','Kooperationspartner');
+ if(!items.length)return null;
+ return (
+  <section className="pm-partners" aria-label={label}>
+   <div className="container pm-partners-inner">
+    <div className="pm-partner-marquee" tabIndex={0} role="group" aria-label={label}>
+     <div className="pm-partner-track">
+      {[false,true].map(duplicate=>(
+       <ul className="pm-partner-group" key={String(duplicate)} aria-hidden={duplicate||undefined}>
+        {items.map(({name})=><li className="pm-partner-name" key={name}>{name}</li>)}
+       </ul>
+      ))}
+     </div>
+    </div>
+   </div>
+  </section>
+ );
 }
 export function Home({groups,partners,news,revision,benefitPhotos,banner}:{banner:HeroBanner;groups:GroupSummary[];partners:Partner[];news:ArticleList;revision:string;benefitPhotos:string[]}){
  const l=usePublicCopy(),router=useRouter(),[error,setError]=useState(''),[warmed,setWarmed]=useState(false),prefetched=useRef(false);

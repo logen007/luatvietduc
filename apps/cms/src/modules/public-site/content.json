@@ -1,5 +1,5 @@
 {
-  "sourceHash": "4d22052dd89a149fd29e10ec2450feecc2506e43b7612e747ca05adf2ebd9700",
+  "sourceHash": "4644100fedc72152c22bf442cb885511fc88931eb995499d10378f807d815d37",
   "groups": [
     {
       "id": "hon-nhan-gia-dinh",
@@ -894,56 +894,22 @@
   ],
   "partners": [
     {
-      "source": "G2G Career",
-      "logo": "/assets/logos/p1.svg"
+      "name": "Bizlawyer & Partners"
     },
     {
-      "source": "G2G Career",
-      "logo": "/assets/logos/doi-tac-02.webp"
+      "name": "Atsumi & Sakai Frankfurt"
     },
     {
-      "source": "G2G Career",
-      "logo": "/assets/logos/doi-tac-03.webp"
+      "name": "Rechtsanwalt Michael Amiragov"
     },
     {
-      "source": "Bizlawyer",
-      "logo": "/assets/logos/masterise.webp"
+      "name": "G2G GmbH"
     },
     {
-      "source": "Bizlawyer",
-      "logo": "/assets/logos/bes.webp"
+      "name": "AMI"
     },
     {
-      "source": "Bizlawyer",
-      "logo": "/assets/logos/spic.webp"
-    },
-    {
-      "source": "Bizlawyer",
-      "logo": "/assets/logos/yingje.webp"
-    },
-    {
-      "source": "Bizlawyer",
-      "logo": "/assets/logos/aditya.webp"
-    },
-    {
-      "source": "Bizlawyer",
-      "logo": "/assets/logos/irc.webp"
-    },
-    {
-      "source": "Bizlawyer",
-      "logo": "/assets/logos/vingroup.webp"
-    },
-    {
-      "source": "Bizlawyer",
-      "logo": "/assets/logos/knightfrank.webp"
-    },
-    {
-      "source": "Bizlawyer",
-      "logo": "/assets/logos/masan.webp"
-    },
-    {
-      "source": "Bizlawyer",
-      "logo": "/assets/logos/ipcgroup.webp"
+      "name": "Frankfurt RheinMain"
     }
   ],
   "newsSlugs": [
