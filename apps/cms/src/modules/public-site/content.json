@@ -1,5 +1,5 @@
 {
-  "sourceHash": "c59738fab4af2dfaaeda8e5d3cec9257922561c2f4ebe05365282a3395a087b5",
+  "sourceHash": "69298aad81a42c57aea38cbe31324e45e67f788bc77c28185ad1b2412ff9fbb7",
   "groups": [
     {
       "id": "hon-nhan-gia-dinh",
@@ -895,7 +895,8 @@
   "partners": [
     {
       "name": "Bizlawyer & Partners",
-      "logo": "/media/partners/bizlawyer-2026-full.webp"
+      "logo": "/media/partners/bizlawyer-2026-full.webp",
+      "href": "https://bizlawyer.vn/"
     },
     {
       "name": "Atsumi & Sakai Frankfurt",

@@ -18,11 +18,12 @@ function Partners({items}:{items:Partner[]}){
      <div className="pm-partner-track">
       {[false,true].map(duplicate=>(
        <ul className="pm-partner-group" key={String(duplicate)} aria-hidden={duplicate||undefined}>
-        {items.map(({name,logo})=>(
-         <li className="pm-partner-item" key={name}>
-          <img className="pm-partner-logo" src={logo} width={140} height={38} alt={duplicate?'':name} decoding="async"/>
-         </li>
-        ))}
+        {items.map(({name,logo,href})=>{
+         const image=<img className="pm-partner-logo" src={logo} width={140} height={38} alt={duplicate?'':name} decoding="async"/>;
+         return <li className="pm-partner-item" key={name}>
+          {href?<a href={href} tabIndex={duplicate?-1:undefined}>{image}</a>:image}
+         </li>;
+        })}
        </ul>
       ))}
      </div>

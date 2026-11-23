@@ -10,10 +10,16 @@ const missionIds=['knowledge','life','business','connection','community'] as con
 function Chapter({title,id,children}:{title:string;id:string;children:ReactNode}){
  return <section className="lvd-about-chapter" id={id} aria-labelledby={id+'-title'}><header><h2 id={id+'-title'}>{title}</h2></header><div className="lvd-about-chapter-body">{children}</div></section>;
 }
+function linkBizlawyer(value:string){
+ return value.split(/(\bBizlawyer(?: & Partners)?\b)/gi).map((part,index)=>
+  index%2?<a href="https://bizlawyer.vn/" key={index}>{part}</a>:part
+ );
+}
+
 export function About(){
  const {language,copy,t}=useLocale();
  const text=(key:CopyKey)=>copy[key]?.[language]??information.text[key][language];
- const paragraphs=(keys:readonly CopyKey[])=>keys.map(key=><p key={key}>{text(key)}</p>);
+ const paragraphs=(keys:readonly CopyKey[])=>keys.map(key=><p key={key}>{linkBizlawyer(text(key))}</p>);
  return <div className="lvd-about-page">
   <div className="container page lvd-about-intro">
    <Breadcrumb title={t('Giới thiệu')}/>
@@ -37,7 +43,7 @@ export function About(){
     <Chapter id="chat-luong-tri-thuc" title={text('about.quality.title')}>
      {paragraphs(['about.quality.3'])}
      <blockquote className="lvd-about-belief">{paragraphs(['about.belief.1'])}</blockquote>
-     <p className="lvd-about-signature">{text('about.signature')}</p>
+     <p className="lvd-about-signature">{linkBizlawyer(text('about.signature'))}</p>
      <div className="button-row"><AppLink className="button" href="/hoi-dap">{t('Mở trò chuyện')} <Arrow/></AppLink><AppLink className="lvd-about-text-link" href="/lien-he">{t('Liên hệ')} <Arrow/></AppLink></div>
     </Chapter>
    </div>

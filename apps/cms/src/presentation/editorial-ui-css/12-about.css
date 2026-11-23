@@ -124,3 +124,5 @@
   .lvd-about-missions,.lvd-about-closing {grid-template-columns:minmax(0,1fr)}
   .lvd-about-network-photo {aspect-ratio:3/2;order:1}
 }
+
+.lvd-about-opening p a,.lvd-about-chapter-body>p a {color:inherit;text-decoration:underline;text-underline-offset:3px}
