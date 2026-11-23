@@ -7,12 +7,11 @@
 }
 .lvd-about-hero {
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);
-  align-items:center;
-  gap:clamp(32px,6vw,96px);
-  padding:clamp(20px,4vw,64px) 0 clamp(36px,6vw,88px);
+  gap:clamp(24px,4vw,52px);
+  padding:clamp(24px,4vw,64px) 0 0;
 }
-.lvd-about-hero-copy {min-width:0}
+.lvd-about-hero-copy {min-width:0;text-align:center}
+.lvd-about-hero-copy .button-row {justify-content:center}
 .lvd-about-eyebrow {
   display:block;
   margin-bottom:16px;
@@ -28,7 +27,7 @@
 }
 .lvd-about-tagline {
   max-width:38ch;
-  margin:0 0 28px;
+  margin:0 auto 20px;
   color:#5c5953;
   font:400 clamp(16px,2vw,21px)/1.55 var(--lvd-font);
 }
@@ -53,18 +52,11 @@
   background:#efede7;
 }
 .lvd-about-hero-photo img,.lvd-about-network-photo img {display:block;width:100%;height:auto}
-.lvd-about-opening,.lvd-about-chapter {
-  border-top:1px solid #dedbd4;
-  padding-block:clamp(32px,5vw,76px);
-}
-.lvd-about-opening {
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,2.35fr);
-  align-items:start;
-  gap:clamp(28px,6vw,92px);
-}
-.lvd-about-network-photo {max-width:360px}
-.lvd-about-opening>div,.lvd-about-chapter-body {min-width:0;max-width:850px}
+.lvd-about-hero-photo {aspect-ratio:2.7}
+.lvd-about-hero-photo img {height:100%;object-fit:cover;object-position:center 47%}
+.lvd-about-opening {padding-block:clamp(32px,6vw,88px)}
+.lvd-about-opening>div {max-width:760px;margin-inline:auto}
+.lvd-about-chapter-body {min-width:0}
 .lvd-about-opening p,.lvd-about-chapter-body>p,.lvd-about-missions p,.lvd-about-belief p {
   margin:0 0 18px;
   color:#514e48;
@@ -76,11 +68,12 @@
 }
 .lvd-about-opening p:last-child,.lvd-about-missions p,.lvd-about-belief p {margin-bottom:0}
 .lvd-about-chapter {
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,2.35fr);
-  gap:clamp(24px,6vw,92px);
+  border-top:1px solid #dedbd4;
+  padding-block:clamp(32px,5vw,72px);
   scroll-margin-top:100px;
 }
+.lvd-about-chapter>header {margin-bottom:18px}
+#gia-tri-cong-dong .lvd-about-chapter-body>p {max-width:760px}
 .lvd-redesign .lvd-about-chapter h2,.lvd-redesign .lvd-about-missions h3 {
   margin:0;
   font:600 24px/1.35 var(--lvd-display);
@@ -89,12 +82,31 @@
   overflow-wrap:anywhere;
 }
 .lvd-about-missions {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
   list-style:none;
   padding:0;
   margin:24px 0 0;
+}
+.lvd-about-missions li {
+  padding:clamp(16px,2.5vw,30px);
+  border:1px solid #dedbd4;
+  border-radius:4px;
+  background:#f8f7f4;
+}
+.lvd-about-missions li:last-child {grid-column:1/-1}
+.lvd-about-closing {
+  display:grid;
+  grid-template-columns:minmax(0,.75fr) minmax(0,1.6fr);
+  gap:clamp(24px,5vw,72px);
+  align-items:center;
+  padding-block:clamp(24px,4vw,56px);
   border-top:1px solid #dedbd4;
 }
-.lvd-about-missions li {padding:16px 0;border-bottom:1px solid #dedbd4}
+.lvd-about-closing .lvd-about-chapter {border-top:0;padding:0}
+.lvd-about-network-photo {aspect-ratio:4/5}
+.lvd-about-network-photo img {height:100%;object-fit:cover;object-position:center 42%}
 .lvd-redesign .lvd-about-missions h3 {margin-bottom:8px;text-wrap:wrap}
 .lvd-about-belief {
   margin:24px 0 16px;
@@ -107,8 +119,7 @@
 .lvd-about-chapter-body>.lvd-about-signature {margin:0 0 20px;color:#242321;font-weight:600;text-align:start}
 
 @media(max-width:760px) {
-  .lvd-about-hero,.lvd-about-opening,.lvd-about-chapter {grid-template-columns:minmax(0,1fr);gap:22px}
   .lvd-about-hero-photo {aspect-ratio:3/2}
-  .lvd-about-network-photo {order:1;max-width:none;aspect-ratio:3/2}
-  .lvd-about-network-photo img {height:100%;object-fit:cover;object-position:center 38%}
+  .lvd-about-missions,.lvd-about-closing {grid-template-columns:minmax(0,1fr)}
+  .lvd-about-network-photo {aspect-ratio:3/2;order:1}
 }

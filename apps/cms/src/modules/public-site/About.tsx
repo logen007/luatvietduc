@@ -22,9 +22,6 @@ export function About(){
     <figure className="lvd-about-hero-photo"><img src="/media/about/frankfurt-cityscape.webp" width={1440} height={960} alt={text('about.hero.photo')} decoding="async"/></figure>
    </header>
    <div className="lvd-about-opening">
-    <figure className="lvd-about-network-photo">
-     <img src="/media/about/berlin-spree.webp" width={720} height={1080} alt={text('about.berlin.photo')} loading="lazy" decoding="async"/>
-    </figure>
     <div>{paragraphs(['about.intro.1','about.intro.2','about.intro.3'])}</div>
    </div>
   </div>
@@ -33,12 +30,17 @@ export function About(){
     {paragraphs(['about.community.2'])}
     <ul className="lvd-about-missions">{missionIds.map(id=><li key={id}><div><h3>{text(`about.mission.${id}.title`)}</h3><p>{text(`about.mission.${id}.body`)}</p></div></li>)}</ul>
    </Chapter>
-   <Chapter id="chat-luong-tri-thuc" title={text('about.quality.title')}>
-    {paragraphs(['about.quality.3'])}
-    <blockquote className="lvd-about-belief">{paragraphs(['about.belief.1'])}</blockquote>
-    <p className="lvd-about-signature">{text('about.signature')}</p>
-    <div className="button-row"><AppLink className="button" href="/hoi-dap">{t('Mở trò chuyện')} <Arrow/></AppLink><AppLink className="lvd-about-text-link" href="/lien-he">{t('Liên hệ')} <Arrow/></AppLink></div>
-   </Chapter>
+   <div className="lvd-about-closing">
+    <figure className="lvd-about-network-photo">
+     <img src="/media/about/berlin-spree.webp" width={720} height={1080} alt={text('about.berlin.photo')} loading="lazy" decoding="async"/>
+    </figure>
+    <Chapter id="chat-luong-tri-thuc" title={text('about.quality.title')}>
+     {paragraphs(['about.quality.3'])}
+     <blockquote className="lvd-about-belief">{paragraphs(['about.belief.1'])}</blockquote>
+     <p className="lvd-about-signature">{text('about.signature')}</p>
+     <div className="button-row"><AppLink className="button" href="/hoi-dap">{t('Mở trò chuyện')} <Arrow/></AppLink><AppLink className="lvd-about-text-link" href="/lien-he">{t('Liên hệ')} <Arrow/></AppLink></div>
+    </Chapter>
+   </div>
   </div>
  </div>;
 }
