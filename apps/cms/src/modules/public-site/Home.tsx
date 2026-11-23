@@ -12,7 +12,7 @@ function Partners({items}:{items:Partner[]}){
  const label=l('Đơn vị liên kết','Kooperationspartner');
  if(!items.length)return null;
  return (
-  <section className="pm-partners" aria-label={label}>
+  <section className="pm-partners pm-partners-color" aria-label={label}>
    <div className="container pm-partners-inner">
     <div className="pm-partner-marquee" tabIndex={0} role="group" aria-label={label}>
      <div className="pm-partner-track">

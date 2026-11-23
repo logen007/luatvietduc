@@ -8,3 +8,5 @@ Homepage partner logos. Source artwork was cropped to remove outer margins and r
 - Frankfurt RheinMain: https://www.frm-united.com/ header sprite, symbol logo_frm_horizontal
 
 White WebP variants use a transparent background and retain the original artwork proportions.
+
+The Bizlawyer color variant comes from the supplied bizlawyer_2026.svg. The G2G GmbH dark variant reverses the supplied monochrome artwork for the light strip.
