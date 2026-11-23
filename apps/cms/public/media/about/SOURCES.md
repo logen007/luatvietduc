@@ -2,3 +2,5 @@
 - reichstag-berlin.webp — [The Reichstag in Berlin](https://www.pexels.com/photo/the-reichstag-in-berlin-754943/), [Pexels License](https://www.pexels.com/license/). Compressed for the About page.
 - frankfurt-cityscape.webp — [Cityscape of Frankfurt, Sergei Gussev](https://www.pexels.com/photo/cityscape-of-frankfurt-16648589/), [Pexels License](https://www.pexels.com/license/).
 - berlin-spree.webp — [Modern Architecture by Spree River in Berlin, Mike Balzer](https://www.pexels.com/photo/modern-architecture-by-spree-river-in-berlin-31913720/), [Pexels License](https://www.pexels.com/license/).
+- colleagues-discussing-documents.webp — [Diverse cheerful colleagues talking about important documents](https://www.pexels.com/photo/diverse-cheerful-colleagues-talking-about-important-documents-6457488/), [Pexels License](https://www.pexels.com/license/).
+- reading-in-library.webp — [Woman Reading a Document while Leaning on a Bookcase](https://www.pexels.com/photo/woman-reading-a-document-while-leaning-on-a-bookcase-8837464/), [Pexels License](https://www.pexels.com/license/).

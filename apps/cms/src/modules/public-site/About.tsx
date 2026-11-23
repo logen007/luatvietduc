@@ -19,7 +19,7 @@ export function About(){
    <Breadcrumb title={t('Giới thiệu')}/>
    <header className="lvd-about-hero">
     <div className="lvd-about-hero-copy"><span className="lvd-about-eyebrow">{text('about.label')}</span><h1>{text('about.title')}</h1><p className="lvd-about-tagline">{text('about.tagline')}</p><div className="button-row"><AppLink className="button" href="/hoi-dap">{t('Mở trò chuyện')} <Arrow/></AppLink><AppLink className="lvd-about-text-link" href="/thu-vien">{t('Khám phá thư viện')} <Arrow/></AppLink></div></div>
-    <figure className="lvd-about-hero-photo"><img src="/media/about/frankfurt-cityscape.webp" width={1440} height={960} alt={text('about.hero.photo')} decoding="async"/></figure>
+    <figure className="lvd-about-hero-photo"><img src="/media/about/colleagues-discussing-documents.webp" width={1440} height={960} alt={text('about.hero.photo')} decoding="async"/></figure>
    </header>
    <div className="lvd-about-opening">
     <div>{paragraphs(['about.intro.1','about.intro.2','about.intro.3'])}</div>
@@ -32,7 +32,7 @@ export function About(){
    </Chapter>
    <div className="lvd-about-closing">
     <figure className="lvd-about-network-photo">
-     <img src="/media/about/berlin-spree.webp" width={720} height={1080} alt={text('about.berlin.photo')} loading="lazy" decoding="async"/>
+     <img src="/media/about/reading-in-library.webp" width={720} height={1080} alt={text('about.berlin.photo')} loading="lazy" decoding="async"/>
     </figure>
     <Chapter id="chat-luong-tri-thuc" title={text('about.quality.title')}>
      {paragraphs(['about.quality.3'])}

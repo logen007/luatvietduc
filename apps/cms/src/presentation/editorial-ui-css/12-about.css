@@ -53,7 +53,7 @@
 }
 .lvd-about-hero-photo img,.lvd-about-network-photo img {display:block;width:100%;height:auto}
 .lvd-about-hero-photo {aspect-ratio:2.7}
-.lvd-about-hero-photo img {height:100%;object-fit:cover;object-position:center 47%}
+.lvd-about-hero-photo img {height:100%;object-fit:cover;object-position:center 30%}
 .lvd-about-opening {padding-block:clamp(32px,6vw,88px)}
 .lvd-about-opening>div {max-width:760px;margin-inline:auto}
 .lvd-about-chapter-body {min-width:0}
