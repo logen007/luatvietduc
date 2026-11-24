@@ -1,0 +1,23 @@
+{
+  "retrievedOn": "2026-11-09",
+  "source": "https://bizlawyer.vn/vi/",
+  "usage": "Owner-requested Bizlawyer photographs; illustrative activity photos do not identify every pictured person as staff. Images resized proportionally without retouching or cropping. Rights remain with original holders.",
+  "images": [
+    {
+      "file": "bizlawyer-exchange.webp",
+      "source": "https://bizlawyer.vn/wp-content/uploads/Dong-hanh-voi-sinh-vien-luan-ftu.jpg",
+      "dimensions": [
+        1440,
+        1080
+      ]
+    },
+    {
+      "file": "bizlawyer-consultation.webp",
+      "source": "https://bizlawyer.vn/wp-content/uploads/aboutus-slide.png",
+      "dimensions": [
+        1168,
+        288
+      ]
+    }
+  ]
+}

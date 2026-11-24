@@ -1,0 +1,13 @@
+[
+  {
+    "source": "/api/media/file/legal-hero-vietnam-family-20261108.mp4?v=1794112118108",
+    "sha256": "8d1fe125f6d8d350bc3c2e5a072829219a9b28687cd5e05b414f282355ee442f",
+    "duration": 23.32,
+    "mobileSource": "/api/media/file/legal-hero-vietnam-family-mobile-20261108.mp4?v=1794112120745",
+    "posterSource": "/api/media/file/legal-hero-selected-two-scenes-poster-20261108.webp?v=1794105006005",
+    "poster": "/media/hero-family-poster-desktop-v4.webp",
+    "mobilePoster": "/media/hero-family-poster-mobile-v4.webp",
+    "desktop": "/media/hero-family-desktop-v4.mp4",
+    "mobile": "/media/hero-family-mobile-v4.mp4"
+  }
+]

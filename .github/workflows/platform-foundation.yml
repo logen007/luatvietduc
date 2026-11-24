@@ -1,0 +1,139 @@
+name: Platform foundation checks
+on:
+  push:
+    branches: ['feat/platform-*']
+    paths: ['apps/cms/**', 'assets/**', 'index.html', '.dockerignore', 'platform/**', 'ops/**', '.github/workflows/platform-foundation.yml']
+  pull_request:
+    paths: ['apps/cms/**', 'assets/**', 'index.html', '.dockerignore', 'platform/**', 'ops/**', '.github/workflows/platform-foundation.yml']
+permissions:
+  contents: read
+jobs:
+  # Feature-branch pushes already validate this exact source. Keep PR checks for
+  # forks and branches outside that push trigger, without duplicate runner jobs.
+  release-scope:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || !startsWith(github.head_ref, 'feat/platform-') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      fast: ${{ steps.scope.outputs.fast }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Classify against the actual deployed revision (fail closed)
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: python3 ops/deploy/release-scope.py
+  presentation-checks:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || !startsWith(github.head_ref, 'feat/platform-') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.22.1'
+      - name: Validate presentation bundles and public scripts
+        run: |
+          CI=1 node apps/cms/scripts/assemble-presentation.mjs
+          node --check apps/cms/public/editorial-ui.js
+          node --check apps/cms/public/live-bridge.js
+          node --check apps/cms/public/legal-runtime.js
+          python3 -m json.tool apps/cms/public/social-icons.json > /dev/null
+  domain-tests:
+    needs: release-scope
+    if: ${{ needs.release-scope.outputs.fast != 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: platform
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.22.1'
+          cache: npm
+          cache-dependency-path: platform/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+      - name: Validate read-only audit script syntax
+        run: bash -n ../ops/server-audit.sh
+# Production pulls only successful push runs of this exact workflow and commit.
+# This workflow receives no VPS credentials and performs no production writes.
+  deploy-tool-checks:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository || !startsWith(github.head_ref, 'feat/platform-') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest discover -s ops/deploy -p 'test_*.py' -v
+      - run: node --test ops/deploy/test_presentation.mjs
+      - run: bash -n ops/deploy/install-auto-deploy.sh
+      - run: bash -n ops/deploy/backup.sh
+  cms-checks:
+    # Light release checks must not queue behind an unrelated application build.
+    concurrency:
+      group: platform-cms-build-${{ github.ref }}
+      cancel-in-progress: false
+    needs: release-scope
+    if: ${{ needs.release-scope.outputs.fast != 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/cms
+    env:
+      PAYLOAD_SECRET: ci-only-nonproduction-secret-000000000000
+      DATABASE_URL: postgresql://lvd:ci_only@127.0.0.1:5432/lvd_test
+      NEXT_TELEMETRY_DISABLED: '1'
+      LVD_WORKERS_DISABLED: '1'
+    services:
+      postgres:
+        image: postgres:17.6-bookworm
+        env:
+          POSTGRES_DB: lvd_test
+          POSTGRES_USER: lvd
+          POSTGRES_PASSWORD: ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U lvd -d lvd_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.22.1'
+          cache: npm
+          cache-dependency-path: apps/cms/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run migrate
+      - run: npm run test:db
+      - run: npm run test:system
+      - name: Cache Next.js compiler output
+        uses: actions/cache@v6
+        with:
+          path: apps/cms/.next/cache
+          key: ${{ runner.os }}-node24-next-${{ hashFiles('apps/cms/package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-node24-next-${{ hashFiles('apps/cms/package-lock.json') }}-
+        env:
+          SEGMENT_DOWNLOAD_TIMEOUT_MINS: '1'
+      - run: node scripts/trim-build-cache.mjs
+      - run: npm run build
+      - run: node scripts/trim-build-cache.mjs

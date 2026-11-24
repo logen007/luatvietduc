@@ -1,0 +1,56 @@
+{
+  "editorial-ui.css": [
+    "editorial-ui-css/00-base.css",
+    "editorial-ui-css/01-header-hero.css",
+    "editorial-ui-css/02-partners.css",
+    "editorial-ui-css/03-countries.css",
+    "editorial-ui-css/04-topics.css",
+    "editorial-ui-css/05-news-footer-responsive.css",
+    "editorial-ui-css/06-application-menu.css",
+    "editorial-ui-css/07-contact-form.css",
+    "editorial-ui-css/08-home-insights.css",
+    "editorial-ui-css/09-native-pages.css",
+    "editorial-ui-css/10-home-services.css",
+    "editorial-ui-css/11-scroll-reveal.css",
+    "editorial-ui-css/12-about.css",
+    "form-controls.css"
+  ],
+  "live.css": [
+    "live-css/00-shared-shell.css",
+    "live-css/01-footer.css",
+    "live-css/02-account.css",
+    "live-css/03-connections.css",
+    "live-css/04-articles.css",
+    "live-css/05-responsive.css",
+    "editorial-ui-css/06-application-menu.css",
+    "live-css/09-public-shell.css",
+    "form-controls.css",
+    "release-notice.css",
+    "confirm-dialog.css"
+  ],
+  "editorial-ui.js": [
+    "editorial-ui-js/00-native-routing.js"
+  ],
+  "legal-runtime.js": [
+    "legal-runtime-js/00-contact-form.js",
+    "legal-runtime-js/01-information-pages.js"
+  ],
+  "customer-chat.css": [
+    "live-css/06-chat.css",
+    "live-css/07-assistant-chat.css"
+  ],
+  "specialist-inbox.css": [
+    "live-css/08-specialist-inbox.css"
+  ],
+  "admin-theme.css": [
+    "../app/(payload)/admin-custom.css",
+    "../app/(payload)/admin-dashboard.css",
+    "../modules/content/article-editor.css",
+    "admin-profile.css",
+    "form-controls.css",
+    "release-notice.css",
+    "confirm-dialog.css",
+    "admin-actions.css",
+    "admin-editor.css"
+  ]
+}

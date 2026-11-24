@@ -1,0 +1,65 @@
+services:
+  database:
+    image: postgres:17.6-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: luatvietduc
+      POSTGRES_USER: lvd
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Required}
+    volumes: [database:/var/lib/postgresql/data]
+    networks: [private]
+    mem_limit: 384m
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U lvd -d luatvietduc']
+      interval: 3s
+      timeout: 5s
+      retries: 30
+  vectors:
+    image: qdrant/qdrant:v1.20.0
+    restart: unless-stopped
+    networks: [private]
+    volumes: [vectors:/qdrant/storage]
+    mem_limit: 384m
+    environment:
+      QDRANT__TELEMETRY_DISABLED: 'true'
+      QDRANT__SERVICE__MAX_WORKERS: '2'
+  web:
+    image: ${LVD_IMAGE:?Required}
+    restart: unless-stopped
+    env_file: runtime.env
+    environment: &app-environment
+      DATABASE_URL: postgresql://lvd:${DB_PASSWORD:?Required}@database:5432/luatvietduc
+      APP_URL: ${APP_URL:?Required}
+      NODE_OPTIONS: --max-old-space-size=768
+    ports: ['127.0.0.1:${LVD_PORT:?Required}:3000']
+    networks: [private, outbound]
+    volumes: ['./fonts:/app/presentation-releases/base/fonts:ro']
+    mem_limit: 1g
+    init: true
+    depends_on:
+      database: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      start_period: 15s
+      retries: 18
+  indexer:
+    image: ${LVD_IMAGE:?Required}
+    restart: unless-stopped
+    env_file: runtime.env
+    environment:
+      <<: *app-environment
+      LVD_WORKERS_DISABLED: '1'
+    command: [sh, -c, 'while true; do timeout 80 node maintenance/manage.mjs index; sleep 60; done']
+    networks: [private, outbound]
+    init: true
+    mem_limit: 384m
+    depends_on:
+      database: {condition: service_healthy}
+networks:
+  private: {internal: true}
+  outbound: {}
+volumes:
+  database:
+  vectors:

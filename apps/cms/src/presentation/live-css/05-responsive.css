@@ -1,0 +1,526 @@
+/* Reference breakpoint: navigation collapses at 980px; real UI never scales. */
+@media (max-width: 1200px) {
+  .live-header .live-header-inner {
+    gap: 22px;
+  }
+  .live-nav {
+    margin-left: 0;
+  }
+  .live-footer-inner {
+    grid-template-columns: minmax(260px, 1.6fr) repeat(4, minmax(0, 1fr));
+    gap: 24px;
+  }
+  .live-auth-intro,
+  .live-auth-panel {
+    padding: 40px;
+  }
+  .live-knowledge-grid {
+    gap: 24px;
+  }
+  .live-source-form {
+    padding: 30px;
+  }
+  .live-reading-heading {
+    margin-left: 220px;
+  }
+  .live-reading-layout {
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 50px;
+  }
+}
+@media (max-width: 980px) {
+  .live-header .live-header-inner {
+    padding-inline: 24px;
+  }
+  .live-nav {
+    display: none;
+  }
+  .live-header-actions {
+    gap: 22px;
+  }
+  .live-mobile-menu {
+    display: block;
+  }
+  .live-mobile-menu > summary {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    width: 24px;
+    height: 44px;
+    list-style: none;
+    cursor: pointer;
+  }
+  .live-mobile-menu > summary::-webkit-details-marker {
+    display: none;
+  }
+  .live-mobile-menu > summary > span {
+    display: block;
+    width: 22px;
+    height: 1px;
+    background: #141414;
+    transition: transform 0.2s;
+  }
+  .live-mobile-menu[open] > summary > span:first-child {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+  .live-mobile-menu[open] > summary > span:last-child {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+  .live-mobile-menu > nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 79px;
+    padding: 22px 24px 32px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    background: #fff;
+  }
+  .live-mobile-menu nav a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    line-height: 24px;
+    color: #141414;
+    text-decoration: none;
+  }
+  .live-mobile-menu nav a:last-child {
+    border: 0;
+  }
+  .live-mobile-menu nav a[aria-current="page"] {
+    text-decoration: underline;
+    text-decoration-color: #fb7a00;
+    text-underline-offset: 5px;
+  }
+  .live-page.container {
+    padding: 64px 24px 80px;
+  }
+  .live-page-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 28px;
+    margin-bottom: 48px;
+  }
+  .live-page h1 {
+    font-size: 60px;
+  }
+  .live-page-heading > .button {
+    margin-bottom: 0;
+  }
+  .live-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .live-footer-inner {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px 30px;
+    padding-inline: 24px;
+  }
+  .live-footer-identity {
+    grid-column: 1 / -1;
+  }
+  .live-footer-meta {
+    padding-inline: 24px;
+    flex-wrap: wrap;
+  }
+  .live-auth-layout {
+    grid-template-columns: 0.9fr 1fr;
+  }
+  .live-auth-intro,
+  .live-auth-panel {
+    padding: 32px;
+  }
+  .live-auth-intro h2 {
+    font-size: 42px;
+  }
+  .live-auth-panel h1 {
+    font-size: 44px;
+  }
+  .live-auth-panel .live-lead {
+    font-size: 16px;
+  }
+  .live-settings-links {
+    gap: 44px;
+  }
+  .live-knowledge-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .live-source-form {
+    padding: 28px;
+  }
+  .live-source-form h2 {
+    font-size: 30px;
+  }
+  .live-output-empty {
+    padding: 36px 28px;
+  }
+  .live-output-empty h2 {
+    font-size: 32px;
+  }
+  .live-reading-page {
+    padding-inline: 24px;
+  }
+  .live-reading-heading {
+    margin-left: 0;
+  }
+  .live-reading-layout {
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 40px;
+  }
+}
+@media (max-width: 700px) {
+  .live-header .live-header-inner {
+    gap: 20px;
+  }
+  .live-header-account {
+    font-size: 14px;
+    padding: 11px 14px;
+    gap: 14px;
+  }
+  .live-brand .brand-name {
+    font-size: 24px;
+  }
+  .live-page.container {
+    padding: 48px 24px 64px;
+  }
+  .live-page h1 {
+    font-size: 48px;
+    line-height: 1.05;
+    margin: 18px 0 24px;
+  }
+  .live-page .live-lead {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .live-page-heading {
+    gap: 28px;
+    margin-bottom: 40px;
+  }
+  .live-page h2 {
+    font-size: 30px;
+  }
+  .live-card {
+    padding: 26px;
+  }
+  .live-empty-state {
+    padding: 60px 24px;
+  }
+  .live-empty-state h2 {
+    font-size: 32px;
+  }
+  .live-empty-state p {
+    font-size: 16px;
+  }
+  .live-footer {
+    padding-block: 64px;
+  }
+  .live-footer-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px 24px;
+  }
+  .live-footer-meta {
+    margin-top: 64px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .live-auth-page.live-page.container {
+    padding: 32px 24px 64px;
+  }
+  .live-auth-layout {
+    display: flex;
+    flex-direction: column-reverse;
+    min-height: 0;
+  }
+  .live-auth-panel {
+    padding: 38px 28px;
+    min-height: 560px;
+  }
+  .live-auth-panel h1 {
+    font-size: 44px;
+  }
+  .live-auth-panel .live-back-link {
+    margin-bottom: 36px;
+  }
+  .live-auth-intro {
+    min-height: 380px;
+    padding: 32px;
+  }
+  .live-auth-intro-copy {
+    padding-top: 0;
+  }
+  .live-auth-intro h2 {
+    font-size: 40px;
+    margin-block: 26px;
+  }
+  .live-auth-intro p {
+    font-size: 16px;
+  }
+  .live-auth-caption {
+    margin-top: 34px;
+    font-size: 13px;
+  }
+  .live-auth-caption .live-small-rule {
+    margin-bottom: 16px;
+  }
+  .live-connection-grid {
+    gap: 18px;
+  }
+  .live-connection-card {
+    padding: 24px;
+    min-height: 218px;
+  }
+  .live-connection-top {
+    gap: 16px;
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 28px;
+  }
+  .live-connection-card h2 {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+  .live-connection-card p {
+    font-size: 14px;
+  }
+  .live-settings-links {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    margin-top: 56px;
+    padding-top: 48px;
+  }
+  .live-settings-links h2 {
+    font-size: 36px;
+  }
+  .live-settings-links nav a {
+    font-size: 16px;
+    padding: 20px 0;
+  }
+  .live-knowledge-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .live-source-form {
+    padding: 30px;
+  }
+  .live-source-form h2 {
+    font-size: 32px;
+  }
+  .live-output-empty {
+    min-height: 400px;
+    padding: 42px 28px;
+  }
+  .live-output-empty h2 {
+    font-size: 32px;
+  }
+  .live-journal-grid {
+    gap: 40px 24px;
+  }
+  .live-journal-card h2 {
+    font-size: 26px;
+  }
+  .live-journal-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .live-journal-card p {
+    font-size: 16px;
+  }
+  .live-journal-visual {
+    aspect-ratio: 1.4;
+    padding: 24px;
+  }
+  .live-journal-visual > span:first-child {
+    font-size: 64px;
+  }
+  .live-journal-number {
+    font-size: 13px;
+    top: 18px;
+    right: 20px;
+  }
+  .live-journal-visual-line {
+    width: 36px;
+    right: 24px;
+    bottom: 26px;
+  }
+  .live-journal-divider {
+    font-size: 12px;
+    margin-bottom: 32px;
+  }
+  .live-reading-page {
+    padding: 32px 24px 72px;
+  }
+  .live-breadcrumb {
+    font-size: 13px;
+    gap: 10px;
+    margin-bottom: 44px;
+  }
+  .live-reading-heading h1 {
+    font-size: 48px;
+    line-height: 1.08;
+  }
+  .live-reading-heading {
+    padding-bottom: 36px;
+  }
+  .live-reading-meta {
+    font-size: 14px;
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .live-reading-layout {
+    display: block;
+    padding-top: 36px;
+  }
+  .live-reading-aside {
+    display: none;
+  }
+  .live-body {
+    font-size: 17px;
+    line-height: 1.75;
+  }
+  .live-reading-cta {
+    padding: 30px;
+    margin-top: 48px;
+  }
+  .live-reading-cta h2 {
+    font-size: 36px;
+  }
+}
+@media (max-width: 480px) {
+  .live-header .live-header-inner {
+    padding-inline: 16px;
+    gap: 16px;
+  }
+  .live-header-actions {
+    gap: 16px;
+  }
+  .live-brand .brand-name {
+    font-size: 24px;
+  }
+  .live-page.container {
+    padding-inline: 24px;
+  }
+  .live-grid {
+    grid-template-columns: 1fr;
+  }
+  .live-journal-visual {
+    aspect-ratio: 1.6;
+  }
+  .live-journal-visual > span:first-child {
+    font-size: 76px;
+  }
+  .live-journal-card h2 {
+    font-size: 28px;
+  }
+  .live-journal-meta {
+    flex-wrap: nowrap;
+  }
+  .live-footer-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 36px 24px;
+  }
+  .live-footer-identity {
+    margin-bottom: 8px;
+  }
+  .live-footer-meta {
+    gap: 20px;
+  }
+  .live-footer-meta nav {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .live-auth-page.live-page.container {
+    padding-inline: 16px;
+  }
+  .live-auth-panel {
+    padding: 32px 24px;
+  }
+  .live-auth-panel h1 {
+    font-size: 42px;
+  }
+  .live-auth-intro {
+    padding: 30px;
+    min-height: 370px;
+  }
+  .live-auth-intro h2 {
+    font-size: 38px;
+  }
+  .live-source-form {
+    padding: 26px;
+  }
+  .live-connection-card {
+    min-height: 0;
+    padding: 26px;
+  }
+  .live-connection-top {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  .live-connection-card h2 {
+    font-size: 28px;
+  }
+}
+@media (max-width: 420px) {
+  .live-header-account {
+    display: none;
+  }
+  .live-header-actions {
+    gap: 0;
+    flex-shrink: 0;
+  }
+  .live-header .live-brand {
+    flex: 1;
+    min-width: 0;
+    max-width: calc(100% - 40px);
+  }
+  .live-brand .brand-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .live-page h1,
+  .live-reading-heading h1 {
+    font-size: 48px;
+  }
+  .live-auth-panel h1 {
+    font-size: 40px;
+  }
+}
+/* Keep the initial phone intake readable within the conversation viewport. */
+@media (prefers-reduced-motion: reduce) {
+  .live-page .button,
+  .live-mobile-menu > summary > span {
+    transition: none;
+  }
+  .live-spinner {
+    animation-duration: 1.5s;
+  }
+}
+@media print {
+  .live-header,
+  .live-footer,
+  .live-reading-aside,
+  .live-reading-cta {
+    display: none !important;
+  }
+  .live-page.container,
+  .live-reading-page {
+    padding: 0;
+  }
+  .live-reading-layout {
+    display: block;
+  }
+  .live-reading-heading {
+    margin-left: 0;
+  }
+  .live-auth-layout {
+    display: block;
+  }
+  .live-auth-intro {
+    display: none;
+  }
+}

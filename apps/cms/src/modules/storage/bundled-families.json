@@ -1,0 +1,246 @@
+[
+  {
+    "primary": {
+      "filename": "lvd-bundled-assets__photos__berlin-1800.webp",
+      "url": "/assets/photos/berlin-1800.webp",
+      "width": 1800,
+      "height": 1200,
+      "filesize": 402974,
+      "mimeType": "image/webp"
+    },
+    "sizes": {
+      "medium": {
+        "filename": "lvd-bundled-assets__photos__berlin-600.webp",
+        "url": "/assets/photos/berlin-600.webp",
+        "width": 600,
+        "height": 400,
+        "filesize": 45016,
+        "mimeType": "image/webp"
+      },
+      "large": {
+        "filename": "lvd-bundled-assets__photos__berlin-1200.webp",
+        "url": "/assets/photos/berlin-1200.webp",
+        "width": 1200,
+        "height": 800,
+        "filesize": 163430,
+        "mimeType": "image/webp"
+      }
+    }
+  },
+  {
+    "primary": {
+      "filename": "lvd-bundled-assets__photos__dong-xuan-1800.webp",
+      "url": "/assets/photos/dong-xuan-1800.webp",
+      "width": 1800,
+      "height": 1350,
+      "filesize": 346916,
+      "mimeType": "image/webp"
+    },
+    "sizes": {
+      "medium": {
+        "filename": "lvd-bundled-assets__photos__dong-xuan-600.webp",
+        "url": "/assets/photos/dong-xuan-600.webp",
+        "width": 600,
+        "height": 450,
+        "filesize": 46142,
+        "mimeType": "image/webp"
+      },
+      "large": {
+        "filename": "lvd-bundled-assets__photos__dong-xuan-1200.webp",
+        "url": "/assets/photos/dong-xuan-1200.webp",
+        "width": 1200,
+        "height": 900,
+        "filesize": 172236,
+        "mimeType": "image/webp"
+      }
+    }
+  },
+  {
+    "primary": {
+      "filename": "lvd-bundled-assets__photos__family-1800.webp",
+      "url": "/assets/photos/family-1800.webp",
+      "width": 1800,
+      "height": 2400,
+      "filesize": 1158676,
+      "mimeType": "image/webp"
+    },
+    "sizes": {
+      "medium": {
+        "filename": "lvd-bundled-assets__photos__family-600.webp",
+        "url": "/assets/photos/family-600.webp",
+        "width": 600,
+        "height": 800,
+        "filesize": 185480,
+        "mimeType": "image/webp"
+      },
+      "large": {
+        "filename": "lvd-bundled-assets__photos__family-1200.webp",
+        "url": "/assets/photos/family-1200.webp",
+        "width": 1200,
+        "height": 1600,
+        "filesize": 605600,
+        "mimeType": "image/webp"
+      }
+    }
+  },
+  {
+    "primary": {
+      "filename": "lvd-bundled-assets__photos__housing-1800.webp",
+      "url": "/assets/photos/housing-1800.webp",
+      "width": 1800,
+      "height": 2593,
+      "filesize": 326594,
+      "mimeType": "image/webp"
+    },
+    "sizes": {
+      "medium": {
+        "filename": "lvd-bundled-assets__photos__housing-600.webp",
+        "url": "/assets/photos/housing-600.webp",
+        "width": 600,
+        "height": 864,
+        "filesize": 59712,
+        "mimeType": "image/webp"
+      },
+      "large": {
+        "filename": "lvd-bundled-assets__photos__housing-1200.webp",
+        "url": "/assets/photos/housing-1200.webp",
+        "width": 1200,
+        "height": 1729,
+        "filesize": 172000,
+        "mimeType": "image/webp"
+      }
+    }
+  },
+  {
+    "primary": {
+      "filename": "lvd-bundled-assets__photos__library-1800.webp",
+      "url": "/assets/photos/library-1800.webp",
+      "width": 1800,
+      "height": 2700,
+      "filesize": 1029922,
+      "mimeType": "image/webp"
+    },
+    "sizes": {
+      "medium": {
+        "filename": "lvd-bundled-assets__photos__library-600.webp",
+        "url": "/assets/photos/library-600.webp",
+        "width": 600,
+        "height": 900,
+        "filesize": 87930,
+        "mimeType": "image/webp"
+      },
+      "large": {
+        "filename": "lvd-bundled-assets__photos__library-1200.webp",
+        "url": "/assets/photos/library-1200.webp",
+        "width": 1200,
+        "height": 1800,
+        "filesize": 410206,
+        "mimeType": "image/webp"
+      }
+    }
+  },
+  {
+    "primary": {
+      "filename": "lvd-bundled-assets__photos__train-1800.webp",
+      "url": "/assets/photos/train-1800.webp",
+      "width": 1800,
+      "height": 2700,
+      "filesize": 173540,
+      "mimeType": "image/webp"
+    },
+    "sizes": {
+      "medium": {
+        "filename": "lvd-bundled-assets__photos__train-600.webp",
+        "url": "/assets/photos/train-600.webp",
+        "width": 600,
+        "height": 900,
+        "filesize": 31922,
+        "mimeType": "image/webp"
+      },
+      "large": {
+        "filename": "lvd-bundled-assets__photos__train-1200.webp",
+        "url": "/assets/photos/train-1200.webp",
+        "width": 1200,
+        "height": 1800,
+        "filesize": 79888,
+        "mimeType": "image/webp"
+      }
+    }
+  },
+  {
+    "primary": {
+      "filename": "lvd-bundled-assets__photos__tram-1800.webp",
+      "url": "/assets/photos/tram-1800.webp",
+      "width": 1800,
+      "height": 2700,
+      "filesize": 960448,
+      "mimeType": "image/webp"
+    },
+    "sizes": {
+      "medium": {
+        "filename": "lvd-bundled-assets__photos__tram-600.webp",
+        "url": "/assets/photos/tram-600.webp",
+        "width": 600,
+        "height": 900,
+        "filesize": 79342,
+        "mimeType": "image/webp"
+      },
+      "large": {
+        "filename": "lvd-bundled-assets__photos__tram-1200.webp",
+        "url": "/assets/photos/tram-1200.webp",
+        "width": 1200,
+        "height": 1800,
+        "filesize": 379998,
+        "mimeType": "image/webp"
+      }
+    }
+  },
+  {
+    "primary": {
+      "filename": "lvd-bundled-assets__photos__work-1800.webp",
+      "url": "/assets/photos/work-1800.webp",
+      "width": 1800,
+      "height": 2700,
+      "filesize": 133432,
+      "mimeType": "image/webp"
+    },
+    "sizes": {
+      "medium": {
+        "filename": "lvd-bundled-assets__photos__work-600.webp",
+        "url": "/assets/photos/work-600.webp",
+        "width": 600,
+        "height": 900,
+        "filesize": 30130,
+        "mimeType": "image/webp"
+      },
+      "large": {
+        "filename": "lvd-bundled-assets__photos__work-1200.webp",
+        "url": "/assets/photos/work-1200.webp",
+        "width": 1200,
+        "height": 1800,
+        "filesize": 75188,
+        "mimeType": "image/webp"
+      }
+    }
+  },
+  {
+    "primary": {
+      "filename": "lvd-bundled-assets__illustrations__hero-bridge-1200.webp",
+      "url": "/assets/illustrations/hero-bridge-1200.webp",
+      "width": 1200,
+      "height": 800,
+      "filesize": 73632,
+      "mimeType": "image/webp"
+    },
+    "sizes": {
+      "medium": {
+        "filename": "lvd-bundled-assets__illustrations__hero-bridge-640.webp",
+        "url": "/assets/illustrations/hero-bridge-640.webp",
+        "width": 640,
+        "height": 427,
+        "filesize": 18126,
+        "mimeType": "image/webp"
+      }
+    }
+  }
+]

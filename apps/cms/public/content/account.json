@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "text": {
+    "Tạo tài khoản": {
+      "vi": "Tạo tài khoản",
+      "de": "Konto erstellen"
+    },
+    "Quên mật khẩu?": {
+      "vi": "Quên mật khẩu?",
+      "de": "Passwort vergessen?"
+    },
+    "Bạn đã có tài khoản?": {
+      "vi": "Bạn đã có tài khoản?",
+      "de": "Sie haben bereits ein Konto?"
+    },
+    "Bạn chưa có tài khoản?": {
+      "vi": "Bạn chưa có tài khoản?",
+      "de": "Neu hier?"
+    },
+    "Mật khẩu": {
+      "vi": "Mật khẩu",
+      "de": "Passwort"
+    },
+    "Mọi trao đổi.": {
+      "vi": "Mọi trao đổi.",
+      "de": "Alle Gespräche."
+    },
+    "Trong một tài khoản.": {
+      "vi": "Trong một tài khoản.",
+      "de": "In einem Konto."
+    },
+    "Lưu câu hỏi, tài liệu và phản hồi để tiếp tục khi cần.": {
+      "vi": "Lưu câu hỏi, tài liệu và phản hồi để tiếp tục khi cần.",
+      "de": "Fragen, Dokumente und Antworten speichern und später daran anknüpfen."
+    },
+    "Hội thoại của tôi": {
+      "vi": "Hội thoại của tôi",
+      "de": "Meine Gespräche"
+    },
+    "Tên hiển thị": {
+      "vi": "Tên hiển thị",
+      "de": "Anzeigename"
+    },
+    "Email": {
+      "vi": "Email",
+      "de": "E-Mail"
+    },
+    "Số điện thoại": {
+      "vi": "Số điện thoại",
+      "de": "Telefonnummer"
+    },
+    "Nơi sinh sống": {
+      "vi": "Nơi sinh sống",
+      "de": "Wohnort"
+    },
+    "Thông tin cá nhân": {
+      "vi": "Thông tin cá nhân",
+      "de": "Persönliche Angaben"
+    },
+    "Đang tải hồ sơ…": {
+      "vi": "Đang tải hồ sơ…",
+      "de": "Profil wird geladen…"
+    },
+    "Chưa tải được hồ sơ.": {
+      "vi": "Chưa tải được hồ sơ.",
+      "de": "Das Profil konnte nicht geladen werden."
+    },
+    "Đang lưu…": {
+      "vi": "Đang lưu…",
+      "de": "Wird gespeichert…"
+    },
+    "Lưu thay đổi": {
+      "vi": "Lưu thay đổi",
+      "de": "Änderungen speichern"
+    },
+    "Đã lưu hồ sơ.": {
+      "vi": "Đã lưu hồ sơ.",
+      "de": "Profil gespeichert."
+    },
+    "Chưa lưu được hồ sơ.": {
+      "vi": "Chưa lưu được hồ sơ.",
+      "de": "Das Profil konnte nicht gespeichert werden."
+    },
+    "Chưa xác nhận hồ sơ đã lưu. Hãy tải lại để kiểm tra.": {
+      "vi": "Chưa xác nhận hồ sơ đã lưu. Hãy tải lại để kiểm tra.",
+      "de": "Die Speicherung konnte nicht bestätigt werden. Bitte laden Sie die Seite zur Prüfung neu."
+    },
+    "Số điện thoại không hợp lệ.": {
+      "vi": "Số điện thoại không hợp lệ.",
+      "de": "Die Telefonnummer ist ungültig."
+    },
+    "Nơi sinh sống không hợp lệ.": {
+      "vi": "Nơi sinh sống không hợp lệ.",
+      "de": "Der Wohnort ist ungültig."
+    },
+    "Cuộc hội thoại mới": {
+      "vi": "Cuộc hội thoại mới",
+      "de": "Neues Gespräch"
+    },
+    "Tùy chọn hội thoại": {
+      "vi": "Tùy chọn hội thoại",
+      "de": "Gesprächsoptionen"
+    },
+    "Đổi tên": {
+      "vi": "Đổi tên",
+      "de": "Umbenennen"
+    },
+    "Xóa": {
+      "vi": "Xóa",
+      "de": "Löschen"
+    },
+    "Đổi tên hội thoại": {
+      "vi": "Đổi tên hội thoại",
+      "de": "Gespräch umbenennen"
+    },
+    "Tên hội thoại": {
+      "vi": "Tên hội thoại",
+      "de": "Gesprächsname"
+    },
+    "Hủy": {
+      "vi": "Hủy",
+      "de": "Abbrechen"
+    },
+    "Lưu": {
+      "vi": "Lưu",
+      "de": "Speichern"
+    },
+    "Xóa hội thoại này cùng toàn bộ tin nhắn và tệp đính kèm? Không thể hoàn tác.": {
+      "vi": "Xóa hội thoại này cùng toàn bộ tin nhắn và tệp đính kèm? Không thể hoàn tác.",
+      "de": "Dieses Gespräch mit allen Nachrichten und Anhängen löschen? Das kann nicht rückgängig gemacht werden."
+    },
+    "Nhập tên hội thoại từ 1 đến 100 ký tự.": {
+      "vi": "Nhập tên hội thoại từ 1 đến 100 ký tự.",
+      "de": "Geben Sie einen Gesprächsnamen mit 1 bis 100 Zeichen ein."
+    },
+    "Bạn không có quyền đổi tên hội thoại này.": {
+      "vi": "Bạn không có quyền đổi tên hội thoại này.",
+      "de": "Sie dürfen dieses Gespräch nicht umbenennen."
+    },
+    "Bạn không có quyền xóa hội thoại này.": {
+      "vi": "Bạn không có quyền xóa hội thoại này.",
+      "de": "Sie dürfen dieses Gespräch nicht löschen."
+    },
+    "Hội thoại có cập nhật mới. Tải lại trước khi đổi tên.": {
+      "vi": "Hội thoại có cập nhật mới. Tải lại trước khi đổi tên.",
+      "de": "Das Gespräch wurde aktualisiert. Laden Sie es vor dem Umbenennen erneut."
+    },
+    "Chưa xác nhận được cập nhật hội thoại. Tải lại để kiểm tra.": {
+      "vi": "Chưa xác nhận được cập nhật hội thoại. Tải lại để kiểm tra.",
+      "de": "Die Änderung konnte nicht bestätigt werden. Bitte laden Sie die Seite zur Prüfung neu."
+    }
+  }
+}

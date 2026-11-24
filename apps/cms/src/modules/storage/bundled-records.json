@@ -1,0 +1,346 @@
+[
+  {
+    "url": "/assets/berlin-tv-tower.svg",
+    "name": "berlin-tv-tower.svg",
+    "type": "image",
+    "filename": "lvd-bundled-assets__berlin-tv-tower.svg",
+    "filesize": 4091,
+    "mimeType": "image/svg+xml"
+  },
+  {
+    "url": "/assets/brandenburg-gate.svg",
+    "name": "brandenburg-gate.svg",
+    "type": "image",
+    "filename": "lvd-bundled-assets__brandenburg-gate.svg",
+    "filesize": 16284,
+    "mimeType": "image/svg+xml"
+  },
+  {
+    "url": "/assets/flags/de.svg",
+    "name": "de.svg",
+    "type": "image",
+    "filename": "lvd-bundled-assets__flags__de.svg",
+    "filesize": 202,
+    "mimeType": "image/svg+xml"
+  },
+  {
+    "url": "/assets/flags/vn.svg",
+    "name": "vn.svg",
+    "type": "image",
+    "filename": "lvd-bundled-assets__flags__vn.svg",
+    "filesize": 269,
+    "mimeType": "image/svg+xml"
+  },
+  {
+    "url": "/assets/germany-shape.svg",
+    "name": "germany-shape.svg",
+    "type": "image",
+    "filename": "lvd-bundled-assets__germany-shape.svg",
+    "filesize": 2064,
+    "mimeType": "image/svg+xml"
+  },
+  {
+    "url": "/assets/illustrations/germany-folio.webp",
+    "name": "germany-folio.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__illustrations__germany-folio.webp",
+    "filesize": 26918,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/illustrations/hero-bridge-1200.webp",
+    "name": "hero-bridge-1200.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__illustrations__hero-bridge-1200.webp",
+    "filesize": 73632,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/illustrations/hero-bridge-640.webp",
+    "name": "hero-bridge-640.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__illustrations__hero-bridge-640.webp",
+    "filesize": 18126,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/illustrations/vietnam-folio.webp",
+    "name": "vietnam-folio.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__illustrations__vietnam-folio.webp",
+    "filesize": 31170,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/berlin-1200.webp",
+    "name": "berlin-1200.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__berlin-1200.webp",
+    "filesize": 163430,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/berlin-1800.webp",
+    "name": "berlin-1800.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__berlin-1800.webp",
+    "filesize": 402974,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/berlin-600.webp",
+    "name": "berlin-600.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__berlin-600.webp",
+    "filesize": 45016,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/dong-xuan-1200.webp",
+    "name": "dong-xuan-1200.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__dong-xuan-1200.webp",
+    "filesize": 172236,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/dong-xuan-1800.webp",
+    "name": "dong-xuan-1800.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__dong-xuan-1800.webp",
+    "filesize": 346916,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/dong-xuan-600.webp",
+    "name": "dong-xuan-600.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__dong-xuan-600.webp",
+    "filesize": 46142,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/family-1200.webp",
+    "name": "family-1200.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__family-1200.webp",
+    "filesize": 605600,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/family-1800.webp",
+    "name": "family-1800.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__family-1800.webp",
+    "filesize": 1158676,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/family-600.webp",
+    "name": "family-600.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__family-600.webp",
+    "filesize": 185480,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/housing-1200.webp",
+    "name": "housing-1200.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__housing-1200.webp",
+    "filesize": 172000,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/housing-1800.webp",
+    "name": "housing-1800.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__housing-1800.webp",
+    "filesize": 326594,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/housing-600.webp",
+    "name": "housing-600.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__housing-600.webp",
+    "filesize": 59712,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/library-1200.webp",
+    "name": "library-1200.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__library-1200.webp",
+    "filesize": 410206,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/library-1800.webp",
+    "name": "library-1800.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__library-1800.webp",
+    "filesize": 1029922,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/library-600.webp",
+    "name": "library-600.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__library-600.webp",
+    "filesize": 87930,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/train-1200.webp",
+    "name": "train-1200.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__train-1200.webp",
+    "filesize": 79888,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/train-1800.webp",
+    "name": "train-1800.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__train-1800.webp",
+    "filesize": 173540,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/train-600.webp",
+    "name": "train-600.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__train-600.webp",
+    "filesize": 31922,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/tram-1200.webp",
+    "name": "tram-1200.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__tram-1200.webp",
+    "filesize": 379998,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/tram-1800.webp",
+    "name": "tram-1800.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__tram-1800.webp",
+    "filesize": 960448,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/tram-600.webp",
+    "name": "tram-600.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__tram-600.webp",
+    "filesize": 79342,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/work-1200.webp",
+    "name": "work-1200.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__work-1200.webp",
+    "filesize": 75188,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/work-1800.webp",
+    "name": "work-1800.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__work-1800.webp",
+    "filesize": 133432,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/photos/work-600.webp",
+    "name": "work-600.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__photos__work-600.webp",
+    "filesize": 30130,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/team/duong-thanh-tam.webp",
+    "name": "duong-thanh-tam.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__team__duong-thanh-tam.webp",
+    "filesize": 20938,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/team/nguyen-xuan-phuoc.webp",
+    "name": "nguyen-xuan-phuoc.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__team__nguyen-xuan-phuoc.webp",
+    "filesize": 65340,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/assets/team/vo-nguyen-bao-tram.webp",
+    "name": "vo-nguyen-bao-tram.webp",
+    "type": "image",
+    "filename": "lvd-bundled-assets__team__vo-nguyen-bao-tram.webp",
+    "filesize": 27596,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/media/legal-hero-montage-v2.mp4",
+    "name": "legal-hero-montage-v2.mp4",
+    "type": "video",
+    "filename": "lvd-bundled-media__legal-hero-montage-v2.mp4",
+    "filesize": 11771155,
+    "mimeType": "video/mp4"
+  },
+  {
+    "url": "/media/berlin-hero.mp4",
+    "name": "berlin-hero.mp4",
+    "type": "video",
+    "filename": "lvd-bundled-media__berlin-hero.mp4",
+    "filesize": 870846,
+    "mimeType": "video/mp4"
+  },
+  {
+    "url": "/media/legal-hero-montage-v1.mp4",
+    "name": "legal-hero-montage-v1.mp4",
+    "type": "video",
+    "filename": "lvd-bundled-media__legal-hero-montage-v1.mp4",
+    "filesize": 3049532,
+    "mimeType": "video/mp4"
+  },
+  {
+    "url": "/media/berlin-hero-poster.webp",
+    "name": "berlin-hero-poster.webp",
+    "type": "image",
+    "filename": "lvd-bundled-media__berlin-hero-poster.webp",
+    "filesize": 71380,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/media/legal-hero-montage-poster-v2.webp",
+    "name": "legal-hero-montage-poster-v2.webp",
+    "type": "image",
+    "filename": "lvd-bundled-media__legal-hero-montage-poster-v2.webp",
+    "filesize": 65934,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/media/legal-hero-montage-poster-v1.webp",
+    "name": "legal-hero-montage-poster-v1.webp",
+    "type": "image",
+    "filename": "lvd-bundled-media__legal-hero-montage-poster-v1.webp",
+    "filesize": 35482,
+    "mimeType": "image/webp"
+  },
+  {
+    "url": "/media/partner-knockout.svg",
+    "name": "partner-knockout.svg",
+    "type": "image",
+    "filename": "lvd-bundled-media__partner-knockout.svg",
+    "filesize": 355,
+    "mimeType": "image/svg+xml"
+  }
+]

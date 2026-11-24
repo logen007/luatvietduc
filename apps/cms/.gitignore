@@ -1,0 +1,18 @@
+node_modules/
+.next/
+.env*
+!.env.example
+*.tsbuildinfo
+
+public/assets/
+public/frontend.html
+private-media/
+
+# Payload may generate a JS sibling; tracked importMap.ts owns the source map.
+src/app/(payload)/admin/importMap.js
+
+# Owner-licensed Articulat Web assets are installed separately, never redistributed in Git.
+public/fonts/Articulat*.woff2
+private-fonts/
+
+test-results/

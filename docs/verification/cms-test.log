@@ -1,0 +1,25 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @luatvietduc/cms@0.1.0 test
+> node --import tsx --test test/*.test.mjs
+
+✔ anonymous user creation denied (0.88298ms)
+✔ editor cannot create privileged users (0.135044ms)
+✔ owner may provision users (0.093331ms)
+✔ member only reads own user record (0.673805ms)
+✔ support cannot edit articles (0.111939ms)
+✔ public article query requires publication and approval (0.29226ms)
+✔ editor cannot publish (0.355395ms)
+✔ owner cannot publish unreviewed content (0.16599ms)
+✔ editing approved article invalidates approval and AI use (0.277197ms)
+✔ first-register cannot bypass offline bootstrap hook (0.226281ms)
+✔ private site settings cannot be read by editor (0.105328ms)
+✔ Payload merged publication state is invalidated before editor publication guard (0.082574ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2456.801415

@@ -1,0 +1,47 @@
+# Admin consolidation and settings review — 2026-11-04
+
+## Navigation
+
+All operational screens use the authenticated native Payload shell:
+
+| Area | Canonical route |
+| --- | --- |
+| Settings overview | `/admin/settings` |
+| Website settings | `/admin/globals/site-settings` |
+| Google / Gemini / R2 / Resend | `/admin/settings/connections` |
+| Drive backups and trial restore | `/admin/settings/backups` |
+| Specialist inbox | `/admin/inbox` |
+| Internal knowledge test | `/admin/knowledge` |
+| FAQ editing | `/admin/collections/knowledge` |
+| Articles / files / users / audit | Native collections under `/admin/collections/` |
+
+The previous `/quan-tri`, `/kien-thuc`, `/chuyen-vien` routes redirect to these locations. Customer account/chat remain public product routes. Owner-only settings and role-specific inbox/knowledge visibility are checked on the server, independently of navigation links. All native collection access rules remain in force.
+
+Site settings use unnamed tabs: identity, navigation/social, support/chat, AI & FAQ, privacy/search. Existing SQL field paths are preserved; this is not a data migration of website settings.
+
+## Actual status, not just stored values
+
+| Setting or feature | Status |
+| --- | --- |
+| Provider credentials and enable/disable | Existing encrypted runtime vault; moved into native admin, with provider setup instructions. Save → check → enable. |
+| Google login | Wired, but a real client and successful sign-in are still required. Structural check is explicitly labeled, not claimed as an OAuth test. |
+| Gemini | 01.04.00 adds a strictly scoped published-FAQ response pipeline; only public FAQ is sent to Gemini. Provider activation and real FAQ publication are still required. A model metadata check does not prove generation quota. |
+| R2 | Wired private media adapter; actual activation deferred by owner on 2026-11-04. No replacement bucket or public access enabled. |
+| Resend | Wired email adapter and owner-only test. Provider account and `mail.luatvietduc.com` configuration created; keys and DNS verification still need completion. Owner approved three sending verification DNS records, not root MX replacement. |
+| Drive backup | 01.03.01 migration and encrypted archive worker installed; ready heartbeat observed. Separate Drive OAuth grant and first encrypted backup/isolated restore remain pending. |
+| Chat enable, message length | Existing runtime enforcement. |
+| Support notice, office hours, time zone | Existing display settings; do not promise an automatic staffing schedule. |
+| Conversation retention | A stored policy value, not an implemented automatic deletion job. Keep the field label explicit. |
+| AI request/token limits | Shared request budget; customer formatter validates complete source paragraphs. Internal test remains separate. |
+| Social links | Existing settings and icons; blank slots remain non-clickable. |
+| Logo, name, navigation, privacy | Existing public bridge settings; Public and React shells now share static navigation definitions; React header consumes site name. Arbitrary menu/theme editing is not fully synchronized and is not claimed complete. |
+| Accent and footer text | Legacy setting values; neutral redesign overrides parts of the original theme, and the owner removed the old disclaimer. Do not claim full visual theme editing. |
+| FAQ specialist self-publication | 01.04.00 includes the reviewed scoped collection change: support/knowledge/reviewer self-publish in assigned countries, with attribution and history. |
+
+## Responsive source review
+
+Reviewed public, application and admin layout sources. Fixed the application footer's intermediate breakpoint from six to five tracks to match its current contents. New admin layouts collapse connection and settings cards, wrap long URLs and values, provide horizontal table scrolling, use minimum 44px actions and 16px mobile inputs, and retain checkbox sizing. Internal chat keeps its own layout and no longer renders the public header within admin.
+
+The new custom views use Payload's `DefaultTemplate`, which supplies the same navigation/account controls as collection pages. The explicit TypeScript import-map output path prevents the old tracked map from silently missing these screens.
+
+Visual checks on physical desktop/mobile screens are **not yet completed**: the owner's Mac locked during service configuration, and the owner asked to continue source work first. Do not describe this source review as a completed device audit.

@@ -1,0 +1,138 @@
+import {S3Client} from '@aws-sdk/client-s3';
+import {seal} from '../src/modules/integrations/crypto';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import type {User} from '../src/payload-types';
+import {pool,hash} from '../src/modules/shared/db';
+import * as chat from '../src/modules/chat/service';
+import {specialistInbox} from '../src/modules/chat/inbox';
+import {expireLowPriorityConversations} from '../src/modules/chat/qualification';
+import {linkGuestConversations} from '../src/modules/chat/guest-account';
+
+// Synthetic rows only. No provider, object-store, browser or schema operations.
+export async function testChatQualification(owner:User){
+ const database=new URL(process.env.DATABASE_URL||'');
+ assert.ok(['localhost','127.0.0.1'].includes(database.hostname)&&database.pathname==='/lvd_test','Isolated CI database only');
+ const actor:chat.Actor={user:null,guestHash:await hash(randomUUID())},staff:chat.Actor={user:owner,guestHash:''},ids:string[]=[];
+ const make=async()=>{const c=await chat.createConversation(actor,{consent:true},{assistantEnabled:true});ids.push(c.id);return c.id;};
+ const read=async(id:string)=>(await pool.query('SELECT * FROM lvd_conversations WHERE id=$1',[id])).rows[0];
+ const low=async(id:string,past=false)=>{await pool.query(`UPDATE lvd_conversations SET qualification='low',low_priority_expires_at=now()+$2::interval WHERE id=$1`,[id,past?'-1 minute':'2 hours']);};
+ const send=(id:string,body='Synthetic expiry follow-up',key=randomUUID())=>chat.message(actor,id,{body,key},2000);
+ try{
+  const fresh=await make(),initial=await read(fresh);
+  assert.equal(initial.qualification,'unassessed');assert.equal(initial.retain_history,false);assert.ok(initial.low_priority_expires_at);assert.equal(initial.guest_expiry_enabled,true);
+  await pool.query("UPDATE lvd_conversations SET updated_at=now()-interval '2 minutes' WHERE id=$1",[fresh]);
+  assert.equal((await specialistInbox(staff,{view:'queue',query:fresh})).rows.length,0,'Unassessed new requests are not staff work when the worker stalls');
+  assert.ok(!(await chat.queue(staff)).some((item:{id:string})=>item.id===fresh),'Legacy queue also excludes fresh unqualified requests');
+  assert.equal((await specialistInbox(staff,{view:'low',query:fresh})).rows.length,1,'New AI intake starts at low priority');
+  await low(fresh);
+  let row=await read(fresh);assert.equal(row.qualification,'low');assert.equal(row.retain_history,false);
+  const remaining=new Date(row.low_priority_expires_at).getTime()-Date.now();assert.ok(remaining>7190000&&remaining<=7201000);
+  const inbox=await specialistInbox(staff,{view:'low',query:fresh});assert.equal(inbox.rows.length,1);assert.equal(inbox.rows[0].qualification,'low');assert.ok(inbox.rows[0].expires_at);
+  assert.equal((await specialistInbox(staff,{view:'queue',query:fresh})).rows.length,0,'Disposable intake is outside the ordinary queue');
+
+  // Explicitly protected archives remain durable; AI qualification alone does not protect a guest.
+  const archive=await chat.createConversation(staff,{consent:true},{assistantEnabled:true}),historical=archive.id;ids.push(historical);
+  await pool.query("UPDATE lvd_conversations SET user_id=NULL,guest_hash=$2,retain_history=true,created_at=now()-interval '1 year' WHERE id=$1",[historical,actor.guestHash]);
+  await pool.query("UPDATE lvd_conversations SET retain_history=false,qualification='low',low_priority_expires_at=now()-interval '1 minute' WHERE id=$1",[historical]);
+  row=await read(historical);assert.equal(row.retain_history,true);assert.equal(row.qualification,'low');assert.equal(row.low_priority_expires_at,null);
+  const meaningful=await make();await pool.query("UPDATE lvd_conversations SET qualification='ready',retain_history=true WHERE id=$1",[meaningful]);await low(meaningful,true);
+  row=await read(meaningful);assert.equal(row.retain_history,true);assert.equal(row.guest_expiry_enabled,true);assert.equal(row.qualification,'low');assert.ok(row.low_priority_expires_at,'Legacy automatic retention must not hide the expiry');
+
+  // Intake completeness and saved history do not request specialist work.
+  for(const qualification of ['needs_details','ready']){
+   const aiOnly=await make();await send(aiOnly);
+   await pool.query("UPDATE lvd_conversations SET qualification=$2,updated_at=now()-interval '2 minutes' WHERE id=$1",[aiOnly,qualification]);
+   assert.equal((await specialistInbox(staff,{view:'low',query:aiOnly})).rows[0].qualification,'low');assert.ok((await specialistInbox(staff,{view:'low',query:aiOnly})).rows[0].expires_at,'All unsaved guest AI requests expose their deadline');
+   assert.equal((await specialistInbox(staff,{view:'queue',query:aiOnly})).total,0);
+   assert.ok(!(await chat.queue(staff)).some((item:{id:string})=>item.id===aiOnly),'Stalled AI processing alone cannot promote a conversation');
+   await pool.query("INSERT INTO lvd_messages(conversation_id,role,body,actor_key,client_key,metadata) VALUES($1,'assistant','Synthetic completed AI answer','assistant',$2,'{\"kind\":\"ai\"}')",[aiOnly,randomUUID()]);
+   assert.equal((await specialistInbox(staff,{view:'low',query:aiOnly})).total,1,'Completed AI replies remain low priority');
+   assert.ok((await specialistInbox(staff,{view:'low',query:aiOnly})).rows[0].expires_at);await pool.query("UPDATE lvd_conversations SET low_priority_expires_at=now()-interval '1 minute' WHERE id=$1",[aiOnly]);await expireLowPriorityConversations();assert.equal(await read(aiOnly),undefined,'Answered AI-only guests still expire');
+  }
+  const handoff=await make();await low(handoff);
+  await chat.transition(actor,handoff,{action:'handoff',version:(await read(handoff)).version});
+  assert.equal((await specialistInbox(staff,{view:'low',query:handoff})).total,0);
+  assert.equal((await specialistInbox(staff,{view:'queue',query:handoff})).total,1);
+  assert.ok((await chat.queue(staff)).some((item:{id:string})=>item.id===handoff));
+
+  const account=await chat.createConversation(staff,{consent:true},{assistantEnabled:true});ids.push(account.id);
+  assert.equal((await read(account.id)).retain_history,true,'Account conversations are retained from creation');
+  await low(account.id,true);await expireLowPriorityConversations();assert.ok(await read(account.id));
+  assert.equal((await specialistInbox(staff,{view:'low',query:account.id})).rows[0].expires_at,null);
+  const legacyAccount=await make();await low(legacyAccount,true);
+  await pool.query('UPDATE lvd_conversations SET user_id=$2,guest_hash=NULL WHERE id=$1',[legacyAccount,owner.id]);
+  assert.equal((await read(legacyAccount)).retain_history,true,'Account linking marks history durable even through the legacy entry point');assert.equal((await read(legacyAccount)).guest_expiry_enabled,false);
+  await expireLowPriorityConversations();assert.ok(await read(legacyAccount),'Account ownership independently blocks automatic deletion');
+  assert.equal((await specialistInbox(staff,{view:'low',query:legacyAccount})).rows[0].expires_at,null);
+  const linkActor:chat.Actor={user:null,guestHash:await hash(randomUUID())},linked=await chat.createConversation(linkActor,{consent:true},{assistantEnabled:true});ids.push(linked.id);
+  await low(linked.id,true);assert.deepEqual(await linkGuestConversations(owner.id,linkActor.guestHash),[linked.id]);
+  row=await read(linked.id);assert.equal(row.retain_history,true);assert.equal(row.low_priority_expires_at,null);
+  await expireLowPriorityConversations();assert.ok(await read(linked.id));
+  assert.equal((await specialistInbox(staff,{view:'low',query:linked.id})).rows[0].registered,true,'Signing in retains AI chats without promoting priority');
+
+  // A real new customer message resets the clock; an idempotent retry does not.
+  const active=await make();await low(active,true);const key=randomUUID(),saved=await send(active,'Synthetic new activity',key);
+  const reset=await read(active),created=(await pool.query('SELECT created_at FROM lvd_messages WHERE id=$1',[saved.id])).rows[0].created_at;
+  assert.equal(new Date(reset.low_priority_expires_at).getTime()-new Date(created).getTime(),7200000);
+  assert.equal((await send(active,'Synthetic new activity',key)).duplicate,true);
+  assert.equal(new Date((await read(active)).low_priority_expires_at).getTime(),new Date(reset.low_priority_expires_at).getTime());
+  // Assistant clarification activity also starts its own two-hour inactivity window.
+  await pool.query("INSERT INTO lvd_messages(conversation_id,role,body,actor_key,client_key,metadata) VALUES($1,'assistant','Synthetic clarification','assistant',$2,'{\"kind\":\"clarify\"}')",[active,'assistant:'+saved.id]);
+  const assistant=(await pool.query("SELECT created_at FROM lvd_messages WHERE conversation_id=$1 AND role='assistant'",[active])).rows[0];
+  assert.equal(new Date((await read(active)).low_priority_expires_at).getTime()-new Date(assistant.created_at).getTime(),7200000);
+
+  // The sweep cascades only its eligible conversation's owned SQL rows.
+  const expired=await make(),question=await send(expired);await pool.query("INSERT INTO lvd_chat_events(conversation_id,action,version) VALUES($1,'synthetic.expiry',1)",[expired]);await low(expired,true);
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM lvd_answer_jobs WHERE message_id=$1',[question.id])).rows[0].n,1);
+  await expireLowPriorityConversations();assert.equal(await read(expired),undefined);
+  for(const table of ['lvd_messages','lvd_chat_events','lvd_answer_jobs'])assert.equal((await pool.query(`SELECT count(*)::int AS n FROM ${table} WHERE conversation_id=$1`,[expired])).rows[0].n,0,table+' must cascade');
+  assert.ok(await read(historical));assert.equal(await read(meaningful),undefined);assert.ok(await read(active));
+
+  // Attachments keep their countdown; storage failures must retain retryable rows.
+  const fileThread=await make(),fileId=randomUUID();await low(fileThread,true);
+  await pool.query("INSERT INTO lvd_chat_files(id,conversation_id,actor_key,object_key,name,mime_type,size,ready) VALUES($1,$2,$3,$4,'synthetic.txt','text/plain',12,false)",[fileId,fileThread,'guest:'+actor.guestHash,'private-chat/'+fileThread+'/'+fileId]);
+  row=await read(fileThread);assert.equal(row.guest_expiry_enabled,true);assert.equal(row.qualification,'needs_details');assert.ok(row.low_priority_expires_at);
+  assert.ok((await specialistInbox(staff,{view:'low',query:fileThread})).rows[0].expires_at);
+  await low(fileThread,true);await expireLowPriorityConversations();assert.ok(await read(fileThread),'An unfinished upload blocks deletion');
+  await pool.query('UPDATE lvd_chat_files SET ready=true WHERE id=$1',[fileId]);
+  const stored=(await pool.query("SELECT * FROM lvd_integrations WHERE provider='r2'")).rows[0],originalSend=S3Client.prototype.send;
+  let fail=true,deletes=0;
+  try{
+   await pool.query("INSERT INTO lvd_integrations(provider,encrypted_values,enabled,check_state) VALUES('r2',$1,true,'passed') ON CONFLICT(provider) DO UPDATE SET encrypted_values=$1,enabled=true,check_state='passed'",[seal('r2',{endpoint:'https://'+'a'.repeat(32)+'.r2.cloudflarestorage.com',bucket:'synthetic',accessKeyId:'synthetic',secretAccessKey:'synthetic'})]);
+   (S3Client.prototype as any).send=async function(command:any){assert.equal(command.constructor.name,'DeleteObjectCommand');assert.equal(command.input.Key,'private-chat/'+fileThread+'/'+fileId);deletes++;if(fail)throw Error('Synthetic storage outage');return {};};
+   await expireLowPriorityConversations();assert.ok(await read(fileThread));assert.equal((await pool.query('SELECT count(*)::int n FROM lvd_chat_files WHERE id=$1',[fileId])).rows[0].n,1,'Failed cleanup retains the object key for retry');
+   fail=false;await expireLowPriorityConversations();assert.equal(await read(fileThread),undefined);assert.equal(deletes,2);
+   assert.equal((await pool.query('SELECT count(*)::int n FROM lvd_chat_files WHERE id=$1',[fileId])).rows[0].n,0);
+  }finally{
+   S3Client.prototype.send=originalSend;
+   if(stored)await pool.query("UPDATE lvd_integrations SET encrypted_values=$1,enabled=$2,check_state=$3 WHERE provider='r2'",[stored.encrypted_values,stored.enabled,stored.check_state]);
+   else await pool.query("DELETE FROM lvd_integrations WHERE provider='r2'");
+  }
+
+  // Explicit specialist ownership remains durable and cancels expiry.
+  const claimed=await make();await send(claimed);await low(claimed,true);await pool.query("UPDATE lvd_conversations SET updated_at=now()-interval '1 minute' WHERE id=$1",[claimed]);
+  await chat.transition(staff,claimed,{action:'claim',version:(await read(claimed)).version});
+  row=await read(claimed);assert.equal(row.state,'human');assert.equal(row.assigned_to,owner.id);assert.equal(row.qualification,'ready');assert.equal(row.retain_history,true);assert.equal(row.low_priority_expires_at,null);
+  await expireLowPriorityConversations();assert.ok(await read(claimed));
+
+  const leased=await make();await low(leased,true);await pool.query('UPDATE lvd_conversations SET ai_generation=$2,ai_started_at=now() WHERE id=$1',[leased,randomUUID()]);
+  await expireLowPriorityConversations();assert.ok(await read(leased),'An active answer lease blocks deletion');
+  await pool.query("UPDATE lvd_conversations SET ai_started_at=now()-interval '91 seconds' WHERE id=$1",[leased]);await expireLowPriorityConversations();assert.equal(await read(leased),undefined);
+
+  // Hold a real row lock. A sweep must skip it; activity committed before the
+  // next sweep then wins. The watchdog unlocks a regressed sweep before failing.
+  const raced=await make();await low(raced,true);const lock=await pool.connect();let open=false,timer:ReturnType<typeof setTimeout>|undefined;
+  try{
+   await lock.query('BEGIN');open=true;await lock.query("SET LOCAL statement_timeout='2s'");await lock.query('SELECT id FROM lvd_conversations WHERE id=$1 FOR UPDATE',[raced]);
+   const sweep=expireLowPriorityConversations(),skipped=await Promise.race([sweep.then(()=>true),new Promise<false>(resolve=>{timer=setTimeout(()=>resolve(false),1500);})]);
+   clearTimeout(timer);
+   if(!skipped){await lock.query('ROLLBACK');open=false;await sweep;assert.fail('Expiry waited for an active row instead of skipping its lock');}
+   assert.ok(await read(raced));
+   await lock.query("INSERT INTO lvd_messages(conversation_id,role,body,actor_key,client_key) VALUES($1,'user','Synthetic winning activity',$2,$3)",[raced,'guest:'+actor.guestHash,randomUUID()]);
+   await lock.query('COMMIT');open=false;
+  }finally{clearTimeout(timer);if(open)await lock.query('ROLLBACK');lock.release();}
+  await expireLowPriorityConversations();row=await read(raced);assert.ok(row);assert.ok(new Date(row.low_priority_expires_at).getTime()>Date.now()+7190000);
+  console.log('Chat qualification checks passed: AI-only low priority, explicit handoff, account and sign-in retention, immutable history, two-hour activity, retry clock, SQL cascade, attachment countdown, unfinished upload, storage failure/retry cleanup, human claim, active lease and skip-locked activity race');
+ }finally{if(ids.length)await pool.query('DELETE FROM lvd_conversations WHERE id=ANY($1::uuid[])',[ids]);}
+}

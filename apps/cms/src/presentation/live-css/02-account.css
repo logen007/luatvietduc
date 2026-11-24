@@ -1,0 +1,262 @@
+/* Account */
+.live-page.live-auth-page {
+  padding-block: 64px 88px;
+}
+.live-auth-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 680px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.live-auth-intro {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 680px;
+  padding: 52px;
+  color: #fff;
+  background: #141414 url("/assets/optimized-photos/library-960.webp") center/cover;
+  background-image: image-set(url("/assets/optimized-photos/library-960.avif") type("image/avif"), url("/assets/optimized-photos/library-960.webp") type("image/webp"));
+}
+.live-auth-intro:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.85));
+}
+.live-auth-intro-copy {
+  padding-top: 30px;
+}
+.live-auth-intro .live-eyebrow {
+  color: rgba(255, 255, 255, 0.75);
+}
+.live-auth-intro h2 {
+  font: 500 clamp(40px, 3.7vw, 56px)/1.08 var(--lvd-display, Inter, sans-serif);
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 28px 0;
+}
+.live-auth-intro h2 span {
+  color: rgba(255, 255, 255, 0.65);
+}
+.live-auth-intro p {
+  max-width: 370px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+}
+.live-auth-caption {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.live-auth-caption .live-small-rule {
+  margin-bottom: 18px;
+}
+.live-auth-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 52px clamp(32px, 4.4vw, 72px);
+  background: #fff;
+}
+.live-auth-panel h1 {
+  font-size: 48px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 18px 0 24px;
+}
+.live-auth-panel .live-back-link {
+  margin-bottom: 44px;
+}
+.live-auth-panel .live-lead {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 28px;
+  max-width: 430px;
+}
+.live-auth-panel .live-google,
+.live-auth-panel .live-guest-link {
+  width: 100%;
+  justify-content: center;
+  gap: 14px;
+  min-height: 50px;
+}
+.live-auth-panel .live-google {
+  background: #fff;
+  color: #0b0b0b;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+.live-auth-panel .live-google:hover {
+  background: #f5f5f5;
+}
+.live-auth-panel .live-google:disabled {
+  background: #fafaf9;
+}
+.live-google svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.live-page p.live-inline-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #666;
+  margin: 14px 0 0;
+}
+.live-auth-divider {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 28px 0;
+  color: #666;
+  font-size: 13px;
+}
+.live-auth-divider:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+}
+.live-auth-divider span {
+  position: relative;
+  padding: 0 14px;
+  background: #fff;
+}
+.live-page p.live-auth-privacy {
+  max-width: 350px;
+  margin: 24px auto 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #666;
+}
+.live-staff-link {
+  display: block;
+  text-align: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: 38px;
+  padding-top: 28px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #666;
+  text-decoration: none;
+}
+.live-staff-link span {
+  color: #0b0b0b;
+  white-space: nowrap;
+}
+.live-staff-link:hover span {
+  text-decoration: underline;
+  text-decoration-color: #fb7a00;
+  text-underline-offset: 4px;
+}
+.live-account-links {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.live-account-links > .button {
+  margin-bottom: 16px;
+}
+.live-account-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 20px 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #0b0b0b;
+  text-decoration: none;
+}
+.live-account-link small {
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #666;
+  margin-top: 6px;
+}
+.live-account-link:hover > span:last-child {
+  color: #fb7a00;
+}
+.live-signout {
+  align-self: flex-start;
+  margin-top: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #666;
+  font: 400 14px/1.5 var(--lvd-font, Inter, sans-serif);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+/* Account forms: one dark panel, two credential fields, clear primary action. */
+.live-auth-panel{background:#0b0b0b;color:#f5f5f5;color-scheme:dark}
+.live-auth-panel h1,.live-auth-panel .live-account-form-view>h1{color:#f5f5f5;font-size:clamp(32px,3.2vw,48px);line-height:1.12;margin:0 0 32px}
+.live-auth-panel .live-account-form-view{width:100%;max-width:440px;margin-inline:auto}
+.live-auth-panel .button{width:100%;min-height:50px;border-color:#f5f5f5;background:#f5f5f5;color:#111}
+.live-auth-panel .button:hover{background:#ddd;border-color:#ddd}
+.live-auth-panel .live-google{background:#171717;border-color:#3a3a3a;color:#f5f5f5}
+.live-auth-panel .live-google:hover{background:#242424;border-color:#666}
+.live-auth-panel .live-google:disabled{background:#171717;color:#888}
+.live-auth-panel .live-auth-divider{margin:24px 0;color:#999;font-size:13px}
+.live-auth-panel .live-auth-divider::before{background:#303030}
+.live-auth-panel .live-auth-divider span{background:#0b0b0b}
+.live-credentials-form{display:grid;gap:18px}
+.live-credential-field{display:grid;gap:8px}
+.live-credentials-form input{width:100%;min-width:0;min-height:50px;padding:12px 14px;border:1px solid #3a3a3a;border-radius:5px;background:#171717;color:#fff;font:400 16px/24px var(--lvd-font);box-shadow:none}
+.live-credentials-form input:focus{outline:2px solid #ddd;outline-offset:2px}
+.live-credentials-form input:disabled{opacity:.65}
+.live-credentials-form small{font-size:12px;line-height:1.4;color:#aaa}
+.live-password-input{display:block;position:relative}
+.live-password-input input{padding-right:52px}
+.live-password-input button{position:absolute;inset:3px 3px 3px auto;width:44px;display:grid;place-items:center;border:0;border-radius:4px;background:none;color:#bbb;cursor:pointer}
+.live-password-input svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5}
+.live-forgot-password{justify-self:end;color:#ccc;font-size:13px}
+.live-auth-panel .live-auth-switch{margin:24px 0 0;text-align:center;color:#aaa;font-size:14px;line-height:1.5}
+.live-auth-switch a{font-weight:600;color:#fff}
+.live-auth-panel .live-auth-guest{display:block;width:fit-content;margin:20px auto 0;color:#aaa;font-size:13px}
+.live-auth-panel .live-auth-note{font-size:14px;line-height:1.6;color:#bbb;margin:0 0 24px;max-width:none}
+.live-auth-panel .live-auth-success{font-size:14px;line-height:1.5;color:#ddd;margin-top:20px}
+.live-auth-panel .live-error{color:#ffb9b9;background:#251515;border:1px solid #5b3030;border-radius:5px;padding:12px 14px;font-size:14px;line-height:1.5;margin-top:20px}
+.live-auth-text-button{padding:0;min-height:44px;background:none;border:0;color:#eee;font:500 14px/1.5 var(--lvd-font);cursor:pointer}
+.live-auth-panel :is(a,button):focus-visible{outline:2px solid #fff;outline-offset:4px}
+.live-auth-panel .live-account-link{color:#eee;border-color:#303030}
+.live-auth-panel .live-account-link:hover{color:#fff}
+.live-auth-panel .live-signout{color:#bbb;min-height:44px}
+@media(max-width:700px){.live-auth-panel{padding:32px 24px}.live-auth-panel h1{margin-bottom:28px}}
+/* Mobile panels follow their contents, including short recovery confirmations. */
+@media(max-width:700px){.live-auth-page .live-auth-layout,.live-auth-page .live-auth-panel{min-height:0}.live-auth-page .live-auth-panel{justify-content:flex-start}}
+
+.live-auth-panel .live-loading p{color:#bbb}
+.live-auth-panel .live-text-action{color:#eee}
+.live-auth-panel .live-account-link:hover>span:last-child{color:inherit}
+
+/* Email first; the Google mark is a clean monochrome glyph on the dark form. */
+.live-auth-panel .live-google svg{width:20px;height:20px;fill:currentColor;stroke:none}
+.live-auth-panel .live-google svg path{stroke:none}
+.live-credentials-form input::placeholder{color:#a3a3a3;opacity:1}
+
+/* Match form geometry without showing a second, inactive sign-in form. */
+.live-account-placeholder{visibility:hidden}
+.live-auth-panel .live-auth-placeholder-heading{font-family:var(--lvd-display,Inter,sans-serif);font-size:clamp(32px,3.2vw,48px);line-height:1.12;letter-spacing:-.02em;margin:0 0 32px}
+.live-auth-placeholder-input{box-sizing:border-box;min-height:50px;border:1px solid transparent;padding:12px 14px}
+.live-account-placeholder .live-auth-switch span{font-weight:600}
+@media(max-width:700px){.live-auth-panel .live-auth-placeholder-heading{margin-bottom:28px}}
+.live-account-profile{margin-top:20px;border-top:1px solid #303030;padding-top:16px}.live-account-profile summary{cursor:pointer;color:inherit;font-weight:500}.live-contact-profile{display:grid;gap:14px;margin-top:18px}.live-contact-profile label{display:grid;gap:6px;text-align:left;font-size:14px}.live-auth-panel .live-contact-profile input{width:100%;min-width:0;min-height:44px;box-sizing:border-box;padding:10px 12px;background:#161616;color:#eee;border:1px solid #363636;border-radius:4px;font:inherit;font-size:16px}.live-contact-profile input[readonly]{color:#aaa}.live-contact-profile button{min-height:44px;padding:10px 14px;border:1px solid #363636;border-radius:4px;background:#eee;color:#111;font:inherit;cursor:pointer}.live-contact-profile button:disabled{opacity:.5;cursor:default}.live-contact-profile p{margin:0;font-size:14px}
+
+.live-contact-avatar{display:grid;place-items:center;width:72px;height:72px;overflow:hidden;border:1px solid #444;border-radius:50%;background:#303030;color:#ddd;font-size:28px}.live-contact-avatar img{display:block;width:100%;height:100%;object-fit:cover}

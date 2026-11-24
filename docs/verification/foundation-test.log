@@ -1,0 +1,72 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @luatvietduc/foundation@0.1.0 test
+> npm run build && node --test test/*.test.mjs
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @luatvietduc/foundation@0.1.0 build
+> tsc -p tsconfig.json
+
+✔ owner can read own conversation (1.517716ms)
+✔ other user cannot read transcript (3.529139ms)
+✔ unassigned support cannot read transcript (0.243697ms)
+✔ admin can read for supervised operations (0.147793ms)
+✔ guest ownership follows authenticated opaque identity (0.363638ms)
+✔ handoff increments version and does not mutate original (0.163416ms)
+✔ other user cannot request handoff (0.462727ms)
+✔ stale handoff fails (0.562036ms)
+✔ duplicate handoff requires API idempotency handling (0.157637ms)
+✔ AI generation allowed only while AI owns current version (0.336556ms)
+✔ handoff invalidates in-flight AI generation (0.191238ms)
+✔ AI cannot reply after agent claims (0.071548ms)
+✔ AI cannot publish to another conversation (0.060001ms)
+✔ AI cannot publish stale version (0.050706ms)
+✔ agent can claim in-scope queued conversation (0.043916ms)
+✔ member cannot claim (0.078979ms)
+✔ agent from wrong jurisdiction cannot claim (0.17222ms)
+✔ agent cannot claim directly from AI mode (0.091057ms)
+✔ concurrent second claim fails with stale version (0.11995ms)
+✔ assigned agent can read and reply (0.080932ms)
+✔ unassigned agent cannot read or reply (0.059109ms)
+✔ admin cannot silently impersonate assigned agent (0.054862ms)
+✔ closed conversations reject AI replies (0.052368ms)
+✔ invalid conversation fails closed (0.0464ms)
+✔ missing assigned agent in human state fails closed (0.047662ms)
+✔ empty authenticated identity denied (0.046ms)
+✔ approved current public source passes eligibility gate (0.147972ms)
+✔ knowledge rejects private record (0.065138ms)
+✔ knowledge rejects draft (0.03947ms)
+✔ knowledge rejects withdrawn source (0.030056ms)
+✔ knowledge rejects AI disallowed (0.104628ms)
+✔ knowledge rejects missing reviewer (0.091568ms)
+✔ knowledge rejects missing review date (0.035553ms)
+✔ knowledge rejects review expired (0.057997ms)
+✔ knowledge rejects missing review deadline (0.05992ms)
+✔ knowledge rejects future effective date (0.068613ms)
+✔ knowledge rejects unknown effective date (0.036625ms)
+✔ knowledge rejects expired law (0.081523ms)
+✔ knowledge rejects invalid date (0.070916ms)
+✔ knowledge rejects conflicting sources (0.034221ms)
+✔ knowledge rejects invalid URL (0.048804ms)
+✔ knowledge rejects credentials in source URL (0.040831ms)
+✔ knowledge rejects future review (0.027902ms)
+✔ Vietnamese source cannot silently answer German law (0.114242ms)
+✔ invalid evaluation time denied (0.126119ms)
+✔ social links start empty, not Bizlawyer accounts (0.686304ms)
+✔ domain is planned but not verified (0.09948ms)
+✔ AI/live chat remain off until operational acceptance (0.05934ms)
+✔ private chats never become knowledge automatically (0.041953ms)
+✔ unknown jurisdiction fails even if source matches (0.045989ms)
+ℹ tests 50
+ℹ suites 0
+ℹ pass 50
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 139.81337
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @luatvietduc/foundation@0.1.0 typecheck
+> tsc -p tsconfig.json --noEmit
