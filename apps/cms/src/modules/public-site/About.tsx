@@ -7,8 +7,8 @@ import {Arrow,Breadcrumb} from './ui';
 
 type CopyKey=keyof typeof information.text;
 const missionIds=['knowledge','life','business','connection','community'] as const;
-function Chapter({title,id,children}:{title:string;id:string;children:ReactNode}){
- return <section className="lvd-about-chapter" id={id} aria-labelledby={id+'-title'}><header><h2 id={id+'-title'}>{title}</h2></header><div className="lvd-about-chapter-body">{children}</div></section>;
+function Chapter({title,id,children}:{title?:string;id:string;children:ReactNode}){
+ return <section className="lvd-about-chapter" id={id} aria-labelledby={title?id+'-title':undefined}>{title&&<header><h2 id={id+'-title'}>{title}</h2></header>}<div className="lvd-about-chapter-body">{children}</div></section>;
 }
 function linkBizlawyer(value:string){
  return value.split(/(\bBizlawyer(?: & Partners)?\b)/gi).map((part,index)=>
@@ -32,7 +32,7 @@ export function About(){
    </div>
   </div>
   <div className="container lvd-about-chapters">
-   <Chapter id="gia-tri-cong-dong" title={text('about.community.title')}>
+   <Chapter id="gia-tri-cong-dong">
     {paragraphs(['about.community.2'])}
     <ul className="lvd-about-missions">{missionIds.map(id=><li key={id}><div><h3>{text(`about.mission.${id}.title`)}</h3><p>{text(`about.mission.${id}.body`)}</p></div></li>)}</ul>
    </Chapter>
