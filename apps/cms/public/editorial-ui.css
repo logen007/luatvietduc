@@ -803,6 +803,7 @@ html :is(a,[role="link"],button),html :is(a,[role="link"],button) *{text-decorat
  .lvd-redesign .header-tools { gap:14px; }
  .lvd-redesign .header-login { display:inline-flex; }
  .pm-hero-video,.pm-hero-poster { object-position:62% center; }
+ .pm-hero-description:lang(de) { max-width:min(100%,30em); font-size:clamp(12px,4vw,17px); }
  .pm-ask-row { flex-wrap:nowrap; }
  .lvd-redesign .pm-ask textarea { flex-basis:0; height:48px; min-height:48px; }
  .lvd-redesign .pm-ask .button { width:48px; min-height:48px; }
